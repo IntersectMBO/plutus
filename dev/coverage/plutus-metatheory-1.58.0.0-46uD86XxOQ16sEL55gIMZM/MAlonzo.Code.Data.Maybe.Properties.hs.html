@@ -1,0 +1,460 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Maybe.Properties where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Bool qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Maybe qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Algebra.Bundles qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Algebra.Structures qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Data.Maybe.Base qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Data.Maybe.Relation.Unary.All qualified
+<span class="lineno">   25 </span>import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
+<span class="lineno">   26 </span>import MAlonzo.Code.Relation.Binary.Structures qualified
+<span class="lineno">   27 </span>import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
+<span class="lineno">   28 </span>import MAlonzo.Code.Relation.Nullary.Reflects qualified
+<span class="lineno">   29 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   30 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   31 </span>                    word64ToNat)
+<span class="lineno">   32 </span>import MAlonzo.RTE qualified
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>-- Data.Maybe.Properties.just-injective
+<span class="lineno">   35 </span>d_just'45'injective_22 ::
+<span class="lineno">   36 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   37 </span>  () -&gt;
+<span class="lineno">   38 </span>  AgdaAny -&gt;
+<span class="lineno">   39 </span>  AgdaAny -&gt;
+<span class="lineno">   40 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   41 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">d_just'45'injective_22 = erased</span></span>
+<span class="lineno">   43 </span>-- Data.Maybe.Properties.≡-dec
+<span class="lineno">   44 </span>d_'8801''45'dec_24 ::
+<span class="lineno">   45 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   46 </span>  () -&gt;
+<span class="lineno">   47 </span>  (AgdaAny -&gt;
+<span class="lineno">   48 </span>   AgdaAny -&gt;
+<span class="lineno">   49 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">   50 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">   51 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">   52 </span>  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">d_'8801''45'dec_24 ~v0 ~v1 v2 v3 v4 = du_'8801''45'dec_24 v2 v3 v4</span></span>
+<span class="lineno">   54 </span>du_'8801''45'dec_24 ::
+<span class="lineno">   55 </span>  (AgdaAny -&gt;
+<span class="lineno">   56 </span>   AgdaAny -&gt;
+<span class="lineno">   57 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">   58 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">   59 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">   60 </span>  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">du_'8801''45'dec_24 v0 v1 v2</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">   65 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v4</span>
+<span class="lineno">   66 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   67 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168</span>
+<span class="lineno">   68 </span><span class="spaces">                    </span><span class="nottickedoff">erased erased (coe v0 v3 v4)</span>
+<span class="lineno">   69 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">   70 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   71 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">   72 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span>
+<span class="lineno">   73 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)</span>
+<span class="lineno">   74 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">   75 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">   76 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">   77 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3</span>
+<span class="lineno">   78 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   79 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">   80 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span>
+<span class="lineno">   81 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)</span>
+<span class="lineno">   82 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">   83 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   84 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">   85 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)</span>
+<span class="lineno">   86 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 erased)</span>
+<span class="lineno">   87 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   89 </span>-- Data.Maybe.Properties.map-id
+<span class="lineno">   90 </span>d_map'45'id_42 ::
+<span class="lineno">   91 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   92 </span>  () -&gt;
+<span class="lineno">   93 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   94 </span><span class="decl"><span class="nottickedoff">d_map'45'id_42 = erased</span></span>
+<span class="lineno">   95 </span>-- Data.Maybe.Properties.map-id-local
+<span class="lineno">   96 </span>d_map'45'id'45'local_52 ::
+<span class="lineno">   97 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   98 </span>  () -&gt;
+<span class="lineno">   99 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  100 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  101 </span>  MAlonzo.Code.Data.Maybe.Relation.Unary.All.T_All_18 -&gt;
+<span class="lineno">  102 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">d_map'45'id'45'local_52 = erased</span></span>
+<span class="lineno">  104 </span>-- Data.Maybe.Properties.map-&lt;∣&gt;
+<span class="lineno">  105 </span>d_map'45''60''8739''62'_62 ::
+<span class="lineno">  106 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  107 </span>  () -&gt;
+<span class="lineno">  108 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  109 </span>  () -&gt;
+<span class="lineno">  110 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  111 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  112 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  113 </span><span class="decl"><span class="nottickedoff">d_map'45''60''8739''62'_62 = erased</span></span>
+<span class="lineno">  114 </span>-- Data.Maybe.Properties.map-cong
+<span class="lineno">  115 </span>d_map'45'cong_78 ::
+<span class="lineno">  116 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  117 </span>  () -&gt;
+<span class="lineno">  118 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  119 </span>  () -&gt;
+<span class="lineno">  120 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  121 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  122 </span>  (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  123 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">d_map'45'cong_78 = erased</span></span>
+<span class="lineno">  125 </span>-- Data.Maybe.Properties.map-cong-local
+<span class="lineno">  126 </span>d_map'45'cong'45'local_94 ::
+<span class="lineno">  127 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  128 </span>  () -&gt;
+<span class="lineno">  129 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  130 </span>  () -&gt;
+<span class="lineno">  131 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  132 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  133 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  134 </span>  MAlonzo.Code.Data.Maybe.Relation.Unary.All.T_All_18 -&gt;
+<span class="lineno">  135 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  136 </span><span class="decl"><span class="nottickedoff">d_map'45'cong'45'local_94 = erased</span></span>
+<span class="lineno">  137 </span>-- Data.Maybe.Properties.map-injective
+<span class="lineno">  138 </span>d_map'45'injective_100 ::
+<span class="lineno">  139 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  140 </span>  () -&gt;
+<span class="lineno">  141 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  142 </span>  () -&gt;
+<span class="lineno">  143 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  144 </span>  (AgdaAny -&gt;
+<span class="lineno">  145 </span>   AgdaAny -&gt;
+<span class="lineno">  146 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  147 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  148 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  149 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  150 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  151 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  152 </span><span class="decl"><span class="nottickedoff">d_map'45'injective_100 = erased</span></span>
+<span class="lineno">  153 </span>-- Data.Maybe.Properties.map-∘
+<span class="lineno">  154 </span>d_map'45''8728'_118 ::
+<span class="lineno">  155 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  156 </span>  () -&gt;
+<span class="lineno">  157 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  158 </span>  () -&gt;
+<span class="lineno">  159 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  160 </span>  () -&gt;
+<span class="lineno">  161 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  162 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  163 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff">d_map'45''8728'_118 = erased</span></span>
+<span class="lineno">  165 </span>-- Data.Maybe.Properties.map-nothing
+<span class="lineno">  166 </span>d_map'45'nothing_126 ::
+<span class="lineno">  167 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  168 </span>  () -&gt;
+<span class="lineno">  169 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  170 </span>  () -&gt;
+<span class="lineno">  171 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  172 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  173 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  174 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  175 </span><span class="decl"><span class="nottickedoff">d_map'45'nothing_126 = erased</span></span>
+<span class="lineno">  176 </span>-- Data.Maybe.Properties.map-just
+<span class="lineno">  177 </span>d_map'45'just_134 ::
+<span class="lineno">  178 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  179 </span>  () -&gt;
+<span class="lineno">  180 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  181 </span>  () -&gt;
+<span class="lineno">  182 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  183 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  184 </span>  AgdaAny -&gt;
+<span class="lineno">  185 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  186 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  187 </span><span class="decl"><span class="nottickedoff">d_map'45'just_134 = erased</span></span>
+<span class="lineno">  188 </span>-- Data.Maybe.Properties.maybe-map
+<span class="lineno">  189 </span>d_maybe'45'map_148 ::
+<span class="lineno">  190 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  191 </span>  () -&gt;
+<span class="lineno">  192 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  193 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  194 </span>  () -&gt;
+<span class="lineno">  195 </span>  (Maybe AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  196 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  197 </span>  AgdaAny -&gt;
+<span class="lineno">  198 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  199 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  200 </span><span class="decl"><span class="nottickedoff">d_maybe'45'map_148 = erased</span></span>
+<span class="lineno">  201 </span>-- Data.Maybe.Properties.maybe′-map
+<span class="lineno">  202 </span>d_maybe'8242''45'map_172 ::
+<span class="lineno">  203 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  204 </span>  () -&gt;
+<span class="lineno">  205 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  206 </span>  () -&gt;
+<span class="lineno">  207 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  208 </span>  () -&gt;
+<span class="lineno">  209 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  210 </span>  AgdaAny -&gt;
+<span class="lineno">  211 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  212 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  213 </span><span class="decl"><span class="nottickedoff">d_maybe'8242''45'map_172 = erased</span></span>
+<span class="lineno">  214 </span>-- Data.Maybe.Properties._._.Associative
+<span class="lineno">  215 </span>d_Associative_206 ::
+<span class="lineno">  216 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  217 </span>  () -&gt; (Maybe AgdaAny -&gt; Maybe AgdaAny -&gt; Maybe AgdaAny) -&gt; ()
+<span class="lineno">  218 </span><span class="decl"><span class="nottickedoff">d_Associative_206 = erased</span></span>
+<span class="lineno">  219 </span>-- Data.Maybe.Properties._._.Idempotent
+<span class="lineno">  220 </span>d_Idempotent_220 ::
+<span class="lineno">  221 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  222 </span>  () -&gt; (Maybe AgdaAny -&gt; Maybe AgdaAny -&gt; Maybe AgdaAny) -&gt; ()
+<span class="lineno">  223 </span><span class="decl"><span class="nottickedoff">d_Idempotent_220 = erased</span></span>
+<span class="lineno">  224 </span>-- Data.Maybe.Properties._._.Identity
+<span class="lineno">  225 </span>d_Identity_226 ::
+<span class="lineno">  226 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  227 </span>  () -&gt;
+<span class="lineno">  228 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  229 </span>  (Maybe AgdaAny -&gt; Maybe AgdaAny -&gt; Maybe AgdaAny) -&gt; ()
+<span class="lineno">  230 </span><span class="decl"><span class="nottickedoff">d_Identity_226 = erased</span></span>
+<span class="lineno">  231 </span>-- Data.Maybe.Properties._._.LeftIdentity
+<span class="lineno">  232 </span>d_LeftIdentity_252 ::
+<span class="lineno">  233 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  234 </span>  () -&gt;
+<span class="lineno">  235 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  236 </span>  (Maybe AgdaAny -&gt; Maybe AgdaAny -&gt; Maybe AgdaAny) -&gt; ()
+<span class="lineno">  237 </span><span class="decl"><span class="nottickedoff">d_LeftIdentity_252 = erased</span></span>
+<span class="lineno">  238 </span>-- Data.Maybe.Properties._._.RightIdentity
+<span class="lineno">  239 </span>d_RightIdentity_282 ::
+<span class="lineno">  240 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  241 </span>  () -&gt;
+<span class="lineno">  242 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  243 </span>  (Maybe AgdaAny -&gt; Maybe AgdaAny -&gt; Maybe AgdaAny) -&gt; ()
+<span class="lineno">  244 </span><span class="decl"><span class="nottickedoff">d_RightIdentity_282 = erased</span></span>
+<span class="lineno">  245 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-assoc
+<span class="lineno">  246 </span>d_'60''8739''62''45'assoc_312 ::
+<span class="lineno">  247 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  248 </span>  () -&gt;
+<span class="lineno">  249 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  250 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  251 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  252 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'assoc_312 = erased</span></span>
+<span class="lineno">  253 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-identityˡ
+<span class="lineno">  254 </span>d_'60''8739''62''45'identity'737'_324 ::
+<span class="lineno">  255 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  256 </span>  () -&gt;
+<span class="lineno">  257 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  258 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'identity'737'_324 = erased</span></span>
+<span class="lineno">  259 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-identityʳ
+<span class="lineno">  260 </span>d_'60''8739''62''45'identity'691'_328 ::
+<span class="lineno">  261 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  262 </span>  () -&gt;
+<span class="lineno">  263 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  264 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'identity'691'_328 = erased</span></span>
+<span class="lineno">  265 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-identity
+<span class="lineno">  266 </span>d_'60''8739''62''45'identity_332 ::
+<span class="lineno">  267 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  268 </span>  () -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  269 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'identity_332 ~v0 ~v1</span>
+<span class="lineno">  270 </span><span class="spaces">  </span><span class="nottickedoff">= du_'60''8739''62''45'identity_332</span></span>
+<span class="lineno">  271 </span>du_'60''8739''62''45'identity_332 ::
+<span class="lineno">  272 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  273 </span><span class="decl"><span class="nottickedoff">du_'60''8739''62''45'identity_332</span>
+<span class="lineno">  274 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased erased</span></span>
+<span class="lineno">  275 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-idem
+<span class="lineno">  276 </span>d_'60''8739''62''45'idem_334 ::
+<span class="lineno">  277 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  278 </span>  () -&gt;
+<span class="lineno">  279 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  280 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'idem_334 = erased</span></span>
+<span class="lineno">  281 </span>-- Data.Maybe.Properties._._.IsMagma
+<span class="lineno">  282 </span><span class="decl"><span class="nottickedoff">d_IsMagma_392 a0 a1 a2 = ()</span></span>
+<span class="lineno">  283 </span>-- Data.Maybe.Properties._._.IsMonoid
+<span class="lineno">  284 </span><span class="decl"><span class="nottickedoff">d_IsMonoid_398 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">  285 </span>-- Data.Maybe.Properties._._.IsSemigroup
+<span class="lineno">  286 </span><span class="decl"><span class="nottickedoff">d_IsSemigroup_420 a0 a1 a2 = ()</span></span>
+<span class="lineno">  287 </span>-- Data.Maybe.Properties._._.IsMagma.isEquivalence
+<span class="lineno">  288 </span>d_isEquivalence_1692 ::
+<span class="lineno">  289 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176 -&gt;
+<span class="lineno">  290 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+<span class="lineno">  291 </span><span class="decl"><span class="nottickedoff">d_isEquivalence_1692 v0</span>
+<span class="lineno">  292 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_isEquivalence_184 (coe v0)</span></span>
+<span class="lineno">  293 </span>-- Data.Maybe.Properties._._.IsMagma.∙-cong
+<span class="lineno">  294 </span>d_'8729''45'cong_1706 ::
+<span class="lineno">  295 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176 -&gt;
+<span class="lineno">  296 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  297 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  298 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  299 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  300 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  301 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  302 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  303 </span><span class="decl"><span class="nottickedoff">d_'8729''45'cong_1706 = erased</span></span>
+<span class="lineno">  304 </span>-- Data.Maybe.Properties._._.IsMonoid.identity
+<span class="lineno">  305 </span>d_identity_1802 ::
+<span class="lineno">  306 </span>  MAlonzo.Code.Algebra.Structures.T_IsMonoid_686 -&gt;
+<span class="lineno">  307 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  308 </span><span class="decl"><span class="nottickedoff">d_identity_1802 v0</span>
+<span class="lineno">  309 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_identity_698 (coe v0)</span></span>
+<span class="lineno">  310 </span>-- Data.Maybe.Properties._._.IsMonoid.isSemigroup
+<span class="lineno">  311 </span>d_isSemigroup_1814 ::
+<span class="lineno">  312 </span>  MAlonzo.Code.Algebra.Structures.T_IsMonoid_686 -&gt;
+<span class="lineno">  313 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">  314 </span><span class="decl"><span class="nottickedoff">d_isSemigroup_1814 v0</span>
+<span class="lineno">  315 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_isSemigroup_696 (coe v0)</span></span>
+<span class="lineno">  316 </span>-- Data.Maybe.Properties._._.IsSemigroup.assoc
+<span class="lineno">  317 </span>d_assoc_2546 ::
+<span class="lineno">  318 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472 -&gt;
+<span class="lineno">  319 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  320 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  321 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  322 </span><span class="decl"><span class="nottickedoff">d_assoc_2546 = erased</span></span>
+<span class="lineno">  323 </span>-- Data.Maybe.Properties._._.IsSemigroup.isMagma
+<span class="lineno">  324 </span>d_isMagma_2550 ::
+<span class="lineno">  325 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472 -&gt;
+<span class="lineno">  326 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">  327 </span><span class="decl"><span class="nottickedoff">d_isMagma_2550 v0</span>
+<span class="lineno">  328 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_isMagma_480 (coe v0)</span></span>
+<span class="lineno">  329 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-isMagma
+<span class="lineno">  330 </span>d_'60''8739''62''45'isMagma_2860 ::
+<span class="lineno">  331 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  332 </span>  () -&gt; MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">  333 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'isMagma_2860 ~v0 ~v1</span>
+<span class="lineno">  334 </span><span class="spaces">  </span><span class="nottickedoff">= du_'60''8739''62''45'isMagma_2860</span></span>
+<span class="lineno">  335 </span>du_'60''8739''62''45'isMagma_2860 ::
+<span class="lineno">  336 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">  337 </span><span class="decl"><span class="nottickedoff">du_'60''8739''62''45'isMagma_2860</span>
+<span class="lineno">  338 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  339 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsMagma'46'constructor_1867</span>
+<span class="lineno">  340 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  341 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_isEquivalence_396)</span>
+<span class="lineno">  342 </span><span class="spaces">      </span><span class="nottickedoff">erased</span></span>
+<span class="lineno">  343 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-isSemigroup
+<span class="lineno">  344 </span>d_'60''8739''62''45'isSemigroup_2862 ::
+<span class="lineno">  345 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  346 </span>  () -&gt; MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">  347 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'isSemigroup_2862 ~v0 ~v1</span>
+<span class="lineno">  348 </span><span class="spaces">  </span><span class="nottickedoff">= du_'60''8739''62''45'isSemigroup_2862</span></span>
+<span class="lineno">  349 </span>du_'60''8739''62''45'isSemigroup_2862 ::
+<span class="lineno">  350 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">  351 </span><span class="decl"><span class="nottickedoff">du_'60''8739''62''45'isSemigroup_2862</span>
+<span class="lineno">  352 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  353 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsSemigroup'46'constructor_10417</span>
+<span class="lineno">  354 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'60''8739''62''45'isMagma_2860) erased</span></span>
+<span class="lineno">  355 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-isMonoid
+<span class="lineno">  356 </span>d_'60''8739''62''45'isMonoid_2864 ::
+<span class="lineno">  357 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  358 </span>  () -&gt; MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+<span class="lineno">  359 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'isMonoid_2864 ~v0 ~v1</span>
+<span class="lineno">  360 </span><span class="spaces">  </span><span class="nottickedoff">= du_'60''8739''62''45'isMonoid_2864</span></span>
+<span class="lineno">  361 </span>du_'60''8739''62''45'isMonoid_2864 ::
+<span class="lineno">  362 </span>  MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+<span class="lineno">  363 </span><span class="decl"><span class="nottickedoff">du_'60''8739''62''45'isMonoid_2864</span>
+<span class="lineno">  364 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  365 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsMonoid'46'constructor_15873</span>
+<span class="lineno">  366 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'60''8739''62''45'isSemigroup_2862)</span>
+<span class="lineno">  367 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'60''8739''62''45'identity_332)</span></span>
+<span class="lineno">  368 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-semigroup
+<span class="lineno">  369 </span>d_'60''8739''62''45'semigroup_2866 ::
+<span class="lineno">  370 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  371 </span>  () -&gt; MAlonzo.Code.Algebra.Bundles.T_Semigroup_536
+<span class="lineno">  372 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'semigroup_2866 ~v0 ~v1</span>
+<span class="lineno">  373 </span><span class="spaces">  </span><span class="nottickedoff">= du_'60''8739''62''45'semigroup_2866</span></span>
+<span class="lineno">  374 </span>du_'60''8739''62''45'semigroup_2866 ::
+<span class="lineno">  375 </span>  MAlonzo.Code.Algebra.Bundles.T_Semigroup_536
+<span class="lineno">  376 </span><span class="decl"><span class="nottickedoff">du_'60''8739''62''45'semigroup_2866</span>
+<span class="lineno">  377 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  378 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.C_Semigroup'46'constructor_9793</span>
+<span class="lineno">  379 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Maybe.Base.du__'60''8739''62'__80)</span>
+<span class="lineno">  380 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'60''8739''62''45'isSemigroup_2862)</span></span>
+<span class="lineno">  381 </span>-- Data.Maybe.Properties._.&lt;∣&gt;-monoid
+<span class="lineno">  382 </span>d_'60''8739''62''45'monoid_2868 ::
+<span class="lineno">  383 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  384 </span>  () -&gt; MAlonzo.Code.Algebra.Bundles.T_Monoid_882
+<span class="lineno">  385 </span><span class="decl"><span class="nottickedoff">d_'60''8739''62''45'monoid_2868 ~v0 ~v1</span>
+<span class="lineno">  386 </span><span class="spaces">  </span><span class="nottickedoff">= du_'60''8739''62''45'monoid_2868</span></span>
+<span class="lineno">  387 </span>du_'60''8739''62''45'monoid_2868 ::
+<span class="lineno">  388 </span>  MAlonzo.Code.Algebra.Bundles.T_Monoid_882
+<span class="lineno">  389 </span><span class="decl"><span class="nottickedoff">du_'60''8739''62''45'monoid_2868</span>
+<span class="lineno">  390 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  391 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.C_Monoid'46'constructor_16157</span>
+<span class="lineno">  392 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Maybe.Base.du__'60''8739''62'__80)</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)</span>
+<span class="lineno">  394 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'60''8739''62''45'isMonoid_2864)</span></span>
+<span class="lineno">  395 </span>-- Data.Maybe.Properties.map-id₂
+<span class="lineno">  396 </span>d_map'45'id'8322'_2870 ::
+<span class="lineno">  397 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  398 </span>  () -&gt;
+<span class="lineno">  399 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  400 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  401 </span>  MAlonzo.Code.Data.Maybe.Relation.Unary.All.T_All_18 -&gt;
+<span class="lineno">  402 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  403 </span><span class="decl"><span class="nottickedoff">d_map'45'id'8322'_2870 = erased</span></span>
+<span class="lineno">  404 </span>-- Data.Maybe.Properties.map-cong₂
+<span class="lineno">  405 </span>d_map'45'cong'8322'_2872 ::
+<span class="lineno">  406 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  407 </span>  () -&gt;
+<span class="lineno">  408 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  409 </span>  () -&gt;
+<span class="lineno">  410 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  411 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  412 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  413 </span>  MAlonzo.Code.Data.Maybe.Relation.Unary.All.T_All_18 -&gt;
+<span class="lineno">  414 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  415 </span><span class="decl"><span class="nottickedoff">d_map'45'cong'8322'_2872 = erased</span></span>
+<span class="lineno">  416 </span>-- Data.Maybe.Properties.map-compose
+<span class="lineno">  417 </span>d_map'45'compose_2874 ::
+<span class="lineno">  418 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  419 </span>  () -&gt;
+<span class="lineno">  420 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  421 </span>  () -&gt;
+<span class="lineno">  422 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  423 </span>  () -&gt;
+<span class="lineno">  424 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  425 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  426 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  427 </span><span class="decl"><span class="nottickedoff">d_map'45'compose_2874 = erased</span></span>
+<span class="lineno">  428 </span>-- Data.Maybe.Properties.map-&lt;∣&gt;-commute
+<span class="lineno">  429 </span>d_map'45''60''8739''62''45'commute_2876 ::
+<span class="lineno">  430 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  431 </span>  () -&gt;
+<span class="lineno">  432 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  433 </span>  () -&gt;
+<span class="lineno">  434 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  435 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  436 </span>  Maybe AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  437 </span><span class="decl"><span class="nottickedoff">d_map'45''60''8739''62''45'commute_2876 = erased</span></span>
+
+</pre>
+</body>
+</html>

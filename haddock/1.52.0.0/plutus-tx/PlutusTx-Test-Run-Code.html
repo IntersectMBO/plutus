@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Test.Run.Code</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Test.Run.Code.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Test.Run.Code</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    >module <a href="../plutus-tx/PlutusTx-Eval.html"
+	      >PlutusTx.Eval</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evaluationResultMatchesHaskell"
+	      >evaluationResultMatchesHaskell</a
+	      > &#8759; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > hask &#8658; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; (&#8704; r. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > r, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	      >Show</a
+	      > r) &#8658; r &#8594; r &#8594; k) &#8594; hask &#8594; k</li
+	    ><li class="src short"
+	    ><a href="#v:assertEvaluatesSuccessfully"
+	      >assertEvaluatesSuccessfully</a
+	      > &#8759; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+	      >Assertion</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:assertEvaluatesWithError"
+	      >assertEvaluatesWithError</a
+	      > &#8759; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+	      >Assertion</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:assertResult"
+	      >assertResult</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  >module <a href="../plutus-tx/PlutusTx-Eval.html"
+	    >PlutusTx.Eval</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluationResultMatchesHaskell" class="def"
+	    >evaluationResultMatchesHaskell</a
+	    > &#8759; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > hask &#8658; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; (&#8704; r. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > r, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > r) &#8658; r &#8594; r &#8594; k) &#8594; hask &#8594; k <a href="src/PlutusTx.Test.Run.Code.html#evaluationResultMatchesHaskell" class="link"
+	    >Source</a
+	    > <a href="#v:evaluationResultMatchesHaskell" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Evaluate <code
+	      ><a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+		>CompiledCode</a
+		></code
+	      > and check that the result matches a given Haskell value
+   (perhaps obtained by running the Haskell code that the term was compiled
+   from).  We evaluate the lifted Haskell value as well, because lifting may
+   produce reducible terms. The function is polymorphic in the comparison
+   operator so that we can use it with both HUnit Assertions and QuickCheck
+   Properties.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:assertEvaluatesSuccessfully" class="def"
+	    >assertEvaluatesSuccessfully</a
+	    > &#8759; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+	    >Assertion</a
+	    > <a href="src/PlutusTx.Test.Run.Code.html#assertEvaluatesSuccessfully" class="link"
+	    >Source</a
+	    > <a href="#v:assertEvaluatesSuccessfully" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:assertEvaluatesWithError" class="def"
+	    >assertEvaluatesWithError</a
+	    > &#8759; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+	    >Assertion</a
+	    > <a href="src/PlutusTx.Test.Run.Code.html#assertEvaluatesWithError" class="link"
+	    >Source</a
+	    > <a href="#v:assertEvaluatesWithError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:assertResult" class="def"
+	    >assertResult</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Run.Code.html#assertResult" class="link"
+	    >Source</a
+	    > <a href="#v:assertResult" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,336 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Compiler.Compat</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#maybeGetClassOpId"
+	><span class="hs-identifier"
+	  >maybeGetClassOpId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Class.html"
+	><span class="hs-identifier"
+	  >GHC.Core.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.Info.html"
+	><span class="hs-identifier"
+	  >GHC.Types.Id.Info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#maybeGetClassOpId"
+	><span class="hs-identifier hs-type"
+	  >maybeGetClassOpId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.Info.html#IdDetails"
+	><span class="hs-identifier hs-type"
+	  >GHC.IdDetails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Class.html#Class"
+	><span class="hs-identifier hs-type"
+	  >GHC.Class</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &gt;= 912
+</span
+      ><span class="hs-identifier"
+      >maybeGetClassOpId</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >GHC.ClassOpId</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >cls</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Just</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >cls</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-identifier"
+      >maybeGetClassOpId</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Nothing</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span id="maybeGetClassOpId"
+      ><span class="annot"
+	><span class="annottext"
+	  >maybeGetClassOpId :: IdDetails -&gt; Maybe Class
+</span
+	  ><a href="PlutusTx.Compiler.Compat.html#maybeGetClassOpId"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maybeGetClassOpId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.Info.html#ClassOpId"
+	><span class="hs-identifier hs-type"
+	  >GHC.ClassOpId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679515363"
+      ><span class="annot"
+	><span class="annottext"
+	  >Class
+</span
+	  ><a href="#local-6989586621679515363"
+	  ><span class="hs-identifier hs-var"
+	    >cls</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Class -&gt; Maybe Class
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Class
+</span
+	><a href="#local-6989586621679515363"
+	><span class="hs-identifier hs-var"
+	  >cls</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#maybeGetClassOpId"
+	><span class="hs-identifier hs-var"
+	  >maybeGetClassOpId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IdDetails
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Class
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ></pre
+    ></body
+  ></html
+>

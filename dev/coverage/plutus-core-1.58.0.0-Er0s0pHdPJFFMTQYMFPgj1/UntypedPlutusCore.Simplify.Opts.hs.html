@@ -1,0 +1,71 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module UntypedPlutusCore.Simplify.Opts
+<span class="lineno">    4 </span>  ( SimplifyOpts (..)
+<span class="lineno">    5 </span>  , soMaxSimplifierIterations
+<span class="lineno">    6 </span>  , soMaxCseIterations
+<span class="lineno">    7 </span>  , soCseWhichSubterms
+<span class="lineno">    8 </span>  , soInlineHints
+<span class="lineno">    9 </span>  , soConservativeOpts
+<span class="lineno">   10 </span>  , soInlineConstants
+<span class="lineno">   11 </span>  , soInlineCallsiteGrowth
+<span class="lineno">   12 </span>  , soPreserveLogging
+<span class="lineno">   13 </span>  , defaultSimplifyOpts
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Control.Lens.TH (makeLenses)
+<span class="lineno">   17 </span>import Data.Default.Class
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusCore.Annotation (InlineHints (..))
+<span class="lineno">   20 </span>import PlutusCore.AstSize
+<span class="lineno">   21 </span>import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>data SimplifyOpts name a = SimplifyOpts
+<span class="lineno">   24 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_soMaxSimplifierIterations</span></span></span> :: Int
+<span class="lineno">   25 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_soMaxCseIterations</span></span></span> :: Int
+<span class="lineno">   26 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_soCseWhichSubterms</span></span></span> :: CseWhichSubterms
+<span class="lineno">   27 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_soConservativeOpts</span></span></span> :: Bool
+<span class="lineno">   28 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_soInlineHints</span></span></span> :: InlineHints name a
+<span class="lineno">   29 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_soInlineConstants</span></span></span> :: Bool
+<span class="lineno">   30 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_soInlineCallsiteGrowth</span></span></span> :: AstSize
+<span class="lineno">   31 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_soPreserveLogging</span></span></span> :: Bool
+<span class="lineno">   32 </span>  }
+<span class="lineno">   33 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>$<span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">(makeLenses ''SimplifyOpts)</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>defaultSimplifyOpts :: SimplifyOpts name a
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">defaultSimplifyOpts =</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">SimplifyOpts</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">{ _soMaxSimplifierIterations = 12</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">, _soMaxCseIterations = 4</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">, _soCseWhichSubterms = ExcludeWorkFree</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff">, _soConservativeOpts = False</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">, _soInlineHints = def</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">, _soInlineConstants = True</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">, _soInlineCallsiteGrowth = 5</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="istickedoff">, _soPreserveLogging = True</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
+
+</pre>
+</body>
+</html>

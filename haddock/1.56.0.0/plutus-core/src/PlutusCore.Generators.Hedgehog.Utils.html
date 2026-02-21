@@ -1,0 +1,2455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Utilities used in modules from the @TestSupport@ folder.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Generators.Hedgehog.Utils</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#liftT"
+	><span class="hs-identifier"
+	  >liftT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#generalizeT"
+	><span class="hs-identifier"
+	  >generalizeT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#hoistSupply"
+	><span class="hs-identifier"
+	  >hoistSupply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#choiceDef"
+	><span class="hs-identifier"
+	  >choiceDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShow"
+	><span class="hs-identifier"
+	  >forAllNoShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShowT"
+	><span class="hs-identifier"
+	  >forAllNoShowT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPretty"
+	><span class="hs-identifier"
+	  >forAllPretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyT"
+	><span class="hs-identifier"
+	  >forAllPrettyT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlc"
+	><span class="hs-identifier"
+	  >forAllPrettyPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlcT"
+	><span class="hs-identifier"
+	  >forAllPrettyPlcT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#prettyPlcErrorString"
+	><span class="hs-identifier"
+	  >prettyPlcErrorString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Morph</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html"
+	><span class="hs-identifier"
+	  >Data.Functor.Identity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.html"
+	><span class="hs-identifier"
+	  >Hedgehog</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Range.html#Size"
+	><span class="hs-identifier"
+	  >Size</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.State.html#Var"
+	><span class="hs-identifier"
+	  >Var</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Gen.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Gen</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Internal.Property</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#forAllWithT"
+	><span class="hs-identifier"
+	  >forAllWithT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | @hoist lift@</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="local-6989586621679268443"
+      ><span id="local-6989586621679268445"
+	><span id="local-6989586621679268447"
+	  ><span id="local-6989586621679268448"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#liftT"
+		><span class="hs-identifier hs-type"
+		  >liftT</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html#MFunctor"
+		><span class="hs-identifier hs-type"
+		  >MFunctor</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268443"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#MonadTrans"
+		><span class="hs-identifier hs-type"
+		  >MonadTrans</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268445"
+		><span class="hs-identifier hs-type"
+		  >s</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		><span class="hs-identifier hs-type"
+		  >Monad</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268447"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268443"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268447"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268448"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268443"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268445"
+		><span class="hs-identifier hs-type"
+		  >s</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268447"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268448"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="liftT"
+      ><span class="annot"
+	><span class="annottext"
+	  >liftT :: forall (t :: (* -&gt; *) -&gt; * -&gt; *) (s :: (* -&gt; *) -&gt; * -&gt; *)
+       (m :: * -&gt; *) a.
+(MFunctor t, MonadTrans s, Monad m) =&gt;
+t m a -&gt; t (s m) a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#liftT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >liftT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall a. m a -&gt; s m a) -&gt; t m a -&gt; t (s m) a
+forall {k} (t :: (* -&gt; *) -&gt; k -&gt; *) (m :: * -&gt; *) (n :: * -&gt; *)
+       (b :: k).
+(MFunctor t, Monad m) =&gt;
+(forall a. m a -&gt; n a) -&gt; t m b -&gt; t n b
+forall (m :: * -&gt; *) (n :: * -&gt; *) b.
+Monad m =&gt;
+(forall a. m a -&gt; n a) -&gt; t m b -&gt; t n b
+</span
+	><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html#hoist"
+	><span class="hs-identifier hs-var"
+	  >hoist</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m a -&gt; s m a
+forall a. m a -&gt; s m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; s m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#lift"
+	><span class="hs-identifier hs-var"
+	  >lift</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | @hoist generalize@</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="local-6989586621679268463"
+      ><span id="local-6989586621679268464"
+	><span id="local-6989586621679268466"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Utils.html#generalizeT"
+	      ><span class="hs-identifier hs-type"
+		>generalizeT</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html#MFunctor"
+	      ><span class="hs-identifier hs-type"
+		>MFunctor</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679268463"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	      ><span class="hs-identifier hs-type"
+		>Monad</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679268464"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679268463"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	      ><span class="hs-identifier hs-type"
+		>Identity</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679268466"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679268463"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679268464"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679268466"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="generalizeT"
+      ><span class="annot"
+	><span class="annottext"
+	  >generalizeT :: forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MFunctor t, Monad m) =&gt;
+t Identity a -&gt; t m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#generalizeT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >generalizeT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall a. Identity a -&gt; m a) -&gt; t Identity a -&gt; t m a
+forall {k} (t :: (* -&gt; *) -&gt; k -&gt; *) (m :: * -&gt; *) (n :: * -&gt; *)
+       (b :: k).
+(MFunctor t, Monad m) =&gt;
+(forall a. m a -&gt; n a) -&gt; t m b -&gt; t n b
+forall (m :: * -&gt; *) (n :: * -&gt; *) b.
+Monad m =&gt;
+(forall a. m a -&gt; n a) -&gt; t m b -&gt; t n b
+</span
+	><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html#hoist"
+	><span class="hs-identifier hs-var"
+	  >hoist</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity a -&gt; m a
+forall a. Identity a -&gt; m a
+forall (m :: * -&gt; *) a. Monad m =&gt; Identity a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html#generalize"
+	><span class="hs-identifier hs-var"
+	  >generalize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Supply an environment to an inner 'ReaderT'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="local-6989586621679268473"
+      ><span id="local-6989586621679268474"
+	><span id="local-6989586621679268475"
+	  ><span id="local-6989586621679268477"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#hoistSupply"
+		><span class="hs-identifier hs-type"
+		  >hoistSupply</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html#MFunctor"
+		><span class="hs-identifier hs-type"
+		  >MFunctor</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268473"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		><span class="hs-identifier hs-type"
+		  >Monad</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268474"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268475"
+		><span class="hs-identifier hs-type"
+		  >r</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268473"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#ReaderT"
+		><span class="hs-identifier hs-type"
+		  >ReaderT</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268475"
+		><span class="hs-identifier hs-type"
+		  >r</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268474"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268477"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268473"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268474"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679268477"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="hoistSupply"
+      ><span class="annot"
+	><span class="annottext"
+	  >hoistSupply :: forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) r a.
+(MFunctor t, Monad m) =&gt;
+r -&gt; t (ReaderT r m) a -&gt; t m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#hoistSupply"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >hoistSupply</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679268599"
+      ><span class="annot"
+	><span class="annottext"
+	  >r
+</span
+	  ><a href="#local-6989586621679268599"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall a. ReaderT r m a -&gt; m a) -&gt; t (ReaderT r m) a -&gt; t m a
+forall {k} (t :: (* -&gt; *) -&gt; k -&gt; *) (m :: * -&gt; *) (n :: * -&gt; *)
+       (b :: k).
+(MFunctor t, Monad m) =&gt;
+(forall a. m a -&gt; n a) -&gt; t m b -&gt; t n b
+forall (m :: * -&gt; *) (n :: * -&gt; *) b.
+Monad m =&gt;
+(forall a. m a -&gt; n a) -&gt; t m b -&gt; t n b
+</span
+	><a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src/Control.Monad.Morph.html#hoist"
+	><span class="hs-identifier hs-var"
+	  >hoist</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall a. ReaderT r m a -&gt; m a) -&gt; t (ReaderT r m) a -&gt; t m a)
+-&gt; (forall a. ReaderT r m a -&gt; m a) -&gt; t (ReaderT r m) a -&gt; t m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT r m a -&gt; r -&gt; m a) -&gt; r -&gt; ReaderT r m a -&gt; m a
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT r m a -&gt; r -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReaderT"
+	><span class="hs-identifier hs-var"
+	  >runReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+</span
+	><a href="#local-6989586621679268599"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Same as 'Gen.choice', but with a default generator to be used
+when the supplied list of generators is empty. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="local-6989586621679268494"
+      ><span id="local-6989586621679268495"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#choiceDef"
+	    ><span class="hs-identifier hs-type"
+	      >choiceDef</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	    ><span class="hs-identifier hs-type"
+	      >Monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268494"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#GenT"
+	    ><span class="hs-identifier hs-type"
+	      >GenT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268494"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268495"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#GenT"
+	    ><span class="hs-identifier hs-type"
+	      >GenT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268494"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268495"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#GenT"
+	    ><span class="hs-identifier hs-type"
+	      >GenT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268494"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268495"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="choiceDef"
+      ><span class="annot"
+	><span class="annottext"
+	  >choiceDef :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+GenT m a -&gt; [GenT m a] -&gt; GenT m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#choiceDef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >choiceDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679268606"
+      ><span class="annot"
+	><span class="annottext"
+	  >GenT m a
+</span
+	  ><a href="#local-6989586621679268606"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GenT m a
+</span
+	><a href="#local-6989586621679268606"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html#choiceDef"
+	><span class="hs-identifier hs-var"
+	  >choiceDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GenT m a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679268607"
+      ><span class="annot"
+	><span class="annottext"
+	  >[GenT m a]
+</span
+	  ><a href="#local-6989586621679268607"
+	  ><span class="hs-keyword hs-var"
+	    >as</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[GenT m a] -&gt; GenT m a
+forall (m :: * -&gt; *) a. MonadGen m =&gt; [m a] -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#choice"
+	><span class="hs-identifier hs-var"
+	  >Gen.choice</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[GenT m a]
+</span
+	><a href="#local-6989586621679268607"
+	><span class="hs-keyword hs-var"
+	  >as</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Generate a value, but do not show it in case an error occurs.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="local-6989586621679268503"
+      ><span id="local-6989586621679268504"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShow"
+	    ><span class="hs-identifier hs-type"
+	      >forAllNoShow</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	    ><span class="hs-identifier hs-type"
+	      >Monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268503"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	    ><span class="hs-identifier hs-type"
+	      >Gen</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268504"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#PropertyT"
+	    ><span class="hs-identifier hs-type"
+	      >PropertyT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268503"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268504"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="forAllNoShow"
+      ><span class="annot"
+	><span class="annottext"
+	  >forAllNoShow :: forall (m :: * -&gt; *) a. Monad m =&gt; Gen a -&gt; PropertyT m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShow"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >forAllNoShow</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; String) -&gt; Gen a -&gt; PropertyT m a
+forall (m :: * -&gt; *) a.
+(Monad m, HasCallStack) =&gt;
+(a -&gt; String) -&gt; Gen a -&gt; PropertyT m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#forAllWith"
+	><span class="hs-identifier hs-var"
+	  >forAllWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Generate a value, but do not show it in case an error occurs.
+A supplied generator has access to the 'Monad' the whole property has access to. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="local-6989586621679268516"
+      ><span id="local-6989586621679268517"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShowT"
+	    ><span class="hs-identifier hs-type"
+	      >forAllNoShowT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	    ><span class="hs-identifier hs-type"
+	      >Monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268516"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#GenT"
+	    ><span class="hs-identifier hs-type"
+	      >GenT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268516"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268517"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#PropertyT"
+	    ><span class="hs-identifier hs-type"
+	      >PropertyT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268516"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268517"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="forAllNoShowT"
+      ><span class="annot"
+	><span class="annottext"
+	  >forAllNoShowT :: forall (m :: * -&gt; *) a. Monad m =&gt; GenT m a -&gt; PropertyT m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShowT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >forAllNoShowT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; String) -&gt; GenT m a -&gt; PropertyT m a
+forall (m :: * -&gt; *) a.
+(Monad m, HasCallStack) =&gt;
+(a -&gt; String) -&gt; GenT m a -&gt; PropertyT m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#forAllWithT"
+	><span class="hs-identifier hs-var"
+	  >forAllWithT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Generate a value using the 'Pretty' class for getting its 'String' representation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621679268522"
+      ><span id="local-6989586621679268523"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPretty"
+	    ><span class="hs-identifier hs-type"
+	      >forAllPretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	    ><span class="hs-identifier hs-type"
+	      >Monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268522"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-type"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268523"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	    ><span class="hs-identifier hs-type"
+	      >Gen</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268523"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#PropertyT"
+	    ><span class="hs-identifier hs-type"
+	      >PropertyT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268522"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268523"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="forAllPretty"
+      ><span class="annot"
+	><span class="annottext"
+	  >forAllPretty :: forall (m :: * -&gt; *) a.
+(Monad m, Pretty a) =&gt;
+Gen a -&gt; PropertyT m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPretty"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >forAllPretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; String) -&gt; Gen a -&gt; PropertyT m a
+forall (m :: * -&gt; *) a.
+(Monad m, HasCallStack) =&gt;
+(a -&gt; String) -&gt; Gen a -&gt; PropertyT m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#forAllWith"
+	><span class="hs-identifier hs-var"
+	  >forAllWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Generate a value using the 'Pretty' class for getting its 'String' representation.
+A supplied generator has access to the 'Monad' the whole property has access to. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="local-6989586621679268534"
+      ><span id="local-6989586621679268535"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyT"
+	    ><span class="hs-identifier hs-type"
+	      >forAllPrettyT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	    ><span class="hs-identifier hs-type"
+	      >Monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268534"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-type"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268535"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#GenT"
+	    ><span class="hs-identifier hs-type"
+	      >GenT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268534"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268535"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#PropertyT"
+	    ><span class="hs-identifier hs-type"
+	      >PropertyT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268534"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268535"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="forAllPrettyT"
+      ><span class="annot"
+	><span class="annottext"
+	  >forAllPrettyT :: forall (m :: * -&gt; *) a.
+(Monad m, Pretty a) =&gt;
+GenT m a -&gt; PropertyT m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >forAllPrettyT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; String) -&gt; GenT m a -&gt; PropertyT m a
+forall (m :: * -&gt; *) a.
+(Monad m, HasCallStack) =&gt;
+(a -&gt; String) -&gt; GenT m a -&gt; PropertyT m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#forAllWithT"
+	><span class="hs-identifier hs-var"
+	  >forAllWithT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="local-6989586621679268538"
+      ><span id="local-6989586621679268539"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >forAllPrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	    ><span class="hs-identifier hs-type"
+	      >Monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268538"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#PrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268539"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	    ><span class="hs-identifier hs-type"
+	      >Gen</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268539"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#PropertyT"
+	    ><span class="hs-identifier hs-type"
+	      >PropertyT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268538"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268539"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="forAllPrettyPlc"
+      ><span class="annot"
+	><span class="annottext"
+	  >forAllPrettyPlc :: forall (m :: * -&gt; *) a.
+(Monad m, PrettyPlc a) =&gt;
+Gen a -&gt; PropertyT m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlc"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >forAllPrettyPlc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; String) -&gt; Gen a -&gt; PropertyT m a
+forall (m :: * -&gt; *) a.
+(Monad m, HasCallStack) =&gt;
+(a -&gt; String) -&gt; Gen a -&gt; PropertyT m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#forAllWith"
+	><span class="hs-identifier hs-var"
+	  >forAllWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall a str. (PrettyPlc a, Render str) =&gt; a -&gt; str
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Default.html#displayPlc"
+	><span class="hs-identifier hs-var"
+	  >displayPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.
+A supplied generator has access to the 'Monad' the whole property has access to. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="local-6989586621679268545"
+      ><span id="local-6989586621679268546"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlcT"
+	    ><span class="hs-identifier hs-type"
+	      >forAllPrettyPlcT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	    ><span class="hs-identifier hs-type"
+	      >Monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268545"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#PrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268546"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#GenT"
+	    ><span class="hs-identifier hs-type"
+	      >GenT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268545"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268546"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#PropertyT"
+	    ><span class="hs-identifier hs-type"
+	      >PropertyT</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268545"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679268546"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="forAllPrettyPlcT"
+      ><span class="annot"
+	><span class="annottext"
+	  >forAllPrettyPlcT :: forall (m :: * -&gt; *) a.
+(Monad m, PrettyPlc a) =&gt;
+GenT m a -&gt; PropertyT m a
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlcT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >forAllPrettyPlcT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; String) -&gt; GenT m a -&gt; PropertyT m a
+forall (m :: * -&gt; *) a.
+(Monad m, HasCallStack) =&gt;
+(a -&gt; String) -&gt; GenT m a -&gt; PropertyT m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Property.html#forAllWithT"
+	><span class="hs-identifier hs-var"
+	  >forAllWithT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall a str. (PrettyPlc a, Render str) =&gt; a -&gt; str
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Default.html#displayPlc"
+	><span class="hs-identifier hs-var"
+	  >displayPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Pretty-print a PLC error.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="local-6989586621679268549"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Utils.html#prettyPlcErrorString"
+	  ><span class="hs-identifier hs-type"
+	    >prettyPlcErrorString</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#PrettyPlc"
+	  ><span class="hs-identifier hs-type"
+	    >PrettyPlc</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679268549"
+	  ><span class="hs-identifier hs-type"
+	    >err</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679268549"
+	  ><span class="hs-identifier hs-type"
+	    >err</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	  ><span class="hs-identifier hs-type"
+	    >String</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="prettyPlcErrorString"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyPlcErrorString :: forall err. PrettyPlc err =&gt; err -&gt; String
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Utils.html#prettyPlcErrorString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyPlcErrorString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; String
+forall ann. Doc ann -&gt; String
+forall str ann. Render str =&gt; Doc ann -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; String) -&gt; (err -&gt; Doc Any) -&gt; err -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PrettyConfigPlcOptions -&gt; PrettyConfigPlc) -&gt; err -&gt; Doc Any
+forall a ann.
+PrettyPlc a =&gt;
+(PrettyConfigPlcOptions -&gt; PrettyConfigPlc) -&gt; a -&gt; Doc ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyPlcCondensedErrorBy"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcCondensedErrorBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlcOptions -&gt; PrettyConfigPlc
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyConfigPlcClassicSimple"
+	><span class="hs-identifier hs-var"
+	  >prettyConfigPlcClassicSimple</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

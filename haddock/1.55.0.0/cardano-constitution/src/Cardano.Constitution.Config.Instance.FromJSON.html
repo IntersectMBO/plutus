@@ -1,0 +1,5676 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Cardano.Constitution.Config.Instance.FromJSON</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html"
+	><span class="hs-identifier"
+	  >Cardano.Constitution.Config.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html#lowerInitialChar"
+	><span class="hs-identifier"
+	  >lowerInitialChar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ratio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson.Key</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson.KeyMap</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson.Types</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html"
+	><span class="hs-identifier"
+	  >Data.Foldable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.html"
+	><span class="hs-identifier"
+	  >Data.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell.List</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>M</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IsList.html"
+	><span class="hs-identifier"
+	  >GHC.IsList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/safe-0.3.21/docs/src/Safe.html"
+	><span class="hs-identifier"
+	  >Safe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/regex-tdfa-1.3.2.4/docs/src/Text.Regex.TDFA.html"
+	><span class="hs-identifier"
+	  >Text.Regex.TDFA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Rx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- | Replica ADTs of ParamValue &amp; ConstitutionConfig , specialised only for FromJSON.</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- Alternatively, we could generalise the aforementationed ADTs (needs barbies, breaks TxLifting)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="RawParamValue"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	  ><span class="hs-identifier hs-var"
+	    >RawParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >      </span
+      ><span id="RawParamInteger"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamInteger"
+	  ><span class="hs-identifier hs-var"
+	    >RawParamInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier hs-type"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="RawParamRational"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamRational"
+	  ><span class="hs-identifier hs-var"
+	    >RawParamRational</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier hs-type"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Tx.Rational</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="RawParamList"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamList"
+	  ><span class="hs-identifier hs-var"
+	    >RawParamList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >M.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	><span class="hs-identifier hs-type"
+	  >RawParamValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="RawParamAny"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamAny"
+	  ><span class="hs-identifier hs-var"
+	    >RawParamAny</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="RawConstitutionConfig"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawConstitutionConfig"
+	  ><span class="hs-identifier hs-var"
+	    >RawConstitutionConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="RawConstitutionConfig"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawConstitutionConfig"
+	  ><span class="hs-identifier hs-var"
+	    >RawConstitutionConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >M.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	><span class="hs-identifier hs-type"
+	  >RawParamValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO: move to deriving-aeson</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679316954"
+      ><span id="local-6989586621679316958"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Cardano.Constitution.Config.Types.html#PredKey"
+	    ><span class="hs-identifier hs-type"
+	      >PredKey</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679317048"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser PredKey
+</span
+	  ><a href="#local-6989586621679317048"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser PredKey
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>genericParseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options
+</span
+	><span class="hs-identifier hs-var"
+	>defaultOptions</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-var"
+	>constructorTagModifier</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html#lowerInitialChar"
+	><span class="hs-identifier hs-type"
+	  >lowerInitialChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO: move to deriving-aeson</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317055"
+      ><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Aeson.FromJSONKey</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#PredKey"
+	  ><span class="hs-identifier hs-type"
+	    >PredKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679317086"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromJSONKey :: FromJSONKeyFunction PredKey
+</span
+	  ><a href="#local-6989586621679317086"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >fromJSONKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>JSONKeyOptions -&gt; FromJSONKeyFunction PredKey
+forall a.
+(Generic a, GFromJSONKey (Rep a)) =&gt;
+JSONKeyOptions -&gt; FromJSONKeyFunction a
+</span
+	><span class="hs-identifier hs-var"
+	>genericFromJSONKey</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>JSONKeyOptions
+</span
+	><span class="hs-identifier hs-var"
+	>defaultJSONKeyOptions</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-var"
+	>keyModifier</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html#lowerInitialChar"
+	><span class="hs-identifier hs-type"
+	  >lowerInitialChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679316697"
+      ><span id="local-6989586621679317094"
+	><span id="local-6989586621679317097"
+	  ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679316697"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	      ><span class="hs-identifier hs-type"
+		>Predicates</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679316697"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679317136"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser (Predicates a)
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317137"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621679317137"
+	  ><span class="hs-identifier hs-var"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- TODO: ugly code, refactor</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679317138"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Object]
+</span
+	  ><a href="#local-6989586621679317138"
+	  ><span class="hs-identifier hs-var"
+	    >ms</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621679317137"
+	><span class="hs-identifier hs-var"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- filter out &quot;$comment&quot; from all keymaps</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317140"
+      ><span class="annot"
+	><span class="annottext"
+	  >ms' :: [Value]
+</span
+	  ><a href="#local-6989586621679317140"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ms'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Value) -&gt; [Object] -&gt; [Value]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Value) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Value
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Object
+forall v. Key -&gt; KeyMap v -&gt; KeyMap v
+</span
+	><span class="hs-identifier hs-var"
+	>Aeson.delete</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#commentKey"
+	><span class="hs-identifier hs-var"
+	  >commentKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Object]
+</span
+	><a href="#local-6989586621679317138"
+	><span class="hs-identifier hs-var"
+	  >ms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- re-parse correctly this time</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679317145"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Map PredKey a]
+</span
+	  ><a href="#local-6989586621679317145"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >M.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#PredKey"
+	><span class="hs-identifier hs-type"
+	  >PredKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679316697"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Array -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Aeson.Array</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Array -&gt; Value) -&gt; Array -&gt; Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Item Array] -&gt; Array
+forall l. IsList l =&gt; [Item l] -&gt; l
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IsList.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Item Array]
+[Value]
+</span
+	><a href="#local-6989586621679317140"
+	><span class="hs-identifier hs-var"
+	  >ms'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Parser () -&gt; Parser ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map PredKey a -&gt; Bool) -&gt; [Map PredKey a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#any"
+	><span class="hs-identifier hs-var"
+	  >any</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Bool) -&gt; (Map PredKey a -&gt; Int) -&gt; Map PredKey a -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map PredKey a -&gt; Int
+forall a. Map PredKey a -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Map PredKey a]
+</span
+	><a href="#local-6989586621679317145"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser () -&gt; Parser ()) -&gt; Parser () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser ()
+forall a. String -&gt; Parser a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Only one predicate-key per predicate inside the predicate list&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates a -&gt; Parser (Predicates a)
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Predicates a -&gt; Parser (Predicates a))
+-&gt; Predicates a -&gt; Parser (Predicates a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Predicate a] -&gt; Predicates a
+forall v. [Predicate v] -&gt; Predicates v
+</span
+	><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier hs-var"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Predicate a] -&gt; Predicates a) -&gt; [Predicate a] -&gt; Predicates a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- using toAscList here ensures that the inner map is sorted</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map PredKey [a] -&gt; [Predicate a]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toAscList"
+	><span class="hs-identifier hs-var"
+	  >M.toAscList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- combine the duplicate predicates into a list of predicate values</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- entries with same key combine their values with (++)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map PredKey [a] -&gt; [Predicate a])
+-&gt; Map PredKey [a] -&gt; [Predicate a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; [a] -&gt; [a]) -&gt; [Map PredKey [a]] -&gt; Map PredKey [a]
+forall (f :: * -&gt; *) k a.
+(Foldable f, Ord k) =&gt;
+(a -&gt; a -&gt; a) -&gt; f (Map k a) -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#unionsWith"
+	><span class="hs-identifier hs-var"
+	  >M.unionsWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; [a] -&gt; [a]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >(&lt;&gt;)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Map PredKey [a]] -&gt; Map PredKey [a])
+-&gt; [Map PredKey [a]] -&gt; Map PredKey [a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map PredKey a -&gt; Map PredKey [a])
+-&gt; [Map PredKey a] -&gt; [Map PredKey [a]]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; [a]) -&gt; Map PredKey a -&gt; Map PredKey [a]
+forall a b. (a -&gt; b) -&gt; Map PredKey a -&gt; Map PredKey b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; [a]
+forall a. a -&gt; [a]
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Map PredKey a]
+</span
+	><a href="#local-6989586621679317145"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317156"
+      ><span id="local-6989586621679317160"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	    ><span class="hs-identifier hs-type"
+	      >ConstitutionConfig</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679317166"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ConstitutionConfig
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser RawConstitutionConfig
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>parseJSON</span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-comment"
+      >-- first pass, parse raw</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; Parser RawConstitutionConfig)
+-&gt; (RawConstitutionConfig -&gt; Parser ConstitutionConfig)
+-&gt; Value
+-&gt; Parser ConstitutionConfig
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawConstitutionConfig -&gt; Parser ConstitutionConfig
+forall (m :: * -&gt; *).
+MonadFail m =&gt;
+RawConstitutionConfig -&gt; m ConstitutionConfig
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#fromRaw"
+	><span class="hs-identifier hs-var"
+	  >fromRaw</span
+	  ></a
+	></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- second pass, flatten maps to lists, and check for contiguity</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-comment"
+      >-- 1st pass</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317171"
+      ><span id="local-6989586621679317174"
+	><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawConstitutionConfig"
+	    ><span class="hs-identifier hs-type"
+	      >RawConstitutionConfig</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679317183"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser RawConstitutionConfig
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >parseJSON</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map Integer RawParamValue -&gt; RawConstitutionConfig)
+-&gt; Parser (Map Integer RawParamValue)
+-&gt; Parser RawConstitutionConfig
+forall a b. (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue -&gt; RawConstitutionConfig
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawConstitutionConfig"
+	><span class="hs-identifier hs-var"
+	  >RawConstitutionConfig</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser (Map Integer RawParamValue)
+ -&gt; Parser RawConstitutionConfig)
+-&gt; (Value -&gt; Parser (Map Integer RawParamValue))
+-&gt; Value
+-&gt; Parser RawConstitutionConfig
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser (Map Integer RawParamValue))
+-&gt; Value
+-&gt; Parser (Map Integer RawParamValue)
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;RawConstitutionConfig&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map Integer RawParamValue
+ -&gt; (Key, Value) -&gt; Parser (Map Integer RawParamValue))
+-&gt; Map Integer RawParamValue
+-&gt; [(Key, Value)]
+-&gt; Parser (Map Integer RawParamValue)
+forall (t :: * -&gt; *) (m :: * -&gt; *) b a.
+(Foldable t, Monad m) =&gt;
+(b -&gt; a -&gt; m b) -&gt; b -&gt; t a -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldlM"
+	><span class="hs-identifier hs-var"
+	  >foldlM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+-&gt; (Key, Value) -&gt; Parser (Map Integer RawParamValue)
+</span
+	><a href="#local-6989586621679317186"
+	><span class="hs-identifier hs-var"
+	  >insertParam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(Key, Value)] -&gt; Parser (Map Integer RawParamValue))
+-&gt; (Object -&gt; [(Key, Value)])
+-&gt; Object
+-&gt; Parser (Map Integer RawParamValue)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; [(Key, Value)]
+forall v. KeyMap v -&gt; [(Key, v)]
+</span
+	><span class="hs-identifier hs-var"
+	>Aeson.toAscList</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679317186"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertParam :: Map Integer RawParamValue
+-&gt; (Key, Value) -&gt; Parser (Map Integer RawParamValue)
+</span
+	  ><a href="#local-6989586621679317186"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertParam</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317201"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map Integer RawParamValue
+</span
+	  ><a href="#local-6989586621679317201"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679317202"
+      ><span class="annot"
+	><span class="annottext"
+	  >Key
+</span
+	  ><a href="#local-6989586621679317202"
+	  ><span class="hs-identifier hs-var"
+	    >outerKey</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317203"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621679317203"
+	  ><span class="hs-identifier hs-var"
+	    >outerValue</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679317204"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679317204"
+	  ><span class="hs-identifier hs-var"
+	    >index</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317205"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe Integer
+</span
+	  ><a href="#local-6989586621679317205"
+	  ><span class="hs-identifier hs-var"
+	    >msubIndex</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Parser (Integer, Maybe Integer)
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#parseParamKey"
+	><span class="hs-identifier hs-var"
+	  >parseParamKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="#local-6989586621679317202"
+	><span class="hs-identifier hs-var"
+	  >outerKey</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Parser () -&gt; Parser ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679317204"
+	><span class="hs-identifier hs-var"
+	  >index</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser () -&gt; Parser ()) -&gt; Parser () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser ()
+forall a. String -&gt; Parser a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Negative Integer ParamKey given&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679317208"
+      ><span class="annot"
+	><span class="annottext"
+	  >RawParamValue
+</span
+	  ><a href="#local-6989586621679317208"
+	  ><span class="hs-identifier hs-var"
+	    >paramValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Integer -&gt; Value -&gt; Parser RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#parseParamValue"
+	><span class="hs-identifier hs-var"
+	  >parseParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Integer
+</span
+	><a href="#local-6989586621679317205"
+	><span class="hs-identifier hs-var"
+	  >msubIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621679317203"
+	><span class="hs-identifier hs-var"
+	  >outerValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- flipped version of Lens.at</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe RawParamValue -&gt; Parser (Maybe RawParamValue))
+-&gt; Integer
+-&gt; Map Integer RawParamValue
+-&gt; Parser (Map Integer RawParamValue)
+forall (f :: * -&gt; *) k a.
+(Functor f, Ord k) =&gt;
+(Maybe a -&gt; f (Maybe a)) -&gt; k -&gt; Map k a -&gt; f (Map k a)
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#alterF"
+	><span class="hs-identifier hs-var"
+	  >M.alterF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >                           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe RawParamValue
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe RawParamValue -&gt; Parser (Maybe RawParamValue)
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe RawParamValue -&gt; Parser (Maybe RawParamValue))
+-&gt; Maybe RawParamValue -&gt; Parser (Maybe RawParamValue)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue -&gt; Maybe RawParamValue
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><a href="#local-6989586621679317208"
+	><span class="hs-identifier hs-var"
+	  >paramValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >                           </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317211"
+      ><span class="annot"
+	><span class="annottext"
+	  >RawParamValue
+</span
+	  ><a href="#local-6989586621679317211"
+	  ><span class="hs-identifier hs-var"
+	    >paramValue'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue -&gt; Maybe RawParamValue
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RawParamValue -&gt; Maybe RawParamValue)
+-&gt; Parser RawParamValue -&gt; Parser (Maybe RawParamValue)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue -&gt; RawParamValue -&gt; Parser RawParamValue
+forall (m :: * -&gt; *).
+MonadFail m =&gt;
+RawParamValue -&gt; RawParamValue -&gt; m RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#mergeParamValues"
+	><span class="hs-identifier hs-var"
+	  >mergeParamValues</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><a href="#local-6989586621679317211"
+	><span class="hs-identifier hs-var"
+	  >paramValue'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><a href="#local-6989586621679317208"
+	><span class="hs-identifier hs-var"
+	  >paramValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >                   </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679317204"
+	><span class="hs-identifier hs-var"
+	  >index</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+</span
+	><a href="#local-6989586621679317201"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-comment"
+      >-- second pass, flatten maps to lists, and check for contiguity</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span id="local-6989586621679316842"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#fromRaw"
+	  ><span class="hs-identifier hs-type"
+	    >fromRaw</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#MonadFail"
+	  ><span class="hs-identifier hs-type"
+	    >MonadFail</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679316842"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawConstitutionConfig"
+	  ><span class="hs-identifier hs-type"
+	    >RawConstitutionConfig</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679316842"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	  ><span class="hs-identifier hs-type"
+	    >ConstitutionConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="fromRaw"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromRaw :: forall (m :: * -&gt; *).
+MonadFail m =&gt;
+RawConstitutionConfig -&gt; m ConstitutionConfig
+</span
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#fromRaw"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromRaw</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawConstitutionConfig"
+	><span class="hs-identifier hs-type"
+	  >RawConstitutionConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317226"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map Integer RawParamValue
+</span
+	  ><a href="#local-6989586621679317226"
+	  ><span class="hs-identifier hs-var"
+	    >rc</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param] -&gt; ConstitutionConfig
+</span
+	><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	><span class="hs-identifier hs-var"
+	  >ConstitutionConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Param] -&gt; ConstitutionConfig)
+-&gt; (Map Integer ParamValue -&gt; [Param])
+-&gt; Map Integer ParamValue
+-&gt; ConstitutionConfig
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer ParamValue -&gt; [Param]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toAscList"
+	><span class="hs-identifier hs-var"
+	  >M.toAscList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map Integer ParamValue -&gt; ConstitutionConfig)
+-&gt; m (Map Integer ParamValue) -&gt; m ConstitutionConfig
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RawParamValue -&gt; m ParamValue)
+-&gt; Map Integer RawParamValue -&gt; m (Map Integer ParamValue)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Map Integer a -&gt; f (Map Integer b)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue -&gt; m ParamValue
+forall (m :: * -&gt; *). MonadFail m =&gt; RawParamValue -&gt; m ParamValue
+</span
+	><a href="#local-6989586621679317229"
+	><span class="hs-identifier hs-var"
+	  >flattenParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+</span
+	><a href="#local-6989586621679317226"
+	><span class="hs-identifier hs-var"
+	  >rc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679316871"
+      ><span class="annot"
+	><a href="#local-6989586621679317229"
+	  ><span class="hs-identifier hs-type"
+	    >flattenParamValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#MonadFail"
+	  ><span class="hs-identifier hs-type"
+	    >MonadFail</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679316871"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	  ><span class="hs-identifier hs-type"
+	    >RawParamValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679316871"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ParamValue"
+	  ><span class="hs-identifier hs-type"
+	    >ParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679317229"
+      ><span class="annot"
+	><span class="annottext"
+	  >flattenParamValue :: forall (m :: * -&gt; *). MonadFail m =&gt; RawParamValue -&gt; m ParamValue
+</span
+	  ><a href="#local-6989586621679317229"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flattenParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamList"
+	><span class="hs-identifier hs-type"
+	  >RawParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317249"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map Integer RawParamValue
+</span
+	  ><a href="#local-6989586621679317249"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- This is the CONTIGUOUS check.</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool) -&gt; Bool -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue -&gt; [Integer]
+forall k a. Map k a -&gt; [k]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#keys"
+	><span class="hs-identifier hs-var"
+	  >M.keys</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+</span
+	><a href="#local-6989586621679317249"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Integer] -&gt; [Integer] -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#isPrefixOf"
+	><span class="hs-operator hs-var"
+	  >`isPrefixOf`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m () -&gt; m ()) -&gt; m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m ()
+forall a. String -&gt; m a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;The sub-indices are not in order.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- the M.elems will be in ascending order</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ParamValue] -&gt; ParamValue
+</span
+	><a href="Cardano.Constitution.Config.Types.html#ParamList"
+	><span class="hs-identifier hs-var"
+	  >ParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([ParamValue] -&gt; ParamValue) -&gt; m [ParamValue] -&gt; m ParamValue
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RawParamValue -&gt; m ParamValue)
+-&gt; [RawParamValue] -&gt; m [ParamValue]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue -&gt; m ParamValue
+forall (m :: * -&gt; *). MonadFail m =&gt; RawParamValue -&gt; m ParamValue
+</span
+	><a href="#local-6989586621679317229"
+	><span class="hs-identifier hs-var"
+	  >flattenParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue -&gt; [RawParamValue]
+forall k a. Map k a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#elems"
+	><span class="hs-identifier hs-var"
+	  >M.elems</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+</span
+	><a href="#local-6989586621679317249"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- boilerplate follows</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamInteger"
+	><span class="hs-identifier hs-type"
+	  >RawParamInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317255"
+      ><span class="annot"
+	><span class="annottext"
+	  >Predicates Integer
+</span
+	  ><a href="#local-6989586621679317255"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue -&gt; m ParamValue
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ParamValue -&gt; m ParamValue) -&gt; ParamValue -&gt; m ParamValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Integer -&gt; ParamValue
+</span
+	><a href="Cardano.Constitution.Config.Types.html#ParamInteger"
+	><span class="hs-identifier hs-var"
+	  >ParamInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Integer
+</span
+	><a href="#local-6989586621679317255"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamRational"
+	><span class="hs-identifier hs-type"
+	  >RawParamRational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317257"
+      ><span class="annot"
+	><span class="annottext"
+	  >Predicates Rational
+</span
+	  ><a href="#local-6989586621679317257"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue -&gt; m ParamValue
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ParamValue -&gt; m ParamValue) -&gt; ParamValue -&gt; m ParamValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Rational -&gt; ParamValue
+</span
+	><a href="Cardano.Constitution.Config.Types.html#ParamRational"
+	><span class="hs-identifier hs-var"
+	  >ParamRational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Rational
+</span
+	><a href="#local-6989586621679317257"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamAny"
+	><span class="hs-identifier hs-var"
+	  >RawParamAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue -&gt; m ParamValue
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue
+</span
+	><a href="Cardano.Constitution.Config.Types.html#ParamAny"
+	><span class="hs-identifier hs-var"
+	  >ParamAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-comment"
+      >-- MAYBE: use instead attoparsec-aeson.jsonWith/jsonNoDup to fail on parsing duplicate Keys,</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-comment"
+      >-- because right now Aeson silently ignores duplicated param entries (arbitrarily picks the last of duplicates)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#parseParamKey"
+	><span class="hs-identifier hs-type"
+	  >parseParamKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Aeson.Key</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Aeson.Parser</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="parseParamKey"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseParamKey :: Key -&gt; Parser (Integer, Maybe Integer)
+</span
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#parseParamKey"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseParamKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; String
+</span
+	><span class="hs-identifier hs-var"
+	>Aeson.toString</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317261"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679317261"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-comment"
+      >-- MAYBE: fetch the regex pattern from the schema itself, it is easy</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679317262"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679317262"
+	  ><span class="hs-identifier hs-var"
+	    >indexS</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span id="local-6989586621679317263"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679317263"
+	  ><span class="hs-identifier hs-var"
+	    >subIndexS</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679317261"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; Parser [[String]]
+forall source source1 target (m :: * -&gt; *).
+(RegexMaker Regex CompOption ExecOption source,
+ RegexContext Regex source1 target, MonadFail m) =&gt;
+source1 -&gt; source -&gt; m target
+</span
+	><a href="https://hackage.haskell.org/package/regex-tdfa-1.3.2.4/docs/src/Text.Regex.TDFA.html#%3D~~"
+	><span class="hs-operator hs-var"
+	  >Rx.=~~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;^(0|[1-9][0-9]*)(\\[(0|[1-9][0-9]*)\\])?$&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >       </span
+      ><span id="local-6989586621679317265"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679317265"
+	  ><span class="hs-identifier hs-var"
+	    >indexI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Parser Integer)
+-&gt; (Integer -&gt; Parser Integer)
+-&gt; Either String Integer
+-&gt; Parser Integer
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#either"
+	><span class="hs-identifier hs-var"
+	  >either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser Integer
+forall a. String -&gt; Parser a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Parser Integer
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either String Integer -&gt; Parser Integer)
+-&gt; Either String Integer -&gt; Parser Integer
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Either String Integer
+forall a. Read a =&gt; String -&gt; Either String a
+</span
+	><a href="https://hackage.haskell.org/package/safe-0.3.21/docs/src/Safe.html#readEitherSafe"
+	><span class="hs-identifier hs-var"
+	  >readEitherSafe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679317262"
+	><span class="hs-identifier hs-var"
+	  >indexS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >       </span
+      ><span id="local-6989586621679317268"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe Integer
+</span
+	  ><a href="#local-6989586621679317268"
+	  ><span class="hs-identifier hs-var"
+	    >mSubIndexI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#null"
+	><span class="hs-identifier hs-var"
+	  >null</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679317263"
+	><span class="hs-identifier hs-var"
+	  >subIndexS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Integer -&gt; Parser (Maybe Integer)
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Integer
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Maybe Integer
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Maybe Integer)
+-&gt; Parser Integer -&gt; Parser (Maybe Integer)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Parser Integer)
+-&gt; (Integer -&gt; Parser Integer)
+-&gt; Either String Integer
+-&gt; Parser Integer
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#either"
+	><span class="hs-identifier hs-var"
+	  >either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser Integer
+forall a. String -&gt; Parser a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Parser Integer
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Either String Integer
+forall a. Read a =&gt; String -&gt; Either String a
+</span
+	><a href="https://hackage.haskell.org/package/safe-0.3.21/docs/src/Safe.html#readEitherSafe"
+	><span class="hs-identifier hs-var"
+	  >readEitherSafe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679317263"
+	><span class="hs-identifier hs-var"
+	  >subIndexS</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer, Maybe Integer) -&gt; Parser (Integer, Maybe Integer)
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679317265"
+	><span class="hs-identifier hs-var"
+	  >indexI</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Integer
+</span
+	><a href="#local-6989586621679317268"
+	><span class="hs-identifier hs-var"
+	  >mSubIndexI</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-comment"
+      >-- | If there is a subkey given, treat the param as a paramlist</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-comment"
+      >-- Otherwise, parse it based on the json's &quot;type&quot;</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#parseParamValue"
+	><span class="hs-identifier hs-type"
+	  >parseParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamKey"
+	><span class="hs-identifier hs-type"
+	  >ParamKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Parser</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	><span class="hs-identifier hs-type"
+	  >RawParamValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="parseParamValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseParamValue :: Maybe Integer -&gt; Value -&gt; Parser RawParamValue
+</span
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#parseParamValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Integer
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317271"
+	><span class="hs-identifier hs-var"
+	  >parseTypedParamValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- if we parsed a sub-index, treat the param value as a `M.singleton subIndex value`</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317272"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679317272"
+	  ><span class="hs-identifier hs-var"
+	    >subIndex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RawParamValue -&gt; RawParamValue)
+-&gt; Parser RawParamValue -&gt; Parser RawParamValue
+forall a b. (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue -&gt; RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamList"
+	><span class="hs-identifier hs-var"
+	  >RawParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map Integer RawParamValue -&gt; RawParamValue)
+-&gt; (RawParamValue -&gt; Map Integer RawParamValue)
+-&gt; RawParamValue
+-&gt; RawParamValue
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; RawParamValue -&gt; Map Integer RawParamValue
+forall k a. k -&gt; a -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >M.singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679317272"
+	><span class="hs-identifier hs-var"
+	  >subIndex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser RawParamValue -&gt; Parser RawParamValue)
+-&gt; (Value -&gt; Parser RawParamValue) -&gt; Value -&gt; Parser RawParamValue
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317271"
+	><span class="hs-identifier hs-var"
+	  >parseTypedParamValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621679317271"
+	><span class="hs-identifier hs-type"
+	  >parseTypedParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Value</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Parser</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	><span class="hs-identifier hs-type"
+	  >RawParamValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679317271"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseTypedParamValue :: Value -&gt; Parser RawParamValue
+</span
+	  ><a href="#local-6989586621679317271"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseTypedParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; (Object -&gt; Parser RawParamValue)
+-&gt; Value
+-&gt; Parser RawParamValue
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span
+	><span class="hs-identifier hs-var"
+	>withObject</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;RawParamValue&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Parser RawParamValue) -&gt; Value -&gt; Parser RawParamValue)
+-&gt; (Object -&gt; Parser RawParamValue)
+-&gt; Value
+-&gt; Parser RawParamValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679317274"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621679317274"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679317275"
+      ><span class="annot"
+	><span class="annottext"
+	  >Key
+</span
+	  ><a href="#local-6989586621679317275"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621679317274"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser Key
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#typeKey"
+	><span class="hs-identifier hs-var"
+	  >typeKey</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317278"
+	><span class="hs-identifier hs-var"
+	  >parseSynonymType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="#local-6989586621679317275"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621679317274"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- the base types we support</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-type"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Key</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Parser</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	><span class="hs-identifier hs-type"
+	  >RawParamValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679317279"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseBaseType :: Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	  ><a href="#local-6989586621679317279"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseBaseType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317280"
+      ><span class="annot"
+	><span class="annottext"
+	  >Key
+</span
+	  ><a href="#local-6989586621679317280"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317281"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621679317281"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="#local-6989586621679317280"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;integer&quot;</span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Integer -&gt; RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamInteger"
+	><span class="hs-identifier hs-var"
+	  >RawParamInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Predicates Integer -&gt; RawParamValue)
+-&gt; Parser (Predicates Integer) -&gt; Parser RawParamValue
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621679317281"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser (Predicates Integer)
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#predicatesKey"
+	><span class="hs-identifier hs-var"
+	  >predicatesKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- NOTE: even if the Tx.Ratio.Rational constructor is not exposed, the 2 arguments to the constructor</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- will be normalized (co-primed) when Tx.lift is called on them.</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- SO there is no speed benefit to statically co-prime them ourselves for efficiency.</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;rational&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Rational -&gt; RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamRational"
+	><span class="hs-identifier hs-var"
+	  >RawParamRational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Predicates Rational -&gt; RawParamValue)
+-&gt; Parser (Predicates Rational) -&gt; Parser RawParamValue
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621679317281"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Key -&gt; Parser (Predicates Rational)
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span
+	><span class="hs-operator hs-var"
+	>.:</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#predicatesKey"
+	><span class="hs-identifier hs-var"
+	  >predicatesKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;any&quot;</span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue -&gt; Parser RawParamValue
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamAny"
+	><span class="hs-identifier hs-var"
+	  >RawParamAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser RawParamValue
+forall a. String -&gt; Parser a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;invalid type tag&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- synonyms to ease the transition from cddl</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679317278"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseSynonymType :: Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	  ><a href="#local-6989586621679317278"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseSynonymType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;coin&quot;</span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;integer&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;uint.size4&quot;</span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;integer&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;uint.size2&quot;</span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;integer&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;uint&quot;</span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;integer&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- For ex units</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;epoch_interval&quot;</span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;integer&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- Rename of uint.size4</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;unit_interval&quot;</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;rational&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;nonnegative_interval&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;rational&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;costMdls&quot;</span
+	></span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;any&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679317307"
+      ><span class="annot"
+	><span class="annottext"
+	  >Key
+</span
+	  ><a href="#local-6989586621679317307"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Object -&gt; Parser RawParamValue
+</span
+	><a href="#local-6989586621679317279"
+	><span class="hs-identifier hs-var"
+	  >parseBaseType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><a href="#local-6989586621679317307"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- didn't find synonym, try as basetype</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | It is like an `mappend` when both inputs are ParamList's.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span id="local-6989586621679316861"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#mergeParamValues"
+	  ><span class="hs-identifier hs-type"
+	    >mergeParamValues</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#MonadFail"
+	  ><span class="hs-identifier hs-type"
+	    >MonadFail</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679316861"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	  ><span class="hs-identifier hs-type"
+	    >RawParamValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	  ><span class="hs-identifier hs-type"
+	    >RawParamValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679316861"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamValue"
+	  ><span class="hs-identifier hs-type"
+	    >RawParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span id="mergeParamValues"
+      ><span class="annot"
+	><span class="annottext"
+	  >mergeParamValues :: forall (m :: * -&gt; *).
+MonadFail m =&gt;
+RawParamValue -&gt; RawParamValue -&gt; m RawParamValue
+</span
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#mergeParamValues"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mergeParamValues</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamList"
+	><span class="hs-identifier hs-type"
+	  >RawParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317318"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map Integer RawParamValue
+</span
+	  ><a href="#local-6989586621679317318"
+	  ><span class="hs-identifier hs-var"
+	    >m1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamList"
+	><span class="hs-identifier hs-type"
+	  >RawParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679317319"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map Integer RawParamValue
+</span
+	  ><a href="#local-6989586621679317319"
+	  ><span class="hs-identifier hs-var"
+	    >m2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue -&gt; m RawParamValue
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RawParamValue -&gt; m RawParamValue)
+-&gt; RawParamValue -&gt; m RawParamValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue -&gt; RawParamValue
+</span
+	><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamList"
+	><span class="hs-identifier hs-var"
+	  >RawParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map Integer RawParamValue -&gt; RawParamValue)
+-&gt; Map Integer RawParamValue -&gt; RawParamValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+</span
+	><a href="#local-6989586621679317318"
+	><span class="hs-identifier hs-var"
+	  >m1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+-&gt; Map Integer RawParamValue -&gt; Map Integer RawParamValue
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+</span
+	><a href="#local-6989586621679317319"
+	><span class="hs-identifier hs-var"
+	  >m2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m RawParamValue
+forall a. String -&gt; m a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;param matched with subparam&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#mergeParamValues"
+	><span class="hs-identifier hs-var"
+	  >mergeParamValues</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#RawParamList"
+	><span class="hs-identifier hs-type"
+	  >RawParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Integer RawParamValue
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m RawParamValue
+forall a. String -&gt; m a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;param matched with subparam&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- in reality this cannot be triggered, because we would then have duplicate params</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- , which default aeson and json allow</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RawParamValue
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m RawParamValue
+forall a. String -&gt; m a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;this should not happen&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#predicatesKey"
+	><span class="hs-identifier hs-type"
+	  >predicatesKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#typeKey"
+	><span class="hs-identifier hs-type"
+	  >typeKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#commentKey"
+	><span class="hs-identifier hs-type"
+	  >commentKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Aeson.Key</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span id="predicatesKey"
+      ><span class="annot"
+	><span class="annottext"
+	  >predicatesKey :: Key
+</span
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#predicatesKey"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >predicatesKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;predicates&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span id="typeKey"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeKey :: Key
+</span
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#typeKey"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span id="commentKey"
+      ><span class="annot"
+	><span class="annottext"
+	  >commentKey :: Key
+</span
+	  ><a href="Cardano.Constitution.Config.Instance.FromJSON.html#commentKey"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >commentKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;$comment&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

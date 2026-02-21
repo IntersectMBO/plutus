@@ -1,0 +1,168 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Algorithmic.Evaluation where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Algorithmic
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Algorithmic.ReductionEC
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Algorithmic.ReductionEC.Progress
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Type.BetaNormal
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Utils
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- Algorithmic.Evaluation.Gas
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">d_Gas_4 = ()</span></span>
+<span class="lineno">   28 </span>newtype T_Gas_4 = C_gas_6 Integer
+<span class="lineno">   29 </span>-- Algorithmic.Evaluation.Finished
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">d_Finished_12 a0 a1 = ()</span></span>
+<span class="lineno">   31 </span>data T_Finished_12
+<span class="lineno">   32 </span>  = C_done_18 MAlonzo.Code.Algorithmic.ReductionEC.T_Value_28 |
+<span class="lineno">   33 </span>    C_out'45'of'45'gas_22 |
+<span class="lineno">   34 </span>    C_error_26 MAlonzo.Code.Algorithmic.ReductionEC.T_Error_338
+<span class="lineno">   35 </span>-- Algorithmic.Evaluation.Steps
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">d_Steps_30 a0 a1 = ()</span></span>
+<span class="lineno">   37 </span>data T_Steps_30
+<span class="lineno">   38 </span>  = C_steps_38 MAlonzo.Code.Algorithmic.T__'8866'__178
+<span class="lineno">   39 </span>               MAlonzo.Code.Algorithmic.ReductionEC.T__'8212''8608'__780
+<span class="lineno">   40 </span>               T_Finished_12
+<span class="lineno">   41 </span>-- Algorithmic.Evaluation.eval—→
+<span class="lineno">   42 </span>d_eval'8212''8594'_46 ::
+<span class="lineno">   43 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">   44 </span>  MAlonzo.Code.Algorithmic.T__'8866'__178 -&gt;
+<span class="lineno">   45 </span>  MAlonzo.Code.Algorithmic.T__'8866'__178 -&gt;
+<span class="lineno">   46 </span>  MAlonzo.Code.Algorithmic.ReductionEC.T__'8212''8594'__750 -&gt;
+<span class="lineno">   47 </span>  T_Steps_30 -&gt; T_Steps_30
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">d_eval'8212''8594'_46 ~v0 ~v1 v2 v3 v4</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">= du_eval'8212''8594'_46 v2 v3 v4</span></span>
+<span class="lineno">   50 </span>du_eval'8212''8594'_46 ::
+<span class="lineno">   51 </span>  MAlonzo.Code.Algorithmic.T__'8866'__178 -&gt;
+<span class="lineno">   52 </span>  MAlonzo.Code.Algorithmic.ReductionEC.T__'8212''8594'__750 -&gt;
+<span class="lineno">   53 </span>  T_Steps_30 -&gt; T_Steps_30
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">du_eval'8212''8594'_46 v0 v1 v2</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">= case coe v2 of</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="istickedoff">C_steps_38 v5 v6 v7</span>
+<span class="lineno">   57 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   58 </span><span class="spaces">             </span><span class="istickedoff">C_steps_38 v5</span>
+<span class="lineno">   59 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">   60 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Algorithmic.ReductionEC.C_trans'8212''8608'_796 v0 v1</span></span>
+<span class="lineno">   61 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">v6)</span></span>
+<span class="lineno">   62 </span><span class="spaces">             </span><span class="istickedoff">v7</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">   64 </span>-- Algorithmic.Evaluation.eval
+<span class="lineno">   65 </span>d_eval_58 ::
+<span class="lineno">   66 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">   67 </span>  T_Gas_4 -&gt; MAlonzo.Code.Algorithmic.T__'8866'__178 -&gt; T_Steps_30
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">d_eval_58 v0 v1 v2</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">= case coe v1 of</span>
+<span class="lineno">   70 </span><span class="spaces">      </span><span class="istickedoff">C_gas_6 v3</span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">   72 </span><span class="spaces">             </span><span class="istickedoff">0 -&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">   73 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">C_steps_38 v2</span></span>
+<span class="lineno">   74 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Algorithmic.ReductionEC.C_refl'8212''8608'_786)</span></span>
+<span class="lineno">   75 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe C_out'45'of'45'gas_22)</span></span>
+<span class="lineno">   76 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; let v4 = subInt (coe v3) (coe (1 :: Integer)) in</span>
+<span class="lineno">   77 </span><span class="spaces">                  </span><span class="istickedoff">coe</span>
+<span class="lineno">   78 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">   79 </span><span class="spaces">                       </span><span class="istickedoff">d_evalProg_64 (coe v0) (coe C_gas_6 (coe v4)) (coe v2)</span>
+<span class="lineno">   80 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">   81 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Algorithmic.ReductionEC.Progress.d_progress_86</span>
+<span class="lineno">   82 </span><span class="spaces">                          </span><span class="istickedoff">(coe v0) (coe v2)))</span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">   84 </span>-- Algorithmic.Evaluation.evalProg
+<span class="lineno">   85 </span>d_evalProg_64 ::
+<span class="lineno">   86 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">   87 </span>  T_Gas_4 -&gt;
+<span class="lineno">   88 </span>  MAlonzo.Code.Algorithmic.T__'8866'__178 -&gt;
+<span class="lineno">   89 </span>  MAlonzo.Code.Algorithmic.ReductionEC.Progress.T_Progress_10 -&gt;
+<span class="lineno">   90 </span>  T_Steps_30
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">d_evalProg_64 v0 v1 v2 v3</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff">= case coe v3 of</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.ReductionEC.Progress.C_step_18 v4 v5</span>
+<span class="lineno">   94 </span><span class="spaces">        </span><span class="istickedoff">-&gt; let v6</span>
+<span class="lineno">   95 </span><span class="spaces">                 </span><span class="istickedoff">= coe</span>
+<span class="lineno">   96 </span><span class="spaces">                     </span><span class="istickedoff">du_eval'8212''8594'_46 <span class="nottickedoff">(coe v4)</span> <span class="nottickedoff">(coe v5)</span></span>
+<span class="lineno">   97 </span><span class="spaces">                     </span><span class="istickedoff">(coe d_eval_58 (coe v0) (coe v1) (coe v4)) in</span>
+<span class="lineno">   98 </span><span class="spaces">           </span><span class="istickedoff">coe</span>
+<span class="lineno">   99 </span><span class="spaces">             </span><span class="istickedoff">(case coe v5 of</span>
+<span class="lineno">  100 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.Algorithmic.ReductionEC.C_ruleErr_776 v7 v9</span>
+<span class="lineno">  101 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; case coe v9 of</span>
+<span class="lineno">  102 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Algorithmic.ReductionEC.C_'91''93'_480</span>
+<span class="lineno">  103 </span><span class="spaces">                         </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  104 </span><span class="spaces">                              </span><span class="istickedoff">C_steps_38</span>
+<span class="lineno">  105 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  106 </span><span class="spaces">                                 </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Algorithmic.ReductionEC.du__'91'_'93''7473'_574</span></span>
+<span class="lineno">  107 </span><span class="spaces">                                 </span><span class="istickedoff"><span class="nottickedoff">(coe v0) (coe MAlonzo.Code.Algorithmic.ReductionEC.C_'91''93'_480)</span></span>
+<span class="lineno">  108 </span><span class="spaces">                                 </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Algorithmic.C_error_268))</span></span>
+<span class="lineno">  109 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Algorithmic.ReductionEC.C_refl'8212''8608'_786)</span></span>
+<span class="lineno">  110 </span><span class="spaces">                              </span><span class="istickedoff">(coe</span>
+<span class="lineno">  111 </span><span class="spaces">                                 </span><span class="istickedoff">C_error_26</span>
+<span class="lineno">  112 </span><span class="spaces">                                 </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Algorithmic.ReductionEC.C_E'45'error_346)</span>)</span>
+<span class="lineno">  113 </span><span class="spaces">                       </span><span class="istickedoff">_ -&gt; coe v6</span>
+<span class="lineno">  114 </span><span class="spaces">                </span><span class="istickedoff">_ -&gt; coe v6)</span>
+<span class="lineno">  115 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.ReductionEC.Progress.C_done_20 v4</span>
+<span class="lineno">  116 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  117 </span><span class="spaces">             </span><span class="istickedoff">C_steps_38 v2</span>
+<span class="lineno">  118 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Algorithmic.ReductionEC.C_refl'8212''8608'_786)</span></span>
+<span class="lineno">  119 </span><span class="spaces">             </span><span class="istickedoff">(coe C_done_18 <span class="nottickedoff">v4</span>)</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  121 </span>-- Algorithmic.Evaluation.stepper
+<span class="lineno">  122 </span>d_stepper_86 ::
+<span class="lineno">  123 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  124 </span>  MAlonzo.Code.Algorithmic.T__'8866'__178 -&gt;
+<span class="lineno">  125 </span>  Integer -&gt;
+<span class="lineno">  126 </span>  MAlonzo.Code.Utils.T_Either_6
+<span class="lineno">  127 </span>    MAlonzo.Code.Utils.T_RuntimeError_378
+<span class="lineno">  128 </span>    MAlonzo.Code.Algorithmic.T__'8866'__178
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">d_stepper_86 v0 v1 v2</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="istickedoff">= let v3 = d_eval_58 (coe v0) (coe C_gas_6 (coe v2)) (coe v1) in</span>
+<span class="lineno">  131 </span><span class="spaces">    </span><span class="istickedoff">coe</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff">(case coe v3 of</span>
+<span class="lineno">  133 </span><span class="spaces">         </span><span class="istickedoff">C_steps_38 v6 v7 v8</span>
+<span class="lineno">  134 </span><span class="spaces">           </span><span class="istickedoff">-&gt; case coe v8 of</span>
+<span class="lineno">  135 </span><span class="spaces">                </span><span class="istickedoff">C_done_18 v10 -&gt; coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v6)</span>
+<span class="lineno">  136 </span><span class="spaces">                </span><span class="istickedoff">C_out'45'of'45'gas_22</span>
+<span class="lineno">  137 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  138 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C_inj'8321'_12</span></span>
+<span class="lineno">  139 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_gasError_380)</span></span>
+<span class="lineno">  140 </span><span class="spaces">                </span><span class="istickedoff">C_error_26 v10</span>
+<span class="lineno">  141 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  142 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C_inj'8322'_14</span>
+<span class="lineno">  143 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Algorithmic.C_error_268)</span>
+<span class="lineno">  144 </span><span class="spaces">                </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  145 </span><span class="spaces">         </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span>)</span></span>
+
+</pre>
+</body>
+</html>

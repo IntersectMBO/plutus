@@ -1,0 +1,474 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Relation.Binary.Morphism.Structures where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   18 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   19 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   20 </span>                    word64ToNat)
+<span class="lineno">   21 </span>import MAlonzo.RTE qualified
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- Relation.Binary.Morphism.Structures._.Homomorphic₂
+<span class="lineno">   24 </span>d_Homomorphic'8322'_18 ::
+<span class="lineno">   25 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   26 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   27 </span>  () -&gt;
+<span class="lineno">   28 </span>  () -&gt;
+<span class="lineno">   29 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   30 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   31 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   32 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">d_Homomorphic'8322'_18 = erased</span></span>
+<span class="lineno">   34 </span>-- Relation.Binary.Morphism.Structures.IsRelHomomorphism
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">d_IsRelHomomorphism_42 a0 a1 a2 a3 a4 a5 a6 a7 a8 = ()</span></span>
+<span class="lineno">   36 </span>newtype T_IsRelHomomorphism_42
+<span class="lineno">   37 </span>  = C_IsRelHomomorphism'46'constructor_587 (AgdaAny -&gt;
+<span class="lineno">   38 </span>                                            AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   39 </span>-- Relation.Binary.Morphism.Structures.IsRelHomomorphism.cong
+<span class="lineno">   40 </span>d_cong_52 ::
+<span class="lineno">   41 </span>  T_IsRelHomomorphism_42 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">d_cong_52 v0</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelHomomorphism'46'constructor_587 v1 -&gt; coe v1</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">_                                         -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   46 </span>-- Relation.Binary.Morphism.Structures.IsRelMonomorphism
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">d_IsRelMonomorphism_64 a0 a1 a2 a3 a4 a5 a6 a7 a8 = ()</span></span>
+<span class="lineno">   48 </span>data T_IsRelMonomorphism_64
+<span class="lineno">   49 </span>  = C_IsRelMonomorphism'46'constructor_1563 T_IsRelHomomorphism_42
+<span class="lineno">   50 </span>                                            (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   51 </span>-- Relation.Binary.Morphism.Structures.IsRelMonomorphism.isHomomorphism
+<span class="lineno">   52 </span>d_isHomomorphism_76 ::
+<span class="lineno">   53 </span>  T_IsRelMonomorphism_64 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">d_isHomomorphism_76 v0</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelMonomorphism'46'constructor_1563 v1 v2 -&gt; coe v1</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="nottickedoff">_                                             -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   58 </span>-- Relation.Binary.Morphism.Structures.IsRelMonomorphism.injective
+<span class="lineno">   59 </span>d_injective_78 ::
+<span class="lineno">   60 </span>  T_IsRelMonomorphism_64 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">d_injective_78 v0</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelMonomorphism'46'constructor_1563 v1 v2 -&gt; coe v2</span>
+<span class="lineno">   64 </span><span class="spaces">      </span><span class="nottickedoff">_                                             -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   65 </span>-- Relation.Binary.Morphism.Structures.IsRelMonomorphism._.cong
+<span class="lineno">   66 </span>d_cong_82 ::
+<span class="lineno">   67 </span>  T_IsRelMonomorphism_64 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">d_cong_82 v0 = coe d_cong_52 (coe d_isHomomorphism_76 (coe v0))</span></span>
+<span class="lineno">   69 </span>-- Relation.Binary.Morphism.Structures.IsRelIsomorphism
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">d_IsRelIsomorphism_94 a0 a1 a2 a3 a4 a5 a6 a7 a8 = ()</span></span>
+<span class="lineno">   71 </span>data T_IsRelIsomorphism_94
+<span class="lineno">   72 </span>  = C_IsRelIsomorphism'46'constructor_3019 T_IsRelMonomorphism_64
+<span class="lineno">   73 </span>                                           (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14)
+<span class="lineno">   74 </span>-- Relation.Binary.Morphism.Structures.IsRelIsomorphism.isMonomorphism
+<span class="lineno">   75 </span>d_isMonomorphism_106 ::
+<span class="lineno">   76 </span>  T_IsRelIsomorphism_94 -&gt; T_IsRelMonomorphism_64
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">d_isMonomorphism_106 v0</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelIsomorphism'46'constructor_3019 v1 v2 -&gt; coe v1</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   81 </span>-- Relation.Binary.Morphism.Structures.IsRelIsomorphism.surjective
+<span class="lineno">   82 </span>d_surjective_108 ::
+<span class="lineno">   83 </span>  T_IsRelIsomorphism_94 -&gt;
+<span class="lineno">   84 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">   85 </span><span class="decl"><span class="nottickedoff">d_surjective_108 v0</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelIsomorphism'46'constructor_3019 v1 v2 -&gt; coe v2</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">_                                            -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   89 </span>-- Relation.Binary.Morphism.Structures.IsRelIsomorphism._.cong
+<span class="lineno">   90 </span>d_cong_112 ::
+<span class="lineno">   91 </span>  T_IsRelIsomorphism_94 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">d_cong_112 v0</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">d_cong_52</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_isHomomorphism_76 (coe d_isMonomorphism_106 (coe v0)))</span></span>
+<span class="lineno">   96 </span>-- Relation.Binary.Morphism.Structures.IsRelIsomorphism._.injective
+<span class="lineno">   97 </span>d_injective_114 ::
+<span class="lineno">   98 </span>  T_IsRelIsomorphism_94 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   99 </span><span class="decl"><span class="nottickedoff">d_injective_114 v0</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_injective_78 (coe d_isMonomorphism_106 (coe v0))</span></span>
+<span class="lineno">  101 </span>-- Relation.Binary.Morphism.Structures.IsRelIsomorphism._.isHomomorphism
+<span class="lineno">  102 </span>d_isHomomorphism_116 ::
+<span class="lineno">  103 </span>  T_IsRelIsomorphism_94 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  104 </span><span class="decl"><span class="nottickedoff">d_isHomomorphism_116 v0</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_isHomomorphism_76 (coe d_isMonomorphism_106 (coe v0))</span></span>
+<span class="lineno">  106 </span>-- Relation.Binary.Morphism.Structures.IsRelIsomorphism.bijective
+<span class="lineno">  107 </span>d_bijective_118 ::
+<span class="lineno">  108 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  109 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  110 </span>  () -&gt;
+<span class="lineno">  111 </span>  () -&gt;
+<span class="lineno">  112 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  113 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  114 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  115 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  116 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  117 </span>  T_IsRelIsomorphism_94 -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  118 </span><span class="decl"><span class="nottickedoff">d_bijective_118 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 v9</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="nottickedoff">= du_bijective_118 v9</span></span>
+<span class="lineno">  120 </span>du_bijective_118 ::
+<span class="lineno">  121 </span>  T_IsRelIsomorphism_94 -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  122 </span><span class="decl"><span class="nottickedoff">du_bijective_118 v0</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32</span>
+<span class="lineno">  125 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_injective_78 (coe d_isMonomorphism_106 (coe v0)))</span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_surjective_108 (coe v0))</span></span>
+<span class="lineno">  127 </span>-- Relation.Binary.Morphism.Structures.IsOrderHomomorphism
+<span class="lineno">  128 </span><span class="decl"><span class="nottickedoff">d_IsOrderHomomorphism_138 a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="nottickedoff">= ()</span></span>
+<span class="lineno">  130 </span>data T_IsOrderHomomorphism_138
+<span class="lineno">  131 </span>  = C_IsOrderHomomorphism'46'constructor_5435 (AgdaAny -&gt;
+<span class="lineno">  132 </span>                                               AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  133 </span>                                              (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  134 </span>-- Relation.Binary.Morphism.Structures.IsOrderHomomorphism.cong
+<span class="lineno">  135 </span>d_cong_154 ::
+<span class="lineno">  136 </span>  T_IsOrderHomomorphism_138 -&gt;
+<span class="lineno">  137 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  138 </span><span class="decl"><span class="nottickedoff">d_cong_154 v0</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="nottickedoff">C_IsOrderHomomorphism'46'constructor_5435 v1 v2 -&gt; coe v1</span>
+<span class="lineno">  141 </span><span class="spaces">      </span><span class="nottickedoff">_                                               -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  142 </span>-- Relation.Binary.Morphism.Structures.IsOrderHomomorphism.mono
+<span class="lineno">  143 </span>d_mono_156 ::
+<span class="lineno">  144 </span>  T_IsOrderHomomorphism_138 -&gt;
+<span class="lineno">  145 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">d_mono_156 v0</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="nottickedoff">C_IsOrderHomomorphism'46'constructor_5435 v1 v2 -&gt; coe v2</span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="nottickedoff">_                                               -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  150 </span>-- Relation.Binary.Morphism.Structures.IsOrderHomomorphism.Eq.isRelHomomorphism
+<span class="lineno">  151 </span>d_isRelHomomorphism_160 ::
+<span class="lineno">  152 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  153 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  154 </span>  () -&gt;
+<span class="lineno">  155 </span>  () -&gt;
+<span class="lineno">  156 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  157 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  158 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  159 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  160 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  161 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  162 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  163 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  164 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  165 </span>  T_IsOrderHomomorphism_138 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  166 </span><span class="decl"><span class="nottickedoff">d_isRelHomomorphism_160 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  167 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 ~v12 v13</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelHomomorphism_160 v13</span></span>
+<span class="lineno">  169 </span>du_isRelHomomorphism_160 ::
+<span class="lineno">  170 </span>  T_IsOrderHomomorphism_138 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  171 </span><span class="decl"><span class="nottickedoff">du_isRelHomomorphism_160 v0</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  173 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelHomomorphism'46'constructor_587 (coe d_cong_154 (coe v0))</span></span>
+<span class="lineno">  174 </span>-- Relation.Binary.Morphism.Structures.IsOrderHomomorphism.isRelHomomorphism
+<span class="lineno">  175 </span>d_isRelHomomorphism_162 ::
+<span class="lineno">  176 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  177 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  178 </span>  () -&gt;
+<span class="lineno">  179 </span>  () -&gt;
+<span class="lineno">  180 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  181 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  182 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  183 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  184 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  185 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  186 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  187 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  188 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  189 </span>  T_IsOrderHomomorphism_138 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  190 </span><span class="decl"><span class="nottickedoff">d_isRelHomomorphism_162 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  191 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 ~v12 v13</span>
+<span class="lineno">  192 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelHomomorphism_162 v13</span></span>
+<span class="lineno">  193 </span>du_isRelHomomorphism_162 ::
+<span class="lineno">  194 </span>  T_IsOrderHomomorphism_138 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  195 </span><span class="decl"><span class="nottickedoff">du_isRelHomomorphism_162 v0</span>
+<span class="lineno">  196 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  197 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelHomomorphism'46'constructor_587 (coe d_mono_156 (coe v0))</span></span>
+<span class="lineno">  198 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism
+<span class="lineno">  199 </span><span class="decl"><span class="nottickedoff">d_IsOrderMonomorphism_182 a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12</span>
+<span class="lineno">  200 </span><span class="spaces">  </span><span class="nottickedoff">= ()</span></span>
+<span class="lineno">  201 </span>data T_IsOrderMonomorphism_182
+<span class="lineno">  202 </span>  = C_IsOrderMonomorphism'46'constructor_9103 T_IsOrderHomomorphism_138
+<span class="lineno">  203 </span>                                              (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  204 </span>                                              (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">  205 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism.isOrderHomomorphism
+<span class="lineno">  206 </span>d_isOrderHomomorphism_200 ::
+<span class="lineno">  207 </span>  T_IsOrderMonomorphism_182 -&gt; T_IsOrderHomomorphism_138
+<span class="lineno">  208 </span><span class="decl"><span class="nottickedoff">d_isOrderHomomorphism_200 v0</span>
+<span class="lineno">  209 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  210 </span><span class="spaces">      </span><span class="nottickedoff">C_IsOrderMonomorphism'46'constructor_9103 v1 v2 v3 -&gt; coe v1</span>
+<span class="lineno">  211 </span><span class="spaces">      </span><span class="nottickedoff">_                                                  -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  212 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism.injective
+<span class="lineno">  213 </span>d_injective_202 ::
+<span class="lineno">  214 </span>  T_IsOrderMonomorphism_182 -&gt;
+<span class="lineno">  215 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  216 </span><span class="decl"><span class="nottickedoff">d_injective_202 v0</span>
+<span class="lineno">  217 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  218 </span><span class="spaces">      </span><span class="nottickedoff">C_IsOrderMonomorphism'46'constructor_9103 v1 v2 v3 -&gt; coe v2</span>
+<span class="lineno">  219 </span><span class="spaces">      </span><span class="nottickedoff">_                                                  -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  220 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism.cancel
+<span class="lineno">  221 </span>d_cancel_204 ::
+<span class="lineno">  222 </span>  T_IsOrderMonomorphism_182 -&gt;
+<span class="lineno">  223 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  224 </span><span class="decl"><span class="nottickedoff">d_cancel_204 v0</span>
+<span class="lineno">  225 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  226 </span><span class="spaces">      </span><span class="nottickedoff">C_IsOrderMonomorphism'46'constructor_9103 v1 v2 v3 -&gt; coe v3</span>
+<span class="lineno">  227 </span><span class="spaces">      </span><span class="nottickedoff">_                                                  -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  228 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism._.cong
+<span class="lineno">  229 </span>d_cong_208 ::
+<span class="lineno">  230 </span>  T_IsOrderMonomorphism_182 -&gt;
+<span class="lineno">  231 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  232 </span><span class="decl"><span class="nottickedoff">d_cong_208 v0</span>
+<span class="lineno">  233 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_cong_154 (coe d_isOrderHomomorphism_200 (coe v0))</span></span>
+<span class="lineno">  234 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism._.isRelHomomorphism
+<span class="lineno">  235 </span>d_isRelHomomorphism_210 ::
+<span class="lineno">  236 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  237 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  238 </span>  () -&gt;
+<span class="lineno">  239 </span>  () -&gt;
+<span class="lineno">  240 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  241 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  242 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  243 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  244 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  245 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  246 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  247 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  248 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  249 </span>  T_IsOrderMonomorphism_182 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  250 </span><span class="decl"><span class="nottickedoff">d_isRelHomomorphism_210 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  251 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 ~v12 v13</span>
+<span class="lineno">  252 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelHomomorphism_210 v13</span></span>
+<span class="lineno">  253 </span>du_isRelHomomorphism_210 ::
+<span class="lineno">  254 </span>  T_IsOrderMonomorphism_182 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  255 </span><span class="decl"><span class="nottickedoff">du_isRelHomomorphism_210 v0</span>
+<span class="lineno">  256 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  257 </span><span class="spaces">      </span><span class="nottickedoff">du_isRelHomomorphism_162 (coe d_isOrderHomomorphism_200 (coe v0))</span></span>
+<span class="lineno">  258 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism._.mono
+<span class="lineno">  259 </span>d_mono_212 ::
+<span class="lineno">  260 </span>  T_IsOrderMonomorphism_182 -&gt;
+<span class="lineno">  261 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  262 </span><span class="decl"><span class="nottickedoff">d_mono_212 v0</span>
+<span class="lineno">  263 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_mono_156 (coe d_isOrderHomomorphism_200 (coe v0))</span></span>
+<span class="lineno">  264 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism.Eq.isRelMonomorphism
+<span class="lineno">  265 </span>d_isRelMonomorphism_216 ::
+<span class="lineno">  266 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  267 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  268 </span>  () -&gt;
+<span class="lineno">  269 </span>  () -&gt;
+<span class="lineno">  270 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  271 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  272 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  273 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  274 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  275 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  276 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  277 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  278 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  279 </span>  T_IsOrderMonomorphism_182 -&gt; T_IsRelMonomorphism_64
+<span class="lineno">  280 </span><span class="decl"><span class="nottickedoff">d_isRelMonomorphism_216 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  281 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 ~v12 v13</span>
+<span class="lineno">  282 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelMonomorphism_216 v13</span></span>
+<span class="lineno">  283 </span>du_isRelMonomorphism_216 ::
+<span class="lineno">  284 </span>  T_IsOrderMonomorphism_182 -&gt; T_IsRelMonomorphism_64
+<span class="lineno">  285 </span><span class="decl"><span class="nottickedoff">du_isRelMonomorphism_216 v0</span>
+<span class="lineno">  286 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  287 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelMonomorphism'46'constructor_1563</span>
+<span class="lineno">  288 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  289 </span><span class="spaces">         </span><span class="nottickedoff">du_isRelHomomorphism_160 (coe d_isOrderHomomorphism_200 (coe v0)))</span>
+<span class="lineno">  290 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_injective_202 (coe v0))</span></span>
+<span class="lineno">  291 </span>-- Relation.Binary.Morphism.Structures.IsOrderMonomorphism.isRelMonomorphism
+<span class="lineno">  292 </span>d_isRelMonomorphism_218 ::
+<span class="lineno">  293 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  294 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  295 </span>  () -&gt;
+<span class="lineno">  296 </span>  () -&gt;
+<span class="lineno">  297 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  298 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  299 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  300 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  301 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  302 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  303 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  304 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  305 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  306 </span>  T_IsOrderMonomorphism_182 -&gt; T_IsRelMonomorphism_64
+<span class="lineno">  307 </span><span class="decl"><span class="nottickedoff">d_isRelMonomorphism_218 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  308 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 ~v12 v13</span>
+<span class="lineno">  309 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelMonomorphism_218 v13</span></span>
+<span class="lineno">  310 </span>du_isRelMonomorphism_218 ::
+<span class="lineno">  311 </span>  T_IsOrderMonomorphism_182 -&gt; T_IsRelMonomorphism_64
+<span class="lineno">  312 </span><span class="decl"><span class="nottickedoff">du_isRelMonomorphism_218 v0</span>
+<span class="lineno">  313 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  314 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelMonomorphism'46'constructor_1563</span>
+<span class="lineno">  315 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  316 </span><span class="spaces">         </span><span class="nottickedoff">du_isRelHomomorphism_162 (coe d_isOrderHomomorphism_200 (coe v0)))</span>
+<span class="lineno">  317 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_cancel_204 (coe v0))</span></span>
+<span class="lineno">  318 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism
+<span class="lineno">  319 </span><span class="decl"><span class="nottickedoff">d_IsOrderIsomorphism_238 a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="nottickedoff">= ()</span></span>
+<span class="lineno">  321 </span>data T_IsOrderIsomorphism_238
+<span class="lineno">  322 </span>  = C_IsOrderIsomorphism'46'constructor_14201 T_IsOrderMonomorphism_182
+<span class="lineno">  323 </span>                                              (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14)
+<span class="lineno">  324 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism.isOrderMonomorphism
+<span class="lineno">  325 </span>d_isOrderMonomorphism_254 ::
+<span class="lineno">  326 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsOrderMonomorphism_182
+<span class="lineno">  327 </span><span class="decl"><span class="nottickedoff">d_isOrderMonomorphism_254 v0</span>
+<span class="lineno">  328 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  329 </span><span class="spaces">      </span><span class="nottickedoff">C_IsOrderIsomorphism'46'constructor_14201 v1 v2 -&gt; coe v1</span>
+<span class="lineno">  330 </span><span class="spaces">      </span><span class="nottickedoff">_                                               -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  331 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism.surjective
+<span class="lineno">  332 </span>d_surjective_256 ::
+<span class="lineno">  333 </span>  T_IsOrderIsomorphism_238 -&gt;
+<span class="lineno">  334 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  335 </span><span class="decl"><span class="nottickedoff">d_surjective_256 v0</span>
+<span class="lineno">  336 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  337 </span><span class="spaces">      </span><span class="nottickedoff">C_IsOrderIsomorphism'46'constructor_14201 v1 v2 -&gt; coe v2</span>
+<span class="lineno">  338 </span><span class="spaces">      </span><span class="nottickedoff">_                                               -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  339 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism._.cancel
+<span class="lineno">  340 </span>d_cancel_260 ::
+<span class="lineno">  341 </span>  T_IsOrderIsomorphism_238 -&gt;
+<span class="lineno">  342 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">d_cancel_260 v0</span>
+<span class="lineno">  344 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_cancel_204 (coe d_isOrderMonomorphism_254 (coe v0))</span></span>
+<span class="lineno">  345 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism._.cong
+<span class="lineno">  346 </span>d_cong_262 ::
+<span class="lineno">  347 </span>  T_IsOrderIsomorphism_238 -&gt;
+<span class="lineno">  348 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  349 </span><span class="decl"><span class="nottickedoff">d_cong_262 v0</span>
+<span class="lineno">  350 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  351 </span><span class="spaces">      </span><span class="nottickedoff">d_cong_154</span>
+<span class="lineno">  352 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  353 </span><span class="spaces">         </span><span class="nottickedoff">d_isOrderHomomorphism_200 (coe d_isOrderMonomorphism_254 (coe v0)))</span></span>
+<span class="lineno">  354 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism._.injective
+<span class="lineno">  355 </span>d_injective_264 ::
+<span class="lineno">  356 </span>  T_IsOrderIsomorphism_238 -&gt;
+<span class="lineno">  357 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  358 </span><span class="decl"><span class="nottickedoff">d_injective_264 v0</span>
+<span class="lineno">  359 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_injective_202 (coe d_isOrderMonomorphism_254 (coe v0))</span></span>
+<span class="lineno">  360 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism._.isOrderHomomorphism
+<span class="lineno">  361 </span>d_isOrderHomomorphism_266 ::
+<span class="lineno">  362 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsOrderHomomorphism_138
+<span class="lineno">  363 </span><span class="decl"><span class="nottickedoff">d_isOrderHomomorphism_266 v0</span>
+<span class="lineno">  364 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  365 </span><span class="spaces">      </span><span class="nottickedoff">d_isOrderHomomorphism_200 (coe d_isOrderMonomorphism_254 (coe v0))</span></span>
+<span class="lineno">  366 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism._.isRelHomomorphism
+<span class="lineno">  367 </span>d_isRelHomomorphism_268 ::
+<span class="lineno">  368 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  369 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  370 </span>  () -&gt;
+<span class="lineno">  371 </span>  () -&gt;
+<span class="lineno">  372 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  373 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  374 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  375 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  376 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  377 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  378 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  379 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  380 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  381 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  382 </span><span class="decl"><span class="nottickedoff">d_isRelHomomorphism_268 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  383 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 ~v12 v13</span>
+<span class="lineno">  384 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelHomomorphism_268 v13</span></span>
+<span class="lineno">  385 </span>du_isRelHomomorphism_268 ::
+<span class="lineno">  386 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsRelHomomorphism_42
+<span class="lineno">  387 </span><span class="decl"><span class="nottickedoff">du_isRelHomomorphism_268 v0</span>
+<span class="lineno">  388 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = d_isOrderMonomorphism_254 (coe v0) in</span>
+<span class="lineno">  389 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  390 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  391 </span><span class="spaces">         </span><span class="nottickedoff">du_isRelHomomorphism_162 (coe d_isOrderHomomorphism_200 (coe v1)))</span></span>
+<span class="lineno">  392 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism._.isRelMonomorphism
+<span class="lineno">  393 </span>d_isRelMonomorphism_270 ::
+<span class="lineno">  394 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  395 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  396 </span>  () -&gt;
+<span class="lineno">  397 </span>  () -&gt;
+<span class="lineno">  398 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  399 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  400 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  401 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  402 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  403 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  404 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  405 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  406 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  407 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsRelMonomorphism_64
+<span class="lineno">  408 </span><span class="decl"><span class="nottickedoff">d_isRelMonomorphism_270 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  409 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 ~v12 v13</span>
+<span class="lineno">  410 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelMonomorphism_270 v13</span></span>
+<span class="lineno">  411 </span>du_isRelMonomorphism_270 ::
+<span class="lineno">  412 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsRelMonomorphism_64
+<span class="lineno">  413 </span><span class="decl"><span class="nottickedoff">du_isRelMonomorphism_270 v0</span>
+<span class="lineno">  414 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  415 </span><span class="spaces">      </span><span class="nottickedoff">du_isRelMonomorphism_218 (coe d_isOrderMonomorphism_254 (coe v0))</span></span>
+<span class="lineno">  416 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism._.mono
+<span class="lineno">  417 </span>d_mono_272 ::
+<span class="lineno">  418 </span>  T_IsOrderIsomorphism_238 -&gt;
+<span class="lineno">  419 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  420 </span><span class="decl"><span class="nottickedoff">d_mono_272 v0</span>
+<span class="lineno">  421 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  422 </span><span class="spaces">      </span><span class="nottickedoff">d_mono_156</span>
+<span class="lineno">  423 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  424 </span><span class="spaces">         </span><span class="nottickedoff">d_isOrderHomomorphism_200 (coe d_isOrderMonomorphism_254 (coe v0)))</span></span>
+<span class="lineno">  425 </span>-- Relation.Binary.Morphism.Structures.IsOrderIsomorphism.Eq.isRelIsomorphism
+<span class="lineno">  426 </span>d_isRelIsomorphism_276 ::
+<span class="lineno">  427 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  428 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  429 </span>  () -&gt;
+<span class="lineno">  430 </span>  () -&gt;
+<span class="lineno">  431 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  432 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  433 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  434 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  435 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  436 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  437 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  438 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  439 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  440 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsRelIsomorphism_94
+<span class="lineno">  441 </span><span class="decl"><span class="nottickedoff">d_isRelIsomorphism_276 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  442 </span><span class="spaces">                       </span><span class="nottickedoff">~v11 ~v12 v13</span>
+<span class="lineno">  443 </span><span class="spaces">  </span><span class="nottickedoff">= du_isRelIsomorphism_276 v13</span></span>
+<span class="lineno">  444 </span>du_isRelIsomorphism_276 ::
+<span class="lineno">  445 </span>  T_IsOrderIsomorphism_238 -&gt; T_IsRelIsomorphism_94
+<span class="lineno">  446 </span><span class="decl"><span class="nottickedoff">du_isRelIsomorphism_276 v0</span>
+<span class="lineno">  447 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  448 </span><span class="spaces">      </span><span class="nottickedoff">C_IsRelIsomorphism'46'constructor_3019</span>
+<span class="lineno">  449 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  450 </span><span class="spaces">         </span><span class="nottickedoff">du_isRelMonomorphism_216 (coe d_isOrderMonomorphism_254 (coe v0)))</span>
+<span class="lineno">  451 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_surjective_256 (coe v0))</span></span>
+
+</pre>
+</body>
+</html>

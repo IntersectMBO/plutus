@@ -1,0 +1,2127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-specialise #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.V1.Data.Address</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#addressCredential"
+	><span class="hs-identifier"
+	  >addressCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#addressStakingCredential"
+	><span class="hs-identifier"
+	  >addressStakingCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#pubKeyHashAddress"
+	><span class="hs-identifier"
+	  >pubKeyHashAddress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toPubKeyHash"
+	><span class="hs-identifier"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toScriptHash"
+	><span class="hs-identifier"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#scriptHashAddress"
+	><span class="hs-identifier"
+	  >scriptHashAddress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#stakingCredential"
+	><span class="hs-identifier"
+	  >stakingCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Crypto</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Data.Credential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#Credential"
+	><span class="hs-identifier"
+	  >Credential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#StakingCredential"
+	><span class="hs-identifier"
+	  >StakingCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#PubKeyCredential"
+	><span class="hs-identifier"
+	  >PubKeyCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#ScriptCredential"
+	><span class="hs-identifier"
+	  >ScriptCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Scripts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier"
+	  >ScriptHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.AsData.html"
+	><span class="hs-identifier"
+	  >PlutusTx.AsData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier"
+	  >pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Symbols.Ascii.html#parens"
+	><span class="hs-identifier"
+	  >parens</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| An address may contain two credentials,
+the payment credential and optionally a 'StakingCredential'. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="Address"
+      ><span id="Address"
+	><span id="addressCredential"
+	  ><span id="addressStakingCredential"
+	    ><span id="Address_6989586621680110170"
+	      ><span id="local-6989586621681248710"
+		><span id="local-6989586621681248714"
+		  ><span id="local-6989586621681248720"
+		    ><span id="local-6989586621681248724"
+		      ><span id="local-6989586621681248727"
+			><span id="local-6989586621681248731"
+			  ><span id="local-6989586621681248734"
+			    ><span id="local-6989586621681248737"
+			      ><span id="local-6989586621681248740"
+				><span id="local-6989586621681248743"
+				  ><span id="local-6989586621681248749"
+				    ><span id="local-6989586621681248753"
+				      ><span id="local-6989586621681248756"
+					><span id="local-6989586621681248758"
+					  ><span id="local-6989586621681248760"
+					    ><span id="local-6989586621681248765"
+					      ><span id="local-6989586621681248770"
+						><span id="local-6989586621681248775"
+						  ><span id="local-6989586621681248783"
+						    ><span id="%24mAddress"
+						      ><span id="%24bAddress"
+							><span class="hs-identifier"
+							  >PlutusTx.asData</span
+							  ><span
+							  >
+</span
+							  ><span id="line-45"
+							  ></span
+							  ><span
+							  >  </span
+							  ><span class="hs-special"
+							  >[d|</span
+							  ><span
+							  >
+</span
+							  ><span id="line-46"
+							  ></span
+							  ><span
+							  >    </span
+							  ><span class="hs-keyword"
+							  >data</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >Address</span
+							  ><span
+							  > </span
+							  ><span class="hs-glyph"
+							  >=</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >Address</span
+							  ><span
+							  >
+</span
+							  ><span id="line-47"
+							  ></span
+							  ><span
+							  >      </span
+							  ><span class="hs-special"
+							  >{</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >addressCredential</span
+							  ><span
+							  > </span
+							  ><span class="hs-glyph"
+							  >::</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >Credential</span
+							  ><span
+							  >
+</span
+							  ><span id="line-48"
+							  ></span
+							  ><span
+							  >      </span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span
+							  > </span
+							  ><span class="hs-comment"
+							  >-- \^ the payment credential</span
+							  ><span
+							  >
+</span
+							  ><span id="line-49"
+							  ></span
+							  ><span
+							  >        </span
+							  ><span class="hs-identifier"
+							  >addressStakingCredential</span
+							  ><span
+							  > </span
+							  ><span class="hs-glyph"
+							  >::</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >Maybe</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >StakingCredential</span
+							  ><span
+							  >
+</span
+							  ><span id="line-50"
+							  ></span
+							  ><span
+							  >      </span
+							  ><span class="hs-special"
+							  >}</span
+							  ><span
+							  >
+</span
+							  ><span id="line-51"
+							  ></span
+							  ><span
+							  >      </span
+							  ><span class="hs-comment"
+							  >-- \^ the staking credential</span
+							  ><span
+							  >
+</span
+							  ><span id="line-52"
+							  ></span
+							  ><span
+							  >
+</span
+							  ><span id="line-53"
+							  ></span
+							  ><span
+							  >      </span
+							  ><span class="hs-keyword"
+							  >deriving</span
+							  ><span
+							  > </span
+							  ><span class="hs-keyword"
+							  >stock</span
+							  ><span
+							  > </span
+							  ><span class="hs-special"
+							  >(</span
+							  ><span class="hs-identifier"
+							  >Eq</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >Ord</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >Show</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >Generic</span
+							  ><span class="hs-special"
+							  >)</span
+							  ><span
+							  >
+</span
+							  ><span id="line-54"
+							  ></span
+							  ><span
+							  >      </span
+							  ><span class="hs-keyword"
+							  >deriving</span
+							  ><span
+							  > </span
+							  ><span class="hs-keyword"
+							  >newtype</span
+							  ><span
+							  > </span
+							  ><span class="hs-special"
+							  >(</span
+							  ><span class="hs-identifier"
+							  >PlutusTx.FromData</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >PlutusTx.UnsafeFromData</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >PlutusTx.ToData</span
+							  ><span class="hs-special"
+							  >)</span
+							  ><span
+							  >
+</span
+							  ><span id="line-55"
+							  ></span
+							  ><span
+							  >      </span
+							  ><span class="hs-keyword"
+							  >deriving</span
+							  ><span
+							  > </span
+							  ><span class="hs-keyword"
+							  >anyclass</span
+							  ><span
+							  > </span
+							  ><span class="hs-special"
+							  >(</span
+							  ><span class="hs-identifier"
+							  >NFData</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span
+							  > </span
+							  ><span class="hs-identifier"
+							  >HasBlueprintDefinition</span
+							  ><span class="hs-special"
+							  >)</span
+							  ><span
+							  >
+</span
+							  ><span id="line-56"
+							  ></span
+							  ><span
+							  >    </span
+							  ><span class="hs-special"
+							  >|]</span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="local-6989586621681248827"
+      ><span class="hs-identifier"
+	>PlutusTx.deriveEq</span
+	><span
+	> </span
+	><span class="hs-special"
+	>''</span
+	><span class="hs-identifier"
+	>Address</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681248837"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	  ><span class="hs-identifier hs-type"
+	    >Address</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681248843"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. Address -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681248844"
+      ><span class="annot"
+	><span class="annottext"
+	  >Credential
+</span
+	  ><a href="#local-6989586621681248844"
+	  ><span class="hs-identifier hs-var"
+	    >cred</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681248845"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe StakingCredential
+</span
+	  ><a href="#local-6989586621681248845"
+	  ><span class="hs-identifier hs-var"
+	    >stakingCred</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681248850"
+      ><span class="annot"
+	><span class="annottext"
+	  >staking :: Doc ann
+</span
+	  ><a href="#local-6989586621681248850"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >staking</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+-&gt; (StakingCredential -&gt; Doc ann)
+-&gt; Maybe StakingCredential
+-&gt; Doc ann
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;no staking credential&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential -&gt; Doc ann
+forall ann. StakingCredential -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe StakingCredential
+</span
+	><a href="#local-6989586621681248845"
+	><span class="hs-identifier hs-var"
+	  >stakingCred</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential -&gt; Doc ann
+forall ann. Credential -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential
+</span
+	><a href="#local-6989586621681248844"
+	><span class="hs-identifier hs-var"
+	  >cred</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Symbols.Ascii.html#parens"
+	><span class="hs-identifier hs-var"
+	  >parens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall {ann}. Doc ann
+</span
+	><a href="#local-6989586621681248850"
+	><span class="hs-identifier hs-var"
+	  >staking</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#pubKeyHashAddress"
+	><span class="hs-pragma hs-type"
+	  >pubKeyHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The address that should be targeted by a transaction output
+locked by the public key with the given hash. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#pubKeyHashAddress"
+	><span class="hs-identifier hs-type"
+	  >pubKeyHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="pubKeyHashAddress"
+      ><span class="annot"
+	><span class="annottext"
+	  >pubKeyHashAddress :: PubKeyHash -&gt; Address
+</span
+	  ><a href="PlutusLedgerApi.V1.Data.Address.html#pubKeyHashAddress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >pubKeyHashAddress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681248852"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681248852"
+	  ><span class="hs-identifier hs-var"
+	    >pkh</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential -&gt; Maybe StakingCredential -&gt; Address
+</span
+	><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-var"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; Credential
+</span
+	><a href="PlutusLedgerApi.V1.Data.Credential.html#PubKeyCredential"
+	><span class="hs-identifier hs-var"
+	  >PubKeyCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681248852"
+	><span class="hs-identifier hs-var"
+	  >pkh</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe StakingCredential
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toPubKeyHash"
+	><span class="hs-pragma hs-type"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The PubKeyHash of the address, if any</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toPubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="toPubKeyHash"
+      ><span class="annot"
+	><span class="annottext"
+	  >toPubKeyHash :: Address -&gt; Maybe PubKeyHash
+</span
+	  ><a href="PlutusLedgerApi.V1.Data.Address.html#toPubKeyHash"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toPubKeyHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#PubKeyCredential"
+	><span class="hs-identifier hs-type"
+	  >PubKeyCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681248853"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681248853"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe StakingCredential
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; Maybe PubKeyHash
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681248853"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toPubKeyHash"
+	><span class="hs-identifier hs-var"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Address
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe PubKeyHash
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toScriptHash"
+	><span class="hs-pragma hs-type"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The validator hash of the address, if any</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toScriptHash"
+	><span class="hs-identifier hs-type"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier hs-type"
+	  >ScriptHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="toScriptHash"
+      ><span class="annot"
+	><span class="annottext"
+	  >toScriptHash :: Address -&gt; Maybe ScriptHash
+</span
+	  ><a href="PlutusLedgerApi.V1.Data.Address.html#toScriptHash"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toScriptHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#ScriptCredential"
+	><span class="hs-identifier hs-type"
+	  >ScriptCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681248854"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash
+</span
+	  ><a href="#local-6989586621681248854"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe StakingCredential
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash -&gt; Maybe ScriptHash
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash
+</span
+	><a href="#local-6989586621681248854"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#toScriptHash"
+	><span class="hs-identifier hs-var"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Address
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ScriptHash
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#scriptHashAddress"
+	><span class="hs-pragma hs-type"
+	  >scriptHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The address that should be used by a transaction output
+locked by the given validator script hash. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#scriptHashAddress"
+	><span class="hs-identifier hs-type"
+	  >scriptHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier hs-type"
+	  >ScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="scriptHashAddress"
+      ><span class="annot"
+	><span class="annottext"
+	  >scriptHashAddress :: ScriptHash -&gt; Address
+</span
+	  ><a href="PlutusLedgerApi.V1.Data.Address.html#scriptHashAddress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >scriptHashAddress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681248855"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash
+</span
+	  ><a href="#local-6989586621681248855"
+	  ><span class="hs-identifier hs-var"
+	    >vh</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential -&gt; Maybe StakingCredential -&gt; Address
+</span
+	><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-var"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash -&gt; Credential
+</span
+	><a href="PlutusLedgerApi.V1.Data.Credential.html#ScriptCredential"
+	><span class="hs-identifier hs-var"
+	  >ScriptCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash
+</span
+	><a href="#local-6989586621681248855"
+	><span class="hs-identifier hs-var"
+	  >vh</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe StakingCredential
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#stakingCredential"
+	><span class="hs-pragma hs-type"
+	  >stakingCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The staking credential of an address (if any)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#stakingCredential"
+	><span class="hs-identifier hs-type"
+	  >stakingCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#StakingCredential"
+	><span class="hs-identifier hs-type"
+	  >StakingCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="stakingCredential"
+      ><span class="annot"
+	><span class="annottext"
+	  >stakingCredential :: Address -&gt; Maybe StakingCredential
+</span
+	  ><a href="PlutusLedgerApi.V1.Data.Address.html#stakingCredential"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >stakingCredential</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681248856"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe StakingCredential
+</span
+	  ><a href="#local-6989586621681248856"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe StakingCredential
+</span
+	><a href="#local-6989586621681248856"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-comment"
+      >-- TH Splices --------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621681248858"
+      ><span id="local-6989586621681248860"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="hs-identifier"
+	  >PlutusTx.makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >Address</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,875 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Transform.Certify.Trace</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier"
+	  >Term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Transform.Certify.Hints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Certify</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="SimplifierStage"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierStage"
+	  ><span class="hs-identifier hs-var"
+	    >SimplifierStage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="FloatDelay"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#FloatDelay"
+	  ><span class="hs-identifier hs-var"
+	    >FloatDelay</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ForceDelay"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#ForceDelay"
+	  ><span class="hs-identifier hs-var"
+	    >ForceDelay</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ForceCaseDelay"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#ForceCaseDelay"
+	  ><span class="hs-identifier hs-var"
+	    >ForceCaseDelay</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CaseOfCase"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#CaseOfCase"
+	  ><span class="hs-identifier hs-var"
+	    >CaseOfCase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CaseReduce"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#CaseReduce"
+	  ><span class="hs-identifier hs-var"
+	    >CaseReduce</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Inline"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#Inline"
+	  ><span class="hs-identifier hs-var"
+	    >Inline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CSE"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#CSE"
+	  ><span class="hs-identifier hs-var"
+	    >CSE</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682209939"
+      ><span id="local-6989586621682209941"
+	><span id="local-6989586621682209945"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SimplifierStage -&gt; ShowS
+[SimplifierStage] -&gt; ShowS
+SimplifierStage -&gt; String
+(Int -&gt; SimplifierStage -&gt; ShowS)
+-&gt; (SimplifierStage -&gt; String)
+-&gt; ([SimplifierStage] -&gt; ShowS)
+-&gt; Show SimplifierStage
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SimplifierStage -&gt; ShowS
+showsPrec :: Int -&gt; SimplifierStage -&gt; ShowS
+$cshow :: SimplifierStage -&gt; String
+show :: SimplifierStage -&gt; String
+$cshowList :: [SimplifierStage] -&gt; ShowS
+showList :: [SimplifierStage] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Simplification"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#Simplification"
+	  ><span class="hs-identifier hs-var"
+	    >Simplification</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209890"
+      ><span class="annot"
+	><a href="#local-6989586621682209890"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209891"
+      ><span class="annot"
+	><a href="#local-6989586621682209891"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209892"
+      ><span class="annot"
+	><a href="#local-6989586621682209892"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209893"
+      ><span class="annot"
+	><a href="#local-6989586621682209893"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Simplification"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#Simplification"
+	  ><span class="hs-identifier hs-var"
+	    >Simplification</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="beforeAST"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name (uni :: * -&gt; *) fun a.
+Simplification name uni fun a -&gt; Term name uni fun a
+</span
+	  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#beforeAST"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >beforeAST</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209890"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209891"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209892"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209893"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="stage"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name (uni :: * -&gt; *) fun a.
+Simplification name uni fun a -&gt; SimplifierStage
+</span
+	  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#stage"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >stage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierStage"
+	><span class="hs-identifier hs-type"
+	  >SimplifierStage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="hints"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name (uni :: * -&gt; *) fun a.
+Simplification name uni fun a -&gt; Hints
+</span
+	  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#hints"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >hints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Hints"
+	><span class="hs-identifier hs-type"
+	  >Certify.Hints</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="afterAST"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name (uni :: * -&gt; *) fun a.
+Simplification name uni fun a -&gt; Term name uni fun a
+</span
+	  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#afterAST"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >afterAST</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209890"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209891"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209892"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209893"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO2: we probably don't want this in memory so after MVP</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- we should consider serializing this to disk</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="SimplifierTrace"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+	  ><span class="hs-identifier hs-var"
+	    >SimplifierTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209913"
+      ><span class="annot"
+	><a href="#local-6989586621682209913"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209914"
+      ><span class="annot"
+	><a href="#local-6989586621682209914"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209915"
+      ><span class="annot"
+	><a href="#local-6989586621682209915"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209916"
+      ><span class="annot"
+	><a href="#local-6989586621682209916"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SimplifierTrace"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+	  ><span class="hs-identifier hs-var"
+	    >SimplifierTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="simplifierTrace"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name (uni :: * -&gt; *) fun a.
+SimplifierTrace name uni fun a -&gt; [Simplification name uni fun a]
+</span
+	  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#simplifierTrace"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >simplifierTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#Simplification"
+	><span class="hs-identifier hs-type"
+	  >Simplification</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209913"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209914"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209915"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209916"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="local-6989586621682209922"
+      ><span id="local-6989586621682209923"
+	><span id="local-6989586621682209924"
+	  ><span id="local-6989586621682209925"
+	    ><span class="annot"
+	      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#initSimplifierTrace"
+		><span class="hs-identifier hs-type"
+		  >initSimplifierTrace</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+		><span class="hs-identifier hs-type"
+		  >SimplifierTrace</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682209922"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682209923"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682209924"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682209925"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="initSimplifierTrace"
+      ><span class="annot"
+	><span class="annottext"
+	  >initSimplifierTrace :: forall name (uni :: * -&gt; *) fun a. SimplifierTrace name uni fun a
+</span
+	  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#initSimplifierTrace"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >initSimplifierTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Simplification name uni fun a] -&gt; SimplifierTrace name uni fun a
+forall name (uni :: * -&gt; *) fun a.
+[Simplification name uni fun a] -&gt; SimplifierTrace name uni fun a
+</span
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+	><span class="hs-identifier hs-var"
+	  >SimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

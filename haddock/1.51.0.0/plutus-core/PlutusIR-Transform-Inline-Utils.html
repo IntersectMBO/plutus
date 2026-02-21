@@ -1,0 +1,3009 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.Inline.Utils</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.Inline.Utils.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.Inline.Utils</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Types and their functions, and general utility (including heuristics) for inlining. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:ExternalConstraints"
+	      >ExternalConstraints</a
+	      > tyname name uni fun m = (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > tyname, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:InliningConstraints"
+	      >InliningConstraints</a
+	      > tyname name uni fun = (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > tyname, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:InlineInfo"
+	      >InlineInfo</a
+	      > tyname name uni fun ann = <a href="#v:InlineInfo"
+	      >InlineInfo</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_iiVarInfo"
+		  >_iiVarInfo</a
+		  > &#8759; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+		  >VarsInfo</a
+		  > tyname name uni ann</li
+		><li
+		><a href="#v:_iiUsages"
+		  >_iiUsages</a
+		  > &#8759; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+		  >Usages</a
+		  ></li
+		><li
+		><a href="#v:_iiHints"
+		  >_iiHints</a
+		  > &#8759; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+		  >InlineHints</a
+		  > name ann</li
+		><li
+		><a href="#v:_iiBuiltinsInfo"
+		  >_iiBuiltinsInfo</a
+		  > &#8759; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun</li
+		><li
+		><a href="#v:_iiInlineConstants"
+		  >_iiInlineConstants</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_iiInlineCallsiteGrowth"
+		  >_iiInlineCallsiteGrowth</a
+		  > &#8759; <a href="PlutusIR-Analysis-Size.html#t:Size" title="PlutusIR.Analysis.Size"
+		  >Size</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:iiVarInfo"
+	      >iiVarInfo</a
+	      > &#8759; &#8704; tyname name uni fun ann tyname. Lens (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni ann) (<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:iiUsages"
+	      >iiUsages</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	      >Usages</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:iiInlineConstants"
+	      >iiInlineConstants</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:iiInlineCallsiteGrowth"
+	      >iiInlineCallsiteGrowth</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) <a href="PlutusIR-Analysis-Size.html#t:Size" title="PlutusIR.Analysis.Size"
+	      >Size</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:iiHints"
+	      >iiHints</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	      >InlineHints</a
+	      > name ann)</li
+	    ><li class="src short"
+	    ><a href="#v:iiBuiltinsInfo"
+	      >iiBuiltinsInfo</a
+	      > &#8759; &#8704; tyname name uni fun ann fun. Lens (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun) (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:InlineM"
+	      >InlineM</a
+	      > tyname name uni fun ann = <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	      >ReaderT</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineInfo</a
+	      > tyname name uni fun ann) (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+	      >StateT</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann) <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:InlineTerm"
+	      >InlineTerm</a
+	      > tyname name uni fun ann = <a href="#v:Done"
+	      >Done</a
+	      > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+	      >Dupable</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:TermSubst"
+	      >TermSubst</a
+	      > tyname name uni fun ann = <a href="#v:TermSubst"
+	      >TermSubst</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_unTermSubst"
+		  >_unTermSubst</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+		  >UniqueMap</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineTerm</a
+		  > tyname name uni fun ann)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:TypeSubst"
+	      >TypeSubst</a
+	      > tyname uni ann = <a href="#v:TypeSubst"
+	      >TypeSubst</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_unTypeSubst"
+		  >_unTypeSubst</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+		  >UniqueMap</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+		  >TypeUnique</a
+		  > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+		  >Dupable</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni ann))</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:NonRecInScopeSet"
+	      >NonRecInScopeSet</a
+	      > tyname name uni fun ann = <a href="#v:NonRecInScopeSet"
+	      >NonRecInScopeSet</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_unNonRecInScopeSet"
+		  >_unNonRecInScopeSet</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+		  >UniqueMap</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineVarInfo</a
+		  > tyname name uni fun ann)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:InlineVarInfo"
+	      >InlineVarInfo</a
+	      > tyname name uni fun ann = <a href="#v:MkVarInfo"
+	      >MkVarInfo</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:varStrictness"
+		  >varStrictness</a
+		  > &#8759; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+		  >Strictness</a
+		  ></li
+		><li
+		><a href="#v:varRhs"
+		  >varRhs</a
+		  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineTerm</a
+		  > tyname name uni fun ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:InlinerState"
+	      >InlinerState</a
+	      > tyname name uni fun ann = <a href="#v:InlinerState"
+	      >InlinerState</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_termSubst"
+		  >_termSubst</a
+		  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+		  >TermSubst</a
+		  > tyname name uni fun ann</li
+		><li
+		><a href="#v:_typeSubst"
+		  >_typeSubst</a
+		  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+		  >TypeSubst</a
+		  > tyname uni ann</li
+		><li
+		><a href="#v:_nonRecInScopeSet"
+		  >_nonRecInScopeSet</a
+		  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+		  >NonRecInScopeSet</a
+		  > tyname name uni fun ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:unTermSubst"
+	      >unTermSubst</a
+	      > &#8759; &#8704; tyname name uni fun ann tyname name uni fun ann. Iso (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+	      >TermSubst</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+	      >TermSubst</a
+	      > tyname name uni fun ann) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	      >UniqueMap</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineTerm</a
+	      > tyname name uni fun ann)) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	      >UniqueMap</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineTerm</a
+	      > tyname name uni fun ann))</li
+	    ><li class="src short"
+	    ><a href="#v:unTypeSubst"
+	      >unTypeSubst</a
+	      > &#8759; &#8704; tyname uni ann tyname uni ann. Iso (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+	      >TypeSubst</a
+	      > tyname uni ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+	      >TypeSubst</a
+	      > tyname uni ann) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	      >UniqueMap</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+	      >Dupable</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann))) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	      >UniqueMap</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+	      >Dupable</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)))</li
+	    ><li class="src short"
+	    ><a href="#v:unNonRecInScopeSet"
+	      >unNonRecInScopeSet</a
+	      > &#8759; &#8704; tyname name uni fun ann tyname name uni fun ann. Iso (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+	      >NonRecInScopeSet</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+	      >NonRecInScopeSet</a
+	      > tyname name uni fun ann) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	      >UniqueMap</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineVarInfo</a
+	      > tyname name uni fun ann)) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	      >UniqueMap</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineVarInfo</a
+	      > tyname name uni fun ann))</li
+	    ><li class="src short"
+	    ><a href="#v:typeSubst"
+	      >typeSubst</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+	      >TypeSubst</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termSubst"
+	      >termSubst</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+	      >TermSubst</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:nonRecInScopeSet"
+	      >nonRecInScopeSet</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+	      >NonRecInScopeSet</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:lookupTerm"
+	      >lookupTerm</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineTerm</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:extendTerm"
+	      >extendTerm</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineTerm</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann</li
+	    ><li class="src short"
+	    ><a href="#v:lookupType"
+	      >lookupType</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > &#8658; tyname &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+	      >Dupable</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann))</li
+	    ><li class="src short"
+	    ><a href="#v:isTypeSubstEmpty"
+	      >isTypeSubstEmpty</a
+	      > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:extendType"
+	      >extendType</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > &#8658; tyname &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann</li
+	    ><li class="src short"
+	    ><a href="#v:lookupVarInfo"
+	      >lookupVarInfo</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineVarInfo</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:extendVarInfo"
+	      >extendVarInfo</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineVarInfo</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	      >InlinerState</a
+	      > tyname name uni fun ann</li
+	    ><li class="src short"
+	    ><a href="#v:applyTypeSubstitution"
+	      >applyTypeSubstitution</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:substTyName"
+	      >substTyName</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; tyname &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann))</li
+	    ><li class="src short"
+	    ><a href="#v:substName"
+	      >substName</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))</li
+	    ><li class="src short"
+	    ><a href="#v:renameTerm"
+	      >renameTerm</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineTerm</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:checkPurity"
+	      >checkPurity</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isFirstVarBeforeEffects"
+	      >isFirstVarBeforeEffects</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; name &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isTermBindingPure"
+	      >isTermBindingPure</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	      >Strictness</a
+	      > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nameUsedAtMostOnce"
+	      >nameUsedAtMostOnce</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:effectSafe"
+	      >effectSafe</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	      >Strictness</a
+	      > &#8594; name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:costIsAcceptable"
+	      >costIsAcceptable</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sizeIsAcceptable"
+	      >sizeIsAcceptable</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:trivialType"
+	      >trivialType</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:shouldUnconditionallyInline"
+	      >shouldUnconditionallyInline</a
+	      > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	      >Strictness</a
+	      > &#8594; name &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:ExternalConstraints" class="def"
+	    >ExternalConstraints</a
+	    > tyname name uni fun m = (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > tyname, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) <a href="src/PlutusIR.Transform.Inline.Utils.html#ExternalConstraints" class="link"
+	    >Source</a
+	    > <a href="#t:ExternalConstraints" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:InliningConstraints" class="def"
+	    >InliningConstraints</a
+	    > tyname name uni fun = (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > tyname, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun) <a href="src/PlutusIR.Transform.Inline.Utils.html#InliningConstraints" class="link"
+	    >Source</a
+	    > <a href="#t:InliningConstraints" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:InlineInfo" class="def"
+	    >InlineInfo</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Transform.Inline.Utils.html#InlineInfo" class="link"
+	    >Source</a
+	    > <a href="#t:InlineInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Information used by the inliner that is constant across its operation.
+ This includes some contextual and configuration information, and also some
+ pre-computed information about the program.</p
+	    ><p
+	    >See [Inlining and global uniqueness] for caveats about this information.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InlineInfo" class="def"
+		  >InlineInfo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_iiVarInfo" class="def"
+			  >_iiVarInfo</a
+			  > &#8759; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+			  >VarsInfo</a
+			  > tyname name uni ann</dfn
+			><div class="doc"
+			><p
+			  >Is it strict? Only needed for PIR, not UPLC</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiUsages" class="def"
+			  >_iiUsages</a
+			  > &#8759; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+			  >Usages</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >how many times is it used?</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiHints" class="def"
+			  >_iiHints</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+			  >InlineHints</a
+			  > name ann</dfn
+			><div class="doc"
+			><p
+			  >have we explicitly been told to inline?</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiBuiltinsInfo" class="def"
+			  >_iiBuiltinsInfo</a
+			  > &#8759; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+			  >BuiltinsInfo</a
+			  > uni fun</dfn
+			><div class="doc"
+			><p
+			  >the semantics variant.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiInlineConstants" class="def"
+			  >_iiInlineConstants</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >should we inline constants?</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiInlineCallsiteGrowth" class="def"
+			  >_iiInlineCallsiteGrowth</a
+			  > &#8759; <a href="PlutusIR-Analysis-Size.html#t:Size" title="PlutusIR.Analysis.Size"
+			  >Size</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >inline threshold for callsite inlining</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iiVarInfo" class="def"
+	    >iiVarInfo</a
+	    > &#8759; &#8704; tyname name uni fun ann tyname. Lens (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni ann) (<a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni ann) <a href="src/PlutusIR.Transform.Inline.Utils.html#iiVarInfo" class="link"
+	    >Source</a
+	    > <a href="#v:iiVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iiUsages" class="def"
+	    >iiUsages</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	    >Usages</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#iiUsages" class="link"
+	    >Source</a
+	    > <a href="#v:iiUsages" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iiInlineConstants" class="def"
+	    >iiInlineConstants</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#iiInlineConstants" class="link"
+	    >Source</a
+	    > <a href="#v:iiInlineConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iiInlineCallsiteGrowth" class="def"
+	    >iiInlineCallsiteGrowth</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) <a href="PlutusIR-Analysis-Size.html#t:Size" title="PlutusIR.Analysis.Size"
+	    >Size</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#iiInlineCallsiteGrowth" class="link"
+	    >Source</a
+	    > <a href="#v:iiInlineCallsiteGrowth" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iiHints" class="def"
+	    >iiHints</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	    >InlineHints</a
+	    > name ann) <a href="src/PlutusIR.Transform.Inline.Utils.html#iiHints" class="link"
+	    >Source</a
+	    > <a href="#v:iiHints" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iiBuiltinsInfo" class="def"
+	    >iiBuiltinsInfo</a
+	    > &#8759; &#8704; tyname name uni fun ann fun. Lens (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun) (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun) <a href="src/PlutusIR.Transform.Inline.Utils.html#iiBuiltinsInfo" class="link"
+	    >Source</a
+	    > <a href="#v:iiBuiltinsInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:InlineM" class="def"
+	    >InlineM</a
+	    > tyname name uni fun ann = <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	    >ReaderT</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineInfo</a
+	    > tyname name uni fun ann) (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+	    >StateT</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	    >InlinerState</a
+	    > tyname name uni fun ann) <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    >) <a href="src/PlutusIR.Transform.Inline.Utils.html#InlineM" class="link"
+	    >Source</a
+	    > <a href="#t:InlineM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad the inliner runs in.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:InlineTerm" class="def"
+	    >InlineTerm</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Transform.Inline.Utils.html#InlineTerm" class="link"
+	    >Source</a
+	    > <a href="#t:InlineTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Substitution range, <code
+	      >SubstRng</code
+	      > in the paper but no <code
+	      >Susp</code
+	      > case.
+ See Note [Inlining approach and 'Secrets of the GHC Inliner']</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Done" class="def"
+		  >Done</a
+		  > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+		  >Dupable</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:TermSubst" class="def"
+	    >TermSubst</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Transform.Inline.Utils.html#TermSubst" class="link"
+	    >Source</a
+	    > <a href="#t:TermSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Term substitution, <code
+	      >Subst</code
+	      > in the paper.
+ A map of unprocessed variable and its substitution range.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TermSubst" class="def"
+		  >TermSubst</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_unTermSubst" class="def"
+			  >_unTermSubst</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+			  >UniqueMap</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+			  >TermUnique</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+			  >InlineTerm</a
+			  > tyname name uni fun ann)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TermSubst"
+	    >Instances</h4
+	    ><details id="i:TermSubst" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermSubst:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+		      >TermSubst</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:TermSubst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermSubst:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann] &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermSubst:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+		      >TermSubst</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:TermSubst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermSubst:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann) &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:TypeSubst" class="def"
+	    >TypeSubst</a
+	    > tyname uni ann <a href="src/PlutusIR.Transform.Inline.Utils.html#TypeSubst" class="link"
+	    >Source</a
+	    > <a href="#t:TypeSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type substitution, similar to <code
+	      ><a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+		>TermSubst</a
+		></code
+	      > but for types.
+ A map of unprocessed type variable and its substitution range.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TypeSubst" class="def"
+		  >TypeSubst</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_unTypeSubst" class="def"
+			  >_unTypeSubst</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+			  >UniqueMap</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+			  >TypeUnique</a
+			  > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+			  >Type</a
+			  > tyname uni ann))</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TypeSubst"
+	    >Instances</h4
+	    ><details id="i:TypeSubst" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeSubst:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+		      >TypeSubst</a
+		      > tyname uni ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:TypeSubst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeSubst:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann] &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeSubst:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+		      >TypeSubst</a
+		      > tyname uni ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:TypeSubst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeSubst:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann) &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:NonRecInScopeSet" class="def"
+	    >NonRecInScopeSet</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Transform.Inline.Utils.html#NonRecInScopeSet" class="link"
+	    >Source</a
+	    > <a href="#t:NonRecInScopeSet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A mapping including all non-recursive in scope variables.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NonRecInScopeSet" class="def"
+		  >NonRecInScopeSet</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_unNonRecInScopeSet" class="def"
+			  >_unNonRecInScopeSet</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+			  >UniqueMap</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+			  >TermUnique</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+			  >InlineVarInfo</a
+			  > tyname name uni fun ann)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:NonRecInScopeSet"
+	    >Instances</h4
+	    ><details id="i:NonRecInScopeSet" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NonRecInScopeSet:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+		      >NonRecInScopeSet</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:NonRecInScopeSet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NonRecInScopeSet:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann] &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NonRecInScopeSet:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+		      >NonRecInScopeSet</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:NonRecInScopeSet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NonRecInScopeSet:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann) &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:InlineVarInfo" class="def"
+	    >InlineVarInfo</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Transform.Inline.Utils.html#InlineVarInfo" class="link"
+	    >Source</a
+	    > <a href="#t:InlineVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Info attached to a let-binding needed for call site inlining.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MkVarInfo" class="def"
+		  >MkVarInfo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:varStrictness" class="def"
+			  >varStrictness</a
+			  > &#8759; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+			  >Strictness</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:varRhs" class="def"
+			  >varRhs</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+			  >InlineTerm</a
+			  > tyname name uni fun ann</dfn
+			><div class="doc"
+			><p
+			  >its definition, which has been processed, as an <code
+			    ><a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+			      >InlineTerm</a
+			      ></code
+			    >. To preserve
+ global uniqueness, we rename before substituting in.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:InlinerState" class="def"
+	    >InlinerState</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Transform.Inline.Utils.html#InlinerState" class="link"
+	    >Source</a
+	    > <a href="#t:InlinerState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Inliner context for both unconditional inlining and call site inlining.
+ It includes substitution for both terms and types, which is similar to <code
+	      >Subst</code
+	      > in the paper.
+ It also includes the non recursive in-scope set for call site inlining.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InlinerState" class="def"
+		  >InlinerState</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_termSubst" class="def"
+			  >_termSubst</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TermSubst</a
+			  > tyname name uni fun ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_typeSubst" class="def"
+			  >_typeSubst</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			  >TypeSubst</a
+			  > tyname uni ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_nonRecInScopeSet" class="def"
+			  >_nonRecInScopeSet</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			  >NonRecInScopeSet</a
+			  > tyname name uni fun ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:InlinerState"
+	    >Instances</h4
+	    ><details id="i:InlinerState" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlinerState:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		      >InlinerState</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-126" class="link"
+		    >Source</a
+		    > <a href="#t:InlinerState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlinerState:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann] &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlinerState:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		      >InlinerState</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-126" class="link"
+		    >Source</a
+		    > <a href="#t:InlinerState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlinerState:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann) &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlinerState:Generic:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		      >InlinerState</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-125" class="link"
+		    >Source</a
+		    > <a href="#t:InlinerState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlinerState:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann) x &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			  >InlinerState</a
+			  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlinerState:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		      >InlinerState</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusIR.Transform.Inline.Utils.html#line-125" class="link"
+		    >Source</a
+		    > <a href="#t:InlinerState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlinerState:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-Inline-Utils.html"
+			>PlutusIR.Transform.Inline.Utils</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+			>InlinerState</a
+			> tyname name uni fun ann) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;InlinerState&quot; &quot;PlutusIR.Transform.Inline.Utils&quot; &quot;plutus-core-1.51.0.0-inplace-plutus-ir&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;InlinerState&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_termSubst&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+			>TermSubst</a
+			> tyname name uni fun ann)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_typeSubst&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+			>TypeSubst</a
+			> tyname uni ann)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_nonRecInScopeSet&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+			>NonRecInScopeSet</a
+			> tyname name uni fun ann)))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unTermSubst" class="def"
+	    >unTermSubst</a
+	    > &#8759; &#8704; tyname name uni fun ann tyname name uni fun ann. Iso (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+	    >TermSubst</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+	    >TermSubst</a
+	    > tyname name uni fun ann) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	    >UniqueMap</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineTerm</a
+	    > tyname name uni fun ann)) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	    >UniqueMap</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineTerm</a
+	    > tyname name uni fun ann)) <a href="src/PlutusIR.Transform.Inline.Utils.html#unTermSubst" class="link"
+	    >Source</a
+	    > <a href="#v:unTermSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unTypeSubst" class="def"
+	    >unTypeSubst</a
+	    > &#8759; &#8704; tyname uni ann tyname uni ann. Iso (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+	    >TypeSubst</a
+	    > tyname uni ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+	    >TypeSubst</a
+	    > tyname uni ann) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	    >UniqueMap</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+	    >Dupable</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann))) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	    >UniqueMap</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+	    >Dupable</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann))) <a href="src/PlutusIR.Transform.Inline.Utils.html#unTypeSubst" class="link"
+	    >Source</a
+	    > <a href="#v:unTypeSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unNonRecInScopeSet" class="def"
+	    >unNonRecInScopeSet</a
+	    > &#8759; &#8704; tyname name uni fun ann tyname name uni fun ann. Iso (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+	    >NonRecInScopeSet</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+	    >NonRecInScopeSet</a
+	    > tyname name uni fun ann) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	    >UniqueMap</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineVarInfo</a
+	    > tyname name uni fun ann)) (<a href="../plutus-core/PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+	    >UniqueMap</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineVarInfo</a
+	    > tyname name uni fun ann)) <a href="src/PlutusIR.Transform.Inline.Utils.html#unNonRecInScopeSet" class="link"
+	    >Source</a
+	    > <a href="#v:unNonRecInScopeSet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeSubst" class="def"
+	    >typeSubst</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	    >InlinerState</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TypeSubst" title="PlutusIR.Transform.Inline.Utils"
+	    >TypeSubst</a
+	    > tyname uni ann) <a href="src/PlutusIR.Transform.Inline.Utils.html#typeSubst" class="link"
+	    >Source</a
+	    > <a href="#v:typeSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubst" class="def"
+	    >termSubst</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	    >InlinerState</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:TermSubst" title="PlutusIR.Transform.Inline.Utils"
+	    >TermSubst</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Transform.Inline.Utils.html#termSubst" class="link"
+	    >Source</a
+	    > <a href="#v:termSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nonRecInScopeSet" class="def"
+	    >nonRecInScopeSet</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	    >InlinerState</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Transform-Inline-Utils.html#t:NonRecInScopeSet" title="PlutusIR.Transform.Inline.Utils"
+	    >NonRecInScopeSet</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Transform.Inline.Utils.html#nonRecInScopeSet" class="link"
+	    >Source</a
+	    > <a href="#v:nonRecInScopeSet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupTerm" class="def"
+	    >lookupTerm</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#lookupTerm" class="link"
+	    >Source</a
+	    > <a href="#v:lookupTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		  >HasUnique</a
+		  > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; name</td
+		><td class="doc"
+		><p
+		  >The name of the variable.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineTerm</a
+		  > tyname name uni fun ann)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Look up the unprocessed variable in the term substitution.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:extendTerm" class="def"
+	    >extendTerm</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#extendTerm" class="link"
+	    >Source</a
+	    > <a href="#v:extendTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		  >HasUnique</a
+		  > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; name</td
+		><td class="doc"
+		><p
+		  >The name of the variable.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineTerm</a
+		  > tyname name uni fun ann</td
+		><td class="doc"
+		><p
+		  >The substitution range.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Insert the unprocessed variable into the term substitution.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupType" class="def"
+	    >lookupType</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > &#8658; tyname &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	    >InlinerState</a
+	    > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+	    >Dupable</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann)) <a href="src/PlutusIR.Transform.Inline.Utils.html#lookupType" class="link"
+	    >Source</a
+	    > <a href="#v:lookupType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Look up the unprocessed type variable in the type substitution.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isTypeSubstEmpty" class="def"
+	    >isTypeSubstEmpty</a
+	    > &#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+	    >InlinerState</a
+	    > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#isTypeSubstEmpty" class="link"
+	    >Source</a
+	    > <a href="#v:isTypeSubstEmpty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if the type substitution is empty.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:extendType" class="def"
+	    >extendType</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#extendType" class="link"
+	    >Source</a
+	    > <a href="#v:extendType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		  >HasUnique</a
+		  > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+		  >TypeUnique</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; tyname</td
+		><td class="doc"
+		><p
+		  >The name of the type variable.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni ann</td
+		><td class="doc"
+		><p
+		  >Its type.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Insert the unprocessed type variable into the type substitution.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupVarInfo" class="def"
+	    >lookupVarInfo</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#lookupVarInfo" class="link"
+	    >Source</a
+	    > <a href="#v:lookupVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		  >HasUnique</a
+		  > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; name</td
+		><td class="doc"
+		><p
+		  >The name of the variable.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > (<a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineVarInfo</a
+		  > tyname name uni fun ann)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Look up a variable in the in scope set.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:extendVarInfo" class="def"
+	    >extendVarInfo</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#extendVarInfo" class="link"
+	    >Source</a
+	    > <a href="#v:extendVarInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		  >HasUnique</a
+		  > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; name</td
+		><td class="doc"
+		><p
+		  >The name of the variable.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineVarInfo</a
+		  > tyname name uni fun ann</td
+		><td class="doc"
+		><p
+		  >The variable's info.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlinerState" title="PlutusIR.Transform.Inline.Utils"
+		  >InlinerState</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Insert a variable into the substitution.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:applyTypeSubstitution" class="def"
+	    >applyTypeSubstitution</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="src/PlutusIR.Transform.Inline.Utils.html#applyTypeSubstitution" class="link"
+	    >Source</a
+	    > <a href="#v:applyTypeSubstitution" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substTyName" class="def"
+	    >substTyName</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; tyname &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann)) <a href="src/PlutusIR.Transform.Inline.Utils.html#substTyName" class="link"
+	    >Source</a
+	    > <a href="#v:substTyName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substName" class="def"
+	    >substName</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann)) <a href="src/PlutusIR.Transform.Inline.Utils.html#substName" class="link"
+	    >Source</a
+	    > <a href="#v:substName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renameTerm" class="def"
+	    >renameTerm</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineTerm" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineTerm</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Transform.Inline.Utils.html#renameTerm" class="link"
+	    >Source</a
+	    > <a href="#v:renameTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkPurity" class="def"
+	    >checkPurity</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#checkPurity" class="link"
+	    >Source</a
+	    > <a href="#v:checkPurity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if term is pure. See Note [Inlining and purity]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isFirstVarBeforeEffects" class="def"
+	    >isFirstVarBeforeEffects</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; name &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#isFirstVarBeforeEffects" class="link"
+	    >Source</a
+	    > <a href="#v:isFirstVarBeforeEffects" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isTermBindingPure" class="def"
+	    >isTermBindingPure</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	    >Strictness</a
+	    > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#isTermBindingPure" class="link"
+	    >Source</a
+	    > <a href="#v:isTermBindingPure" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks if a binding is pure, i.e. will evaluating it have effects</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nameUsedAtMostOnce" class="def"
+	    >nameUsedAtMostOnce</a
+	    > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	    >InliningConstraints</a
+	    > tyname name uni fun &#8658; name &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	    >InlineM</a
+	    > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#nameUsedAtMostOnce" class="link"
+	    >Source</a
+	    > <a href="#v:nameUsedAtMostOnce" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:effectSafe" class="def"
+	    >effectSafe</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#effectSafe" class="link"
+	    >Source</a
+	    > <a href="#v:effectSafe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+		  >InliningConstraints</a
+		  > tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+		  >Strictness</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; name</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >is it pure?</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineM</a
+		  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:costIsAcceptable" class="def"
+	    >costIsAcceptable</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#costIsAcceptable" class="link"
+	    >Source</a
+	    > <a href="#v:costIsAcceptable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
+ the given term acceptable?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sizeIsAcceptable" class="def"
+	    >sizeIsAcceptable</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#sizeIsAcceptable" class="link"
+	    >Source</a
+	    > <a href="#v:sizeIsAcceptable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is the size increase (in the AST) of inlining a variable whose RHS is
+ the given term acceptable?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:trivialType" class="def"
+	    >trivialType</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#trivialType" class="link"
+	    >Source</a
+	    > <a href="#v:trivialType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is this an utterly trivial type which might as well be inlined?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shouldUnconditionallyInline" class="def"
+	    >shouldUnconditionallyInline</a
+	    > <a href="src/PlutusIR.Transform.Inline.Utils.html#shouldUnconditionallyInline" class="link"
+	    >Source</a
+	    > <a href="#v:shouldUnconditionallyInline" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+		  >InliningConstraints</a
+		  > tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether we know that the binding is safe to inline. If so, bypass the purity check.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+		  >Strictness</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; name</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineM</a
+		  > tyname name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

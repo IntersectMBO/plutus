@@ -1,0 +1,2544 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Test.Tasty.Extras</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Test.Tasty.Extras.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Test.Tasty.Extras</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Prettier equality assertions</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Layer"
+	      >Layer</a
+	      > a r = <a href="#v:Layer"
+	      >Layer</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unLayer"
+		  >unLayer</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/free-5.2/docs/Control-Monad-Free-Church.html#t:F" title="Control.Monad.Free.Church"
+		  >F</a
+		  > (<a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+		  >(,)</a
+		  > a) r</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:embed"
+	      >embed</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/free-5.2/docs/Control-Monad-Free-Class.html#t:MonadFree" title="Control.Monad.Free.Class"
+	      >MonadFree</a
+	      > (<a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+	      >(,)</a
+	      > a) m &#8658; a &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:nestWith"
+	      >nestWith</a
+	      > &#8759; ([a] &#8594; a) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+	      >Layer</a
+	      > a () &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+	      >Layer</a
+	      > a ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:TestNestedM"
+	      >TestNestedM</a
+	      > r = <a href="#v:TestNestedM"
+	      >TestNestedM</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unTestNestedM"
+		  >unTestNestedM</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+		  >ReaderT</a
+		  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  >] (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		  >Layer</a
+		  > <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		  >TestTree</a
+		  >) r</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TestNested"
+	      >TestNested</a
+	      > = <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+	      >TestNestedM</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:runTestNestedM"
+	      >runTestNestedM</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testNestedNamedM"
+	      >testNestedNamedM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testNestedM"
+	      >testNestedM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testNestedGhcM"
+	      >testNestedGhcM</a
+	      > &#8759; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:runTestNested"
+	      >runTestNested</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >] &#8594; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testNestedNamed"
+	      >testNestedNamed</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      >] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testNested"
+	      >testNested</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      >] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testNestedGhc"
+	      >testNestedGhc</a
+	      > &#8759; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      >] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenVsText"
+	      >goldenVsText</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenVsTextM"
+	      >goldenVsTextM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenVsDoc"
+	      >goldenVsDoc</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenVsDocM"
+	      >goldenVsDocM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nestedGoldenVsText"
+	      >nestedGoldenVsText</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nestedGoldenVsTextPredM"
+	      >nestedGoldenVsTextPredM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; (<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nestedGoldenVsTextM"
+	      >nestedGoldenVsTextM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nestedGoldenVsDoc"
+	      >nestedGoldenVsDoc</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nestedGoldenVsDocM"
+	      >nestedGoldenVsDocM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann) &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:makeVersionedFilePath"
+	      >makeVersionedFilePath</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:assertEqualPretty"
+	      >assertEqualPretty</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	      >Show</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      >) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+	      >Assertion</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:-37--61--63-"
+	      >(%=?)</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	      >Show</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      >) &#8658; a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+	      >Assertion</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:-37--63--61-"
+	      >(%?=)</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	      >Show</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      >) &#8658; a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+	      >Assertion</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ignoreTestWhenHpcEnabled"
+	      >ignoreTestWhenHpcEnabled</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Layer" class="def"
+	    >Layer</a
+	    > a r <a href="src/Test.Tasty.Extras.html#Layer" class="link"
+	    >Source</a
+	    > <a href="#t:Layer" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A monad allowing one to emit elements of type <code
+	      >a</code
+	      >. Semantically equivalent to
+<code
+	      >Writer (DList a) r</code
+	      >, but:</p
+	    ><ol
+	    ><li value="1"
+	      >is faster, being based on the Church-encoded free monad</li
+	      ><li value="2"
+	      >implements <code
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		  >Monoid</a
+		  ></code
+		>, so that all the <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html"
+		>Data.Foldable</a
+		> convenience is supported</li
+	      ><li value="3"
+	      >has better ergonomics as it doesn't require the user to wrap <code
+		>a</code
+		> values into <code
+		>DList</code
+		>s</li
+	      ></ol
+	    ><p
+	    >This type is also semantically equivalent to <code
+	      >Stream (Of a) Identity r</code
+	      >.</p
+	    ><p
+	    >Useful for monadically creating tree-like structures, for example the following</p
+	    ><pre
+	    >import Data.Tree
+yield = embed . pure
+main = putStrLn . drawTree . Node &quot;a&quot; . toList $ do
+    yield &quot;b&quot;
+    nestWith (Node &quot;c&quot;) $ do
+        yield &quot;d&quot;
+        yield &quot;e&quot;
+    yield &quot;f&quot;</pre
+	    ><p
+	    >will produce</p
+	    ><pre
+	    >-a
+|
++- b
+|
++- c
+|  |
+|  +- d
+|  |
+|  `- e
+|
+`- f</pre
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Layer" class="def"
+		  >Layer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unLayer" class="def"
+			  >unLayer</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/free-5.2/docs/Control-Monad-Free-Church.html#t:F" title="Control.Monad.Free.Church"
+			  >F</a
+			  > (<a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+			  >(,)</a
+			  > a) r</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Layer"
+	    >Instances</h4
+	    ><details id="i:Layer" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:Applicative:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:Applicative:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a (a0 &#8594; b) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a0 &#8594; b &#8594; c) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:Functor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:Functor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a0 &#8594; b) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:Monad:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:Monad:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 &#8594; (a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a0 &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:MonadFree:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/free-5.2/docs/Control-Monad-Free-Class.html#t:MonadFree" title="Control.Monad.Free.Class"
+		      >MonadFree</a
+		      > (<a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+		      >(,)</a
+		      > a) (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:MonadFree:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:wrap"
+			  >wrap</a
+			  > &#8759; (a, <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a a0 <a href="https://hackage.haskell.org/package/free-5.2/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wrap" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:Monoid:5"
+		      ></span
+		      > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > () &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a unit)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:Monoid:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit] &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:Semigroup:6"
+		      ></span
+		      > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > () &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a unit)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-121" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:Semigroup:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:IsList:7"
+		      ></span
+		      > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > () &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IsList.html#t:IsList" title="GHC.IsList"
+		      >IsList</a
+		      > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a unit)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-127" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:IsList:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IsList.html#t:Item" title="GHC.IsList"
+			  >Item</a
+			  > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Item" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromList"
+			  >fromList</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IsList.html#t:Item" title="GHC.IsList"
+			  >Item</a
+			  > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit)] &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromListN"
+			  >fromListN</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IsList.html#t:Item" title="GHC.IsList"
+			  >Item</a
+			  > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit)] &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromListN" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toList"
+			  >toList</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IsList.html#t:Item" title="GHC.IsList"
+			  >Item</a
+			  > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > a unit)] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Layer:Item:8"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IsList.html#t:Item" title="GHC.IsList"
+		      >Item</a
+		      > (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		      >Layer</a
+		      > a unit)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:Layer" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Layer:Item:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IsList.html#t:Item" title="GHC.IsList"
+			>Item</a
+			> (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			>Layer</a
+			> a unit) = a</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:embed" class="def"
+	    >embed</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/free-5.2/docs/Control-Monad-Free-Class.html#t:MonadFree" title="Control.Monad.Free.Class"
+	    >MonadFree</a
+	    > (<a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+	    >(,)</a
+	    > a) m &#8658; a &#8594; m () <a href="src/Test.Tasty.Extras.html#embed" class="link"
+	    >Source</a
+	    > <a href="#v:embed" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Embed the given value into a <code
+	      ><a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		>Layer</a
+		></code
+	      >-like type (either <code
+	      ><a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		>Layer</a
+		></code
+	      > itself or a monad transformer
+ stack with <code
+	      ><a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		>Layer</a
+		></code
+	      > at the bottom).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nestWith" class="def"
+	    >nestWith</a
+	    > &#8759; ([a] &#8594; a) &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+	    >Layer</a
+	    > a () &#8594; <a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+	    >Layer</a
+	    > a () <a href="src/Test.Tasty.Extras.html#nestWith" class="link"
+	    >Source</a
+	    > <a href="#v:nestWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Collapse the given <code
+	      ><a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+		>Layer</a
+		></code
+	      > into a single element by converting it into a list, applying the
+ given function to the result and <code
+	      ><a href="Test-Tasty-Extras.html#v:embed" title="Test.Tasty.Extras"
+		>embed</a
+		></code
+	      >ding it back.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:TestNestedM" class="def"
+	    >TestNestedM</a
+	    > r <a href="src/Test.Tasty.Extras.html#TestNestedM" class="link"
+	    >Source</a
+	    > <a href="#t:TestNestedM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TestNestedM" class="def"
+		  >TestNestedM</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unTestNestedM" class="def"
+			  >unTestNestedM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+			  >ReaderT</a
+			  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+			  >FilePath</a
+			  >] (<a href="Test-Tasty-Extras.html#t:Layer" title="Test.Tasty.Extras"
+			  >Layer</a
+			  > <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+			  >TestTree</a
+			  >) r</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TestNestedM"
+	    >Instances</h4
+	    ><details id="i:TestNestedM" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TestNestedM:Applicative:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+		      >TestNestedM</a
+		      ></span
+		    > <a href="src/Test.Tasty.Extras.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TestNestedM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TestNestedM:Applicative:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > (a &#8594; b) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TestNestedM:Functor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+		      >TestNestedM</a
+		      ></span
+		    > <a href="src/Test.Tasty.Extras.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TestNestedM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TestNestedM:Functor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TestNestedM:Monad:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+		      >TestNestedM</a
+		      ></span
+		    > <a href="src/Test.Tasty.Extras.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TestNestedM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TestNestedM:Monad:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; (a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TestNestedM:Monoid:4"
+		      ></span
+		      > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > () &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+		      >TestNestedM</a
+		      > unit)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-153" class="link"
+		    >Source</a
+		    > <a href="#t:TestNestedM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TestNestedM:Monoid:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit] &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TestNestedM:Semigroup:5"
+		      ></span
+		      > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > () &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+		      >TestNestedM</a
+		      > unit)</span
+		    > <a href="src/Test.Tasty.Extras.html#line-150" class="link"
+		    >Source</a
+		    > <a href="#t:TestNestedM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TestNestedM:Semigroup:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > unit <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TestNestedM:MonadFree:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/free-5.2/docs/Control-Monad-Free-Class.html#t:MonadFree" title="Control.Monad.Free.Class"
+		      >MonadFree</a
+		      > (<a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+		      >(,)</a
+		      > <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		      >TestTree</a
+		      >) <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+		      >TestNestedM</a
+		      ></span
+		    > <a href="src/Test.Tasty.Extras.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TestNestedM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TestNestedM:MonadFree:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:wrap"
+			  >wrap</a
+			  > &#8759; (<a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+			  >TestTree</a
+			  >, <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a <a href="https://hackage.haskell.org/package/free-5.2/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wrap" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TestNestedM:MonadReader:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		      >FilePath</a
+		      >] <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+		      >TestNestedM</a
+		      ></span
+		    > <a href="src/Test.Tasty.Extras.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:TestNestedM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TestNestedM:MonadReader:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Test-Tasty-Extras.html"
+			>Test.Tasty.Extras</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+			  >FilePath</a
+			  >] <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; ([<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+			  >FilePath</a
+			  >] &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+			  >FilePath</a
+			  >]) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; ([<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+			  >FilePath</a
+			  >] &#8594; a) &#8594; <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+			  >TestNestedM</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TestNested" class="def"
+	    >TestNested</a
+	    > = <a href="Test-Tasty-Extras.html#t:TestNestedM" title="Test.Tasty.Extras"
+	    >TestNestedM</a
+	    > () <a href="src/Test.Tasty.Extras.html#TestNested" class="link"
+	    >Source</a
+	    > <a href="#t:TestNested" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		>TestTree</a
+		></code
+	      > of tests under some name prefix.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTestNestedM" class="def"
+	    >runTestNestedM</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Test.Tasty.Extras.html#runTestNestedM" class="link"
+	    >Source</a
+	    > <a href="#v:runTestNestedM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run a <code
+	      ><a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		>TestNested</a
+		></code
+	      > computation to produce a <code
+	      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		>TestTree</a
+		></code
+	      > (without actually executing the tests).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testNestedNamedM" class="def"
+	    >testNestedNamedM</a
+	    > <a href="src/Test.Tasty.Extras.html#testNestedNamedM" class="link"
+	    >Source</a
+	    > <a href="#v:testNestedNamedM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The name of the folder.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The name of the test group to render in CLI.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		  >TestNested</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		  >TestNested</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Descend into a folder.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testNestedM" class="def"
+	    >testNestedM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#testNestedM" class="link"
+	    >Source</a
+	    > <a href="#v:testNestedM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Descend into a folder for a <code
+	      ><a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		>TestNested</a
+		></code
+	      > computation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testNestedGhcM" class="def"
+	    >testNestedGhcM</a
+	    > &#8759; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#testNestedGhcM" class="link"
+	    >Source</a
+	    > <a href="#v:testNestedGhcM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="Test-Tasty-Extras.html#v:testNestedM" title="Test.Tasty.Extras"
+		>testNestedM</a
+		></code
+	      > but adds a subdirectory corresponding to the GHC version being used.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTestNested" class="def"
+	    >runTestNested</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >] &#8594; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Test.Tasty.Extras.html#runTestNested" class="link"
+	    >Source</a
+	    > <a href="#v:runTestNested" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run a list of <code
+	      ><a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		>TestNested</a
+		></code
+	      > computation to produce a <code
+	      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		>TestTree</a
+		></code
+	      > (without actually executing the
+ tests).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testNestedNamed" class="def"
+	    >testNestedNamed</a
+	    > <a href="src/Test.Tasty.Extras.html#testNestedNamed" class="link"
+	    >Source</a
+	    > <a href="#v:testNestedNamed" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The name of the folder.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The name of the test group to render in CLI.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		  >TestNested</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		  >TestNested</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Descend into a folder for a list of tests.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testNested" class="def"
+	    >testNested</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    >] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#testNested" class="link"
+	    >Source</a
+	    > <a href="#v:testNested" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Descend into a folder for a list of <code
+	      ><a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		>TestNested</a
+		></code
+	      > computations.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testNestedGhc" class="def"
+	    >testNestedGhc</a
+	    > &#8759; [<a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    >] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#testNestedGhc" class="link"
+	    >Source</a
+	    > <a href="#v:testNestedGhc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="Test-Tasty-Extras.html#v:testNested" title="Test.Tasty.Extras"
+		>testNested</a
+		></code
+	      > but adds a subdirectory corresponding to the GHC version being used.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenVsText" class="def"
+	    >goldenVsText</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Test.Tasty.Extras.html#goldenVsText" class="link"
+	    >Source</a
+	    > <a href="#v:goldenVsText" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file against a <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenVsTextM" class="def"
+	    >goldenVsTextM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Test.Tasty.Extras.html#goldenVsTextM" class="link"
+	    >Source</a
+	    > <a href="#v:goldenVsTextM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file against a <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenVsDoc" class="def"
+	    >goldenVsDoc</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Test.Tasty.Extras.html#goldenVsDoc" class="link"
+	    >Source</a
+	    > <a href="#v:goldenVsDoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file against a <code
+	      ><a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		>Doc</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenVsDocM" class="def"
+	    >goldenVsDocM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Test.Tasty.Extras.html#goldenVsDocM" class="link"
+	    >Source</a
+	    > <a href="#v:goldenVsDocM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file against a <code
+	      ><a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		>Doc</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nestedGoldenVsText" class="def"
+	    >nestedGoldenVsText</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#nestedGoldenVsText" class="link"
+	    >Source</a
+	    > <a href="#v:nestedGoldenVsText" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file under a name prefix against a <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nestedGoldenVsTextPredM" class="def"
+	    >nestedGoldenVsTextPredM</a
+	    > <a href="src/Test.Tasty.Extras.html#nestedGoldenVsTextPredM" class="link"
+	    >Source</a
+	    > <a href="#v:nestedGoldenVsTextPredM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+		  >TestName</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The name of the test</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The file extension</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		  >IO</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The text-producing action to execute</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >How to compare golden file contents with the produced text</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+		  >TestNested</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Compare the contents of a file under a name prefix against a <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >
+using a predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nestedGoldenVsTextM" class="def"
+	    >nestedGoldenVsTextM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#nestedGoldenVsTextM" class="link"
+	    >Source</a
+	    > <a href="#v:nestedGoldenVsTextM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file under a name prefix against a <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nestedGoldenVsDoc" class="def"
+	    >nestedGoldenVsDoc</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#nestedGoldenVsDoc" class="link"
+	    >Source</a
+	    > <a href="#v:nestedGoldenVsDoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file under a name prefix against a <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nestedGoldenVsDocM" class="def"
+	    >nestedGoldenVsDocM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann) &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/Test.Tasty.Extras.html#nestedGoldenVsDocM" class="link"
+	    >Source</a
+	    > <a href="#v:nestedGoldenVsDocM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check the contents of a file under a name prefix against a <code
+	      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		>Text</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeVersionedFilePath" class="def"
+	    >makeVersionedFilePath</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/Test.Tasty.Extras.html#makeVersionedFilePath" class="link"
+	    >Source</a
+	    > <a href="#v:makeVersionedFilePath" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given a lists of FilePaths and a filename, concatenate the members of the
+ list together, append the GHC version number, then append the filename.  We
+ use this to create GHC-version-dependent golden files.</p
+	    ></div
+	  ></div
+	><a href="#g:1" id="g:1"
+	><h1
+	  >Prettier equality assertions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:assertEqualPretty" class="def"
+	    >assertEqualPretty</a
+	    > <a href="src/Test.Tasty.Extras.html#assertEqualPretty" class="link"
+	    >Source</a
+	    > <a href="#v:assertEqualPretty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		  >Eq</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+		  >HasCallStack</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The message prefix</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc"
+		><p
+		  >The expected value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc"
+		><p
+		  >The actual value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+		  >Assertion</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Asserts that the specified actual value is equal to the expected value.
+The output message will contain the prefix, the expected value, and the
+actual value.</p
+	    ><p
+	    >If the prefix is the empty string (i.e., <code
+	      >&quot;&quot;</code
+	      >), then the prefix is omitted
+and only the expected and actual values are output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-37--61--63-" class="def"
+	    >(%=?)</a
+	    > <span class="fixity"
+	    >infix 1</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/Test.Tasty.Extras.html#%25%3D%3F" class="link"
+	    >Source</a
+	    > <a href="#v:-37--61--63-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		  >Eq</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+		  >HasCallStack</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; a</td
+		><td class="doc"
+		><p
+		  >The expected value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc"
+		><p
+		  >The actual value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+		  >Assertion</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Asserts that the specified actual value is equal to the expected value
+  (with the <em
+	      >expected</em
+	      > value on the left-hand side).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-37--63--61-" class="def"
+	    >(%?=)</a
+	    > <span class="fixity"
+	    >infix 1</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/Test.Tasty.Extras.html#%25%3F%3D" class="link"
+	    >Source</a
+	    > <a href="#v:-37--63--61-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		  >Eq</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		  >Show</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+		  >HasCallStack</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; a</td
+		><td class="doc"
+		><p
+		  >The actual value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc"
+		><p
+		  >The expected value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/Test-Tasty-HUnit.html#t:Assertion" title="Test.Tasty.HUnit"
+		  >Assertion</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Asserts that the specified actual value is equal to the expected value
+  (with the <em
+	      >actual</em
+	      > value on the left-hand side).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ignoreTestWhenHpcEnabled" class="def"
+	    >ignoreTestWhenHpcEnabled</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Test.Tasty.Extras.html#ignoreTestWhenHpcEnabled" class="link"
+	    >Source</a
+	    > <a href="#v:ignoreTestWhenHpcEnabled" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Some tests inspect GHC code, but GHC code gets instrumented when using HPC
+(Haskell Program Coverage), which causes those tests to fail.
+This function disables those tests when the custom <strong
+	      >HPC_ENABLED</strong
+	      > flag is defined.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

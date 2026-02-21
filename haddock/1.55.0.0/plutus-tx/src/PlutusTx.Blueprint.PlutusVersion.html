@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.PlutusVersion</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A &quot;Plutus Version&quot;, as defined by the CIP-0057
+|
+| This version corresponds to the &quot;Plutus Ledger Language Version&quot;
+| defined by the plutus-tx-plugin.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="PlutusVersion"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusVersion"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusVersion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="PlutusV1"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV1"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusV1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="PlutusV2"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV2"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusV2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="PlutusV3"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV3"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusV3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019339"
+      ><span id="local-6989586621680019341"
+	><span id="local-6989586621680019345"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; PlutusVersion -&gt; ShowS
+[PlutusVersion] -&gt; ShowS
+PlutusVersion -&gt; String
+(Int -&gt; PlutusVersion -&gt; ShowS)
+-&gt; (PlutusVersion -&gt; String)
+-&gt; ([PlutusVersion] -&gt; ShowS)
+-&gt; Show PlutusVersion
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; PlutusVersion -&gt; ShowS
+showsPrec :: Int -&gt; PlutusVersion -&gt; ShowS
+$cshow :: PlutusVersion -&gt; String
+show :: PlutusVersion -&gt; String
+$cshowList :: [PlutusVersion] -&gt; ShowS
+showList :: [PlutusVersion] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680019350"
+      ><span id="local-6989586621680019354"
+	><span id="local-6989586621680019357"
+	  ><span id="local-6989586621680019360"
+	    ><span class="annot"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusVersion"
+		><span class="hs-identifier hs-type"
+		  >PlutusVersion</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680019367"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: PlutusVersion -&gt; Value
+</span
+	  ><a href="#local-6989586621680019367"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion
+</span
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV1"
+	><span class="hs-identifier hs-var"
+	  >PlutusV1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-string"
+	>&quot;v1&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion
+</span
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >PlutusV2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-string"
+	>&quot;v2&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion
+</span
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-string"
+	>&quot;v3&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

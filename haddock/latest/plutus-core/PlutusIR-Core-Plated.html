@@ -1,0 +1,1145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Core.Plated</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Core.Plated.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Core.Plated</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:termSubterms"
+	      >termSubterms</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:termSubtermsDeep"
+	      >termSubtermsDeep</a
+	      > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termSubtypes"
+	      >termSubtypes</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a)</li
+	    ><li class="src short"
+	    ><a href="#v:termSubtypesDeep"
+	      >termSubtypesDeep</a
+	      > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termSubkinds"
+	      >termSubkinds</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	      >Kind</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termBindings"
+	      >termBindings</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:termVars"
+	      >termVars</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) name</li
+	    ><li class="src short"
+	    ><a href="#v:termConstants"
+	      >termConstants</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni))</li
+	    ><li class="src short"
+	    ><a href="#v:termConstantsDeep"
+	      >termConstantsDeep</a
+	      > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni))</li
+	    ><li class="src short"
+	    ><a href="#v:typeSubtypes"
+	      >typeSubtypes</a
+	      > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann f. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:typeSubtypesDeep"
+	      >typeSubtypesDeep</a
+	      > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann f. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Contravariant.html#t:Contravariant" title="Data.Functor.Contravariant"
+	      >Contravariant</a
+	      > f, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f) &#8658; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:typeSubkinds"
+	      >typeSubkinds</a
+	      > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann f. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	      >Kind</a
+	      > ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	      >Kind</a
+	      > ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:typeUniques"
+	      >typeUniques</a
+	      > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann. <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann) &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:typeUniquesDeep"
+	      >typeUniquesDeep</a
+	      > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann. <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann) &#8658; Fold (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:datatypeSubtypes"
+	      >datatypeSubtypes</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > tyname name uni a) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a)</li
+	    ><li class="src short"
+	    ><a href="#v:datatypeSubkinds"
+	      >datatypeSubkinds</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > tyname name uni a) (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	      >Kind</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:datatypeTyNames"
+	      >datatypeTyNames</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > tyname name uni a) tyname</li
+	    ><li class="src short"
+	    ><a href="#v:bindingSubterms"
+	      >bindingSubterms</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:bindingSubtypes"
+	      >bindingSubtypes</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a)</li
+	    ><li class="src short"
+	    ><a href="#v:bindingSubkinds"
+	      >bindingSubkinds</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	      >Kind</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:bindingNames"
+	      >bindingNames</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a) name</li
+	    ><li class="src short"
+	    ><a href="#v:bindingTyNames"
+	      >bindingTyNames</a
+	      > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a) tyname</li
+	    ><li class="src short"
+	    ><a href="#v:bindingIds"
+	      >bindingIds</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >) &#8658; Traversal1' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:termUniques"
+	      >termUniques</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:termUniquesDeep"
+	      >termUniquesDeep</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) &#8658; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:varDeclSubtypes"
+	      >varDeclSubtypes</a
+	      > &#8759; &#8704; tyname name (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) a f. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a)) &#8594; <a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > tyname name uni a &#8594; f (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > tyname name uni a)</li
+	    ><li class="src short"
+	    ><a href="#v:underBinders"
+	      >underBinders</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      > &#8594; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:_Constant"
+	      >_Constant</a
+	      > &#8759; Prism' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a) (a, <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni))</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubterms" class="def"
+	    >termSubterms</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Core.Plated.html#termSubterms" class="link"
+	    >Source</a
+	    > <a href="#v:termSubterms" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >, including those within <code
+	      ><a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		>Binding</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubtermsDeep" class="def"
+	    >termSubtermsDeep</a
+	    > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Core.Plated.html#termSubtermsDeep" class="link"
+	    >Source</a
+	    > <a href="#v:termSubtermsDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubtypes" class="def"
+	    >termSubtypes</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a) <a href="src/PlutusIR.Core.Plated.html#termSubtypes" class="link"
+	    >Source</a
+	    > <a href="#v:termSubtypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >, including those within <code
+	      ><a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		>Binding</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubtypesDeep" class="def"
+	    >termSubtypesDeep</a
+	    > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="src/PlutusIR.Core.Plated.html#termSubtypesDeep" class="link"
+	    >Source</a
+	    > <a href="#v:termSubtypesDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubkinds" class="def"
+	    >termSubkinds</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	    >Kind</a
+	    > ann) <a href="src/PlutusIR.Core.Plated.html#termSubkinds" class="link"
+	    >Source</a
+	    > <a href="#v:termSubkinds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termBindings" class="def"
+	    >termBindings</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Core.Plated.html#termBindings" class="link"
+	    >Source</a
+	    > <a href="#v:termBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		>Binding</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termVars" class="def"
+	    >termVars</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) name <a href="src/PlutusIR.Core.Plated.html#termVars" class="link"
+	    >Source</a
+	    > <a href="#v:termVars" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child 'name a's of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      > from <code
+	      ><a href="PlutusIR-Core-Type.html#v:Var" title="PlutusIR.Core.Type"
+		>Var</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termConstants" class="def"
+	    >termConstants</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni)) <a href="src/PlutusIR.Core.Plated.html#termConstants" class="link"
+	    >Source</a
+	    > <a href="#v:termConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct constants of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      > from <code
+	      ><a href="PlutusIR-Core-Type.html#v:Constant" title="PlutusIR.Core.Type"
+		>Constant</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termConstantsDeep" class="def"
+	    >termConstantsDeep</a
+	    > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni)) <a href="src/PlutusIR.Core.Plated.html#termConstantsDeep" class="link"
+	    >Source</a
+	    > <a href="#v:termConstantsDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="PlutusIR-Core-Type.html#v:Constant" title="PlutusIR.Core.Type"
+		>Constant</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeSubtypes" class="def"
+	    >typeSubtypes</a
+	    > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann f. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:typeSubtypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeSubtypesDeep" class="def"
+	    >typeSubtypesDeep</a
+	    > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann f. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Contravariant.html#t:Contravariant" title="Data.Functor.Contravariant"
+	    >Contravariant</a
+	    > f, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f) &#8658; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:typeSubtypesDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeSubkinds" class="def"
+	    >typeSubkinds</a
+	    > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann f. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	    >Kind</a
+	    > ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	    >Kind</a
+	    > ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:typeSubkinds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeUniques" class="def"
+	    >typeUniques</a
+	    > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann. <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:typeUniques" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      > from binders <code
+	      ><a href="PlutusIR-Core-Type.html#v:TyVar" title="PlutusIR.Core.Type"
+		>TyVar</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeUniquesDeep" class="def"
+	    >typeUniquesDeep</a
+	    > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann. <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) &#8658; Fold (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:typeUniquesDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      ><a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:datatypeSubtypes" class="def"
+	    >datatypeSubtypes</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > tyname name uni a) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a) <a href="src/PlutusIR.Core.Plated.html#datatypeSubtypes" class="link"
+	    >Source</a
+	    > <a href="#v:datatypeSubtypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		>Datatype</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:datatypeSubkinds" class="def"
+	    >datatypeSubkinds</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > tyname name uni a) (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	    >Kind</a
+	    > a) <a href="src/PlutusIR.Core.Plated.html#datatypeSubkinds" class="link"
+	    >Source</a
+	    > <a href="#v:datatypeSubkinds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		>Datatype</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:datatypeTyNames" class="def"
+	    >datatypeTyNames</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > tyname name uni a) tyname <a href="src/PlutusIR.Core.Plated.html#datatypeTyNames" class="link"
+	    >Source</a
+	    > <a href="#v:datatypeTyNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the type-names introduces by a datatype</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingSubterms" class="def"
+	    >bindingSubterms</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Core.Plated.html#bindingSubterms" class="link"
+	    >Source</a
+	    > <a href="#v:bindingSubterms" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		>Binding</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingSubtypes" class="def"
+	    >bindingSubtypes</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a) <a href="src/PlutusIR.Core.Plated.html#bindingSubtypes" class="link"
+	    >Source</a
+	    > <a href="#v:bindingSubtypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		>Binding</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingSubkinds" class="def"
+	    >bindingSubkinds</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+	    >Kind</a
+	    > a) <a href="src/PlutusIR.Core.Plated.html#bindingSubkinds" class="link"
+	    >Source</a
+	    > <a href="#v:bindingSubkinds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		>Binding</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingNames" class="def"
+	    >bindingNames</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a) name <a href="src/PlutusIR.Core.Plated.html#bindingNames" class="link"
+	    >Source</a
+	    > <a href="#v:bindingNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the names introduces by a binding</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingTyNames" class="def"
+	    >bindingTyNames</a
+	    > &#8759; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a) tyname <a href="src/PlutusIR.Core.Plated.html#bindingTyNames" class="link"
+	    >Source</a
+	    > <a href="#v:bindingTyNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the type-names introduces by a binding</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingIds" class="def"
+	    >bindingIds</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >) &#8658; Traversal1' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusIR.Core.Plated.html#bindingIds" class="link"
+	    >Source</a
+	    > <a href="#v:bindingIds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >All the identifiers/names introduced by this binding
+In case of a datatype-binding it has multiple identifiers: the type, constructors, match function </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termUniques" class="def"
+	    >termUniques</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusIR.Core.Plated.html#termUniques" class="link"
+	    >Source</a
+	    > <a href="#v:termUniques" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      >Unique</code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      > (including the type-level ones).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termUniquesDeep" class="def"
+	    >termUniquesDeep</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) &#8658; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusIR.Core.Plated.html#termUniquesDeep" class="link"
+	    >Source</a
+	    > <a href="#v:termUniquesDeep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the transitive child <code
+	      >Unique</code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      > (including the type-level ones).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:varDeclSubtypes" class="def"
+	    >varDeclSubtypes</a
+	    > &#8759; &#8704; tyname name (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) a f. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a)) &#8594; <a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > tyname name uni a &#8594; f (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > tyname name uni a) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:varDeclSubtypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the direct child <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s of the given <code
+	      ><a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		>VarDecl</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:underBinders" class="def"
+	    >underBinders</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > &#8594; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Core.Plated.html#underBinders" class="link"
+	    >Source</a
+	    > <a href="#v:underBinders" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Focus on the term under the binders corresponding to the given arity.
+e.g. for arity <code
+	      >[TermParam, TermParam]</code
+	      > and term <code
+	      >x y -&gt; t</code
+	      > it focusses on <code
+	      >t</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_Constant" class="def"
+	    >_Constant</a
+	    > &#8759; Prism' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) (a, <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni)) <a href="src/PlutusIR.Core.Plated.html#_Constant" class="link"
+	    >Source</a
+	    > <a href="#v:_Constant" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >View a term as a constant.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

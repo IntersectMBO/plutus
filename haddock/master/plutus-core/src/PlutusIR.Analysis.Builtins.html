@@ -1,0 +1,7349 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE KindSignatures #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Analysis.Builtins</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#bmlSplitMatchContext"
+	><span class="hs-identifier"
+	  >bmlSplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#bmlBranchArities"
+	><span class="hs-identifier"
+	  >bmlBranchArities</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#defaultUniMatcherLike"
+	><span class="hs-identifier"
+	  >defaultUniMatcherLike</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier"
+	  >BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#biSemanticsVariant"
+	><span class="hs-identifier"
+	  >biSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#biMatcherLike"
+	><span class="hs-identifier"
+	  >biMatcherLike</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#biUnserializableConstants"
+	><span class="hs-identifier"
+	  >biUnserializableConstants</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#builtinArityInfo"
+	><span class="hs-identifier"
+	  >builtinArityInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#constantIsSerializable"
+	><span class="hs-identifier"
+	  >constantIsSerializable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#termIsSerializable"
+	><span class="hs-identifier"
+	  >termIsSerializable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#asBuiltinDatatypeMatch"
+	><span class="hs-identifier"
+	  >asBuiltinDatatypeMatch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#builtinDatatypeMatchBranchArities"
+	><span class="hs-identifier"
+	  >builtinDatatypeMatchBranchArities</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#defaultUniUnserializableConstants"
+	><span class="hs-identifier"
+	  >defaultUniUnserializableConstants</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>parts</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html"
+	><span class="hs-identifier"
+	  >Data.Functor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier"
+	  >void</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Arity.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Arity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterTyAppNoAnn"
+	><span class="hs-identifier"
+	  >mkIterTyAppNoAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Contexts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Core</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier"
+	  >Term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Plated.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Core.Plated</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Plated.html#termSubtermsDeep"
+	><span class="hs-identifier"
+	  >termSubtermsDeep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Plated.html#_Constant"
+	><span class="hs-identifier"
+	  >_Constant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Default</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The information we need to work with a builtin that is like a datatype matcher.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinMatcherLike"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinMatcherLike</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470338"
+      ><span class="annot"
+	><a href="#local-6989586621679470338"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470339"
+      ><span class="annot"
+	><a href="#local-6989586621679470339"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="BuiltinMatcherLike"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinMatcherLike</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_bmlSplitMatchContext"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+BuiltinMatcherLike uni fun
+-&gt; forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+   (Choice p, Applicative f) =&gt;
+   p (SplitMatchContext tyname name uni fun a)
+     (f (SplitMatchContext tyname name uni fun a))
+   -&gt; p (AppContext tyname name uni fun a)
+        (f (AppContext tyname name uni fun a))
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#_bmlSplitMatchContext"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_bmlSplitMatchContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470344"
+      ><span class="annot"
+	><a href="#local-6989586621679470344"
+	  ><span class="hs-identifier hs-type"
+	    >tyname</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470345"
+      ><span class="annot"
+	><a href="#local-6989586621679470345"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470346"
+      ><span class="annot"
+	><a href="#local-6989586621679470346"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#AppContext"
+	><span class="hs-identifier hs-type"
+	  >AppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470344"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470345"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470338"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470339"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470346"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	><span class="hs-identifier hs-type"
+	  >SplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470344"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470345"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470338"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470339"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470346"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_bmlBranchArities"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. BuiltinMatcherLike uni fun -&gt; [Arity]
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#_bmlBranchArities"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_bmlBranchArities</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Arity.html#Arity"
+	><span class="hs-identifier hs-type"
+	  >Arity</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="local-6989586621679470338"
+      ><span id="local-6989586621679470339"
+	><span id="local-6989586621679470341"
+	  ><span id="local-6989586621679470343"
+	    ><span id="local-6989586621679470344"
+	      ><span id="local-6989586621679470345"
+		><span id="local-6989586621679470346"
+		  ><span id="bmlSplitMatchContext"
+		    ><span id="bmlBranchArities"
+		      ><span class="hs-identifier"
+			>makeLenses</span
+			><span
+			> </span
+			><span class="hs-special"
+			>''</span
+			><span class="hs-identifier"
+			>BuiltinMatcherLike</span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | All non-static information about builtins that the compiler might want.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinsInfo"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinsInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470384"
+      ><span class="annot"
+	><a href="#local-6989586621679470384"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470385"
+      ><span class="annot"
+	><a href="#local-6989586621679470385"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="BuiltinsInfo"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinsInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_biSemanticsVariant"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+BuiltinsInfo uni fun -&gt; BuiltinSemanticsVariant fun
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#_biSemanticsVariant"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_biSemanticsVariant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier hs-type"
+	  >PLC.BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470385"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_biMatcherLike"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+BuiltinsInfo uni fun -&gt; Map fun (BuiltinMatcherLike uni fun)
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#_biMatcherLike"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_biMatcherLike</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470385"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470384"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470385"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- See Note [Unserializable constants]</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="_biUnserializableConstants"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+BuiltinsInfo uni fun -&gt; Some (ValueOf uni) -&gt; Bool
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#_biUnserializableConstants"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_biUnserializableConstants</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470384"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="local-6989586621679470384"
+      ><span id="local-6989586621679470385"
+	><span id="biSemanticsVariant"
+	  ><span id="biMatcherLike"
+	    ><span id="biUnserializableConstants"
+	      ><span class="hs-identifier"
+		>makeLenses</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-identifier"
+		>BuiltinsInfo</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Default</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679470688"
+      ><span class="annot"
+	><span class="annottext"
+	  >def :: BuiltinsInfo DefaultUni DefaultFun
+</span
+	  ><a href="#local-6989586621679470688"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >def</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_biSemanticsVariant :: BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#_biSemanticsVariant"
+	><span class="hs-identifier hs-var"
+	  >_biSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_biMatcherLike :: Map DefaultFun (BuiltinMatcherLike DefaultUni DefaultFun)
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#_biMatcherLike"
+	><span class="hs-identifier hs-var"
+	  >_biMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map DefaultFun (BuiltinMatcherLike DefaultUni DefaultFun)
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#defaultUniMatcherLike"
+	><span class="hs-identifier hs-var"
+	  >defaultUniMatcherLike</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_biUnserializableConstants :: Some (ValueOf DefaultUni) -&gt; Bool
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#_biUnserializableConstants"
+	><span class="hs-identifier hs-var"
+	  >_biUnserializableConstants</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf DefaultUni) -&gt; Bool
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#defaultUniUnserializableConstants"
+	><span class="hs-identifier hs-var"
+	  >defaultUniUnserializableConstants</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the arity of a builtin function from the 'PLC.BuiltinInfo'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#builtinArityInfo"
+	><span class="hs-identifier hs-type"
+	  >builtinArityInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470409"
+      ><span class="annot"
+	><a href="#local-6989586621679470409"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470410"
+      ><span class="annot"
+	><a href="#local-6989586621679470410"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >ToBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470409"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470410"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470409"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470410"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470410"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Arity.html#Arity"
+	><span class="hs-identifier hs-type"
+	  >Arity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="builtinArityInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinArityInfo :: forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+BuiltinsInfo uni fun -&gt; fun -&gt; Arity
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#builtinArityInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinArityInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470694"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679470694"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy uni -&gt; BuiltinSemanticsVariant fun -&gt; fun -&gt; Arity
+forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+Proxy uni -&gt; BuiltinSemanticsVariant fun -&gt; fun -&gt; Arity
+</span
+	><a href="../../plutus-core/src/PlutusCore.Arity.html#builtinArity"
+	><span class="hs-identifier hs-var"
+	  >builtinArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall {k} (t :: k). Proxy t
+forall (t :: * -&gt; *). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679470409"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679470694"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; Getting
+     (BuiltinSemanticsVariant fun)
+     (BuiltinsInfo uni fun)
+     (BuiltinSemanticsVariant fun)
+-&gt; BuiltinSemanticsVariant fun
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (BuiltinSemanticsVariant fun)
+  (BuiltinsInfo uni fun)
+  (BuiltinSemanticsVariant fun)
+forall (uni :: * -&gt; *) fun (f :: * -&gt; *).
+Functor f =&gt;
+(BuiltinSemanticsVariant fun -&gt; f (BuiltinSemanticsVariant fun))
+-&gt; BuiltinsInfo uni fun -&gt; f (BuiltinsInfo uni fun)
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#biSemanticsVariant"
+	><span class="hs-identifier hs-var"
+	  >biSemanticsVariant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#constantIsSerializable"
+	><span class="hs-identifier hs-type"
+	  >constantIsSerializable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470698"
+      ><span class="annot"
+	><a href="#local-6989586621679470698"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470699"
+      ><span class="annot"
+	><a href="#local-6989586621679470699"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470698"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470699"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679470698"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="constantIsSerializable"
+      ><span class="annot"
+	><span class="annottext"
+	  >constantIsSerializable :: forall (uni :: * -&gt; *) fun.
+BuiltinsInfo uni fun -&gt; Some (ValueOf uni) -&gt; Bool
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#constantIsSerializable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >constantIsSerializable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470700"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679470700"
+	  ><span class="hs-identifier hs-var"
+	    >bi</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470701"
+      ><span class="annot"
+	><span class="annottext"
+	  >Some (ValueOf uni)
+</span
+	  ><a href="#local-6989586621679470701"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool) -&gt; Bool -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun -&gt; Some (ValueOf uni) -&gt; Bool
+forall (uni :: * -&gt; *) fun.
+BuiltinsInfo uni fun -&gt; Some (ValueOf uni) -&gt; Bool
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#_biUnserializableConstants"
+	><span class="hs-identifier hs-var"
+	  >_biUnserializableConstants</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679470700"
+	><span class="hs-identifier hs-var"
+	  >bi</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf uni)
+</span
+	><a href="#local-6989586621679470701"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="local-6989586621679470429"
+      ><span id="local-6989586621679470430"
+	><span id="local-6989586621679470431"
+	  ><span id="local-6989586621679470432"
+	    ><span id="local-6989586621679470433"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.Builtins.html#termIsSerializable"
+		  ><span class="hs-identifier hs-type"
+		    >termIsSerializable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinsInfo</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470429"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470430"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470431"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470432"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470429"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470430"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470433"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+		  ><span class="hs-identifier hs-type"
+		    >Bool</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="termIsSerializable"
+      ><span class="annot"
+	><span class="annottext"
+	  >termIsSerializable :: forall (uni :: * -&gt; *) fun tyname name a.
+BuiltinsInfo uni fun -&gt; Term tyname name uni fun a -&gt; Bool
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#termIsSerializable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termIsSerializable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470712"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679470712"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting All (Term tyname name uni fun a) (a, Some (ValueOf uni))
+-&gt; ((a, Some (ValueOf uni)) -&gt; Bool)
+-&gt; Term tyname name uni fun a
+-&gt; Bool
+forall s a. Getting All s a -&gt; (a -&gt; Bool) -&gt; s -&gt; Bool
+</span
+	><span class="hs-identifier hs-var"
+	>allOf</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun a
+ -&gt; Const All (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a
+-&gt; Const All (Term tyname name uni fun a)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+(Contravariant f, Applicative f) =&gt;
+(Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubtermsDeep"
+	><span class="hs-identifier hs-var"
+	  >termSubtermsDeep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term tyname name uni fun a
+  -&gt; Const All (Term tyname name uni fun a))
+ -&gt; Term tyname name uni fun a
+ -&gt; Const All (Term tyname name uni fun a))
+-&gt; Getting All (Term tyname name uni fun a) (a, Some (ValueOf uni))
+-&gt; Getting All (Term tyname name uni fun a) (a, Some (ValueOf uni))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting All (Term tyname name uni fun a) (a, Some (ValueOf uni))
+forall tyname name (uni :: * -&gt; *) fun a (p :: * -&gt; * -&gt; *)
+       (f :: * -&gt; *).
+(Choice p, Applicative f) =&gt;
+p (a, Some (ValueOf uni)) (f (a, Some (ValueOf uni)))
+-&gt; p (Term tyname name uni fun a) (f (Term tyname name uni fun a))
+</span
+	><a href="PlutusIR.Core.Plated.html#_Constant"
+	><span class="hs-identifier hs-var"
+	  >_Constant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun -&gt; Some (ValueOf uni) -&gt; Bool
+forall (uni :: * -&gt; *) fun.
+BuiltinsInfo uni fun -&gt; Some (ValueOf uni) -&gt; Bool
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#constantIsSerializable"
+	><span class="hs-identifier hs-var"
+	  >constantIsSerializable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679470712"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Some (ValueOf uni) -&gt; Bool)
+-&gt; ((a, Some (ValueOf uni)) -&gt; Some (ValueOf uni))
+-&gt; (a, Some (ValueOf uni))
+-&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a, Some (ValueOf uni)) -&gt; Some (ValueOf uni)
+forall a b. (a, b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#snd"
+	><span class="hs-identifier hs-var"
+	  >snd</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Split a builtin 'match'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="local-6989586621679470463"
+      ><span id="local-6989586621679470464"
+	><span id="local-6989586621679470465"
+	  ><span id="local-6989586621679470466"
+	    ><span id="local-6989586621679470467"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.Builtins.html#asBuiltinDatatypeMatch"
+		  ><span class="hs-identifier hs-type"
+		    >asBuiltinDatatypeMatch</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-94"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		  ><span class="hs-identifier hs-type"
+		    >Ord</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470463"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-95"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinsInfo</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470464"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470463"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-96"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470463"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-97"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+		  ><span class="hs-identifier hs-type"
+		    >Maybe</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >APrism'</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusIR.Contexts.html#AppContext"
+		  ><span class="hs-identifier hs-type"
+		    >AppContext</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470465"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470466"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470464"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470463"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470467"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusIR.Contexts.html#SplitMatchContext"
+		  ><span class="hs-identifier hs-type"
+		    >SplitMatchContext</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470465"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470466"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470464"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470463"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679470467"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="asBuiltinDatatypeMatch"
+      ><span class="annot"
+	><span class="annottext"
+	  >asBuiltinDatatypeMatch :: forall fun (uni :: * -&gt; *) tyname name a.
+Ord fun =&gt;
+BuiltinsInfo uni fun
+-&gt; fun
+-&gt; Maybe
+     (APrism'
+        (AppContext tyname name uni fun a)
+        (SplitMatchContext tyname name uni fun a))
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#asBuiltinDatatypeMatch"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >asBuiltinDatatypeMatch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470723"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679470723"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470724"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621679470724"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470725"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+(Choice p, Applicative f) =&gt;
+p (SplitMatchContext tyname name uni fun a)
+  (f (SplitMatchContext tyname name uni fun a))
+-&gt; p (AppContext tyname name uni fun a)
+     (f (AppContext tyname name uni fun a))
+</span
+	  ><a href="#local-6989586621679470725"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Arity]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+-&gt; Map fun (BuiltinMatcherLike uni fun)
+-&gt; Maybe (BuiltinMatcherLike uni fun)
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#lookup"
+	><span class="hs-identifier hs-var"
+	  >Map.lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621679470724"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679470723"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; Getting
+     (Map fun (BuiltinMatcherLike uni fun))
+     (BuiltinsInfo uni fun)
+     (Map fun (BuiltinMatcherLike uni fun))
+-&gt; Map fun (BuiltinMatcherLike uni fun)
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Map fun (BuiltinMatcherLike uni fun))
+  (BuiltinsInfo uni fun)
+  (Map fun (BuiltinMatcherLike uni fun))
+forall (uni :: * -&gt; *) fun (f :: * -&gt; *).
+Functor f =&gt;
+(Map fun (BuiltinMatcherLike uni fun)
+ -&gt; f (Map fun (BuiltinMatcherLike uni fun)))
+-&gt; BuiltinsInfo uni fun -&gt; f (BuiltinsInfo uni fun)
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#biMatcherLike"
+	><span class="hs-identifier hs-var"
+	  >biMatcherLike</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>APrism'
+  (AppContext tyname name uni fun a)
+  (SplitMatchContext tyname name uni fun a)
+-&gt; Maybe
+     (APrism'
+        (AppContext tyname name uni fun a)
+        (SplitMatchContext tyname name uni fun a))
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>APrism'
+  (AppContext tyname name uni fun a)
+  (SplitMatchContext tyname name uni fun a)
+forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+(Choice p, Applicative f) =&gt;
+p (SplitMatchContext tyname name uni fun a)
+  (f (SplitMatchContext tyname name uni fun a))
+-&gt; p (AppContext tyname name uni fun a)
+     (f (AppContext tyname name uni fun a))
+</span
+	><a href="#local-6989586621679470725"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe
+  (APrism'
+     (AppContext tyname name uni fun a)
+     (SplitMatchContext tyname name uni fun a))
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the branch arities for a builtin 'match'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span id="local-6989586621679470481"
+      ><span id="local-6989586621679470482"
+	><span class="annot"
+	  ><a href="PlutusIR.Analysis.Builtins.html#builtinDatatypeMatchBranchArities"
+	    ><span class="hs-identifier hs-type"
+	      >builtinDatatypeMatchBranchArities</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-105"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+	    ><span class="hs-identifier hs-type"
+	      >Ord</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679470481"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-106"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinsInfo</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679470482"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679470481"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-107"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679470481"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-108"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	    ><span class="hs-identifier hs-type"
+	      >Maybe</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Arity.html#Arity"
+	    ><span class="hs-identifier hs-type"
+	      >Arity</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="builtinDatatypeMatchBranchArities"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinDatatypeMatchBranchArities :: forall fun (uni :: * -&gt; *).
+Ord fun =&gt;
+BuiltinsInfo uni fun -&gt; fun -&gt; Maybe [Arity]
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#builtinDatatypeMatchBranchArities"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinDatatypeMatchBranchArities</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470730"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679470730"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470731"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621679470731"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+(Choice p, Applicative f) =&gt;
+p (SplitMatchContext tyname name uni fun a)
+  (f (SplitMatchContext tyname name uni fun a))
+-&gt; p (AppContext tyname name uni fun a)
+     (f (AppContext tyname name uni fun a))
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470732"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Arity]
+</span
+	  ><a href="#local-6989586621679470732"
+	  ><span class="hs-identifier hs-var"
+	    >arities</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+-&gt; Map fun (BuiltinMatcherLike uni fun)
+-&gt; Maybe (BuiltinMatcherLike uni fun)
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#lookup"
+	><span class="hs-identifier hs-var"
+	  >Map.lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621679470731"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679470730"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; Getting
+     (Map fun (BuiltinMatcherLike uni fun))
+     (BuiltinsInfo uni fun)
+     (Map fun (BuiltinMatcherLike uni fun))
+-&gt; Map fun (BuiltinMatcherLike uni fun)
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Map fun (BuiltinMatcherLike uni fun))
+  (BuiltinsInfo uni fun)
+  (Map fun (BuiltinMatcherLike uni fun))
+forall (uni :: * -&gt; *) fun (f :: * -&gt; *).
+Functor f =&gt;
+(Map fun (BuiltinMatcherLike uni fun)
+ -&gt; f (Map fun (BuiltinMatcherLike uni fun)))
+-&gt; BuiltinsInfo uni fun -&gt; f (BuiltinsInfo uni fun)
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#biMatcherLike"
+	><span class="hs-identifier hs-var"
+	  >biMatcherLike</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Arity] -&gt; Maybe [Arity]
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Arity]
+</span
+	><a href="#local-6989586621679470732"
+	><span class="hs-identifier hs-var"
+	  >arities</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe [Arity]
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#defaultUniMatcherLike"
+	><span class="hs-identifier hs-type"
+	  >defaultUniMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="defaultUniMatcherLike"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultUniMatcherLike :: Map DefaultFun (BuiltinMatcherLike DefaultUni DefaultFun)
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#defaultUniMatcherLike"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultUniMatcherLike</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(DefaultFun, BuiltinMatcherLike DefaultUni DefaultFun)]
+-&gt; Map DefaultFun (BuiltinMatcherLike DefaultUni DefaultFun)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IfThenElse"
+	><span class="hs-identifier hs-var"
+	  >IfThenElse</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+ (Choice p, Applicative f) =&gt;
+ p (SplitMatchContext tyname name DefaultUni DefaultFun a)
+   (f (SplitMatchContext tyname name DefaultUni DefaultFun a))
+ -&gt; p (AppContext tyname name DefaultUni DefaultFun a)
+      (f (AppContext tyname name DefaultUni DefaultFun a)))
+-&gt; [Arity] -&gt; BuiltinMatcherLike DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+(forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+ (Choice p, Applicative f) =&gt;
+ p (SplitMatchContext tyname name uni fun a)
+   (f (SplitMatchContext tyname name uni fun a))
+ -&gt; p (AppContext tyname name uni fun a)
+      (f (AppContext tyname name uni fun a)))
+-&gt; [Arity] -&gt; BuiltinMatcherLike uni fun
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier hs-var"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SplitMatchContext tyname name DefaultUni DefaultFun a
+ -&gt; AppContext tyname name DefaultUni DefaultFun a)
+-&gt; (AppContext tyname name DefaultUni DefaultFun a
+    -&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a))
+-&gt; Prism
+     (AppContext tyname name DefaultUni DefaultFun a)
+     (AppContext tyname name DefaultUni DefaultFun a)
+     (SplitMatchContext tyname name DefaultUni DefaultFun a)
+     (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall b s a. (b -&gt; s) -&gt; (s -&gt; Maybe a) -&gt; Prism s s a b
+</span
+	><span class="hs-identifier hs-var"
+	>prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+-&gt; AppContext tyname name DefaultUni DefaultFun a
+forall {tyname} {name} {uni :: * -&gt; *} {fun} {ann}.
+SplitMatchContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="#local-6989586621679470740"
+	><span class="hs-identifier hs-var"
+	  >reconstructIfThenElse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall tyname name a.
+AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+</span
+	><a href="#local-6989586621679470741"
+	><span class="hs-identifier hs-var"
+	  >splitIfThenElse</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Arity]
+forall {a}. [[a]]
+</span
+	><a href="#local-6989586621679470742"
+	><span class="hs-identifier hs-var"
+	  >ifThenElseBranchArities</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ChooseUnit"
+	><span class="hs-identifier hs-var"
+	  >ChooseUnit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+ (Choice p, Applicative f) =&gt;
+ p (SplitMatchContext tyname name DefaultUni DefaultFun a)
+   (f (SplitMatchContext tyname name DefaultUni DefaultFun a))
+ -&gt; p (AppContext tyname name DefaultUni DefaultFun a)
+      (f (AppContext tyname name DefaultUni DefaultFun a)))
+-&gt; [Arity] -&gt; BuiltinMatcherLike DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+(forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+ (Choice p, Applicative f) =&gt;
+ p (SplitMatchContext tyname name uni fun a)
+   (f (SplitMatchContext tyname name uni fun a))
+ -&gt; p (AppContext tyname name uni fun a)
+      (f (AppContext tyname name uni fun a)))
+-&gt; [Arity] -&gt; BuiltinMatcherLike uni fun
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier hs-var"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SplitMatchContext tyname name DefaultUni DefaultFun a
+ -&gt; AppContext tyname name DefaultUni DefaultFun a)
+-&gt; (AppContext tyname name DefaultUni DefaultFun a
+    -&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a))
+-&gt; Prism
+     (AppContext tyname name DefaultUni DefaultFun a)
+     (AppContext tyname name DefaultUni DefaultFun a)
+     (SplitMatchContext tyname name DefaultUni DefaultFun a)
+     (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall b s a. (b -&gt; s) -&gt; (s -&gt; Maybe a) -&gt; Prism s s a b
+</span
+	><span class="hs-identifier hs-var"
+	>prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+-&gt; AppContext tyname name DefaultUni DefaultFun a
+forall {tyname} {name} {uni :: * -&gt; *} {fun} {ann}.
+SplitMatchContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="#local-6989586621679470748"
+	><span class="hs-identifier hs-var"
+	  >reconstructChooseUnit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall tyname name a.
+AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+</span
+	><a href="#local-6989586621679470749"
+	><span class="hs-identifier hs-var"
+	  >splitChooseUnit</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Arity]
+forall {a}. [[a]]
+</span
+	><a href="#local-6989586621679470750"
+	><span class="hs-identifier hs-var"
+	  >chooseUnitBranchArities</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ChooseList"
+	><span class="hs-identifier hs-var"
+	  >ChooseList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+ (Choice p, Applicative f) =&gt;
+ p (SplitMatchContext tyname name DefaultUni DefaultFun a)
+   (f (SplitMatchContext tyname name DefaultUni DefaultFun a))
+ -&gt; p (AppContext tyname name DefaultUni DefaultFun a)
+      (f (AppContext tyname name DefaultUni DefaultFun a)))
+-&gt; [Arity] -&gt; BuiltinMatcherLike DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+(forall tyname name a (p :: * -&gt; * -&gt; *) (f :: * -&gt; *).
+ (Choice p, Applicative f) =&gt;
+ p (SplitMatchContext tyname name uni fun a)
+   (f (SplitMatchContext tyname name uni fun a))
+ -&gt; p (AppContext tyname name uni fun a)
+      (f (AppContext tyname name uni fun a)))
+-&gt; [Arity] -&gt; BuiltinMatcherLike uni fun
+</span
+	><a href="PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike"
+	><span class="hs-identifier hs-var"
+	  >BuiltinMatcherLike</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SplitMatchContext tyname name DefaultUni DefaultFun a
+ -&gt; AppContext tyname name DefaultUni DefaultFun a)
+-&gt; (AppContext tyname name DefaultUni DefaultFun a
+    -&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a))
+-&gt; Prism
+     (AppContext tyname name DefaultUni DefaultFun a)
+     (AppContext tyname name DefaultUni DefaultFun a)
+     (SplitMatchContext tyname name DefaultUni DefaultFun a)
+     (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall b s a. (b -&gt; s) -&gt; (s -&gt; Maybe a) -&gt; Prism s s a b
+</span
+	><span class="hs-identifier hs-var"
+	>prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+-&gt; AppContext tyname name DefaultUni DefaultFun a
+forall {tyname} {name} {uni :: * -&gt; *} {fun} {ann}.
+SplitMatchContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="#local-6989586621679470756"
+	><span class="hs-identifier hs-var"
+	  >reconstructChooseList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall tyname name a.
+AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+</span
+	><a href="#local-6989586621679470757"
+	><span class="hs-identifier hs-var"
+	  >splitChooseList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Arity]
+forall {a}. [[a]]
+</span
+	><a href="#local-6989586621679470758"
+	><span class="hs-identifier hs-var"
+	  >chooseListBranchArities</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470501"
+      ><span id="local-6989586621679470502"
+	><span id="local-6989586621679470503"
+	  ><span class="annot"
+	    ><a href="#local-6989586621679470741"
+	      ><span class="hs-identifier hs-type"
+		>splitIfThenElse</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-132"
+	    ></span
+	    ><span
+	    >      </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Contexts.html#AppContext"
+	      ><span class="hs-identifier hs-type"
+		>AppContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470501"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470502"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	      ><span class="hs-identifier hs-type"
+		>DefaultFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470503"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-133"
+	    ></span
+	    ><span
+	    >      </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	      ><span class="hs-identifier hs-type"
+		>Maybe</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	      ><span class="hs-identifier hs-type"
+		>SplitMatchContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470501"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470502"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	      ><span class="hs-identifier hs-type"
+		>DefaultFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470503"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470741"
+      ><span class="annot"
+	><span class="annottext"
+	  >splitIfThenElse :: forall tyname name a.
+AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+</span
+	  ><a href="#local-6989586621679470741"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >splitIfThenElse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470765"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470765"
+	  ><span class="hs-identifier hs-var"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Okay to use the default semantics variant here as we're assuming the</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- type never changes</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Saturation
+</span
+	><a href="PlutusIR.Contexts.html#Saturated"
+	><span class="hs-identifier hs-var"
+	  >Saturated</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; Arity -&gt; Maybe Saturation
+forall tyname name (uni :: * -&gt; *) fun a.
+AppContext tyname name uni fun a -&gt; Arity -&gt; Maybe Saturation
+</span
+	><a href="PlutusIR.Contexts.html#saturates"
+	><span class="hs-identifier hs-var"
+	  >saturates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470765"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy DefaultUni
+-&gt; BuiltinSemanticsVariant DefaultFun -&gt; DefaultFun -&gt; Arity
+forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+Proxy uni -&gt; BuiltinSemanticsVariant fun -&gt; fun -&gt; Arity
+</span
+	><a href="../../plutus-core/src/PlutusCore.Arity.html#builtinArity"
+	><span class="hs-identifier hs-var"
+	  >builtinArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy DefaultUni
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IfThenElse"
+	><span class="hs-identifier hs-var"
+	  >IfThenElse</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- 1. No ty vars</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 2. Result type comes first</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 3. Scrutinee next</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 4. Then branches</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#TypeAppContext"
+	><span class="hs-identifier hs-type"
+	  >TypeAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470769"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname DefaultUni a
+</span
+	  ><a href="#local-6989586621679470769"
+	  ><span class="hs-identifier hs-var"
+	    >resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470770"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470770"
+	  ><span class="hs-identifier hs-var"
+	    >resTyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#TermAppContext"
+	><span class="hs-identifier hs-type"
+	  >TermAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470772"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470772"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470773"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470773"
+	  ><span class="hs-identifier hs-var"
+	    >scrutAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470774"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470774"
+	  ><span class="hs-identifier hs-var"
+	    >branches</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470765"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679470780"
+      ><span class="annot"
+	><span class="annottext"
+	  >scrutTy :: Type tyname DefaultUni ()
+</span
+	  ><a href="#local-6989586621679470780"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >scrutTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (x :: a) (uni :: * -&gt; *) ann tyname.
+HasTypeLevel uni x =&gt;
+ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#mkTyBuiltin"
+	><span class="hs-identifier hs-var"
+	  >mkTyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679470782"
+      ><span class="annot"
+	><span class="annottext"
+	  >sm :: SplitMatchContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470782"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; (Term tyname name DefaultUni DefaultFun a,
+    Type tyname DefaultUni (), a)
+-&gt; (Type tyname DefaultUni a, a)
+-&gt; AppContext tyname name DefaultUni DefaultFun a
+-&gt; SplitMatchContext tyname name DefaultUni DefaultFun a
+forall tyname name (uni :: * -&gt; *) fun a.
+AppContext tyname name uni fun a
+-&gt; (Term tyname name uni fun a, Type tyname uni (), a)
+-&gt; (Type tyname uni a, a)
+-&gt; AppContext tyname name uni fun a
+-&gt; SplitMatchContext tyname name uni fun a
+</span
+	><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	><span class="hs-identifier hs-var"
+	  >SplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470772"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni ()
+forall {tyname}. Type tyname DefaultUni ()
+</span
+	><a href="#local-6989586621679470780"
+	><span class="hs-identifier hs-var"
+	  >scrutTy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470773"
+	><span class="hs-identifier hs-var"
+	  >scrutAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni a
+</span
+	><a href="#local-6989586621679470769"
+	><span class="hs-identifier hs-var"
+	  >resTy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470770"
+	><span class="hs-identifier hs-var"
+	  >resTyAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470774"
+	><span class="hs-identifier hs-var"
+	  >branches</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470782"
+	><span class="hs-identifier hs-var"
+	  >sm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470740"
+      ><span class="annot"
+	><span class="annottext"
+	  >reconstructIfThenElse :: SplitMatchContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679470740"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reconstructIfThenElse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	><span class="hs-identifier hs-type"
+	  >SplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470784"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679470784"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470785"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679470785"
+	  ><span class="hs-identifier hs-var"
+	    >scrutAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470786"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621679470786"
+	  ><span class="hs-identifier hs-var"
+	    >resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470787"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679470787"
+	  ><span class="hs-identifier hs-var"
+	    >resTyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470788"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679470788"
+	  ><span class="hs-identifier hs-var"
+	    >branches</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+Type tyname uni ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="PlutusIR.Contexts.html#TypeAppContext"
+	><span class="hs-identifier hs-var"
+	  >TypeAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621679470786"
+	><span class="hs-identifier hs-var"
+	  >resTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679470787"
+	><span class="hs-identifier hs-var"
+	  >resTyAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="PlutusIR.Contexts.html#TermAppContext"
+	><span class="hs-identifier hs-var"
+	  >TermAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679470784"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679470785"
+	><span class="hs-identifier hs-var"
+	  >scrutAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name uni fun ann
+</span
+	><a href="#local-6989586621679470788"
+	><span class="hs-identifier hs-var"
+	  >branches</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- both branches have no args</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470742"
+      ><span class="annot"
+	><span class="annottext"
+	  >ifThenElseBranchArities :: [[a]]
+</span
+	  ><a href="#local-6989586621679470742"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ifThenElseBranchArities</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470789"
+      ><span id="local-6989586621679470790"
+	><span id="local-6989586621679470791"
+	  ><span class="annot"
+	    ><a href="#local-6989586621679470749"
+	      ><span class="hs-identifier hs-type"
+		>splitChooseUnit</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-155"
+	    ></span
+	    ><span
+	    >      </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Contexts.html#AppContext"
+	      ><span class="hs-identifier hs-type"
+		>AppContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470789"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470790"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	      ><span class="hs-identifier hs-type"
+		>DefaultFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470791"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-156"
+	    ></span
+	    ><span
+	    >      </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	      ><span class="hs-identifier hs-type"
+		>Maybe</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	      ><span class="hs-identifier hs-type"
+		>SplitMatchContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470789"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470790"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	      ><span class="hs-identifier hs-type"
+		>DefaultFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470791"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470749"
+      ><span class="annot"
+	><span class="annottext"
+	  >splitChooseUnit :: forall tyname name a.
+AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+</span
+	  ><a href="#local-6989586621679470749"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >splitChooseUnit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470796"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470796"
+	  ><span class="hs-identifier hs-var"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Okay to use the default semantics variant here as we're assuming the</span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- type never changes</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Saturation
+</span
+	><a href="PlutusIR.Contexts.html#Saturated"
+	><span class="hs-identifier hs-var"
+	  >Saturated</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; Arity -&gt; Maybe Saturation
+forall tyname name (uni :: * -&gt; *) fun a.
+AppContext tyname name uni fun a -&gt; Arity -&gt; Maybe Saturation
+</span
+	><a href="PlutusIR.Contexts.html#saturates"
+	><span class="hs-identifier hs-var"
+	  >saturates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470796"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy DefaultUni
+-&gt; BuiltinSemanticsVariant DefaultFun -&gt; DefaultFun -&gt; Arity
+forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+Proxy uni -&gt; BuiltinSemanticsVariant fun -&gt; fun -&gt; Arity
+</span
+	><a href="../../plutus-core/src/PlutusCore.Arity.html#builtinArity"
+	><span class="hs-identifier hs-var"
+	  >builtinArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy DefaultUni
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ChooseUnit"
+	><span class="hs-identifier hs-var"
+	  >ChooseUnit</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- 1. No ty vars</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 2. Result type comes first</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 3. Scrutinee next</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 4. Then branches</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#TypeAppContext"
+	><span class="hs-identifier hs-type"
+	  >TypeAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470797"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname DefaultUni a
+</span
+	  ><a href="#local-6989586621679470797"
+	  ><span class="hs-identifier hs-var"
+	    >resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470798"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470798"
+	  ><span class="hs-identifier hs-var"
+	    >resTyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#TermAppContext"
+	><span class="hs-identifier hs-type"
+	  >TermAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470799"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470799"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470800"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470800"
+	  ><span class="hs-identifier hs-var"
+	    >scrutAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470801"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470801"
+	  ><span class="hs-identifier hs-var"
+	    >branches</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470796"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679470806"
+      ><span class="annot"
+	><span class="annottext"
+	  >scrutTy :: Type tyname DefaultUni ()
+</span
+	  ><a href="#local-6989586621679470806"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >scrutTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (x :: a) (uni :: * -&gt; *) ann tyname.
+HasTypeLevel uni x =&gt;
+ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#mkTyBuiltin"
+	><span class="hs-identifier hs-var"
+	  >mkTyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679470807"
+      ><span class="annot"
+	><span class="annottext"
+	  >sm :: SplitMatchContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470807"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; (Term tyname name DefaultUni DefaultFun a,
+    Type tyname DefaultUni (), a)
+-&gt; (Type tyname DefaultUni a, a)
+-&gt; AppContext tyname name DefaultUni DefaultFun a
+-&gt; SplitMatchContext tyname name DefaultUni DefaultFun a
+forall tyname name (uni :: * -&gt; *) fun a.
+AppContext tyname name uni fun a
+-&gt; (Term tyname name uni fun a, Type tyname uni (), a)
+-&gt; (Type tyname uni a, a)
+-&gt; AppContext tyname name uni fun a
+-&gt; SplitMatchContext tyname name uni fun a
+</span
+	><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	><span class="hs-identifier hs-var"
+	  >SplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470799"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni ()
+forall {tyname}. Type tyname DefaultUni ()
+</span
+	><a href="#local-6989586621679470806"
+	><span class="hs-identifier hs-var"
+	  >scrutTy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470800"
+	><span class="hs-identifier hs-var"
+	  >scrutAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni a
+</span
+	><a href="#local-6989586621679470797"
+	><span class="hs-identifier hs-var"
+	  >resTy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470798"
+	><span class="hs-identifier hs-var"
+	  >resTyAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470801"
+	><span class="hs-identifier hs-var"
+	  >branches</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470807"
+	><span class="hs-identifier hs-var"
+	  >sm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470748"
+      ><span class="annot"
+	><span class="annottext"
+	  >reconstructChooseUnit :: SplitMatchContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679470748"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reconstructChooseUnit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	><span class="hs-identifier hs-type"
+	  >SplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470808"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679470808"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470809"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679470809"
+	  ><span class="hs-identifier hs-var"
+	    >scrutAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470810"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621679470810"
+	  ><span class="hs-identifier hs-var"
+	    >resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470811"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679470811"
+	  ><span class="hs-identifier hs-var"
+	    >resTyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470812"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679470812"
+	  ><span class="hs-identifier hs-var"
+	    >branches</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+Type tyname uni ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="PlutusIR.Contexts.html#TypeAppContext"
+	><span class="hs-identifier hs-var"
+	  >TypeAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621679470810"
+	><span class="hs-identifier hs-var"
+	  >resTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679470811"
+	><span class="hs-identifier hs-var"
+	  >resTyAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="PlutusIR.Contexts.html#TermAppContext"
+	><span class="hs-identifier hs-var"
+	  >TermAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679470808"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679470809"
+	><span class="hs-identifier hs-var"
+	  >scrutAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name uni fun ann
+</span
+	><a href="#local-6989586621679470812"
+	><span class="hs-identifier hs-var"
+	  >branches</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- only branch has no args</span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470750"
+      ><span class="annot"
+	><span class="annottext"
+	  >chooseUnitBranchArities :: [[a]]
+</span
+	  ><a href="#local-6989586621679470750"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >chooseUnitBranchArities</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470813"
+      ><span id="local-6989586621679470814"
+	><span id="local-6989586621679470815"
+	  ><span class="annot"
+	    ><a href="#local-6989586621679470757"
+	      ><span class="hs-identifier hs-type"
+		>splitChooseList</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-178"
+	    ></span
+	    ><span
+	    >      </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Contexts.html#AppContext"
+	      ><span class="hs-identifier hs-type"
+		>AppContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470813"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470814"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	      ><span class="hs-identifier hs-type"
+		>DefaultFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470815"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-179"
+	    ></span
+	    ><span
+	    >      </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	      ><span class="hs-identifier hs-type"
+		>Maybe</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	      ><span class="hs-identifier hs-type"
+		>SplitMatchContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470813"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470814"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	      ><span class="hs-identifier hs-type"
+		>DefaultFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679470815"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470757"
+      ><span class="annot"
+	><span class="annottext"
+	  >splitChooseList :: forall tyname name a.
+AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+</span
+	  ><a href="#local-6989586621679470757"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >splitChooseList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470831"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470831"
+	  ><span class="hs-identifier hs-var"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Okay to use the default semantics variant here as we're assuming the</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- type never changes</span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Saturation
+</span
+	><a href="PlutusIR.Contexts.html#Saturated"
+	><span class="hs-identifier hs-var"
+	  >Saturated</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; Arity -&gt; Maybe Saturation
+forall tyname name (uni :: * -&gt; *) fun a.
+AppContext tyname name uni fun a -&gt; Arity -&gt; Maybe Saturation
+</span
+	><a href="PlutusIR.Contexts.html#saturates"
+	><span class="hs-identifier hs-var"
+	  >saturates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470831"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy DefaultUni
+-&gt; BuiltinSemanticsVariant DefaultFun -&gt; DefaultFun -&gt; Arity
+forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+Proxy uni -&gt; BuiltinSemanticsVariant fun -&gt; fun -&gt; Arity
+</span
+	><a href="../../plutus-core/src/PlutusCore.Arity.html#builtinArity"
+	><span class="hs-identifier hs-var"
+	  >builtinArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy DefaultUni
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ChooseList"
+	><span class="hs-identifier hs-var"
+	  >ChooseList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- 1. One type variable</span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 2. Then the result type</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 3. Scrutinee next</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- 4. Then branches</span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470832"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470832"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#TypeAppContext"
+	><span class="hs-identifier hs-type"
+	  >TypeAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470833"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname DefaultUni a
+</span
+	  ><a href="#local-6989586621679470833"
+	  ><span class="hs-identifier hs-var"
+	    >resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470834"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470834"
+	  ><span class="hs-identifier hs-var"
+	    >resTyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#TermAppContext"
+	><span class="hs-identifier hs-type"
+	  >TermAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470835"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470835"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470836"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470836"
+	  ><span class="hs-identifier hs-var"
+	    >scrutAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470837"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470837"
+	  ><span class="hs-identifier hs-var"
+	    >branches</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+-&gt; AppContext tyname name DefaultUni DefaultFun a
+-&gt; (AppContext tyname name DefaultUni DefaultFun a,
+    AppContext tyname name DefaultUni DefaultFun a)
+forall tyname name (uni :: * -&gt; *) fun a.
+Int
+-&gt; AppContext tyname name uni fun a
+-&gt; (AppContext tyname name uni fun a,
+    AppContext tyname name uni fun a)
+</span
+	><a href="PlutusIR.Contexts.html#splitAppContext"
+	><span class="hs-identifier hs-var"
+	  >splitAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470831"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679470839"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Type tyname DefaultUni a]
+</span
+	  ><a href="#local-6989586621679470839"
+	  ><span class="hs-identifier hs-var"
+	    >tyArgs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe [Type tyname DefaultUni a]
+forall tyname name (uni :: * -&gt; *) fun a.
+AppContext tyname name uni fun a -&gt; Maybe [Type tyname uni a]
+</span
+	><a href="PlutusIR.Contexts.html#extractTyArgs"
+	><span class="hs-identifier hs-var"
+	  >extractTyArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470832"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470841"
+      ><span class="annot"
+	><span class="annottext"
+	  >scrutTy :: Type tyname DefaultUni ()
+</span
+	  ><a href="#local-6989586621679470841"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >scrutTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni ()
+-&gt; [Type tyname DefaultUni ()] -&gt; Type tyname DefaultUni ()
+forall tyname (uni :: * -&gt; *).
+Type tyname uni () -&gt; [Type tyname uni ()] -&gt; Type tyname uni ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterTyAppNoAnn"
+	><span class="hs-identifier hs-var"
+	  >mkIterTyAppNoAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a (x :: a) (uni :: * -&gt; *) ann tyname.
+HasTypeLevel uni x =&gt;
+ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#mkTyBuiltin"
+	><span class="hs-identifier hs-var"
+	  >mkTyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname DefaultUni a -&gt; Type tyname DefaultUni ())
+-&gt; [Type tyname DefaultUni a] -&gt; [Type tyname DefaultUni ()]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni a -&gt; Type tyname DefaultUni ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier hs-var"
+	  >void</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type tyname DefaultUni a]
+</span
+	><a href="#local-6989586621679470839"
+	><span class="hs-identifier hs-var"
+	  >tyArgs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >                </span
+      ><span id="local-6989586621679470842"
+      ><span class="annot"
+	><span class="annottext"
+	  >sm :: SplitMatchContext tyname name DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621679470842"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+-&gt; (Term tyname name DefaultUni DefaultFun a,
+    Type tyname DefaultUni (), a)
+-&gt; (Type tyname DefaultUni a, a)
+-&gt; AppContext tyname name DefaultUni DefaultFun a
+-&gt; SplitMatchContext tyname name DefaultUni DefaultFun a
+forall tyname name (uni :: * -&gt; *) fun a.
+AppContext tyname name uni fun a
+-&gt; (Term tyname name uni fun a, Type tyname uni (), a)
+-&gt; (Type tyname uni a, a)
+-&gt; AppContext tyname name uni fun a
+-&gt; SplitMatchContext tyname name uni fun a
+</span
+	><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	><span class="hs-identifier hs-var"
+	  >SplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470832"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470835"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni ()
+</span
+	><a href="#local-6989586621679470841"
+	><span class="hs-identifier hs-var"
+	  >scrutTy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470836"
+	><span class="hs-identifier hs-var"
+	  >scrutAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname DefaultUni a
+</span
+	><a href="#local-6989586621679470833"
+	><span class="hs-identifier hs-var"
+	  >resTy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470834"
+	><span class="hs-identifier hs-var"
+	  >resTyAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470837"
+	><span class="hs-identifier hs-var"
+	  >branches</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+-&gt; Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall a. a -&gt; Maybe a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SplitMatchContext tyname name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621679470842"
+	><span class="hs-identifier hs-var"
+	  >sm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (SplitMatchContext tyname name DefaultUni DefaultFun a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470756"
+      ><span class="annot"
+	><span class="annottext"
+	  >reconstructChooseList :: SplitMatchContext tyname name uni fun a
+-&gt; AppContext tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679470756"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reconstructChooseList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Contexts.html#SplitMatchContext"
+	><span class="hs-identifier hs-type"
+	  >SplitMatchContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679470845"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679470845"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470846"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679470846"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470847"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470847"
+	  ><span class="hs-identifier hs-var"
+	    >scrutAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679470848"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni a
+</span
+	  ><a href="#local-6989586621679470848"
+	  ><span class="hs-identifier hs-var"
+	    >resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470849"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679470849"
+	  ><span class="hs-identifier hs-var"
+	    >resTyAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679470850"
+      ><span class="annot"
+	><span class="annottext"
+	  >AppContext tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679470850"
+	  ><span class="hs-identifier hs-var"
+	    >branches</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name uni fun a
+</span
+	><a href="#local-6989586621679470845"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name uni fun a
+-&gt; AppContext tyname name uni fun a
+-&gt; AppContext tyname name uni fun a
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+-&gt; a
+-&gt; AppContext tyname name uni fun a
+-&gt; AppContext tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun ann.
+Type tyname uni ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="PlutusIR.Contexts.html#TypeAppContext"
+	><span class="hs-identifier hs-var"
+	  >TypeAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+</span
+	><a href="#local-6989586621679470848"
+	><span class="hs-identifier hs-var"
+	  >resTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470849"
+	><span class="hs-identifier hs-var"
+	  >resTyAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+-&gt; a
+-&gt; AppContext tyname name uni fun a
+-&gt; AppContext tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann
+-&gt; ann
+-&gt; AppContext tyname name uni fun ann
+-&gt; AppContext tyname name uni fun ann
+</span
+	><a href="PlutusIR.Contexts.html#TermAppContext"
+	><span class="hs-identifier hs-var"
+	  >TermAppContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679470846"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679470847"
+	><span class="hs-identifier hs-var"
+	  >scrutAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AppContext tyname name uni fun a
+</span
+	><a href="#local-6989586621679470850"
+	><span class="hs-identifier hs-var"
+	  >branches</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- both branches have no args</span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679470758"
+      ><span class="annot"
+	><span class="annottext"
+	  >chooseListBranchArities :: [[a]]
+</span
+	  ><a href="#local-6989586621679470758"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >chooseListBranchArities</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Unserializable constants]</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#defaultUniUnserializableConstants"
+	><span class="hs-identifier hs-type"
+	  >defaultUniUnserializableConstants</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span id="defaultUniUnserializableConstants"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultUniUnserializableConstants :: Some (ValueOf DefaultUni) -&gt; Bool
+</span
+	  ><a href="PlutusIR.Analysis.Builtins.html#defaultUniUnserializableConstants"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultUniUnserializableConstants</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniBLS12_381_G1_Element"
+	><span class="hs-identifier hs-var"
+	  >DefaultUniBLS12_381_G1_Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniBLS12_381_G2_Element"
+	><span class="hs-identifier hs-var"
+	  >DefaultUniBLS12_381_G2_Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniBLS12_381_MlResult"
+	><span class="hs-identifier hs-var"
+	  >DefaultUniBLS12_381_MlResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf DefaultUni)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Unserializable constants]
+Generally we require that programs are (de-)serializable, which requires that all constants
+in the program are (de-)serializable. This is enforced by the type system, we have to
+have instances for all builtin types in the universe.
+
+However, in practice we have to limit this somewhat. In particular, some builtin types
+have no _cheap_ (de-)serialization method. This notably applies to the BLS constants, where
+both BLS &quot;deserialization&quot; and &quot;uncompression&quot; do some sanity checks that take a non-trivial
+amount of time.
+
+This is a problem: in our time budgeting for validating transactions we generally assume
+that deserialization is proportional to input size with low constant factors. But for a
+malicious program made up of only BLS points, this would not be true!
+
+So pragmatically we disallow (de-)serialization of constants of such types (the instances
+still exist, but they will fail at runtime). The problem then is that we need to make
+sure that we don't accidentally create any such constants. It's one thing if the _user_
+does it - then we can just tell them not to (there are usually workarounds). But the
+compiler should also not do it! Notably, the EvaluateBuiltins pass can produce _new_
+constants.
+
+To deal with this problem we pass around a predicate that tells us which constants are
+bad, so we can just refuse to perform a transformation if it would produce unrepresentable
+constants.
+
+An alternative approach would be to instead add a pass to rewrite the problematic
+constants into a non-problematic form (e.g. conversion from a bytestring instead of a constant).
+This would be better for optimization, since we wouldn't be blocking EvaluateBuiltins
+from working, even if it was good, but it has two problems:
+1. It would fight with EvaluateBuiltins, which each undoing the other.
+2. It can't work generically, since we don't always have a way to do the transformation. In
+particular, there isn't a way to do this for the ML-result BLS type.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

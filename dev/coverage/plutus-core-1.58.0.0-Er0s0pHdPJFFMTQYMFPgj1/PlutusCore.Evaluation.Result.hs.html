@@ -1,0 +1,105 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    3 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    7 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>-- | This module defines a common type various evaluation machine use to return their results.
+<span class="lineno">   10 </span>module PlutusCore.Evaluation.Result
+<span class="lineno">   11 </span>  ( EvaluationResult (..)
+<span class="lineno">   12 </span>  , isEvaluationSuccess
+<span class="lineno">   13 </span>  , isEvaluationFailure
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import PlutusPrelude
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import PlutusCore.Pretty
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Control.Monad.Except (MonadError, catchError, throwError)
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>-- | The parameterized type of results various evaluation engines return.
+<span class="lineno">   23 </span>data EvaluationResult a
+<span class="lineno">   24 </span>  = EvaluationSuccess !a
+<span class="lineno">   25 </span>  | EvaluationFailure
+<span class="lineno">   26 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Traversable</span></span></span></span></span></span></span></span>)
+<span class="lineno">   27 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>instance MonadError () EvaluationResult where
+<span class="lineno">   30 </span>  <span class="decl"><span class="nottickedoff">throwError () = EvaluationFailure</span></span>
+<span class="lineno">   31 </span>  {-# INLINE throwError #-}
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>  <span class="decl"><span class="nottickedoff">catchError EvaluationFailure f = f ()</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">catchError x _ = x</span></span>
+<span class="lineno">   35 </span>  {-# INLINE catchError #-}
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Applicative EvaluationResult</span></span></span></span> where
+<span class="lineno">   38 </span>  <span class="decl"><span class="istickedoff">pure = EvaluationSuccess</span></span>
+<span class="lineno">   39 </span>  {-# INLINE pure #-}
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>  <span class="decl"><span class="nottickedoff">EvaluationSuccess f &lt;*&gt; a = fmap f a</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">EvaluationFailure &lt;*&gt; _ = EvaluationFailure</span></span>
+<span class="lineno">   43 </span>  {-# INLINE (&lt;*&gt;) #-}
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>  <span class="decl"><span class="nottickedoff">EvaluationSuccess _ *&gt; b = b</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">EvaluationFailure *&gt; _ = EvaluationFailure</span></span>
+<span class="lineno">   47 </span>  {-# INLINE (*&gt;) #-}
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>instance <span class="decl"><span class="nottickedoff">Monad EvaluationResult</span></span> where
+<span class="lineno">   50 </span>  <span class="decl"><span class="istickedoff">EvaluationSuccess x &gt;&gt;= f = f x</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">EvaluationFailure &gt;&gt;= _ = <span class="nottickedoff">EvaluationFailure</span></span></span>
+<span class="lineno">   52 </span>  {-# INLINE (&gt;&gt;=) #-}
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">(&gt;&gt;) = (*&gt;)</span></span>
+<span class="lineno">   55 </span>  {-# INLINE (&gt;&gt;) #-}
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Alternative EvaluationResult</span></span></span></span> where
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">empty = EvaluationFailure</span></span>
+<span class="lineno">   59 </span>  {-# INLINE empty #-}
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>  <span class="decl"><span class="nottickedoff">a@EvaluationSuccess {} &lt;|&gt; _ = a</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">EvaluationFailure &lt;|&gt; b = b</span></span>
+<span class="lineno">   63 </span>  {-# INLINE (&lt;|&gt;) #-}
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>instance MonadFail EvaluationResult where
+<span class="lineno">   66 </span>  <span class="decl"><span class="istickedoff">fail _ = EvaluationFailure</span></span>
+<span class="lineno">   67 </span>  {-# INLINE fail #-}
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy config a =&gt; PrettyBy config (EvaluationResult a)</span></span> where
+<span class="lineno">   70 </span>  <span class="decl"><span class="nottickedoff">prettyBy config (EvaluationSuccess x) = prettyBy config x</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">prettyBy _ EvaluationFailure = &quot;Failure&quot;</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>instance <span class="decl"><span class="nottickedoff">PrettyClassic a =&gt; Pretty (EvaluationResult a)</span></span> where
+<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">pretty = prettyClassic</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>-- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
+<span class="lineno">   77 </span>isEvaluationSuccess :: EvaluationResult a -&gt; Bool
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">isEvaluationSuccess = not . null</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>-- | Check whether an 'EvaluationResult' is an 'EvaluationFailure'.
+<span class="lineno">   81 </span>isEvaluationFailure :: EvaluationResult a -&gt; Bool
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">isEvaluationFailure = null</span></span>
+
+</pre>
+</body>
+</html>

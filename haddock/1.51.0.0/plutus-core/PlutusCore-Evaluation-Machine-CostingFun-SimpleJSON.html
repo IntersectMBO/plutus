@@ -1,0 +1,2473 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >A JSON representation of costing functions for Plutus Core
+   builtins which produces a simple cost model which can be used from Agda and other
+   executables </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:LinearFunction"
+	      >LinearFunction</a
+	      > = <a href="#v:LinearFunction"
+	      >LinearFunction</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:intercept_"
+		  >intercept_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:slope_"
+		  >slope_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TwoVariableLinearFunction"
+	      >TwoVariableLinearFunction</a
+	      > = <a href="#v:TwoVariableLinearFunction"
+	      >TwoVariableLinearFunction</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:intercept-39-_"
+		  >intercept'_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:slope1_"
+		  >slope1_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:slope2_"
+		  >slope2_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:OneVariableQuadraticFunction"
+	      >OneVariableQuadraticFunction</a
+	      > = <a href="#v:OneVariableQuadraticFunction"
+	      >OneVariableQuadraticFunction</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:coeff0_"
+		  >coeff0_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff1_"
+		  >coeff1_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff2_"
+		  >coeff2_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TwoVariableQuadraticFunction"
+	      >TwoVariableQuadraticFunction</a
+	      > = <a href="#v:TwoVariableQuadraticFunction"
+	      >TwoVariableQuadraticFunction</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:minimum"
+		  >minimum</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff00_"
+		  >coeff00_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff10_"
+		  >coeff10_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff01_"
+		  >coeff01_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff20_"
+		  >coeff20_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff11_"
+		  >coeff11_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:coeff02_"
+		  >coeff02_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ExpModCostingFunction"
+	      >ExpModCostingFunction</a
+	      > = <a href="#v:ExpModCostingFunction"
+	      >ExpModCostingFunction</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:emcfcoeff00_"
+		  >emcfcoeff00_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:emcfcoeff11_"
+		  >emcfcoeff11_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:emcfcoeff12_"
+		  >emcfcoeff12_</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Model"
+	      >Model</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:ConstantCost"
+		  >ConstantCost</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		>| <a href="#v:AddedSizes"
+		  >AddedSizes</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:MultipliedSizes"
+		  >MultipliedSizes</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:MinSize"
+		  >MinSize</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:MaxSize"
+		  >MaxSize</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:LinearInX"
+		  >LinearInX</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:LinearInY"
+		  >LinearInY</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:LinearInZ"
+		  >LinearInZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:LiteralInYOrLinearInZ"
+		  >LiteralInYOrLinearInZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:LinearInMaxYZ"
+		  >LinearInMaxYZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:LinearInYAndZ"
+		  >LinearInYAndZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >TwoVariableLinearFunction</a
+		  ></li
+		><li
+		>| <a href="#v:QuadraticInY"
+		  >QuadraticInY</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >OneVariableQuadraticFunction</a
+		  ></li
+		><li
+		>| <a href="#v:QuadraticInZ"
+		  >QuadraticInZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >OneVariableQuadraticFunction</a
+		  ></li
+		><li
+		>| <a href="#v:QuadraticInXAndY"
+		  >QuadraticInXAndY</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >TwoVariableQuadraticFunction</a
+		  ></li
+		><li
+		>| <a href="#v:SubtractedSizes"
+		  >SubtractedSizes</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		>| <a href="#v:ConstAboveDiagonal"
+		  >ConstAboveDiagonal</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></li
+		><li
+		>| <a href="#v:ConstBelowDiagonal"
+		  >ConstBelowDiagonal</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></li
+		><li
+		>| <a href="#v:ConstOffDiagonal"
+		  >ConstOffDiagonal</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></li
+		><li
+		>| <a href="#v:ExpModCost"
+		  >ExpModCost</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >ExpModCostingFunction</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CpuAndMemoryModel"
+	      >CpuAndMemoryModel</a
+	      > = <a href="#v:CpuAndMemoryModel"
+	      >CpuAndMemoryModel</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:cpuModel"
+		  >cpuModel</a
+		  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></li
+		><li
+		><a href="#v:memoryModel"
+		  >memoryModel</a
+		  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:LinearFunction" class="def"
+	    >LinearFunction</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#LinearFunction" class="link"
+	    >Source</a
+	    > <a href="#t:LinearFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:LinearFunction" class="def"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:intercept_" class="def"
+			  >intercept_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:slope_" class="def"
+			  >slope_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:LinearFunction"
+	    >Instances</h4
+	    ><details id="i:LinearFunction" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LinearFunction:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >LinearFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-19" class="link"
+		    >Source</a
+		    > <a href="#t:LinearFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LinearFunction:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LinearFunction:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >LinearFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-17" class="link"
+		    >Source</a
+		    > <a href="#t:LinearFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LinearFunction:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LinearFunction:Lift:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >LinearFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-17" class="link"
+		    >Source</a
+		    > <a href="#t:LinearFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LinearFunction:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >LinearFunction</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TwoVariableLinearFunction" class="def"
+	    >TwoVariableLinearFunction</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableLinearFunction" class="link"
+	    >Source</a
+	    > <a href="#t:TwoVariableLinearFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TwoVariableLinearFunction" class="def"
+		  >TwoVariableLinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:intercept-39-_" class="def"
+			  >intercept'_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:slope1_" class="def"
+			  >slope1_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:slope2_" class="def"
+			  >slope2_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TwoVariableLinearFunction"
+	    >Instances</h4
+	    ><details id="i:TwoVariableLinearFunction" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TwoVariableLinearFunction:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >TwoVariableLinearFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:TwoVariableLinearFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TwoVariableLinearFunction:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TwoVariableLinearFunction:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >TwoVariableLinearFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-25" class="link"
+		    >Source</a
+		    > <a href="#t:TwoVariableLinearFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TwoVariableLinearFunction:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TwoVariableLinearFunction:Lift:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >TwoVariableLinearFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-25" class="link"
+		    >Source</a
+		    > <a href="#t:TwoVariableLinearFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TwoVariableLinearFunction:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableLinearFunction</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:OneVariableQuadraticFunction" class="def"
+	    >OneVariableQuadraticFunction</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#OneVariableQuadraticFunction" class="link"
+	    >Source</a
+	    > <a href="#t:OneVariableQuadraticFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:OneVariableQuadraticFunction" class="def"
+		  >OneVariableQuadraticFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:coeff0_" class="def"
+			  >coeff0_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff1_" class="def"
+			  >coeff1_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff2_" class="def"
+			  >coeff2_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:OneVariableQuadraticFunction"
+	    >Instances</h4
+	    ><details id="i:OneVariableQuadraticFunction" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OneVariableQuadraticFunction:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >OneVariableQuadraticFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:OneVariableQuadraticFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OneVariableQuadraticFunction:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OneVariableQuadraticFunction:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >OneVariableQuadraticFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:OneVariableQuadraticFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OneVariableQuadraticFunction:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OneVariableQuadraticFunction:Lift:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >OneVariableQuadraticFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:OneVariableQuadraticFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OneVariableQuadraticFunction:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >OneVariableQuadraticFunction</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TwoVariableQuadraticFunction" class="def"
+	    >TwoVariableQuadraticFunction</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#TwoVariableQuadraticFunction" class="link"
+	    >Source</a
+	    > <a href="#t:TwoVariableQuadraticFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TwoVariableQuadraticFunction" class="def"
+		  >TwoVariableQuadraticFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:minimum" class="def"
+			  >minimum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff00_" class="def"
+			  >coeff00_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff10_" class="def"
+			  >coeff10_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff01_" class="def"
+			  >coeff01_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff20_" class="def"
+			  >coeff20_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff11_" class="def"
+			  >coeff11_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:coeff02_" class="def"
+			  >coeff02_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TwoVariableQuadraticFunction"
+	    >Instances</h4
+	    ><details id="i:TwoVariableQuadraticFunction" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TwoVariableQuadraticFunction:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >TwoVariableQuadraticFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-55" class="link"
+		    >Source</a
+		    > <a href="#t:TwoVariableQuadraticFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TwoVariableQuadraticFunction:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TwoVariableQuadraticFunction:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >TwoVariableQuadraticFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:TwoVariableQuadraticFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TwoVariableQuadraticFunction:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TwoVariableQuadraticFunction:Lift:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >TwoVariableQuadraticFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:TwoVariableQuadraticFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TwoVariableQuadraticFunction:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >TwoVariableQuadraticFunction</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ExpModCostingFunction" class="def"
+	    >ExpModCostingFunction</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#ExpModCostingFunction" class="link"
+	    >Source</a
+	    > <a href="#t:ExpModCostingFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ExpModCostingFunction" class="def"
+		  >ExpModCostingFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:emcfcoeff00_" class="def"
+			  >emcfcoeff00_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:emcfcoeff11_" class="def"
+			  >emcfcoeff11_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:emcfcoeff12_" class="def"
+			  >emcfcoeff12_</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExpModCostingFunction"
+	    >Instances</h4
+	    ><details id="i:ExpModCostingFunction" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExpModCostingFunction:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >ExpModCostingFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:ExpModCostingFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExpModCostingFunction:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExpModCostingFunction:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >ExpModCostingFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:ExpModCostingFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExpModCostingFunction:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExpModCostingFunction:Lift:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >ExpModCostingFunction</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:ExpModCostingFunction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExpModCostingFunction:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >ExpModCostingFunction</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Model" class="def"
+	    >Model</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#Model" class="link"
+	    >Source</a
+	    > <a href="#t:Model" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This type reflects what is actually in the JSON.  The stuff in
+   CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
+   for the model types applicable to the various ModelNArguments types; it also
+   requires entries for everything in DefaultFun. Using the type defined here
+   allows us to be more flexible and parse stuff that's not exactly what's
+   expected in builtinCostModel.json.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ConstantCost" class="def"
+		  >ConstantCost</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:AddedSizes" class="def"
+		  >AddedSizes</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MultipliedSizes" class="def"
+		  >MultipliedSizes</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MinSize" class="def"
+		  >MinSize</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MaxSize" class="def"
+		  >MaxSize</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LinearInX" class="def"
+		  >LinearInX</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LinearInY" class="def"
+		  >LinearInY</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LinearInZ" class="def"
+		  >LinearInZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LiteralInYOrLinearInZ" class="def"
+		  >LiteralInYOrLinearInZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LinearInMaxYZ" class="def"
+		  >LinearInMaxYZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LinearInYAndZ" class="def"
+		  >LinearInYAndZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >TwoVariableLinearFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:QuadraticInY" class="def"
+		  >QuadraticInY</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >OneVariableQuadraticFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:QuadraticInZ" class="def"
+		  >QuadraticInZ</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >OneVariableQuadraticFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:QuadraticInXAndY" class="def"
+		  >QuadraticInXAndY</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >TwoVariableQuadraticFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:SubtractedSizes" class="def"
+		  >SubtractedSizes</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:LinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >LinearFunction</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Linear model in x-y plus minimum value for the case x-y &lt; 0.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ConstAboveDiagonal" class="def"
+		  >ConstAboveDiagonal</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ConstBelowDiagonal" class="def"
+		  >ConstBelowDiagonal</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ConstOffDiagonal" class="def"
+		  >ConstOffDiagonal</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >Model</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExpModCost" class="def"
+		  >ExpModCost</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		  >ExpModCostingFunction</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Model"
+	    >Instances</h4
+	    ><details id="i:Model" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Model:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >Model</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-117" class="link"
+		    >Source</a
+		    > <a href="#t:Model" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Model:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Model:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >Model</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:Model" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Model:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Model:Lift:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >Model</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:Model" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Model:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CpuAndMemoryModel" class="def"
+	    >CpuAndMemoryModel</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#CpuAndMemoryModel" class="link"
+	    >Source</a
+	    > <a href="#t:CpuAndMemoryModel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A CPU usage modelling function and a memory usage modelling function bundled
+   together </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CpuAndMemoryModel" class="def"
+		  >CpuAndMemoryModel</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:cpuModel" class="def"
+			  >cpuModel</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:memoryModel" class="def"
+			  >memoryModel</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:Model" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >Model</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CpuAndMemoryModel"
+	    >Instances</h4
+	    ><details id="i:CpuAndMemoryModel" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CpuAndMemoryModel:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >CpuAndMemoryModel</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-175" class="link"
+		    >Source</a
+		    > <a href="#t:CpuAndMemoryModel" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CpuAndMemoryModel:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CpuAndMemoryModel:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >CpuAndMemoryModel</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-173" class="link"
+		    >Source</a
+		    > <a href="#t:CpuAndMemoryModel" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CpuAndMemoryModel:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CpuAndMemoryModel:Lift:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+		      >CpuAndMemoryModel</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#line-173" class="link"
+		    >Source</a
+		    > <a href="#t:CpuAndMemoryModel" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CpuAndMemoryModel:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html"
+			>PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-CostingFun-SimpleJSON.html#t:CpuAndMemoryModel" title="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON"
+			  >CpuAndMemoryModel</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

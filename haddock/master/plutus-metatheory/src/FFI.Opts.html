@@ -1,0 +1,3028 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wall #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >FFI.Opts</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html"
+	><span class="hs-identifier"
+	  >Data.Foldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#asum"
+	><span class="hs-identifier"
+	  >asum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.html"
+	><span class="hs-identifier"
+	  >Options.Applicative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#asum"
+	><span class="hs-identifier"
+	  >asum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Common.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Executable.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Parsers.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Executable.Parsers</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekMachineCostsForTesting"
+	><span class="hs-identifier"
+	  >defaultCekMachineCostsForTesting</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >-- the different budget modes of plc-agda</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BudgetMode"
+      ><span class="annot"
+	><a href="FFI.Opts.html#BudgetMode"
+	  ><span class="hs-identifier hs-var"
+	    >BudgetMode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682355711"
+      ><span class="annot"
+	><a href="#local-6989586621682355711"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Silent"
+      ><span class="annot"
+	><a href="FFI.Opts.html#Silent"
+	  ><span class="hs-identifier hs-var"
+	    >Silent</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Counting"
+      ><span class="annot"
+	><a href="FFI.Opts.html#Counting"
+	  ><span class="hs-identifier hs-var"
+	    >Counting</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682355711"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Tallying"
+      ><span class="annot"
+	><a href="FFI.Opts.html#Tallying"
+	  ><span class="hs-identifier hs-var"
+	    >Tallying</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682355711"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682355823"
+      ><span id="local-6989586621682355825"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; BudgetMode a -&gt; BudgetMode b)
+-&gt; (forall a b. a -&gt; BudgetMode b -&gt; BudgetMode a)
+-&gt; Functor BudgetMode
+forall a b. a -&gt; BudgetMode b -&gt; BudgetMode a
+forall a b. (a -&gt; b) -&gt; BudgetMode a -&gt; BudgetMode b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; BudgetMode a -&gt; BudgetMode b
+fmap :: forall a b. (a -&gt; b) -&gt; BudgetMode a -&gt; BudgetMode b
+$c&lt;$ :: forall a b. a -&gt; BudgetMode b -&gt; BudgetMode a
+&lt;$ :: forall a b. a -&gt; BudgetMode b -&gt; BudgetMode a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#countingbudget"
+	><span class="hs-identifier hs-type"
+	  >countingbudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Types.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#BudgetMode"
+	><span class="hs-identifier hs-type"
+	  >BudgetMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="countingbudget"
+      ><span class="annot"
+	><span class="annottext"
+	  >countingbudget :: Parser (BudgetMode ())
+</span
+	  ><a href="FFI.Opts.html#countingbudget"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >countingbudget</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BudgetMode ()
+-&gt; Mod FlagFields (BudgetMode ()) -&gt; Parser (BudgetMode ())
+forall a. a -&gt; Mod FlagFields a -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#flag%27"
+	><span class="hs-identifier hs-var"
+	  >flag'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; BudgetMode ()
+forall a. a -&gt; BudgetMode a
+</span
+	><a href="FFI.Opts.html#Counting"
+	><span class="hs-identifier hs-var"
+	  >Counting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Mod FlagFields (BudgetMode ())
+forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#long"
+	><span class="hs-identifier hs-var"
+	  >long</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;counting&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod FlagFields (BudgetMode ())
+-&gt; Mod FlagFields (BudgetMode ()) -&gt; Mod FlagFields (BudgetMode ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Mod FlagFields (BudgetMode ())
+forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#short"
+	><span class="hs-identifier hs-var"
+	  >short</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'c'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod FlagFields (BudgetMode ())
+-&gt; Mod FlagFields (BudgetMode ()) -&gt; Mod FlagFields (BudgetMode ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Mod FlagFields (BudgetMode ())
+forall (f :: * -&gt; *) a. String -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#help"
+	><span class="hs-identifier hs-var"
+	  >help</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Run machine in counting mode and report results&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#tallyingbudget"
+	><span class="hs-identifier hs-type"
+	  >tallyingbudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Types.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#BudgetMode"
+	><span class="hs-identifier hs-type"
+	  >BudgetMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="tallyingbudget"
+      ><span class="annot"
+	><span class="annottext"
+	  >tallyingbudget :: Parser (BudgetMode ())
+</span
+	  ><a href="FFI.Opts.html#tallyingbudget"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tallyingbudget</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BudgetMode ()
+-&gt; Mod FlagFields (BudgetMode ()) -&gt; Parser (BudgetMode ())
+forall a. a -&gt; Mod FlagFields a -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#flag%27"
+	><span class="hs-identifier hs-var"
+	  >flag'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; BudgetMode ()
+forall a. a -&gt; BudgetMode a
+</span
+	><a href="FFI.Opts.html#Tallying"
+	><span class="hs-identifier hs-var"
+	  >Tallying</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Mod FlagFields (BudgetMode ())
+forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#long"
+	><span class="hs-identifier hs-var"
+	  >long</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;tallying&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod FlagFields (BudgetMode ())
+-&gt; Mod FlagFields (BudgetMode ()) -&gt; Mod FlagFields (BudgetMode ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Mod FlagFields (BudgetMode ())
+forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#short"
+	><span class="hs-identifier hs-var"
+	  >short</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'t'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod FlagFields (BudgetMode ())
+-&gt; Mod FlagFields (BudgetMode ()) -&gt; Mod FlagFields (BudgetMode ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Mod FlagFields (BudgetMode ())
+forall (f :: * -&gt; *) a. String -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#help"
+	><span class="hs-identifier hs-var"
+	  >help</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Run machine in tallying mode and report results&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#budgetmode"
+	><span class="hs-identifier hs-type"
+	  >budgetmode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Types.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#BudgetMode"
+	><span class="hs-identifier hs-type"
+	  >BudgetMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="budgetmode"
+      ><span class="annot"
+	><span class="annottext"
+	  >budgetmode :: Parser (BudgetMode ())
+</span
+	  ><a href="FFI.Opts.html#budgetmode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >budgetmode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Parser (BudgetMode ())] -&gt; Parser (BudgetMode ())
+forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Foldable t, Alternative f) =&gt;
+t (f a) -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#asum"
+	><span class="hs-identifier hs-var"
+	  >asum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (BudgetMode ())
+</span
+	><a href="FFI.Opts.html#countingbudget"
+	><span class="hs-identifier hs-var"
+	  >countingbudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (BudgetMode ())
+</span
+	><a href="FFI.Opts.html#tallyingbudget"
+	><span class="hs-identifier hs-var"
+	  >tallyingbudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BudgetMode () -&gt; Parser (BudgetMode ())
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BudgetMode ()
+forall a. BudgetMode a
+</span
+	><a href="FFI.Opts.html#Silent"
+	><span class="hs-identifier hs-var"
+	  >Silent</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- The different evaluation modes of plc-agda</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="EvalMode"
+      ><span class="annot"
+	><a href="FFI.Opts.html#EvalMode"
+	  ><span class="hs-identifier hs-var"
+	    >EvalMode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="U"
+      ><span class="annot"
+	><a href="FFI.Opts.html#U"
+	  ><span class="hs-identifier hs-var"
+	    >U</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TL"
+      ><span class="annot"
+	><a href="FFI.Opts.html#TL"
+	  ><span class="hs-identifier hs-var"
+	    >TL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TCK"
+      ><span class="annot"
+	><a href="FFI.Opts.html#TCK"
+	  ><span class="hs-identifier hs-var"
+	    >TCK</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TCEK"
+      ><span class="annot"
+	><a href="FFI.Opts.html#TCEK"
+	  ><span class="hs-identifier hs-var"
+	    >TCEK</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682355840"
+      ><span id="local-6989586621682355842"
+	><span id="local-6989586621682355845"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; EvalMode -&gt; ShowS
+[EvalMode] -&gt; ShowS
+EvalMode -&gt; String
+(Int -&gt; EvalMode -&gt; ShowS)
+-&gt; (EvalMode -&gt; String) -&gt; ([EvalMode] -&gt; ShowS) -&gt; Show EvalMode
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; EvalMode -&gt; ShowS
+showsPrec :: Int -&gt; EvalMode -&gt; ShowS
+$cshow :: EvalMode -&gt; String
+show :: EvalMode -&gt; String
+$cshowList :: [EvalMode] -&gt; ShowS
+showList :: [EvalMode] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682355849"
+      ><span id="local-6989586621682355852"
+	><span id="local-6989586621682355855"
+	  ><span id="local-6989586621682355862"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>ReadPrec [EvalMode]
+ReadPrec EvalMode
+Int -&gt; ReadS EvalMode
+ReadS [EvalMode]
+(Int -&gt; ReadS EvalMode)
+-&gt; ReadS [EvalMode]
+-&gt; ReadPrec EvalMode
+-&gt; ReadPrec [EvalMode]
+-&gt; Read EvalMode
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS EvalMode
+readsPrec :: Int -&gt; ReadS EvalMode
+$creadList :: ReadS [EvalMode]
+readList :: ReadS [EvalMode]
+$creadPrec :: ReadPrec EvalMode
+readPrec :: ReadPrec EvalMode
+$creadListPrec :: ReadPrec [EvalMode]
+readListPrec :: ReadPrec [EvalMode]
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Read.html#Read"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Read</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="EvalOptions"
+      ><span class="annot"
+	><a href="FFI.Opts.html#EvalOptions"
+	  ><span class="hs-identifier hs-var"
+	    >EvalOptions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682355741"
+      ><span class="annot"
+	><a href="#local-6989586621682355741"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="EvalOpts"
+      ><span class="annot"
+	><a href="FFI.Opts.html#EvalOpts"
+	  ><span class="hs-identifier hs-var"
+	    >EvalOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Types.html#Input"
+	><span class="hs-identifier hs-type"
+	  >Input</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Types.html#Format"
+	><span class="hs-identifier hs-type"
+	  >Format</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#EvalMode"
+	><span class="hs-identifier hs-type"
+	  >EvalMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#BudgetMode"
+	><span class="hs-identifier hs-type"
+	  >BudgetMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682355741"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682355867"
+      ><span id="local-6989586621682355870"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; EvalOptions a -&gt; EvalOptions b)
+-&gt; (forall a b. a -&gt; EvalOptions b -&gt; EvalOptions a)
+-&gt; Functor EvalOptions
+forall a b. a -&gt; EvalOptions b -&gt; EvalOptions a
+forall a b. (a -&gt; b) -&gt; EvalOptions a -&gt; EvalOptions b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; EvalOptions a -&gt; EvalOptions b
+fmap :: forall a b. (a -&gt; b) -&gt; EvalOptions a -&gt; EvalOptions b
+$c&lt;$ :: forall a b. a -&gt; EvalOptions b -&gt; EvalOptions a
+&lt;$ :: forall a b. a -&gt; EvalOptions b -&gt; EvalOptions a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#evalMode"
+	><span class="hs-identifier hs-type"
+	  >evalMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Types.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#EvalMode"
+	><span class="hs-identifier hs-type"
+	  >EvalMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="evalMode"
+      ><span class="annot"
+	><span class="annottext"
+	  >evalMode :: Parser EvalMode
+</span
+	  ><a href="FFI.Opts.html#evalMode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evalMode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReadM EvalMode -&gt; Mod OptionFields EvalMode -&gt; Parser EvalMode
+forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#option"
+	><span class="hs-identifier hs-var"
+	  >option</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReadM EvalMode
+forall a. Read a =&gt; ReadM a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#auto"
+	><span class="hs-identifier hs-var"
+	  >auto</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Mod OptionFields EvalMode
+forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#long"
+	><span class="hs-identifier hs-var"
+	  >long</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;mode&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod OptionFields EvalMode
+-&gt; Mod OptionFields EvalMode -&gt; Mod OptionFields EvalMode
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Mod OptionFields EvalMode
+forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#short"
+	><span class="hs-identifier hs-var"
+	  >short</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'m'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod OptionFields EvalMode
+-&gt; Mod OptionFields EvalMode -&gt; Mod OptionFields EvalMode
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Mod OptionFields EvalMode
+forall (f :: * -&gt; *) a. HasMetavar f =&gt; String -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#metavar"
+	><span class="hs-identifier hs-var"
+	  >metavar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;MODE&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod OptionFields EvalMode
+-&gt; Mod OptionFields EvalMode -&gt; Mod OptionFields EvalMode
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode -&gt; Mod OptionFields EvalMode
+forall (f :: * -&gt; *) a. HasValue f =&gt; a -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#value"
+	><span class="hs-identifier hs-var"
+	  >value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+</span
+	><a href="FFI.Opts.html#TL"
+	><span class="hs-identifier hs-var"
+	  >TL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod OptionFields EvalMode
+-&gt; Mod OptionFields EvalMode -&gt; Mod OptionFields EvalMode
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod OptionFields EvalMode
+forall a (f :: * -&gt; *). Show a =&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#showDefault"
+	><span class="hs-identifier hs-var"
+	  >showDefault</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod OptionFields EvalMode
+-&gt; Mod OptionFields EvalMode -&gt; Mod OptionFields EvalMode
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Mod OptionFields EvalMode
+forall (f :: * -&gt; *) a. String -&gt; Mod f a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#help"
+	><span class="hs-identifier hs-var"
+	  >help</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Evaluation mode (U , TL, TCK, TCEK)&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#evalOpts"
+	><span class="hs-identifier hs-type"
+	  >evalOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Types.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#EvalOptions"
+	><span class="hs-identifier hs-type"
+	  >EvalOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="evalOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >evalOpts :: Parser (EvalOptions ())
+</span
+	  ><a href="FFI.Opts.html#evalOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evalOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode () -&gt; EvalOptions ()
+forall a.
+Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode a -&gt; EvalOptions a
+</span
+	><a href="FFI.Opts.html#EvalOpts"
+	><span class="hs-identifier hs-var"
+	  >EvalOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode () -&gt; EvalOptions ())
+-&gt; Parser Input
+-&gt; Parser (Format -&gt; EvalMode -&gt; BudgetMode () -&gt; EvalOptions ())
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Input
+</span
+	><a href="../../plutus-core/src/PlutusCore.Executable.Parsers.html#input"
+	><span class="hs-identifier hs-var"
+	  >input</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Format -&gt; EvalMode -&gt; BudgetMode () -&gt; EvalOptions ())
+-&gt; Parser Format
+-&gt; Parser (EvalMode -&gt; BudgetMode () -&gt; EvalOptions ())
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Format
+</span
+	><a href="../../plutus-core/src/PlutusCore.Executable.Parsers.html#inputformat"
+	><span class="hs-identifier hs-var"
+	  >inputformat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (EvalMode -&gt; BudgetMode () -&gt; EvalOptions ())
+-&gt; Parser EvalMode -&gt; Parser (BudgetMode () -&gt; EvalOptions ())
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser EvalMode
+</span
+	><a href="FFI.Opts.html#evalMode"
+	><span class="hs-identifier hs-var"
+	  >evalMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (BudgetMode () -&gt; EvalOptions ())
+-&gt; Parser (BudgetMode ()) -&gt; Parser (EvalOptions ())
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (BudgetMode ())
+</span
+	><a href="FFI.Opts.html#budgetmode"
+	><span class="hs-identifier hs-var"
+	  >budgetmode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="TypecheckOptions"
+      ><span class="annot"
+	><a href="FFI.Opts.html#TypecheckOptions"
+	  ><span class="hs-identifier hs-var"
+	    >TypecheckOptions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="TCOpts"
+      ><span class="annot"
+	><a href="FFI.Opts.html#TCOpts"
+	  ><span class="hs-identifier hs-var"
+	    >TCOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Types.html#Input"
+	><span class="hs-identifier hs-type"
+	  >Input</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Types.html#Format"
+	><span class="hs-identifier hs-type"
+	  >Format</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#typecheckOpts"
+	><span class="hs-identifier hs-type"
+	  >typecheckOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Types.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#TypecheckOptions"
+	><span class="hs-identifier hs-type"
+	  >TypecheckOptions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="typecheckOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >typecheckOpts :: Parser TypecheckOptions
+</span
+	  ><a href="FFI.Opts.html#typecheckOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typecheckOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input -&gt; Format -&gt; TypecheckOptions
+</span
+	><a href="FFI.Opts.html#TCOpts"
+	><span class="hs-identifier hs-var"
+	  >TCOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Input -&gt; Format -&gt; TypecheckOptions)
+-&gt; Parser Input -&gt; Parser (Format -&gt; TypecheckOptions)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Input
+</span
+	><a href="../../plutus-core/src/PlutusCore.Executable.Parsers.html#input"
+	><span class="hs-identifier hs-var"
+	  >input</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Format -&gt; TypecheckOptions)
+-&gt; Parser Format -&gt; Parser TypecheckOptions
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Format
+</span
+	><a href="../../plutus-core/src/PlutusCore.Executable.Parsers.html#inputformat"
+	><span class="hs-identifier hs-var"
+	  >inputformat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Command"
+      ><span class="annot"
+	><a href="FFI.Opts.html#Command"
+	  ><span class="hs-identifier hs-var"
+	    >Command</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682355752"
+      ><span class="annot"
+	><a href="#local-6989586621682355752"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Eval"
+      ><span class="annot"
+	><a href="FFI.Opts.html#Eval"
+	  ><span class="hs-identifier hs-var"
+	    >Eval</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#EvalOptions"
+	><span class="hs-identifier hs-type"
+	  >EvalOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682355752"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Typecheck"
+      ><span class="annot"
+	><a href="FFI.Opts.html#Typecheck"
+	  ><span class="hs-identifier hs-var"
+	    >Typecheck</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#TypecheckOptions"
+	><span class="hs-identifier hs-type"
+	  >TypecheckOptions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682355888"
+      ><span id="local-6989586621682355891"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; Command a -&gt; Command b)
+-&gt; (forall a b. a -&gt; Command b -&gt; Command a) -&gt; Functor Command
+forall a b. a -&gt; Command b -&gt; Command a
+forall a b. (a -&gt; b) -&gt; Command a -&gt; Command b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; Command a -&gt; Command b
+fmap :: forall a b. (a -&gt; b) -&gt; Command a -&gt; Command b
+$c&lt;$ :: forall a b. a -&gt; Command b -&gt; Command a
+&lt;$ :: forall a b. a -&gt; Command b -&gt; Command a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#commands"
+	><span class="hs-identifier hs-type"
+	  >commands</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Types.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#Command"
+	><span class="hs-identifier hs-type"
+	  >Command</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span id="commands"
+      ><span class="annot"
+	><span class="annottext"
+	  >commands :: Parser (Command ())
+</span
+	  ><a href="FFI.Opts.html#commands"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >commands</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod CommandFields (Command ()) -&gt; Parser (Command ())
+forall a. Mod CommandFields a -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Extra.html#hsubparser"
+	><span class="hs-identifier hs-var"
+	  >hsubparser</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; ParserInfo (Command ()) -&gt; Mod CommandFields (Command ())
+forall a. String -&gt; ParserInfo a -&gt; Mod CommandFields a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#command"
+	><span class="hs-identifier hs-var"
+	  >command</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;evaluate&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Command ())
+-&gt; InfoMod (Command ()) -&gt; ParserInfo (Command ())
+forall a. Parser a -&gt; InfoMod a -&gt; ParserInfo a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#info"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOptions () -&gt; Command ()
+forall a. EvalOptions a -&gt; Command a
+</span
+	><a href="FFI.Opts.html#Eval"
+	><span class="hs-identifier hs-var"
+	  >Eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(EvalOptions () -&gt; Command ())
+-&gt; Parser (EvalOptions ()) -&gt; Parser (Command ())
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (EvalOptions ())
+</span
+	><a href="FFI.Opts.html#evalOpts"
+	><span class="hs-identifier hs-var"
+	  >evalOpts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>InfoMod (Command ())
+forall a. InfoMod a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#fullDesc"
+	><span class="hs-identifier hs-var"
+	  >fullDesc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>InfoMod (Command ())
+-&gt; InfoMod (Command ()) -&gt; InfoMod (Command ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; InfoMod (Command ())
+forall a. String -&gt; InfoMod a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#progDesc"
+	><span class="hs-identifier hs-var"
+	  >progDesc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;run a Plutus Core program&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Mod CommandFields (Command ())
+-&gt; Mod CommandFields (Command ()) -&gt; Mod CommandFields (Command ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; ParserInfo (Command ()) -&gt; Mod CommandFields (Command ())
+forall a. String -&gt; ParserInfo a -&gt; Mod CommandFields a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#command"
+	><span class="hs-identifier hs-var"
+	  >command</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;typecheck&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Command ())
+-&gt; InfoMod (Command ()) -&gt; ParserInfo (Command ())
+forall a. Parser a -&gt; InfoMod a -&gt; ParserInfo a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#info"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypecheckOptions -&gt; Command ()
+forall a. TypecheckOptions -&gt; Command a
+</span
+	><a href="FFI.Opts.html#Typecheck"
+	><span class="hs-identifier hs-var"
+	  >Typecheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypecheckOptions -&gt; Command ())
+-&gt; Parser TypecheckOptions -&gt; Parser (Command ())
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser TypecheckOptions
+</span
+	><a href="FFI.Opts.html#typecheckOpts"
+	><span class="hs-identifier hs-var"
+	  >typecheckOpts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>InfoMod (Command ())
+forall a. InfoMod a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#fullDesc"
+	><span class="hs-identifier hs-var"
+	  >fullDesc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>InfoMod (Command ())
+-&gt; InfoMod (Command ()) -&gt; InfoMod (Command ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; InfoMod (Command ())
+forall a. String -&gt; InfoMod a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#progDesc"
+	><span class="hs-identifier hs-var"
+	  >progDesc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;typecheck a Plutus Core program&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-comment"
+      >-- A CostModel has all the information to run the Agda machine</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-comment"
+      >-- with cost reporting</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CostModel"
+      ><span class="annot"
+	><a href="FFI.Opts.html#CostModel"
+	  ><span class="hs-identifier hs-var"
+	    >CostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostMap"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostMap</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="local-6989586621682355755"
+      ><span class="annot"
+	><a href="FFI.Opts.html#addJSONParameters"
+	  ><span class="hs-identifier hs-type"
+	    >addJSONParameters</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="FFI.Opts.html#Command"
+	  ><span class="hs-identifier hs-type"
+	    >Command</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682355755"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="FFI.Opts.html#Command"
+	  ><span class="hs-identifier hs-type"
+	    >Command</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="FFI.Opts.html#CostModel"
+	  ><span class="hs-identifier hs-type"
+	    >CostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span id="addJSONParameters"
+      ><span class="annot"
+	><span class="annottext"
+	  >addJSONParameters :: forall a. Command a -&gt; Command CostModel
+</span
+	  ><a href="FFI.Opts.html#addJSONParameters"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addJSONParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; CostModel) -&gt; Command a -&gt; Command CostModel
+forall a b. (a -&gt; b) -&gt; Command a -&gt; Command b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel -&gt; a -&gt; CostModel
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekMachineCosts
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekMachineCostsForTesting"
+	><span class="hs-identifier hs-var"
+	  >defaultCekMachineCostsForTesting</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinCostMap
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#defaultSimpleBuiltinCostModel"
+	><span class="hs-identifier hs-var"
+	  >defaultSimpleBuiltinCostModel</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#execP"
+	><span class="hs-identifier hs-type"
+	  >execP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#Command"
+	><span class="hs-identifier hs-type"
+	  >Command</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#CostModel"
+	><span class="hs-identifier hs-type"
+	  >CostModel</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span id="execP"
+      ><span class="annot"
+	><span class="annottext"
+	  >execP :: IO (Command CostModel)
+</span
+	  ><a href="FFI.Opts.html#execP"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >execP</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Command () -&gt; Command CostModel
+forall a. Command a -&gt; Command CostModel
+</span
+	><a href="FFI.Opts.html#addJSONParameters"
+	><span class="hs-identifier hs-var"
+	  >addJSONParameters</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Command () -&gt; Command CostModel)
+-&gt; IO (Command ()) -&gt; IO (Command CostModel)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParserInfo (Command ()) -&gt; IO (Command ())
+forall a. ParserInfo a -&gt; IO a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Extra.html#execParser"
+	><span class="hs-identifier hs-var"
+	  >execParser</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Command ())
+-&gt; InfoMod (Command ()) -&gt; ParserInfo (Command ())
+forall a. Parser a -&gt; InfoMod a -&gt; ParserInfo a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#info"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Command ())
+</span
+	><a href="FFI.Opts.html#commands"
+	><span class="hs-identifier hs-var"
+	  >commands</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Command ())
+-&gt; Parser (Command () -&gt; Command ()) -&gt; Parser (Command ())
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f (a -&gt; b) -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;**&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Command () -&gt; Command ())
+forall a. Parser (a -&gt; a)
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Extra.html#helper"
+	><span class="hs-identifier hs-var"
+	  >helper</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>InfoMod (Command ())
+forall a. InfoMod a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#fullDesc"
+	><span class="hs-identifier hs-var"
+	  >fullDesc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>InfoMod (Command ())
+-&gt; InfoMod (Command ()) -&gt; InfoMod (Command ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; InfoMod (Command ())
+forall a. String -&gt; InfoMod a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#progDesc"
+	><span class="hs-identifier hs-var"
+	  >progDesc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Plutus Core tool&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>InfoMod (Command ())
+-&gt; InfoMod (Command ()) -&gt; InfoMod (Command ())
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; InfoMod (Command ())
+forall a. String -&gt; InfoMod a
+</span
+	><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/src/Options.Applicative.Builder.html#header"
+	><span class="hs-identifier hs-var"
+	  >header</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;plc-agda - a Plutus Core implementation written in Agda&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

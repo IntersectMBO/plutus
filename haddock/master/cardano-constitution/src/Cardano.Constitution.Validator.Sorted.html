@@ -1,0 +1,1476 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- Following is for tx compilation</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE Strict #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:remove-trace #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Cardano.Constitution.Validator.Sorted</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#constitutionValidator"
+	><span class="hs-identifier"
+	  >constitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#defaultConstitutionValidator"
+	><span class="hs-identifier"
+	  >defaultConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#mkConstitutionCode"
+	><span class="hs-identifier"
+	  >mkConstitutionCode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#defaultConstitutionCode"
+	><span class="hs-identifier"
+	  >defaultConstitutionCode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.html"
+	><span class="hs-identifier"
+	  >Cardano.Constitution.Config</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Common.html"
+	><span class="hs-identifier"
+	  >Cardano.Constitution.Validator.Common</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Common</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>B</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.List.html"
+	><span class="hs-identifier"
+	  >PlutusTx.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>List</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#constitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >constitutionValidator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Common.html#ConstitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="constitutionValidator"
+      ><span class="annot"
+	><span class="annottext"
+	  >constitutionValidator :: ConstitutionConfig -&gt; ConstitutionValidator
+</span
+	  ><a href="Cardano.Constitution.Validator.Sorted.html#constitutionValidator"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >constitutionValidator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679319959"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Param]
+</span
+	  ><a href="#local-6989586621679319959"
+	  ><span class="hs-identifier hs-var"
+	    >cfg</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ChangedParams -&gt; Bool) -&gt; ConstitutionValidator
+</span
+	><a href="Cardano.Constitution.Validator.Common.html#withChangedParams"
+	><span class="hs-identifier hs-var"
+	  >Common.withChangedParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param] -&gt; ChangedParams -&gt; Bool
+</span
+	><a href="Cardano.Constitution.Validator.Sorted.html#runRules"
+	><span class="hs-identifier hs-var"
+	  >runRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param]
+</span
+	><a href="#local-6989586621679319959"
+	><span class="hs-identifier hs-var"
+	  >cfg</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The `runRules` is a loop that works element-wise from left-to-right on the 2 sorted maps.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#runRules"
+	><span class="hs-identifier hs-type"
+	  >runRules</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Param"
+	><span class="hs-identifier hs-type"
+	  >Param</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ the config (sorted by default)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Common.html#ChangedParams"
+	><span class="hs-identifier hs-type"
+	  >ChangedParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ the params (came sorted by the ledger)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="runRules"
+      ><span class="annot"
+	><span class="annottext"
+	  >runRules :: [Param] -&gt; ChangedParams -&gt; Bool
+</span
+	  ><a href="Cardano.Constitution.Validator.Sorted.html#runRules"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runRules</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679319962"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679319962"
+	  ><span class="hs-identifier hs-var"
+	    >expectedPid</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679319963"
+      ><span class="annot"
+	><span class="annottext"
+	  >ParamValue
+</span
+	  ><a href="#local-6989586621679319963"
+	  ><span class="hs-identifier hs-var"
+	    >paramValue</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679319964"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Param]
+</span
+	  ><a href="#local-6989586621679319964"
+	  ><span class="hs-identifier hs-var"
+	    >cfgRest</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679319965"
+      ><span class="annot"
+	><span class="annottext"
+	  >cparams :: ChangedParams
+</span
+	  ><a href="#local-6989586621679319965"
+	  ><span class="hs-identifier hs-var"
+	    >cparams</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.html#unsafeDataAsI"
+	><span class="hs-identifier hs-var"
+	  >B.unsafeDataAsI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679319967"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679319967"
+	  ><span class="hs-identifier hs-var"
+	    >actualPid</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679319968"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679319968"
+	  ><span class="hs-identifier hs-var"
+	    >actualValueData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679319969"
+      ><span class="annot"
+	><span class="annottext"
+	  >ChangedParams
+</span
+	  ><a href="#local-6989586621679319969"
+	  ><span class="hs-identifier hs-var"
+	    >cparamsRest</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679319967"
+	><span class="hs-identifier hs-var"
+	  >actualPid</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ord.html#compare"
+	><span class="hs-operator hs-var"
+	  >`compare`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679319962"
+	><span class="hs-identifier hs-var"
+	  >expectedPid</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue -&gt; BuiltinData -&gt; Bool
+</span
+	><a href="Cardano.Constitution.Validator.Common.html#validateParamValue"
+	><span class="hs-identifier hs-var"
+	  >Common.validateParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue
+</span
+	><a href="#local-6989586621679319963"
+	><span class="hs-identifier hs-var"
+	  >paramValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679319968"
+	><span class="hs-identifier hs-var"
+	  >actualValueData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- drop both heads, and continue checking the next changed param</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Bool.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param] -&gt; ChangedParams -&gt; Bool
+</span
+	><a href="Cardano.Constitution.Validator.Sorted.html#runRules"
+	><span class="hs-identifier hs-var"
+	  >runRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param]
+</span
+	><a href="#local-6989586621679319964"
+	><span class="hs-identifier hs-var"
+	  >cfgRest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParams
+</span
+	><a href="#local-6989586621679319969"
+	><span class="hs-identifier hs-var"
+	  >cparamsRest</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- skip configHead pointing to a parameter not being proposed</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param] -&gt; ChangedParams -&gt; Bool
+</span
+	><a href="Cardano.Constitution.Validator.Sorted.html#runRules"
+	><span class="hs-identifier hs-var"
+	  >runRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param]
+</span
+	><a href="#local-6989586621679319964"
+	><span class="hs-identifier hs-var"
+	  >cfgRest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParams
+</span
+	><a href="#local-6989586621679319965"
+	><span class="hs-identifier hs-var"
+	  >cparams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- actualPid not found in json config, the constitution fails</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-comment"
+      >-- if no cparams left: success</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-comment"
+      >-- if cparams left: it means we reached the end of config without validating all cparams</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#runRules"
+	><span class="hs-identifier hs-var"
+	  >runRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Param]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679319973"
+      ><span class="annot"
+	><span class="annottext"
+	  >ChangedParams
+</span
+	  ><a href="#local-6989586621679319973"
+	  ><span class="hs-identifier hs-var"
+	    >cparams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParams -&gt; Bool
+forall a. [a] -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.List.html#null"
+	><span class="hs-identifier hs-var"
+	  >List.null</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParams
+</span
+	><a href="#local-6989586621679319973"
+	><span class="hs-identifier hs-var"
+	  >cparams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Statically configure the validator with the `defaultConstitutionConfig`.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#defaultConstitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >defaultConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Common.html#ConstitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="defaultConstitutionValidator"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultConstitutionValidator :: ConstitutionValidator
+</span
+	  ><a href="Cardano.Constitution.Validator.Sorted.html#defaultConstitutionValidator"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultConstitutionValidator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ConstitutionConfig -&gt; ConstitutionValidator
+</span
+	><a href="Cardano.Constitution.Validator.Sorted.html#constitutionValidator"
+	><span class="hs-identifier hs-var"
+	  >constitutionValidator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ConstitutionConfig
+</span
+	><a href="Cardano.Constitution.Config.html#defaultConstitutionConfig"
+	><span class="hs-identifier hs-var"
+	  >defaultConstitutionConfig</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Make a constitution code by supplied the config at runtime.
+
+See Note [Manually constructing a Configuration value] -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#mkConstitutionCode"
+	><span class="hs-identifier hs-type"
+	  >mkConstitutionCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	><span class="hs-identifier hs-type"
+	  >CompiledCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Common.html#ConstitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="mkConstitutionCode"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkConstitutionCode :: ConstitutionConfig -&gt; CompiledCode ConstitutionValidator
+</span
+	  ><a href="Cardano.Constitution.Validator.Sorted.html#mkConstitutionCode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkConstitutionCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679319976"
+      ><span class="annot"
+	><span class="annottext"
+	  >ConstitutionConfig
+</span
+	  ><a href="#local-6989586621679319976"
+	  ><span class="hs-identifier hs-var"
+	    >cCfg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >$$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.TH.html#compile"
+	><span class="hs-identifier hs-type"
+	  >compile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[||</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#constitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >constitutionValidator</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >||]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode (ConstitutionConfig -&gt; ConstitutionValidator)
+-&gt; CompiledCodeIn DefaultUni DefaultFun ConstitutionConfig
+-&gt; CompiledCode ConstitutionValidator
+forall (uni :: * -&gt; *) fun a b.
+(Closed uni, Everywhere uni Flat, Flat fun, Pretty fun,
+ Everywhere uni PrettyConst,
+ PrettyBy RenderContext (SomeTypeIn uni)) =&gt;
+CompiledCodeIn uni fun (a -&gt; b)
+-&gt; CompiledCodeIn uni fun a -&gt; CompiledCodeIn uni fun b
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#unsafeApplyCode"
+	><span class="hs-operator hs-var"
+	  >`unsafeApplyCode`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+-&gt; ConstitutionConfig
+-&gt; CompiledCodeIn DefaultUni DefaultFun ConstitutionConfig
+forall (uni :: * -&gt; *) a fun.
+(Lift uni a, GEq uni, Everywhere uni Eq, ThrowableBuiltins uni fun,
+ Typecheckable uni fun, CaseBuiltin uni,
+ Default (CostingPart uni fun), Default (BuiltinsInfo uni fun),
+ Default (RewriteRules uni fun), Hashable fun) =&gt;
+Version -&gt; a -&gt; CompiledCodeIn uni fun a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Lift.html#liftCode"
+	><span class="hs-identifier hs-var"
+	  >liftCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ConstitutionConfig
+</span
+	><a href="#local-6989586621679319976"
+	><span class="hs-identifier hs-var"
+	  >cCfg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The code of the constitution statically configured with the `defaultConstitutionConfig`.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#defaultConstitutionCode"
+	><span class="hs-identifier hs-type"
+	  >defaultConstitutionCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	><span class="hs-identifier hs-type"
+	  >CompiledCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Common.html#ConstitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="defaultConstitutionCode"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultConstitutionCode :: CompiledCode ConstitutionValidator
+</span
+	  ><a href="Cardano.Constitution.Validator.Sorted.html#defaultConstitutionCode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultConstitutionCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >$$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.TH.html#compile"
+	><span class="hs-identifier hs-type"
+	  >compile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[||</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Sorted.html#defaultConstitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >defaultConstitutionValidator</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >||]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

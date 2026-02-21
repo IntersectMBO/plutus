@@ -1,0 +1,393 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Instances.ByteString</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Instances.ByteString.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Instances.ByteString</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Flat instances for the bytestring library</p
+	  ></div
+	></div
+      ><div id="interface"
+      ><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Flat:Flat:1"
+		  ></span
+		  > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		  >Flat</a
+		  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		  >ByteString</a
+		  ></span
+		> <a href="src/PlutusCore.Flat.Instances.ByteString.html#line-64" class="link"
+		>Source</a
+		> <a href="#v:-36-fFlatByteString0" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><p
+		>ByteString, ByteString.Lazy and ByteString.Short are all encoded as Prealigned Arrays:</p
+		><pre
+		>PreAligned a &#8801; PreAligned {preFiller :: Filler, preValue :: a}
+
+Filler &#8801;   FillerBit Filler
+          | FillerEnd
+
+Array v = A0
+        | A1 v (Array v)
+        | A2 v v (Array v)
+        ...
+        | A255 ... (Array v)
+</pre
+		><p
+		>That's to say as a byte-aligned sequence of blocks of up to 255 elements, with every block preceded by the count of the elements in the block and a final 0-length block.</p
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tst (B.pack [11,22,33])
+</code
+		    ></strong
+		  >(True,48,[1,3,11,22,33,0])
+</pre
+		><p
+		>where:</p
+		><p
+		>1= PreAlignment (takes a byte if we are already on a byte boundary)</p
+		><p
+		>3= Number of bytes in ByteString</p
+		><p
+		>11,22,33= Bytes</p
+		><p
+		>0= End of Array</p
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tst (B.pack [])
+</code
+		    ></strong
+		  >(True,16,[1,0])
+</pre
+		><p
+		>Pre-alignment ensures that a ByteString always starts at a byte boundary:</p
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tst ((False,True,False,B.pack [11,22,33]))
+</code
+		    ></strong
+		  >(True,51,[65,3,11,22,33,0])
+</pre
+		><p
+		>All ByteStrings are encoded in the same way:</p
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >all (tst (B.pack [55]) ==) [tst (L.pack [55]),tst (SBS.pack [55])]
+</code
+		    ></strong
+		  >True 
+</pre
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Flat:Flat:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:encode"
+		      >encode</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      > &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+		      >Encoding</a
+		      > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+		      >Source</a
+		      > <a href="#v:encode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:decode"
+		      >decode</a
+		      > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+		      >Get</a
+		      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      > <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+		      >Source</a
+		      > <a href="#v:decode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:size"
+		      >size</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+		      >Source</a
+		      > <a href="#v:size" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Flat:Flat:2"
+		  ></span
+		  > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		  >Flat</a
+		  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		  >ByteString</a
+		  ></span
+		> <a href="src/PlutusCore.Flat.Instances.ByteString.html#line-72" class="link"
+		>Source</a
+		> <a href="#v:-36-fFlatByteString" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tst ((False,True,False,L.pack [11,22,33]))
+</code
+		    ></strong
+		  >(True,51,[65,3,11,22,33,0]) 
+</pre
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Flat:Flat:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:encode"
+		      >encode</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		      >ByteString</a
+		      > &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+		      >Encoding</a
+		      > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+		      >Source</a
+		      > <a href="#v:encode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:decode"
+		      >decode</a
+		      > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+		      >Get</a
+		      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		      >ByteString</a
+		      > <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+		      >Source</a
+		      > <a href="#v:decode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:size"
+		      >size</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		      >ByteString</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+		      >Source</a
+		      > <a href="#v:size" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Flat:Flat:3"
+		  ></span
+		  > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		  >Flat</a
+		  > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+		  >ShortByteString</a
+		  ></span
+		> <a href="src/PlutusCore.Flat.Instances.ByteString.html#line-80" class="link"
+		>Source</a
+		> <a href="#v:-36-fFlatShortByteString" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tst ((False,True,False,SBS.pack [11,22,33]))
+</code
+		    ></strong
+		  >(True,51,[65,3,11,22,33,0]) 
+</pre
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Flat:Flat:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:encode"
+		      >encode</a
+		      > &#8759; <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+		      >ShortByteString</a
+		      > &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+		      >Encoding</a
+		      > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+		      >Source</a
+		      > <a href="#v:encode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:decode"
+		      >decode</a
+		      > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+		      >Get</a
+		      > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+		      >ShortByteString</a
+		      > <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+		      >Source</a
+		      > <a href="#v:decode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:size"
+		      >size</a
+		      > &#8759; <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+		      >ShortByteString</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+		      >Source</a
+		      > <a href="#v:size" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,8325 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns              #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyCase                 #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyDataDecls            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ExistentialQuantification #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes                #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >MAlonzo.Code.Function.Properties.Bijection</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Sigma.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.Sigma</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Primitive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Bundles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Construct.Composition.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Construct.Composition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Construct.Identity.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Construct.Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Construct.Symmetry.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Construct.Symmetry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Inverse.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Properties.Inverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Surjection.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Properties.Surjection</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Structures.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Structures</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Bundles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Structures</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#add64"
+	><span class="hs-identifier"
+	  >add64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#addInt"
+	><span class="hs-identifier"
+	  >addInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier"
+	  >coe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eq64"
+	><span class="hs-identifier"
+	  >eq64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eqInt"
+	><span class="hs-identifier"
+	  >eqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier"
+	  >erased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#geqInt"
+	><span class="hs-identifier"
+	  >geqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#lt64"
+	><span class="hs-identifier"
+	  >lt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#ltInt"
+	><span class="hs-identifier"
+	  >ltInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mul64"
+	><span class="hs-identifier"
+	  >mul64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mulInt"
+	><span class="hs-identifier"
+	  >mulInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quot64"
+	><span class="hs-identifier"
+	  >quot64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quotInt"
+	><span class="hs-identifier"
+	  >quotInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#rem64"
+	><span class="hs-identifier"
+	  >rem64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#remInt"
+	><span class="hs-identifier"
+	  >remInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#sub64"
+	><span class="hs-identifier"
+	  >sub64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#subInt"
+	><span class="hs-identifier"
+	  >subInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64FromNat"
+	><span class="hs-identifier"
+	  >word64FromNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64ToNat"
+	><span class="hs-identifier"
+	  >word64ToNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.refl</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_refl_28"
+	><span class="hs-identifier hs-type"
+	  >d_refl_28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="d_refl_28"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_refl_28 :: T_Level_18 -&gt; T_Level_18 -&gt; T_Setoid_44 -&gt; T_Bijection_926
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_refl_28"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_refl_28</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520862"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520862"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520863"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520863"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520864"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520864"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_refl_28"
+	><span class="hs-identifier hs-var"
+	  >du_refl_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_refl_28"
+	><span class="hs-identifier hs-type"
+	  >du_refl_28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="du_refl_28"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_refl_28 :: T_Bijection_926
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_refl_28"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_refl_28</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Bijection_926
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Construct.Identity.html#du_bijection_788"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Construct.Identity.du_bijection_788</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.sym-&#8801;</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_sym%2745%27%278801%27_30"
+	><span class="hs-identifier hs-type"
+	  >d_sym'45''8801'_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="d_sym%2745%27%278801%27_30"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_sym'45''8801'_30 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Bijection_926
+-&gt; T_Bijection_926
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_sym%2745%27%278801%27_30"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_sym'45''8801'_30</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520868"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520868"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520869"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520869"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520870"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520870"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520871"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520871"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520872"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520872"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_sym%2745%27%278801%27_30"
+	><span class="hs-identifier hs-var"
+	  >du_sym'45''8801'_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520870"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_sym%2745%27%278801%27_30"
+	><span class="hs-identifier hs-type"
+	  >du_sym'45''8801'_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="du_sym%2745%27%278801%27_30"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_sym'45''8801'_30 :: T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_sym%2745%27%278801%27_30"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_sym'45''8801'_30</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520874"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520874"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Bijection_926)
+-&gt; Any -&gt; T_Bijection_926 -&gt; T_Bijection_926
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Construct.Symmetry.html#du_bijection%2745%27%278801%27_722"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Construct.Symmetry.du_bijection'45''8801'_722</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520874"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.trans</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_trans_32"
+	><span class="hs-identifier hs-type"
+	  >d_trans_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="d_trans_32"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_trans_32 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Bijection_926
+-&gt; T_Bijection_926
+-&gt; T_Bijection_926
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_trans_32"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_trans_32</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520877"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520877"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520878"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520878"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520879"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520879"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520880"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520880"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520881"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520881"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520882"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520882"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520883"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520883"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520884"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520884"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520885"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520885"
+	  ><span class="hs-identifier hs-var"
+	    >v8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_trans_32"
+	><span class="hs-identifier hs-var"
+	  >du_trans_32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_trans_32"
+	><span class="hs-identifier hs-type"
+	  >du_trans_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span id="du_trans_32"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_trans_32 :: T_Bijection_926 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_trans_32"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_trans_32</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Bijection_926 -&gt; T_Bijection_926)
+-&gt; T_Bijection_926 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Construct.Composition.html#du_bijection_1606"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Construct.Composition.du_bijection_1606</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.&#10518;-isEquivalence</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_%2710518%27%2745%27isEquivalence_34"
+	><span class="hs-identifier hs-type"
+	  >d_'10518''45'isEquivalence_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsEquivalence_26"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="d_%2710518%27%2745%27isEquivalence_34"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'10518''45'isEquivalence_34 :: T_Level_18 -&gt; T_IsEquivalence_26
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_%2710518%27%2745%27isEquivalence_34"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'10518''45'isEquivalence_34</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520889"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520889"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%2745%27isEquivalence_34"
+	><span class="hs-identifier hs-var"
+	  >du_'10518''45'isEquivalence_34</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%2745%27isEquivalence_34"
+	><span class="hs-identifier hs-type"
+	  >du_'10518''45'isEquivalence_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsEquivalence_26"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="du_%2710518%27%2745%27isEquivalence_34"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'10518''45'isEquivalence_34 :: T_IsEquivalence_26
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%2745%27isEquivalence_34"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'10518''45'isEquivalence_34</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; (Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; T_IsEquivalence_26)
+-&gt; Any -&gt; Any -&gt; Any -&gt; T_IsEquivalence_26
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_IsEquivalence_26
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Structures.html#C_IsEquivalence%2746%27constructor_745"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Structures.C_IsEquivalence'46'constructor_745</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520892"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520892"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_refl_28"
+	><span class="hs-identifier hs-var"
+	  >du_refl_28</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520893"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520893"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520894"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520894"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Bijection_926) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_sym%2745%27%278801%27_30"
+	><span class="hs-identifier hs-var"
+	  >du_sym'45''8801'_30</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >                 </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html#du_setoid_402"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520896"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520896"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520897"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520897"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520898"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520898"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Bijection_926 -&gt; T_Bijection_926) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Bijection_926 -&gt; T_Bijection_926
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_trans_32"
+	><span class="hs-identifier hs-var"
+	  >du_trans_32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.Bijection&#8658;Inverse</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_Bijection%278658%27Inverse_36"
+	><span class="hs-identifier hs-type"
+	  >d_Bijection'8658'Inverse_36</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Inverse_1960"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Inverse_1960</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span id="d_Bijection%278658%27Inverse_36"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_Bijection'8658'Inverse_36 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Bijection_926
+-&gt; T_Inverse_1960
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_Bijection%278658%27Inverse_36"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_Bijection'8658'Inverse_36</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520900"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520900"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520901"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520901"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520902"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520902"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520903"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520903"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520904"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520904"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520905"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520905"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520906"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Bijection_926
+</span
+	  ><a href="#local-6989586621682520906"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Inverse_1960
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Inverse_36"
+	><span class="hs-identifier hs-var"
+	  >du_Bijection'8658'Inverse_36</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520902"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520905"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520906"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Inverse_36"
+	><span class="hs-identifier hs-type"
+	  >du_Bijection'8658'Inverse_36</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Inverse_1960"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Inverse_1960</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="du_Bijection%278658%27Inverse_36"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_Bijection'8658'Inverse_36 :: T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Inverse_1960
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Inverse_36"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_Bijection'8658'Inverse_36</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520908"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520908"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520909"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520909"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520910"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Bijection_926
+</span
+	  ><a href="#local-6989586621682520910"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; (Any -&gt; Any)
+ -&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; T_&#931;_14
+ -&gt; T_Inverse_1960)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; T_Inverse_1960
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any)
+-&gt; (Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_&#931;_14
+-&gt; T_Inverse_1960
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#C_Inverse%2746%27constructor_38621"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.C_Inverse'46'constructor_38621</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#d_to_934"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.d_to_934</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Surjection_846 -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Surjection_846 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_to%278315%27_920"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_to'8315'_920</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Surjection_846) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Surjection_846
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_surjection_946"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_surjection_946</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#d_cong_936"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.d_cong_936</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44
+ -&gt; T_Setoid_44
+ -&gt; T_Surjection_846
+ -&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; Any
+ -&gt; Any
+ -&gt; Any
+ -&gt; Any)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Surjection_846
+-&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; Any
+-&gt; Any
+-&gt; Any
+-&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Properties.Surjection.html#du_injective%278658%27to%278315%27%2745%27cong_382"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Properties.Surjection.du_injective'8658'to'8315''45'cong_382</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520908"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520909"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Surjection_846) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Surjection_846
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_surjection_946"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_surjection_946</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_injective_940"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_injective_940</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; T_&#931;_14) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any -&gt; T_&#931;_14
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.Sigma.html#C__%2744%27__32"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520919"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520919"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520920"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520920"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520921"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520921"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520922"
+      ><span class="annot"
+	><span class="annottext"
+	  >v6 :: Any
+</span
+	  ><a href="#local-6989586621682520922"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >                     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44
+ -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_IsBijection_238)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_IsBijection_238
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_isBijection_960"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_isBijection_960</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520908"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520909"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >                         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >                 </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520924"
+      ><span class="annot"
+	><span class="annottext"
+	  >v7 :: T_IsInjection_92
+</span
+	  ><a href="#local-6989586621682520924"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsBijection_238 -&gt; T_IsInjection_92
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#d_isInjection_246"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.d_isInjection_246</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_IsBijection_238
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520922"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520926"
+      ><span class="annot"
+	><span class="annottext"
+	  >v8 :: T_IsCongruent_22
+</span
+	  ><a href="#local-6989586621682520926"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsInjection_92 -&gt; T_IsCongruent_22
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#d_isCongruent_100"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.d_isCongruent_100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsInjection_92 -&gt; T_IsInjection_92
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsInjection_92
+</span
+	><a href="#local-6989586621682520924"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >                     </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520928"
+      ><span class="annot"
+	><span class="annottext"
+	  >v9 :: Any
+</span
+	  ><a href="#local-6989586621682520928"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v9</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >                              </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsCongruent_22 -&gt; T_Setoid_44) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsCongruent_22 -&gt; T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#du_setoid_66"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.du_setoid_66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsCongruent_22 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsCongruent_22
+</span
+	><a href="#local-6989586621682520926"
+	><span class="hs-identifier hs-var"
+	  >v8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >                        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >                          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsEquivalence_26 -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_IsEquivalence_26 -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >                             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26 -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Structures.html#d_trans_38"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >                             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_IsEquivalence_26
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Bundles.html#d_isEquivalence_60"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Bundles.d_isEquivalence_60</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_Setoid_44
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520928"
+	><span class="hs-identifier hs-var"
+	  >v9</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >                             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any) -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#d_to_934"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.d_to_934</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520920"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >                             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any) -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#d_to_934"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.d_to_934</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Surjection_846 -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Surjection_846 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_to%278315%27_920"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_to'8315'_920</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Surjection_846) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Surjection_846
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_surjection_946"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_surjection_946</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520919"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >                             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520919"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >                             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#d_cong_936"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.d_cong_936</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520920"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Surjection_846 -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Surjection_846 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_to%278315%27_920"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_to'8315'_920</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Surjection_846) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Surjection_846
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_surjection_946"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_surjection_946</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520919"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520921"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >                             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; Any -&gt; Any)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_to%278728%27to%278315%27_118"
+	><span class="hs-identifier hs-var"
+	  >du_to'8728'to'8315'_118</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520908"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520909"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520919"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520933"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520933"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520934"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520934"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520935"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520935"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >                 </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_injective_940"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_injective_940</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >                 </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_&#931;_14 -&gt; Any
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.Sigma.html#d_fst_28"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520937"
+      ><span class="annot"
+	><span class="annottext"
+	  >v6 :: Any
+</span
+	  ><a href="#local-6989586621682520937"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Surjection_846) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Surjection_846
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_surjection_946"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_surjection_946</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >                     </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_&#931;_14
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsSurjection_162 -&gt; Any -&gt; T_&#931;_14) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >                          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsSurjection_162 -&gt; Any -&gt; T_&#931;_14
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#du_strictlySurjective_230"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.du_strictlySurjective_230</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >                          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44
+ -&gt; T_Setoid_44 -&gt; T_Surjection_846 -&gt; T_IsSurjection_162)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >                             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+-&gt; T_Setoid_44 -&gt; T_Surjection_846 -&gt; T_IsSurjection_162
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_isSurjection_914"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_isSurjection_914</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520908"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520909"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >                             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520937"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >                          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520934"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >                 </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520933"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >                 </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520940"
+      ><span class="annot"
+	><span class="annottext"
+	  >v6 :: Any
+</span
+	  ><a href="#local-6989586621682520940"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44
+ -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_IsBijection_238)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >                            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_IsBijection_238
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_isBijection_960"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_isBijection_960</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520908"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520909"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >                            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520941"
+      ><span class="annot"
+	><span class="annottext"
+	  >v7 :: T_IsInjection_92
+</span
+	  ><a href="#local-6989586621682520941"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsBijection_238 -&gt; T_IsInjection_92
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#d_isInjection_246"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.d_isInjection_246</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_IsBijection_238
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520940"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >                     </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520942"
+      ><span class="annot"
+	><span class="annottext"
+	  >v8 :: T_IsCongruent_22
+</span
+	  ><a href="#local-6989586621682520942"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >                              </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsInjection_92 -&gt; T_IsCongruent_22
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#d_isCongruent_100"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.d_isCongruent_100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsInjection_92 -&gt; T_IsInjection_92
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsInjection_92
+</span
+	><a href="#local-6989586621682520941"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >                        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >                          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520943"
+      ><span class="annot"
+	><span class="annottext"
+	  >v9 :: Any
+</span
+	  ><a href="#local-6989586621682520943"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v9</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >                                 </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsCongruent_22 -&gt; T_Setoid_44) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsCongruent_22 -&gt; T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#du_setoid_66"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.du_setoid_66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsCongruent_22 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsCongruent_22
+</span
+	><a href="#local-6989586621682520942"
+	><span class="hs-identifier hs-var"
+	  >v8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >                           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >                             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsEquivalence_26 -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_IsEquivalence_26 -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26 -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Structures.html#d_trans_38"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_IsEquivalence_26
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Bundles.html#d_isEquivalence_60"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Bundles.d_isEquivalence_60</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_Setoid_44
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520943"
+	><span class="hs-identifier hs-var"
+	  >v9</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any) -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#d_to_934"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.d_to_934</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_&#931;_14 -&gt; Any
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.Sigma.html#d_fst_28"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >                                      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520944"
+      ><span class="annot"
+	><span class="annottext"
+	  >v10 :: Any
+</span
+	  ><a href="#local-6989586621682520944"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v10</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >                                             </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Surjection_846) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >                                                 </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Surjection_846
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_surjection_946"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_surjection_946</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >                                                 </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >                                       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_&#931;_14
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >                                         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsSurjection_162 -&gt; Any -&gt; T_&#931;_14) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >                                            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsSurjection_162 -&gt; Any -&gt; T_&#931;_14
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#du_strictlySurjective_230"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.du_strictlySurjective_230</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >                                            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44
+ -&gt; T_Setoid_44 -&gt; T_Surjection_846 -&gt; T_IsSurjection_162)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >                                               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+-&gt; T_Setoid_44 -&gt; T_Surjection_846 -&gt; T_IsSurjection_162
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_isSurjection_914"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_isSurjection_914</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >                                               </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520908"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520909"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520944"
+	><span class="hs-identifier hs-var"
+	  >v10</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >                                            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520934"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520934"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; Any -&gt; Any) -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#d_to_934"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.d_to_934</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520933"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; Any -&gt; Any)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_to%278728%27to%278315%27_118"
+	><span class="hs-identifier hs-var"
+	  >du_to'8728'to'8315'_118</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520908"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520909"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520910"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520934"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520935"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection._.to&#8728;to&#8315;</span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_to%278728%27to%278315%27_118"
+	><span class="hs-identifier hs-type"
+	  >d_to'8728'to'8315'_118</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span id="d_to%278728%27to%278315%27_118"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_to'8728'to'8315'_118 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Bijection_926
+-&gt; Any
+-&gt; Any
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_to%278728%27to%278315%27_118"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_to'8728'to'8315'_118</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520946"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520946"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520947"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520947"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520948"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520948"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520949"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520949"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520950"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520950"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520951"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520951"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520952"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Bijection_926
+</span
+	  ><a href="#local-6989586621682520952"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520953"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520953"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_to%278728%27to%278315%27_118"
+	><span class="hs-identifier hs-var"
+	  >du_to'8728'to'8315'_118</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520948"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520951"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520952"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520953"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_to%278728%27to%278315%27_118"
+	><span class="hs-identifier hs-type"
+	  >du_to'8728'to'8315'_118</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span id="du_to%278728%27to%278315%27_118"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_to'8728'to'8315'_118 :: T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; Any -&gt; Any
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_to%278728%27to%278315%27_118"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_to'8728'to'8315'_118</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520954"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520954"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520955"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520955"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520956"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Bijection_926
+</span
+	  ><a href="#local-6989586621682520956"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520957"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682520957"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_&#931;_14 -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_&#931;_14 -&gt; Any
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.Sigma.html#d_snd_30"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682520959"
+      ><span class="annot"
+	><span class="annottext"
+	  >v4 :: Any
+</span
+	  ><a href="#local-6989586621682520959"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Bijection_926 -&gt; T_Surjection_846) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Surjection_846
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_surjection_946"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_surjection_946</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520956"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsSurjection_162 -&gt; Any -&gt; T_&#931;_14) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsSurjection_162 -&gt; Any -&gt; T_&#931;_14
+</span
+	><a href="MAlonzo.Code.Function.Structures.html#du_strictlySurjective_230"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Structures.du_strictlySurjective_230</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44
+ -&gt; T_Setoid_44 -&gt; T_Surjection_846 -&gt; T_IsSurjection_162)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >               </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+-&gt; T_Setoid_44 -&gt; T_Surjection_846 -&gt; T_IsSurjection_162
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_isSurjection_914"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_isSurjection_914</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520954"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520955"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520959"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682520957"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.Bijection&#8658;Equivalence</span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_Bijection%278658%27Equivalence_124"
+	><span class="hs-identifier hs-type"
+	  >d_Bijection'8658'Equivalence_124</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Equivalence_1714"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Equivalence_1714</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span id="d_Bijection%278658%27Equivalence_124"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_Bijection'8658'Equivalence_124 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Bijection_926
+-&gt; T_Equivalence_1714
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_Bijection%278658%27Equivalence_124"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_Bijection'8658'Equivalence_124</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520961"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520961"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520962"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520962"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520963"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520963"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520964"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520964"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520965"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520965"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520966"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520966"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520967"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Bijection_926
+</span
+	  ><a href="#local-6989586621682520967"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Equivalence_1714
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Equivalence_124"
+	><span class="hs-identifier hs-var"
+	  >du_Bijection'8658'Equivalence_124</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520963"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520966"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520967"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Equivalence_124"
+	><span class="hs-identifier hs-type"
+	  >du_Bijection'8658'Equivalence_124</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Equivalence_1714"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Equivalence_1714</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span id="du_Bijection%278658%27Equivalence_124"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_Bijection'8658'Equivalence_124 :: T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Equivalence_1714
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Equivalence_124"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_Bijection'8658'Equivalence_124</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520969"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520969"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520970"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621682520970"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682520971"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Bijection_926
+</span
+	  ><a href="#local-6989586621682520971"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Inverse_1960 -&gt; T_Equivalence_1714) -&gt; Any -&gt; T_Equivalence_1714
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-263"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Inverse_1960 -&gt; T_Equivalence_1714
+</span
+	><a href="MAlonzo.Code.Function.Properties.Inverse.html#du_Inverse%278658%27Equivalence_552"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Properties.Inverse.du_Inverse'8658'Equivalence_552</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-264"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Inverse_1960)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Inverse_1960
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Inverse_36"
+	><span class="hs-identifier hs-var"
+	  >du_Bijection'8658'Inverse_36</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520969"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="#local-6989586621682520970"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926
+</span
+	><a href="#local-6989586621682520971"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-265"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.&#10518;&#8658;&#8596;</span
+      ><span
+      >
+</span
+      ><span id="line-266"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_%2710518%27%278658%27%278596%27_126"
+	><span class="hs-identifier hs-type"
+	  >d_'10518''8658''8596'_126</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-267"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-268"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-269"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-270"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-271"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-272"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Inverse_1960"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Inverse_1960</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-273"
+      ></span
+      ><span id="d_%2710518%27%278658%27%278596%27_126"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'10518''8658''8596'_126 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Bijection_926
+-&gt; T_Inverse_1960
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_%2710518%27%278658%27%278596%27_126"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'10518''8658''8596'_126</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520974"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520974"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520975"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520975"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520976"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520976"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520977"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520977"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-274"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Inverse_1960
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%278658%27%278596%27_126"
+	><span class="hs-identifier hs-var"
+	  >du_'10518''8658''8596'_126</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-275"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%278658%27%278596%27_126"
+	><span class="hs-identifier hs-type"
+	  >du_'10518''8658''8596'_126</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-276"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-277"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Inverse_1960"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Inverse_1960</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-278"
+      ></span
+      ><span id="du_%2710518%27%278658%27%278596%27_126"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'10518''8658''8596'_126 :: T_Bijection_926 -&gt; T_Inverse_1960
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%278658%27%278596%27_126"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'10518''8658''8596'_126</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-279"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Inverse_1960)
+-&gt; Any -&gt; Any -&gt; T_Bijection_926 -&gt; T_Inverse_1960
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-280"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Inverse_1960
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Inverse_36"
+	><span class="hs-identifier hs-var"
+	  >du_Bijection'8658'Inverse_36</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-281"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-282"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html#du_setoid_402"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-283"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-284"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html#du_setoid_402"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-285"
+      ></span
+      ><span class="hs-comment"
+      >-- Function.Properties.Bijection.&#10518;&#8658;&#8660;</span
+      ><span
+      >
+</span
+      ><span id="line-286"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_%2710518%27%278658%27%278660%27_128"
+	><span class="hs-identifier hs-type"
+	  >d_'10518''8658''8660'_128</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-287"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-288"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-289"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-290"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-291"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-292"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Equivalence_1714"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Equivalence_1714</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-293"
+      ></span
+      ><span id="d_%2710518%27%278658%27%278660%27_128"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'10518''8658''8660'_128 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Bijection_926
+-&gt; T_Equivalence_1714
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#d_%2710518%27%278658%27%278660%27_128"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'10518''8658''8660'_128</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520980"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520980"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520981"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520981"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520982"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520982"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682520983"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682520983"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-294"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Bijection_926 -&gt; T_Equivalence_1714
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%278658%27%278660%27_128"
+	><span class="hs-identifier hs-var"
+	  >du_'10518''8658''8660'_128</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-295"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%278658%27%278660%27_128"
+	><span class="hs-identifier hs-type"
+	  >du_'10518''8658''8660'_128</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-296"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Bijection_926"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Bijection_926</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-297"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Equivalence_1714"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Equivalence_1714</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-298"
+      ></span
+      ><span id="du_%2710518%27%278658%27%278660%27_128"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'10518''8658''8660'_128 :: T_Bijection_926 -&gt; T_Equivalence_1714
+</span
+	  ><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_%2710518%27%278658%27%278660%27_128"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'10518''8658''8660'_128</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-299"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Setoid_44
+ -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Equivalence_1714)
+-&gt; Any -&gt; Any -&gt; T_Bijection_926 -&gt; T_Equivalence_1714
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-300"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44 -&gt; T_Bijection_926 -&gt; T_Equivalence_1714
+</span
+	><a href="MAlonzo.Code.Function.Properties.Bijection.html#du_Bijection%278658%27Equivalence_124"
+	><span class="hs-identifier hs-var"
+	  >du_Bijection'8658'Equivalence_124</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-301"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-302"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html#du_setoid_402"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-303"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-304"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html#du_setoid_402"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-305"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

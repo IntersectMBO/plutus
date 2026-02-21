@@ -1,0 +1,8337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Property tests for the `expModInteger` builtin</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Builtins.Integer.ExpModIntegerProperties</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#test_integer_exp_mod_properties"
+	><span class="hs-identifier"
+	  >test_integer_exp_mod_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Integer.Common</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#builtin"
+	><span class="hs-identifier"
+	  >builtin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier"
+	  >mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestName"
+	><span class="hs-identifier"
+	  >TestName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.QuickCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#numberOfTests"
+	><span class="hs-identifier hs-type"
+	  >numberOfTests</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span id="numberOfTests"
+      ><span class="annot"
+	><span class="annottext"
+	  >numberOfTests :: Int
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#numberOfTests"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >numberOfTests</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>400</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="local-6989586621679271932"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	  ><span class="hs-identifier hs-type"
+	    >testProp</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Testable</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679271932"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestName"
+	  ><span class="hs-identifier hs-type"
+	    >TestName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679271932"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	  ><span class="hs-identifier hs-type"
+	    >TestTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="testProp"
+      ><span class="annot"
+	><span class="annottext"
+	  >testProp :: forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >testProp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679272118"
+      ><span class="annot"
+	><span class="annottext"
+	  >TestName
+</span
+	  ><a href="#local-6989586621679272118"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679272119"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop
+</span
+	  ><a href="#local-6989586621679272119"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><a href="#local-6989586621679272118"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; TestTree) -&gt; Property -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; prop -&gt; Property
+forall prop. Testable prop =&gt; Int -&gt; prop -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>withMaxSuccess</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#numberOfTests"
+	><span class="hs-identifier hs-var"
+	  >numberOfTests</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>prop
+</span
+	><a href="#local-6989586621679272119"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-type"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="expModInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >expModInteger :: Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >expModInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272123"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679272123"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272124"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679272124"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272125"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679272125"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; [PlcTerm] -&gt; PlcTerm
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier hs-var"
+	  >mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultFun -&gt; PlcTerm
+forall ann.
+ann -&gt; DefaultFun -&gt; Term TyName Name DefaultUni DefaultFun ann
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun ann.
+TermLike term tyname name uni fun =&gt;
+ann -&gt; fun -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#builtin"
+	><span class="hs-identifier hs-var"
+	  >builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ExpModInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.ExpModInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272123"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272124"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272125"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- Is a^e defined modulo m?  This depends on the properties of gcd, which we</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >-- just assume behaves properly.</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-type"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="powerExists"
+      ><span class="annot"
+	><span class="annottext"
+	  >powerExists :: Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >powerExists</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679272128"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272128"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679272129"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272129"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679272130"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272130"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272129"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272129"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#gcd"
+	><span class="hs-identifier hs-var"
+	  >gcd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272128"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272130"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- expModInteger a e m always fails if m&lt;=0</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_bad_modulus"
+	><span class="hs-identifier hs-type"
+	  >prop_bad_modulus</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span id="prop_bad_modulus"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_bad_modulus :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_bad_modulus"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_bad_modulus</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272136"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272136"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272137"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272137"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272138"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272138"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >&lt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272141"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272141"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272136"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272137"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272138"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#fails"
+	><span class="hs-identifier hs-var"
+	  >fails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272141"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- expModInteger a e 1 = 0 for all b and e</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_modulus_one"
+	><span class="hs-identifier hs-type"
+	  >prop_modulus_one</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="prop_modulus_one"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_modulus_one :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_modulus_one"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_modulus_one</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272144"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272144"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272145"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272145"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272146"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272146"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272144"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272145"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272146"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#zero"
+	><span class="hs-identifier hs-var"
+	  >zero</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- Test that expModInteger a e m always lies between 0 and m-1 (inclusive)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_in_range"
+	><span class="hs-identifier hs-type"
+	  >prop_in_range</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="prop_in_range"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_in_range :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_in_range"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_in_range</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272150"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272150"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272151"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272151"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272152"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272152"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272153"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272153"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272153"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272151"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272150"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272154"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272154"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272152"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272151"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272150"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272155"
+      ><span class="annot"
+	><span class="annottext"
+	  >lb :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272155"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lb</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanEqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.LessThanEqualsInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272154"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272158"
+      ><span class="annot"
+	><span class="annottext"
+	  >ub :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272158"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ub</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanEqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.LessThanEqualsInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272154"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#SubtractInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.SubtractInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272150"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272155"
+	><span class="hs-identifier hs-var"
+	  >lb</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Property -&gt; Property
+forall prop1 prop2.
+(Testable prop1, Testable prop2) =&gt;
+prop1 -&gt; prop2 -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>.&amp;&amp;.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272158"
+	><span class="hs-identifier hs-var"
+	  >ub</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- For m &gt; 1, a^0 = 1 (equals 1, not congruent to 1)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_zero"
+	><span class="hs-identifier hs-type"
+	  >prop_power_zero</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="prop_power_zero"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_power_zero :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_zero"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_power_zero</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272163"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272163"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272164"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272164"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272166"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272166"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272163"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272164"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272166"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#one"
+	><span class="hs-identifier hs-var"
+	  >one</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- For m &gt;= 1, expModInteger a 1 m = a (mod m) for all a</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_one"
+	><span class="hs-identifier hs-type"
+	  >prop_power_one</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="prop_power_one"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_power_one :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_one"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_power_one</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272169"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272169"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272170"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272170"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272171"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272171"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272169"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272170"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272180"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272180"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ModInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.ModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Integer -&gt; PlcTerm
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272169"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Integer -&gt; PlcTerm
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272170"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272171"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272180"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-comment"
+      >-- For m &gt;= 1 and e &gt;= 0, expModInteger a e m exists for all a</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_positive_exponent"
+	><span class="hs-identifier hs-type"
+	  >prop_positive_exponent</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="prop_positive_exponent"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_positive_exponent :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_positive_exponent"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_positive_exponent</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272183"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272183"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272184"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272184"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272185"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272185"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272186"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272186"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272185"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272183"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272184"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#ok"
+	><span class="hs-identifier hs-var"
+	  >ok</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272186"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="hs-comment"
+      >-- If m &gt; 1, e &lt; 0, and gcd a m = 1, expModInteger a e m succeeds</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negative_exponent_good"
+	><span class="hs-identifier hs-type"
+	  >prop_negative_exponent_good</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="prop_negative_exponent_good"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_negative_exponent_good :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negative_exponent_good"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_negative_exponent_good</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272189"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272189"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272190"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272190"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272191"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272191"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#gcd"
+	><span class="hs-identifier hs-var"
+	  >gcd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272191"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272189"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272192"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272192"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272193"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272193"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272190"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272192"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272189"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#ok"
+	><span class="hs-identifier hs-var"
+	  >ok</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272193"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-comment"
+      >-- If m &gt; 1, e &lt; 0, and gcd a m /= 1, expModInteger a e m fails</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negative_exponent_bad"
+	><span class="hs-identifier hs-type"
+	  >prop_negative_exponent_bad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span id="prop_negative_exponent_bad"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_negative_exponent_bad :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negative_exponent_bad"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_negative_exponent_bad</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272195"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272195"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272196"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272196"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272197"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272197"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#gcd"
+	><span class="hs-identifier hs-var"
+	  >gcd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272197"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272195"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272199"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272199"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272200"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272200"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272196"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272199"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272195"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#fails"
+	><span class="hs-identifier hs-var"
+	  >fails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272200"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-comment"
+      >-- If m &gt; 1 and gcd a m = 1, expModInteger a e m succeeds for all e and is the</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="hs-comment"
+      >-- multiplicative inverse of expModInteger a (-e) m modulo m.</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negated_exponent_inverse"
+	><span class="hs-identifier hs-type"
+	  >prop_negated_exponent_inverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="prop_negated_exponent_inverse"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_negated_exponent_inverse :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negated_exponent_inverse"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_negated_exponent_inverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272202"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272202"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272203"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272203"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272204"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272204"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#gcd"
+	><span class="hs-identifier hs-var"
+	  >gcd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272204"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272202"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272205"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272205"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- Positive or negative</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272206"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272206"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272203"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272205"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272202"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272208"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272208"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272203"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272205"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272202"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272213"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272213"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ModInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.ModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MultiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.MultiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272206"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272208"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Integer -&gt; PlcTerm
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272202"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272213"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#one"
+	><span class="hs-identifier hs-var"
+	  >one</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- For m=1 this would be zero.</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-comment"
+      >-- (ab)^e mod m = a^e * b^e mod m</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_multiplicative"
+	><span class="hs-identifier hs-type"
+	  >prop_multiplicative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span id="prop_multiplicative"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_multiplicative :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_multiplicative"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_multiplicative</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272216"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272216"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272217"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272217"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272218"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272218"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272219"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272219"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272219"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272217"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272216"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272220"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272220"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272221"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272221"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272221"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272217"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272216"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272223"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272223"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272218"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2A"
+	><span class="hs-operator hs-var"
+	  >*</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272220"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272217"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272216"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272225"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272225"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ModInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.ModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MultiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.MultiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272218"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272217"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272216"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272220"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272217"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272216"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272216"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272223"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272225"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="hs-comment"
+      >-- a^(e+e') = a^e*a^e' whenever both powers exist</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_exponent_additive"
+	><span class="hs-identifier hs-type"
+	  >prop_exponent_additive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span id="prop_exponent_additive"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_exponent_additive :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_exponent_additive"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_exponent_additive</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272227"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272227"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272228"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272228"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272229"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272229"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272230"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272230"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272231"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272231"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272231"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272227"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272229"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272231"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272228"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272229"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272233"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272233"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272230"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272227"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272228"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272229"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272235"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272235"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ModInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.ModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp2"
+	><span class="hs-identifier hs-var"
+	  >mkApp2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MultiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >PLC.MultiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272230"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272227"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272229"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272230"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272228"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272229"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#integer"
+	><span class="hs-identifier hs-var"
+	  >integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272229"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272233"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272235"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="hs-comment"
+      >-- a^e mod m is the same for all members of a particular congruence class.</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_periodic"
+	><span class="hs-identifier hs-type"
+	  >prop_periodic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span id="prop_periodic"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_periodic :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_periodic"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_periodic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272237"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272237"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272238"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272238"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272239"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272239"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272240"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272240"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272241"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272241"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272241"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272238"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272237"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272242"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272242"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272240"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272238"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272237"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679272245"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272245"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272240"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272239"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2A"
+	><span class="hs-operator hs-var"
+	  >*</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272237"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272238"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272237"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272242"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272245"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span class="hs-comment"
+      >-- Test that a power exists when it should. This overlaps with some of the</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span class="hs-comment"
+      >-- earlier tests.</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_exists"
+	><span class="hs-identifier hs-type"
+	  >prop_power_exists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span id="prop_power_exists"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_power_exists :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_exists"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_power_exists</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272247"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272247"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272248"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272248"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272249"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272249"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679272250"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272250"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272250"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272248"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272247"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272251"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272251"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272249"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272248"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272247"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#ok"
+	><span class="hs-identifier hs-var"
+	  >ok</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272251"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span class="hs-comment"
+      >-- Test that a power doesn't exist when it shouldn't. This overlaps with some of</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span class="hs-comment"
+      >-- the earlier tests.</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_does_not_exist"
+	><span class="hs-identifier hs-type"
+	  >prop_power_does_not_exist</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span id="prop_power_does_not_exist"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_power_does_not_exist :: Gen Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_does_not_exist"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_power_does_not_exist</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272253"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272253"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer -&gt; (Integer -&gt; Bool) -&gt; Gen Integer
+forall a. Gen a -&gt; (a -&gt; Bool) -&gt; Gen a
+</span
+	><span class="hs-operator hs-var"
+	>`suchThat`</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272254"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272254"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679272255"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679272255"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Integer
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger"
+	><span class="hs-identifier hs-var"
+	  >arbitraryBigInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679272256"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679272256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#expModInteger"
+	><span class="hs-identifier hs-var"
+	  >expModInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272255"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272254"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272253"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Gen Property
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; Gen Property) -&gt; Property -&gt; Gen Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#powerExists"
+	><span class="hs-identifier hs-var"
+	  >powerExists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272255"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272254"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679272253"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Property -&gt; Property
+forall prop. Testable prop =&gt; Bool -&gt; prop -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>==&gt;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#fails"
+	><span class="hs-identifier hs-var"
+	  >fails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679272256"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#test_integer_exp_mod_properties"
+	><span class="hs-identifier hs-type"
+	  >test_integer_exp_mod_properties</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span id="test_integer_exp_mod_properties"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_integer_exp_mod_properties :: TestTree
+</span
+	  ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#test_integer_exp_mod_properties"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_integer_exp_mod_properties</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Property tests for expModInteger&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;modulus &lt;= 0 -&gt; error&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_bad_modulus"
+	><span class="hs-identifier hs-var"
+	  >prop_bad_modulus</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;a^e mod 1 == 0 for all a and e&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_modulus_one"
+	><span class="hs-identifier hs-var"
+	  >prop_modulus_one</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Result lies between 0 and m-1&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_in_range"
+	><span class="hs-identifier hs-var"
+	  >prop_in_range</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;a^0 mod m == 1&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_zero"
+	><span class="hs-identifier hs-var"
+	  >prop_power_zero</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;a^1 mod m == a mod m&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_one"
+	><span class="hs-identifier hs-var"
+	  >prop_power_one</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;e &gt;= 0  =&gt; a^e mod m exists&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_positive_exponent"
+	><span class="hs-identifier hs-var"
+	  >prop_positive_exponent</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;e &lt; 0 &amp;&amp; gcd a m == 1 =&gt; a^e mod m exists&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negative_exponent_good"
+	><span class="hs-identifier hs-var"
+	  >prop_negative_exponent_good</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;e &lt; 0 &amp;&amp; gcd a m &gt; 1 =&gt; a^e mod m does not exist&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negative_exponent_bad"
+	><span class="hs-identifier hs-var"
+	  >prop_negative_exponent_bad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;e &lt; 0 &amp;&amp; gcd a m == 1 =&gt; (a^e mod m) * (a^(-e) mod m) = 1 mod m&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_negated_exponent_inverse"
+	><span class="hs-identifier hs-var"
+	  >prop_negated_exponent_inverse</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;(ab)^e mod m == (a^e * b^e) mod m&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_multiplicative"
+	><span class="hs-identifier hs-var"
+	  >prop_multiplicative</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;a^(e+e') mod m == (a^e * a^e') mod m&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_exponent_additive"
+	><span class="hs-identifier hs-var"
+	  >prop_exponent_additive</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;(a+k*m)^e mod m == a^e mod m for all k&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_periodic"
+	><span class="hs-identifier hs-var"
+	  >prop_periodic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Power exists&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_exists"
+	><span class="hs-identifier hs-var"
+	  >prop_power_exists</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Gen Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Power does not exist&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Property
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#prop_power_does_not_exist"
+	><span class="hs-identifier hs-var"
+	  >prop_power_does_not_exist</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

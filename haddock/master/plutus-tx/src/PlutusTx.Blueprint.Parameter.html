@@ -1,0 +1,1580 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE KindSignatures #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RecordWildCards #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Parameter</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-operator"
+	>(.=)</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html"
+	><span class="hs-identifier"
+	  >Data.Aeson.Extra</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html#buildObject"
+	><span class="hs-identifier"
+	  >buildObject</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html#requiredField"
+	><span class="hs-identifier"
+	  >requiredField</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier"
+	  >Set</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Purpose.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Purpose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Purpose.html#Purpose"
+	><span class="hs-identifier"
+	  >Purpose</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier"
+	  >Schema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Blueprint that defines validator's compile-time parameter.
+
+  The 'referencedTypes' phantom type parameter is used to track the types used in the contract
+  making sure their schemas are included in the blueprint and that they are referenced
+  in a type-safe way. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ParameterBlueprint"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Parameter.html#ParameterBlueprint"
+	  ><span class="hs-identifier hs-var"
+	    >ParameterBlueprint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680064904"
+      ><span class="annot"
+	><a href="#local-6989586621680064904"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkParameterBlueprint"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Parameter.html#MkParameterBlueprint"
+	  ><span class="hs-identifier hs-var"
+	    >MkParameterBlueprint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="parameterTitle"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Maybe Text
+</span
+	  ><a href="PlutusTx.Blueprint.Parameter.html#parameterTitle"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parameterTitle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A short and descriptive name for the parameter.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="parameterDescription"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Maybe Text
+</span
+	  ><a href="PlutusTx.Blueprint.Parameter.html#parameterDescription"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parameterDescription</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ An informative description of the parameter.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="parameterPurpose"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Set Purpose
+</span
+	  ><a href="PlutusTx.Blueprint.Parameter.html#parameterPurpose"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parameterPurpose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Purpose.html#Purpose"
+	><span class="hs-identifier hs-type"
+	  >Purpose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ One of &quot;spend&quot;, &quot;mint&quot;, &quot;withdraw&quot; or &quot;publish&quot;, or a oneOf applicator of those.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="parameterSchema"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Schema referencedTypes
+</span
+	  ><a href="PlutusTx.Blueprint.Parameter.html#parameterSchema"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parameterSchema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier hs-type"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680064904"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A Plutus Data Schema.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680064974"
+      ><span id="local-6989586621680064987"
+	><span id="local-6989586621680064991"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ParameterBlueprint referencedTypes -&gt; ShowS
+[ParameterBlueprint referencedTypes] -&gt; ShowS
+ParameterBlueprint referencedTypes -&gt; String
+(Int -&gt; ParameterBlueprint referencedTypes -&gt; ShowS)
+-&gt; (ParameterBlueprint referencedTypes -&gt; String)
+-&gt; ([ParameterBlueprint referencedTypes] -&gt; ShowS)
+-&gt; Show (ParameterBlueprint referencedTypes)
+forall (referencedTypes :: [*]).
+Int -&gt; ParameterBlueprint referencedTypes -&gt; ShowS
+forall (referencedTypes :: [*]).
+[ParameterBlueprint referencedTypes] -&gt; ShowS
+forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall (referencedTypes :: [*]).
+Int -&gt; ParameterBlueprint referencedTypes -&gt; ShowS
+showsPrec :: Int -&gt; ParameterBlueprint referencedTypes -&gt; ShowS
+$cshow :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; String
+show :: ParameterBlueprint referencedTypes -&gt; String
+$cshowList :: forall (referencedTypes :: [*]).
+[ParameterBlueprint referencedTypes] -&gt; ShowS
+showList :: [ParameterBlueprint referencedTypes] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680064997"
+      ><span id="local-6989586621680065008"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+(ParameterBlueprint referencedTypes
+ -&gt; ParameterBlueprint referencedTypes -&gt; Bool)
+-&gt; (ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes -&gt; Bool)
+-&gt; Eq (ParameterBlueprint referencedTypes)
+forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+== :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+$c/= :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+/= :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680065017"
+      ><span id="local-6989586621680065028"
+	><span id="local-6989586621680065036"
+	  ><span id="local-6989586621680065040"
+	    ><span id="local-6989586621680065043"
+	      ><span id="local-6989586621680065046"
+		><span id="local-6989586621680065049"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (ParameterBlueprint referencedTypes)
+Eq (ParameterBlueprint referencedTypes) =&gt;
+(ParameterBlueprint referencedTypes
+ -&gt; ParameterBlueprint referencedTypes -&gt; Ordering)
+-&gt; (ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes -&gt; Bool)
+-&gt; (ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes -&gt; Bool)
+-&gt; (ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes -&gt; Bool)
+-&gt; (ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes -&gt; Bool)
+-&gt; (ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes)
+-&gt; (ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes
+    -&gt; ParameterBlueprint referencedTypes)
+-&gt; Ord (ParameterBlueprint referencedTypes)
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Ordering
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+forall (referencedTypes :: [*]).
+Eq (ParameterBlueprint referencedTypes)
+forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Ordering
+forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Ordering
+compare :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Ordering
+$c&lt; :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+&lt; :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+$c&lt;= :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+&lt;= :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+$c&gt; :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+&gt; :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+$c&gt;= :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+&gt;= :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes -&gt; Bool
+$cmax :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+max :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+$cmin :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+min :: ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+-&gt; ParameterBlueprint referencedTypes
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680064938"
+      ><span id="local-6989586621680065056"
+	><span id="local-6989586621680065060"
+	  ><span id="local-6989586621680065063"
+	    ><span id="local-6989586621680065066"
+	      ><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusTx.Blueprint.Parameter.html#ParameterBlueprint"
+		  ><span class="hs-identifier hs-type"
+		    >ParameterBlueprint</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621680064938"
+		  ><span class="hs-identifier hs-type"
+		    >referencedTypes</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680065083"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ParameterBlueprint referencedTypes -&gt; Value
+</span
+	  ><a href="#local-6989586621680065083"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Parameter.html#MkParameterBlueprint"
+	><span class="hs-identifier hs-type"
+	  >MkParameterBlueprint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="local-6989586621680065085"
+      ><span id="local-6989586621680065086"
+	><span id="local-6989586621680065087"
+	  ><span id="local-6989586621680065088"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>Maybe Text
+Set Purpose
+Schema referencedTypes
+parameterTitle :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Maybe Text
+parameterDescription :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Maybe Text
+parameterPurpose :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Set Purpose
+parameterSchema :: forall (referencedTypes :: [*]).
+ParameterBlueprint referencedTypes -&gt; Schema referencedTypes
+parameterTitle :: Maybe Text
+parameterDescription :: Maybe Text
+parameterPurpose :: Set Purpose
+parameterSchema :: Schema referencedTypes
+</span
+		><a href="PlutusTx.Blueprint.Parameter.html#parameterTitle"
+		><span class="hs-glyph hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >..</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; Value
+</span
+	><a href="Data.Aeson.Extra.html#buildObject"
+	><span class="hs-identifier hs-var"
+	  >buildObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Object) -&gt; Value) -&gt; (Object -&gt; Object) -&gt; Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Schema referencedTypes -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#requiredField"
+	><span class="hs-identifier hs-var"
+	  >requiredField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;schema&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Schema referencedTypes
+</span
+	><a href="#local-6989586621680065088"
+	><span class="hs-identifier hs-var"
+	  >parameterSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Maybe Text -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;title&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text
+</span
+	><a href="#local-6989586621680065085"
+	><span class="hs-identifier hs-var"
+	  >parameterTitle</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Maybe Text -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;description&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text
+</span
+	><a href="#local-6989586621680065086"
+	><span class="hs-identifier hs-var"
+	  >parameterDescription</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Maybe Value -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;purpose&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set Purpose -&gt; Maybe Value
+forall a. ToJSON a =&gt; Set a -&gt; Maybe Value
+</span
+	><a href="PlutusTx.Blueprint.Parameter.html#oneOfASet"
+	><span class="hs-identifier hs-var"
+	  >oneOfASet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set Purpose
+</span
+	><a href="#local-6989586621680065087"
+	><span class="hs-identifier hs-var"
+	  >parameterPurpose</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >-- Helper functions --------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="local-6989586621680064950"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Parameter.html#oneOfASet"
+	  ><span class="hs-identifier hs-type"
+	    >oneOfASet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >ToJSON</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680064950"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	  ><span class="hs-identifier hs-type"
+	    >Set</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680064950"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	  ><span class="hs-identifier hs-type"
+	    >Maybe</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Aeson.Value</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="oneOfASet"
+      ><span class="annot"
+	><span class="annottext"
+	  >oneOfASet :: forall a. ToJSON a =&gt; Set a -&gt; Maybe Value
+</span
+	  ><a href="PlutusTx.Blueprint.Parameter.html#oneOfASet"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >oneOfASet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680065100"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set a
+</span
+	  ><a href="#local-6989586621680065100"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set a -&gt; [a]
+forall a. Set a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Set.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set a
+</span
+	><a href="#local-6989586621680065100"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Value
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span id="local-6989586621680065102"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680065102"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Maybe Value
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; Maybe Value) -&gt; Value -&gt; Maybe Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>toJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680065102"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621680065103"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621680065103"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Maybe Value
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; Maybe Value) -&gt; Value -&gt; Maybe Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Pair] -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Aeson.object</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;oneOf&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; [a] -&gt; Pair
+forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
+forall e kv v. (KeyValue e kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span
+	><span class="hs-operator hs-var"
+	>.=</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621680065103"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

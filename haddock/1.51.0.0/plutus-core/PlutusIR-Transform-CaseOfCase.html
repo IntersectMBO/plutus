@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.CaseOfCase</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.CaseOfCase.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.CaseOfCase</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:caseOfCase"
+	      >caseOfCase</a
+	      > &#8759; &#8704; m tyname uni fun a. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:caseOfCasePass"
+	      >caseOfCasePass</a
+	      > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; a &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:caseOfCasePassSC"
+	      >caseOfCasePassSC</a
+	      > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; a &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCase" class="def"
+	    >caseOfCase</a
+	    > &#8759; &#8704; m tyname uni fun a. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a) <a href="src/PlutusIR.Transform.CaseOfCase.html#caseOfCase" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCase" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Perform the case-of-case transformation. This pushes
+case expressions into the case branches of other case
+expressions, which can often yield optimization opportunities.</p
+	    ><p
+	    >Example:
+@
+    case (case s of { C1 a -&gt; x; C2 b -&gt; y; }) of
+      D1 -&gt; w
+      D2 -&gt; z</p
+	    ><ul
+	    ><li
+	      >-&gt;</li
+	      ></ul
+	    ><p
+	    >case s of
+      C1 a -&gt; case x of { D1 -&gt; w; D2 -&gt; z; }
+      C2 b -&gt; case y of { D1 -&gt; w; D2 -&gt; z; }
+@</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCasePass" class="def"
+	    >caseOfCasePass</a
+	    > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; a &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	    >Pass</a
+	    > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a <a href="src/PlutusIR.Transform.CaseOfCase.html#caseOfCasePass" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCasePass" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCasePassSC" class="def"
+	    >caseOfCasePassSC</a
+	    > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; a &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	    >Pass</a
+	    > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a <a href="src/PlutusIR.Transform.CaseOfCase.html#caseOfCasePassSC" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCasePassSC" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

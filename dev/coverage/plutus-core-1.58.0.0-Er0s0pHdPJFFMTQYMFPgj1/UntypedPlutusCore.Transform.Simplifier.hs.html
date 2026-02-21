@@ -1,0 +1,100 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module UntypedPlutusCore.Transform.Simplifier
+<span class="lineno">    2 </span>  ( SimplifierT (..)
+<span class="lineno">    3 </span>  , Trace.SimplifierTrace (..)
+<span class="lineno">    4 </span>  , Trace.SimplifierStage (..)
+<span class="lineno">    5 </span>  , Trace.Simplification (..)
+<span class="lineno">    6 </span>  , runSimplifierT
+<span class="lineno">    7 </span>  , evalSimplifierT
+<span class="lineno">    8 </span>  , execSimplifierT
+<span class="lineno">    9 </span>  , Simplifier
+<span class="lineno">   10 </span>  , runSimplifier
+<span class="lineno">   11 </span>  , evalSimplifier
+<span class="lineno">   12 </span>  , execSimplifier
+<span class="lineno">   13 </span>  , Trace.initSimplifierTrace
+<span class="lineno">   14 </span>  , recordSimplification
+<span class="lineno">   15 </span>  , recordSimplificationWithHints
+<span class="lineno">   16 </span>  ) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Monad.State (MonadTrans, StateT)
+<span class="lineno">   19 </span>import Control.Monad.State qualified as State
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Monad.Identity (Identity, runIdentity)
+<span class="lineno">   22 </span>import PlutusCore.Quote (MonadQuote)
+<span class="lineno">   23 </span>import UntypedPlutusCore.Core.Type (Term)
+<span class="lineno">   24 </span>import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
+<span class="lineno">   25 </span>import UntypedPlutusCore.Transform.Certify.Trace qualified as Trace
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>newtype SimplifierT name uni fun ann m a
+<span class="lineno">   28 </span>  = SimplifierT
+<span class="lineno">   29 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">getSimplifierT</span></span></span> :: StateT (Trace.SimplifierTrace name uni fun ann) m a
+<span class="lineno">   30 </span>  }
+<span class="lineno">   31 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Functor</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Applicative</span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Monad</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff">MonadTrans</span></span>)
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>instance <span class="decl"><span class="istickedoff">MonadQuote m =&gt; MonadQuote (SimplifierT name uni fun ann m)</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>runSimplifierT
+<span class="lineno">   36 </span>  :: SimplifierT name uni fun ann m a
+<span class="lineno">   37 </span>  -&gt; m (a, Trace.SimplifierTrace name uni fun ann)
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">runSimplifierT = flip State.runStateT Trace.initSimplifierTrace . getSimplifierT</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>evalSimplifierT
+<span class="lineno">   41 </span>  :: Monad m =&gt; SimplifierT name uni fun ann m a -&gt; m a
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">evalSimplifierT = flip State.evalStateT <span class="nottickedoff">Trace.initSimplifierTrace</span> . getSimplifierT</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>execSimplifierT
+<span class="lineno">   45 </span>  :: Monad m =&gt; SimplifierT name uni fun ann m a -&gt; m (Trace.SimplifierTrace name uni fun ann)
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">execSimplifierT = flip State.execStateT Trace.initSimplifierTrace . getSimplifierT</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>type Simplifier name uni fun ann = SimplifierT name uni fun ann Identity
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>runSimplifier :: Simplifier name uni fun ann a -&gt; (a, Trace.SimplifierTrace name uni fun ann)
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">runSimplifier = runIdentity . runSimplifierT</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>evalSimplifier :: Simplifier name uni fun ann a -&gt; a
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">evalSimplifier = runIdentity . evalSimplifierT</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>execSimplifier :: Simplifier name uni fun ann a -&gt; Trace.SimplifierTrace name uni fun ann
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">execSimplifier = runIdentity . execSimplifierT</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>recordSimplification
+<span class="lineno">   60 </span>  :: Monad m
+<span class="lineno">   61 </span>  =&gt; Term name uni fun a
+<span class="lineno">   62 </span>  -&gt; Trace.SimplifierStage
+<span class="lineno">   63 </span>  -&gt; Term name uni fun a
+<span class="lineno">   64 </span>  -&gt; SimplifierT name uni fun a m ()
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">recordSimplification = recordSimplificationWithHints Hints.NoHints</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>recordSimplificationWithHints
+<span class="lineno">   68 </span>  :: Monad m
+<span class="lineno">   69 </span>  =&gt; Hints.Hints
+<span class="lineno">   70 </span>  -&gt; Term name uni fun a
+<span class="lineno">   71 </span>  -&gt; Trace.SimplifierStage
+<span class="lineno">   72 </span>  -&gt; Term name uni fun a
+<span class="lineno">   73 </span>  -&gt; SimplifierT name uni fun a m ()
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">recordSimplificationWithHints hints before stage after =</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">let simplification = Trace.Simplification before stage hints after</span>
+<span class="lineno">   76 </span><span class="spaces">   </span><span class="istickedoff">in SimplifierT . State.modify' $ \st -&gt;</span>
+<span class="lineno">   77 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">st</span> {Trace.simplifierTrace = simplification : Trace.simplifierTrace st}</span></span>
+
+</pre>
+</body>
+</html>

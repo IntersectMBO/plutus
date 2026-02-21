@@ -1,0 +1,1960 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.ExBudget</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.ExBudget.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.ExBudget</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ExBudget"
+	      >ExBudget</a
+	      > = <a href="#v:ExBudget"
+	      >ExBudget</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:exBudgetCPU"
+		  >exBudgetCPU</a
+		  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >ExCPU</a
+		  ></li
+		><li
+		><a href="#v:exBudgetMemory"
+		  >exBudgetMemory</a
+		  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >ExMemory</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:minusExBudget"
+	      >minusExBudget</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:ExBudgetBuiltin"
+	      >ExBudgetBuiltin</a
+	      > fun exBudgetCat <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:exBudgetBuiltin"
+		  >exBudgetBuiltin</a
+		  > &#8759; fun &#8594; exBudgetCat</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ExRestrictingBudget"
+	      >ExRestrictingBudget</a
+	      > = <a href="#v:ExRestrictingBudget"
+	      >ExRestrictingBudget</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unExRestrictingBudget"
+		  >unExRestrictingBudget</a
+		  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:LowerInitialCharacter"
+	      >LowerInitialCharacter</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:largeBudget"
+	      >largeBudget</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExRestrictingBudget</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:enormousBudget"
+	      >enormousBudget</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExRestrictingBudget</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ExBudget" class="def"
+	    >ExBudget</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget" class="link"
+	    >Source</a
+	    > <a href="#t:ExBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ExBudget" class="def"
+		  >ExBudget</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:exBudgetCPU" class="def"
+			  >exBudgetCPU</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExCPU</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:exBudgetMemory" class="def"
+			  >exBudgetMemory</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			  >ExMemory</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExBudget"
+	    >Instances</h4
+	    ><details id="i:ExBudget" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-178" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:ToJSON:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-178" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:ToJSON:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Monoid:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-196" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Monoid:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Semigroup:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-188" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Semigroup:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Generic:5"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-176" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Generic:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > x &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Show:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-176" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Show:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:NFData:7"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:NFData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Eq:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-176" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Eq:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:NoThunks:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:NoThunks:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Pretty:10"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-200" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Pretty:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Serialise:11"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Serialise:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:PrettyBy:12"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:PrettyBy:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Lift:13"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-176" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Lift:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudget:Rep:14"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-176" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudget:Rep:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ExBudget&quot; &quot;PlutusCore.Evaluation.Machine.ExBudget&quot; &quot;plutus-core-1.56.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ExBudget&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;exBudgetCPU&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExCPU" title="PlutusCore.Evaluation.Machine.ExMemory"
+			>ExCPU</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;exBudgetMemory&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:ExMemory" title="PlutusCore.Evaluation.Machine.ExMemory"
+			>ExMemory</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:minusExBudget" class="def"
+	    >minusExBudget</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#minusExBudget" class="link"
+	    >Source</a
+	    > <a href="#v:minusExBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Subtract one <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		>ExBudget</a
+		></code
+	      > from another. Does not guarantee that the result is positive.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:ExBudgetBuiltin" class="def"
+	    >ExBudgetBuiltin</a
+	    > fun exBudgetCat <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudgetBuiltin" class="link"
+	    >Source</a
+	    > <a href="#t:ExBudgetBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class for injecting a <code
+	      >Builtin</code
+	      > into an <code
+	      >exBudgetCat</code
+	      >.
+We need it, because the constant application machinery calls <code
+	      >spendBudget</code
+	      > before reducing a
+constant application and we want to be general over <code
+	      >exBudgetCat</code
+	      > there, but still track the
+built-in functions category, hence the ad hoc polymorphism. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:exBudgetBuiltin" class="def"
+	      >exBudgetBuiltin</a
+	      > &#8759; fun &#8594; exBudgetCat <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#exBudgetBuiltin" class="link"
+	      >Source</a
+	      > <a href="#v:exBudgetBuiltin" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExBudgetBuiltin"
+	    >Instances</h4
+	    ><details id="i:ExBudgetBuiltin" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExBudgetBuiltin:ExBudgetBuiltin:1"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudgetBuiltin" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudgetBuiltin</a
+		      > fun ()</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-172" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudgetBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >A dummy <code
+		      ><a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudgetBuiltin" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudgetBuiltin</a
+			></code
+		      > instance to be used in monads where we don't care about costing.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExBudgetBuiltin:ExBudgetBuiltin:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:exBudgetBuiltin"
+			  >exBudgetBuiltin</a
+			  > &#8759; fun &#8594; () <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#exBudgetBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:exBudgetBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExBudgetBuiltin:ExBudgetBuiltin:2"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudgetBuiltin" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExBudgetBuiltin</a
+		      > fun (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:ExBudgetCategory" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >ExBudgetCategory</a
+		      > fun)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-244" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudgetBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExBudgetBuiltin:ExBudgetBuiltin:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:exBudgetBuiltin"
+			  >exBudgetBuiltin</a
+			  > &#8759; fun &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:ExBudgetCategory" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >ExBudgetCategory</a
+			  > fun <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#exBudgetBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:exBudgetBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ExRestrictingBudget" class="def"
+	    >ExRestrictingBudget</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#ExRestrictingBudget" class="link"
+	    >Source</a
+	    > <a href="#t:ExRestrictingBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ExRestrictingBudget" class="def"
+		  >ExRestrictingBudget</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unExRestrictingBudget" class="def"
+			  >unExRestrictingBudget</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExRestrictingBudget"
+	    >Instances</h4
+	    ><details id="i:ExRestrictingBudget" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExRestrictingBudget:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExRestrictingBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-213" class="link"
+		    >Source</a
+		    > <a href="#t:ExRestrictingBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExRestrictingBudget:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  >] &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExRestrictingBudget:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExRestrictingBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-213" class="link"
+		    >Source</a
+		    > <a href="#t:ExRestrictingBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExRestrictingBudget:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExRestrictingBudget:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExRestrictingBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-212" class="link"
+		    >Source</a
+		    > <a href="#t:ExRestrictingBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExRestrictingBudget:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExRestrictingBudget:NFData:4"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExRestrictingBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-214" class="link"
+		    >Source</a
+		    > <a href="#t:ExRestrictingBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExRestrictingBudget:NFData:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExRestrictingBudget:Eq:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExRestrictingBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-212" class="link"
+		    >Source</a
+		    > <a href="#t:ExRestrictingBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExRestrictingBudget:Eq:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExRestrictingBudget:Pretty:6"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExRestrictingBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-214" class="link"
+		    >Source</a
+		    > <a href="#t:ExRestrictingBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExRestrictingBudget:Pretty:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExRestrictingBudget:PrettyBy:7"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >ExRestrictingBudget</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-214" class="link"
+		    >Source</a
+		    > <a href="#t:ExRestrictingBudget" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExRestrictingBudget:PrettyBy:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExRestrictingBudget</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:LowerInitialCharacter" class="def"
+	    >LowerInitialCharacter</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#LowerInitialCharacter" class="link"
+	    >Source</a
+	    > <a href="#t:LowerInitialCharacter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This is used elsewhere to convert cost models into JSON objects where the
+names of the fields are exactly the same as the names of the builtins. </p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:LowerInitialCharacter"
+	    >Instances</h4
+	    ><details id="i:LowerInitialCharacter" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LowerInitialCharacter:StringModifier:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:StringModifier" title="Deriving.Aeson"
+		      >StringModifier</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:LowerInitialCharacter" title="PlutusCore.Evaluation.Machine.ExBudget"
+		      >LowerInitialCharacter</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#line-161" class="link"
+		    >Source</a
+		    > <a href="#t:LowerInitialCharacter" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LowerInitialCharacter:StringModifier:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudget.html"
+			>PlutusCore.Evaluation.Machine.ExBudget</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:getStringModifier"
+			  >getStringModifier</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:getStringModifier" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:largeBudget" class="def"
+	    >largeBudget</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExRestrictingBudget</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#largeBudget" class="link"
+	    >Source</a
+	    > <a href="#v:largeBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >When we want to just evaluate the program that is intended to run out of budget we use the
+<code
+	      >Restricting</code
+	      > mode with this big budget designed to make the CEK machine terminate in a
+fraction of a second on the reference machine. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:enormousBudget" class="def"
+	    >enormousBudget</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExRestrictingBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExRestrictingBudget</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudget.html#enormousBudget" class="link"
+	    >Source</a
+	    > <a href="#v:enormousBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >When we want to just evaluate the program we use the <code
+	      >Restricting</code
+	      > mode with an enormous
+budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

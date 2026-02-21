@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Builtin.TestKnown</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Builtin.TestKnown.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Builtin.TestKnown</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >A module providing a tool for making sure that each type from a particular universe implements
+ <code
+	    ><a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	      >KnownTypeAst</a
+	      ></code
+	    >, <code
+	    ><a href="PlutusCore-Builtin-KnownType.html#t:ReadKnown" title="PlutusCore.Builtin.KnownType"
+	      >ReadKnown</a
+	      ></code
+	    > and <code
+	    ><a href="PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	      >MakeKnown</a
+	      ></code
+	    >. Kept separate from the modules defining those
+ classes in order not to introduce dependencies between them and because this extra safety is
+ scary looking and it's best to keep it separate from what is necessary.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > (uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > ImplementedKnownTypeAst uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > ImplementedReadKnownIn uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > ImplementedMakeKnownIn uni) &#8658; <a href="#t:TestTypesFromTheUniverseAreAllKnown"
+	      >TestTypesFromTheUniverseAreAllKnown</a
+	      > uni</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > (uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > ImplementedKnownTypeAst uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > ImplementedReadKnownIn uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > ImplementedMakeKnownIn uni) &#8658; <a id="t:TestTypesFromTheUniverseAreAllKnown" class="def"
+	    >TestTypesFromTheUniverseAreAllKnown</a
+	    > uni <a href="src/PlutusCore.Builtin.TestKnown.html#TestTypesFromTheUniverseAreAllKnown" class="link"
+	    >Source</a
+	    > <a href="#t:TestTypesFromTheUniverseAreAllKnown" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An instance of this class not having any constraints ensures that every type (according to
+ <code
+	      ><a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		>Everywhere</a
+		></code
+	      >) from the universe has 'KnownTypeAst, <code
+	      ><a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		>ReadKnownIn</a
+		></code
+	      > and <code
+	      ><a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		>MakeKnownIn</a
+		></code
+	      > instances.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TestTypesFromTheUniverseAreAllKnown"
+	    >Instances</h4
+	    ><details id="i:TestTypesFromTheUniverseAreAllKnown" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:TestTypesFromTheUniverseAreAllKnown:TestTypesFromTheUniverseAreAllKnown:1"
+		      ></span
+		      > <a href="PlutusCore-Builtin-TestKnown.html#t:TestTypesFromTheUniverseAreAllKnown" title="PlutusCore.Builtin.TestKnown"
+		      >TestTypesFromTheUniverseAreAllKnown</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-357" class="link"
+		    >Source</a
+		    > <a href="#t:TestTypesFromTheUniverseAreAllKnown" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:TestTypesFromTheUniverseAreAllKnown:TestTypesFromTheUniverseAreAllKnown:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

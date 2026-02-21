@@ -1,0 +1,2097 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Decoder</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Decoder.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Decoder</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Strict Decoder</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:strictDecoder"
+	      >strictDecoder</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+	      >DecodeException</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:listTDecoder"
+	      >listTDecoder</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="https://hackage.haskell.org/package/list-t-1.0.5.7/docs/ListT.html#t:ListT" title="ListT"
+	      >ListT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Decoded"
+	      >Decoded</a
+	      > a = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+	      >DecodeException</a
+	      > a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DecodeException"
+	      >DecodeException</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:NotEnoughSpace"
+		  >NotEnoughSpace</a
+		  > Env</li
+		><li
+		>| <a href="#v:TooMuchSpace"
+		  >TooMuchSpace</a
+		  > Env</li
+		><li
+		>| <a href="#v:BadEncoding"
+		  >BadEncoding</a
+		  > Env <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		><li
+		>| <a href="#v:BadOp"
+		  >BadOp</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Get"
+	      >Get</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:dByteString"
+	      >dByteString</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dLazyByteString"
+	      >dLazyByteString</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dShortByteString"
+	      >dShortByteString</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	      >ShortByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dShortByteString_"
+	      >dShortByteString_</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	      >ShortByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dUTF16"
+	      >dUTF16</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dUTF8"
+	      >dUTF8</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeArrayWith"
+	      >decodeArrayWith</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:decodeListWith"
+	      >decodeListWith</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><a href="#v:dFloat"
+	      >dFloat</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	      >Float</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dDouble"
+	      >dDouble</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dInteger"
+	      >dInteger</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dNatural"
+	      >dNatural</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+	      >Natural</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dChar"
+	      >dChar</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+	      >Char</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBool"
+	      >dBool</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dWord8"
+	      >dWord8</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dWord16"
+	      >dWord16</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	      >Word16</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dWord32"
+	      >dWord32</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	      >Word32</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dWord64"
+	      >dWord64</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dWord"
+	      >dWord</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	      >Word</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dInt8"
+	      >dInt8</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+	      >Int8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dInt16"
+	      >dInt16</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+	      >Int16</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dInt32"
+	      >dInt32</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+	      >Int32</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dInt64"
+	      >dInt64</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dInt"
+	      >dInt</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBE8"
+	      >dBE8</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBE16"
+	      >dBE16</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	      >Word16</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBE32"
+	      >dBE32</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	      >Word32</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBE64"
+	      >dBE64</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBEBits8"
+	      >dBEBits8</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBEBits16"
+	      >dBEBits16</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	      >Word16</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBEBits32"
+	      >dBEBits32</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	      >Word32</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dBEBits64"
+	      >dBEBits64</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dropBits"
+	      >dropBits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ConsState"
+	      >ConsState</a
+	      > = <a href="#v:ConsState"
+	      >ConsState</a
+	      > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	      >Word</a
+	      > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:consOpen"
+	      >consOpen</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > <a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	      >ConsState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:consClose"
+	      >consClose</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	      >Get</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:consBool"
+	      >consBool</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	      >ConsState</a
+	      > &#8594; (<a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	      >ConsState</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:consBits"
+	      >consBits</a
+	      > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	      >ConsState</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; (<a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	      >ConsState</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	      >Word</a
+	      >)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:strictDecoder" class="def"
+	    >strictDecoder</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+	    >DecodeException</a
+	    > a <a href="src/PlutusCore.Flat.Decoder.Run.html#strictDecoder" class="link"
+	    >Source</a
+	    > <a href="#v:strictDecoder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given a decoder and an input buffer returns either the decoded value or an error (if the input buffer is not fully consumed)</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:listTDecoder" class="def"
+	    >listTDecoder</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="https://hackage.haskell.org/package/list-t-1.0.5.7/docs/ListT.html#t:ListT" title="ListT"
+	    >ListT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a) <a href="src/PlutusCore.Flat.Decoder.Run.html#listTDecoder" class="link"
+	    >Source</a
+	    > <a href="#v:listTDecoder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode a list of values, one value at a time.</p
+	    ><p
+	    >Useful in case that the decoded values takes a lot more memory than the encoded ones.</p
+	    ><p
+	    >See <a href="../test/Big.hs"
+	      >../test/Big.hs</a
+	      > for a test and an example of use.</p
+	    ><p
+	    >See also <a href="Flat-AsBin.html"
+	      >Flat.AsBin</a
+	      >.</p
+	    ><p
+	    ><em
+	      >Since: 0.5</em
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Decoded" class="def"
+	    >Decoded</a
+	    > a = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+	    >DecodeException</a
+	    > a <a href="src/PlutusCore.Flat.Decoder.Types.html#Decoded" class="link"
+	    >Source</a
+	    > <a href="#t:Decoded" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A decoded value</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DecodeException" class="def"
+	    >DecodeException</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Types.html#DecodeException" class="link"
+	    >Source</a
+	    > <a href="#t:DecodeException" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An exception during decoding</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NotEnoughSpace" class="def"
+		  >NotEnoughSpace</a
+		  > Env</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TooMuchSpace" class="def"
+		  >TooMuchSpace</a
+		  > Env</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BadEncoding" class="def"
+		  >BadEncoding</a
+		  > Env <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BadOp" class="def"
+		  >BadOp</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DecodeException"
+	    >Instances</h4
+	    ><details id="i:DecodeException" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DecodeException:Exception:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+		      >Exception</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+		      >DecodeException</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-138" class="link"
+		    >Source</a
+		    > <a href="#t:DecodeException" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DecodeException:Exception:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DecodeException:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+		      >DecodeException</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-122" class="link"
+		    >Source</a
+		    > <a href="#t:DecodeException" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DecodeException:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DecodeException:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+		      >DecodeException</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-122" class="link"
+		    >Source</a
+		    > <a href="#t:DecodeException" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DecodeException:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DecodeException:Ord:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+		      >DecodeException</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-122" class="link"
+		    >Source</a
+		    > <a href="#t:DecodeException" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DecodeException:Ord:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:DecodeException" title="PlutusCore.Flat.Decoder"
+			  >DecodeException</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Get" class="def"
+	    >Get</a
+	    > a <a href="src/PlutusCore.Flat.Decoder.Types.html#Get" class="link"
+	    >Source</a
+	    > <a href="#t:Get" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A decoder.</p
+	    ><p
+	    >Given:</p
+	    ><ul
+	    ><li
+	      >end of input buffer</li
+	      ><li
+	      >current position in input buffer</li
+	      ></ul
+	    ><p
+	    >Returns:</p
+	    ><ul
+	    ><li
+	      >decoded value</li
+	      ><li
+	      >new position in input buffer </li
+	      ></ul
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Get"
+	    >Instances</h4
+	    ><details id="i:Get" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Get:MonadFail:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-Fail.html#t:MonadFail" title="Control.Monad.Fail"
+		      >MonadFail</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+		      >Get</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:Get" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Get:MonadFail:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fail"
+			  >fail</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fail" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Get:Applicative:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+		      >Get</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:Get" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Get:Applicative:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > (a &#8594; b) &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Get:Functor:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+		      >Get</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:Get" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Get:Functor:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Get:Monad:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+		      >Get</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:Get" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Get:Monad:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; (a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b) &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Get:Show:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+		      >Get</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:Get" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Get:Show:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Get:NFData:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > (<a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+		      >Get</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Decoder.Types.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:Get" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Get:NFData:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Decoder-Types.html"
+			>PlutusCore.Flat.Decoder.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+			  >Get</a
+			  > a &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dByteString" class="def"
+	    >dByteString</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dByteString" class="link"
+	    >Source</a
+	    > <a href="#v:dByteString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dLazyByteString" class="def"
+	    >dLazyByteString</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dLazyByteString" class="link"
+	    >Source</a
+	    > <a href="#v:dLazyByteString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dShortByteString" class="def"
+	    >dShortByteString</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	    >ShortByteString</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dShortByteString" class="link"
+	    >Source</a
+	    > <a href="#v:dShortByteString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dShortByteString_" class="def"
+	    >dShortByteString_</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	    >ShortByteString</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dShortByteString_" class="link"
+	    >Source</a
+	    > <a href="#v:dShortByteString_" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dUTF16" class="def"
+	    >dUTF16</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dUTF16" class="link"
+	    >Source</a
+	    > <a href="#v:dUTF16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dUTF8" class="def"
+	    >dUTF8</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dUTF8" class="link"
+	    >Source</a
+	    > <a href="#v:dUTF8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeArrayWith" class="def"
+	    >decodeArrayWith</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > [a] <a href="src/PlutusCore.Flat.Decoder.Strict.html#decodeArrayWith" class="link"
+	    >Source</a
+	    > <a href="#v:decodeArrayWith" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeListWith" class="def"
+	    >decodeListWith</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > a &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > [a] <a href="src/PlutusCore.Flat.Decoder.Strict.html#decodeListWith" class="link"
+	    >Source</a
+	    > <a href="#v:decodeListWith" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dFloat" class="def"
+	    >dFloat</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	    >Float</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dFloat" class="link"
+	    >Source</a
+	    > <a href="#v:dFloat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode a Float</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dDouble" class="def"
+	    >dDouble</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dDouble" class="link"
+	    >Source</a
+	    > <a href="#v:dDouble" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode a Double</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dInteger" class="def"
+	    >dInteger</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dInteger" class="link"
+	    >Source</a
+	    > <a href="#v:dInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dNatural" class="def"
+	    >dNatural</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+	    >Natural</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dNatural" class="link"
+	    >Source</a
+	    > <a href="#v:dNatural" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dChar" class="def"
+	    >dChar</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+	    >Char</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dChar" class="link"
+	    >Source</a
+	    > <a href="#v:dChar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBool" class="def"
+	    >dBool</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBool" class="link"
+	    >Source</a
+	    > <a href="#v:dBool" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode a boolean</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dWord8" class="def"
+	    >dWord8</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	    >Word8</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dWord8" class="link"
+	    >Source</a
+	    > <a href="#v:dWord8" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the 8 most significant bits (same as dBE8)</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dWord16" class="def"
+	    >dWord16</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	    >Word16</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dWord16" class="link"
+	    >Source</a
+	    > <a href="#v:dWord16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dWord32" class="def"
+	    >dWord32</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	    >Word32</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dWord32" class="link"
+	    >Source</a
+	    > <a href="#v:dWord32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dWord64" class="def"
+	    >dWord64</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dWord64" class="link"
+	    >Source</a
+	    > <a href="#v:dWord64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dWord" class="def"
+	    >dWord</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	    >Word</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dWord" class="link"
+	    >Source</a
+	    > <a href="#v:dWord" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dInt8" class="def"
+	    >dInt8</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+	    >Int8</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dInt8" class="link"
+	    >Source</a
+	    > <a href="#v:dInt8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dInt16" class="def"
+	    >dInt16</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+	    >Int16</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dInt16" class="link"
+	    >Source</a
+	    > <a href="#v:dInt16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dInt32" class="def"
+	    >dInt32</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+	    >Int32</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dInt32" class="link"
+	    >Source</a
+	    > <a href="#v:dInt32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dInt64" class="def"
+	    >dInt64</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	    >Int64</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dInt64" class="link"
+	    >Source</a
+	    > <a href="#v:dInt64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dInt" class="def"
+	    >dInt</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Strict.html#dInt" class="link"
+	    >Source</a
+	    > <a href="#v:dInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBE8" class="def"
+	    >dBE8</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	    >Word8</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBE8" class="link"
+	    >Source</a
+	    > <a href="#v:dBE8" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the 8 most significant bits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBE16" class="def"
+	    >dBE16</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	    >Word16</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBE16" class="link"
+	    >Source</a
+	    > <a href="#v:dBE16" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the 16 most significant bits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBE32" class="def"
+	    >dBE32</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	    >Word32</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBE32" class="link"
+	    >Source</a
+	    > <a href="#v:dBE32" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the 32 most significant bits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBE64" class="def"
+	    >dBE64</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBE64" class="link"
+	    >Source</a
+	    > <a href="#v:dBE64" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the 64 most significant bits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBEBits8" class="def"
+	    >dBEBits8</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	    >Word8</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBEBits8" class="link"
+	    >Source</a
+	    > <a href="#v:dBEBits8" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the n most significant bits (up to maximum of 8)</p
+	    ><p
+	    >The bits are returned right shifted:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>unflatWith (dBEBits8 3) [0b11100001::Word8] == Right 0b00000111
+</code
+		></strong
+	      >True
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>unflatWith (dBEBits8 9) [0b11100001::Word8,0b11111111]
+</code
+		></strong
+	      >Left (BadOp &quot;read8: cannot read 9 bits&quot;) 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBEBits16" class="def"
+	    >dBEBits16</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	    >Word16</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBEBits16" class="link"
+	    >Source</a
+	    > <a href="#v:dBEBits16" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the n most significant bits (up to maximum of 16)</p
+	    ><p
+	    >The bits are returned right shifted:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>pPrint . asBits &lt;$&gt; unflatWith (dBEBits16 11) [0b10110111::Word8,0b11100001]
+</code
+		></strong
+	      >Right 00000101 10111111
+</pre
+	    ><p
+	    >If more than 16 bits are requested, only the last 16 are returned:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>pPrint . asBits &lt;$&gt; unflatWith (dBEBits16 19) [0b00000000::Word8,0b11111111,0b11100001]
+</code
+		></strong
+	      >Right 00000111 11111111 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBEBits32" class="def"
+	    >dBEBits32</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	    >Word32</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBEBits32" class="link"
+	    >Source</a
+	    > <a href="#v:dBEBits32" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the n most significant bits (up to maximum of 32)
+ The bits are returned right shifted. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dBEBits64" class="def"
+	    >dBEBits64</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#dBEBits64" class="link"
+	    >Source</a
+	    > <a href="#v:dBEBits64" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the n most significant bits (up to maximum of 64)
+ The bits are returned right shifted. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dropBits" class="def"
+	    >dropBits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > () <a href="src/PlutusCore.Flat.Decoder.Prim.html#dropBits" class="link"
+	    >Source</a
+	    > <a href="#v:dropBits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Drop the specified number of bits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ConsState" class="def"
+	    >ConsState</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#ConsState" class="link"
+	    >Source</a
+	    > <a href="#t:ConsState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A special state, optimised for constructor decoding.</p
+	    ><p
+	    >It consists of:</p
+	    ><ul
+	    ><li
+	      >The bits to parse, the top bit being the first to parse (could use a Word16 instead, no difference in performance)</li
+	      ><li
+	      >The number of decoded bits</li
+	      ></ul
+	    ><p
+	    >Supports up to 512 constructors (9 bits). </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ConsState" class="def"
+		  >ConsState</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+		  >Word</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:consOpen" class="def"
+	    >consOpen</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > <a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	    >ConsState</a
+	    > <a href="src/PlutusCore.Flat.Decoder.Prim.html#consOpen" class="link"
+	    >Source</a
+	    > <a href="#v:consOpen" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Switch to constructor decoding
+ {-# INLINE consOpen  #-} </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:consClose" class="def"
+	    >consClose</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Decoder.html#t:Get" title="PlutusCore.Flat.Decoder"
+	    >Get</a
+	    > () <a href="src/PlutusCore.Flat.Decoder.Prim.html#consClose" class="link"
+	    >Source</a
+	    > <a href="#v:consClose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Switch back to normal decoding
+ {-# NOINLINE consClose  #-} </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:consBool" class="def"
+	    >consBool</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	    >ConsState</a
+	    > &#8594; (<a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	    >ConsState</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) <a href="src/PlutusCore.Flat.Decoder.Prim.html#consBool" class="link"
+	    >Source</a
+	    > <a href="#v:consBool" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode a single bit</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:consBits" class="def"
+	    >consBits</a
+	    > &#8759; <a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	    >ConsState</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; (<a href="PlutusCore-Flat-Decoder.html#t:ConsState" title="PlutusCore.Flat.Decoder"
+	    >ConsState</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	    >Word</a
+	    >) <a href="src/PlutusCore.Flat.Decoder.Prim.html#consBits" class="link"
+	    >Source</a
+	    > <a href="#v:consBits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode from 1 to 3 bits</p
+	    ><p
+	    >It could read more bits that are available, but it doesn't matter, errors will be checked in consClose. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

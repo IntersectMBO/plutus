@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# OPTIONS_GHC -Wno-orphans #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module Data.Vector.Orphans () where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Data.Hashable (Hashable (hashWithSalt))
+<span class="lineno">    6 </span>import Data.Vector.Strict qualified as Strict
+<span class="lineno">    7 </span>import PlutusCore.Flat (Flat (..))
+<span class="lineno">    8 </span>import PlutusCore.Flat.Instances.Vector ()
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>instance <span class="decl"><span class="nottickedoff">Hashable a =&gt; Hashable (Strict.Vector a)</span></span> where
+<span class="lineno">   11 </span>  <span class="decl"><span class="nottickedoff">hashWithSalt = Strict.foldl' hashWithSalt</span></span>
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>{- The `flat` library does not provide a `Flat` instance for
+<span class="lineno">   14 </span>`Vector.Strict.Vector`.  We could encode and decode strict vectors by converting
+<span class="lineno">   15 </span>them to and from lazy vectors (for which there is a `Flat` instance), but
+<span class="lineno">   16 </span>experiments show that deserialisation is actually faster by about 5-10% if we
+<span class="lineno">   17 </span>encode vectors as lists.  This incurs a slight size penalty (lists require one
+<span class="lineno">   18 </span>bit of overhead per entry whereas vectors can be encoded with an overhead of one
+<span class="lineno">   19 </span>byte per 255 elements), but this is offset by the decoding speedup.  Encoding
+<span class="lineno">   20 </span>vectors as lists also simplifies maintenance and specification. -}
+<span class="lineno">   21 </span>instance Flat a =&gt; Flat (Strict.Vector a) where
+<span class="lineno">   22 </span>  <span class="decl"><span class="nottickedoff">size = size . Strict.toList</span></span>
+<span class="lineno">   23 </span>  <span class="decl"><span class="nottickedoff">encode = encode . Strict.toList</span></span>
+<span class="lineno">   24 </span>  <span class="decl"><span class="nottickedoff">decode = Strict.fromList &lt;$&gt; decode</span></span>
+
+</pre>
+</body>
+</html>

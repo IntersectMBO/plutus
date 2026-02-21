@@ -1,0 +1,443 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Pass.Test</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Pass.Test.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Pass.Test</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:convertToEitherString"
+	      >convertToEitherString</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()) () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:numTestsForPassProp"
+	      >numTestsForPassProp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:runTestPass"
+	      >runTestPass</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	      >Typeable</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m tyname name uni fun a) &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:testPassProp"
+	      >testPassProp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; (&#8704; a. m a &#8594; a) &#8594; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()) &#8594; Property</li
+	    ><li class="src short"
+	    ><a href="#v:testPassProp-39-"
+	      >testPassProp'</a
+	      > &#8759; &#8704; m tyname name a prop. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, Testable prop) &#8658; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a) &#8594; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a) m () &#8594; prop) &#8594; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a) &#8594; Property</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:convertToEitherString" class="def"
+	    >convertToEitherString</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > () <a href="src/PlutusIR.Pass.Test.html#convertToEitherString" class="link"
+	    >Source</a
+	    > <a href="#v:convertToEitherString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:numTestsForPassProp" class="def"
+	    >numTestsForPassProp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusIR.Pass.Test.html#numTestsForPassProp" class="link"
+	    >Source</a
+	    > <a href="#v:numTestsForPassProp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An appropriate number of tests for a compiler pass property, so that we get some decent
+exploration of the program space. If you also take other arguments, then consider multiplying
+this up in order to account for the larger space. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTestPass" class="def"
+	    >runTestPass</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	    >Typeable</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun &#8594; <a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	    >Pass</a
+	    > m tyname name uni fun a) &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Pass.Test.html#runTestPass" class="link"
+	    >Source</a
+	    > <a href="#v:runTestPass" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run a <code
+	      ><a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+		>Pass</a
+		></code
+	      > on a <code
+	      ><a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >, setting up the typechecking config and throwing errors.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testPassProp" class="def"
+	    >testPassProp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; (&#8704; a. m a &#8594; a) &#8594; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	    >Pass</a
+	    > m <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) &#8594; Property <a href="src/PlutusIR.Pass.Test.html#testPassProp" class="link"
+	    >Source</a
+	    > <a href="#v:testPassProp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run a <code
+	      ><a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+		>Pass</a
+		></code
+	      > on generated <code
+	      >Terms</code
+	      >s, setting up the typechecking config
+and throwing errors. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testPassProp-39-" class="def"
+	    >testPassProp'</a
+	    > &#8759; &#8704; m tyname name a prop. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, Testable prop) &#8658; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a) &#8594; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a) m () &#8594; prop) &#8594; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="../plutus-core/PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	    >Pass</a
+	    > m tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a) &#8594; Property <a href="src/PlutusIR.Pass.Test.html#testPassProp%27" class="link"
+	    >Source</a
+	    > <a href="#v:testPassProp-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A version of <code
+	      ><a href="PlutusIR-Pass-Test.html#v:testPassProp" title="PlutusIR.Pass.Test"
+		>testPassProp</a
+		></code
+	      > with more control, allowing some pre-processing
+of the term, and a more specific &quot;exit&quot; function. </p
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:1"
+		  ></span
+		  > <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  >)</span
+		> <a href="src/PlutusIR.Pass.Test.html#line-32" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitraryBuiltinSemanticsVariant" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      >) <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      > &#8594; [<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

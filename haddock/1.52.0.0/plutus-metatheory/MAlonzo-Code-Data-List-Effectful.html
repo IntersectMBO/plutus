@@ -1,0 +1,1333 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.Data.List.Effectful</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.52.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.Data.List.Effectful.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.Data.List.Effectful</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_functor_10" class="def"
+	    >d_functor_10</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Functor.html#t:T_RawFunctor_24" title="MAlonzo.Code.Effect.Functor"
+	    >T_RawFunctor_24</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_functor_10" class="link"
+	    >Source</a
+	    > <a href="#v:d_functor_10" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_functor_10" class="def"
+	    >du_functor_10</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Functor.html#t:T_RawFunctor_24" title="MAlonzo.Code.Effect.Functor"
+	    >T_RawFunctor_24</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_functor_10" class="link"
+	    >Source</a
+	    > <a href="#v:du_functor_10" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_applicative_12" class="def"
+	    >d_applicative_12</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_applicative_12" class="link"
+	    >Source</a
+	    > <a href="#v:d_applicative_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_applicative_12" class="def"
+	    >du_applicative_12</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_applicative_12" class="link"
+	    >Source</a
+	    > <a href="#v:du_applicative_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_empty_14" class="def"
+	    >d_empty_14</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Empty.html#t:T_RawEmpty_16" title="MAlonzo.Code.Effect.Empty"
+	    >T_RawEmpty_16</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_empty_14" class="link"
+	    >Source</a
+	    > <a href="#v:d_empty_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_empty_14" class="def"
+	    >du_empty_14</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Empty.html#t:T_RawEmpty_16" title="MAlonzo.Code.Effect.Empty"
+	    >T_RawEmpty_16</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_empty_14" class="link"
+	    >Source</a
+	    > <a href="#v:du_empty_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_choice_16" class="def"
+	    >d_choice_16</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Choice.html#t:T_RawChoice_16" title="MAlonzo.Code.Effect.Choice"
+	    >T_RawChoice_16</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_choice_16" class="link"
+	    >Source</a
+	    > <a href="#v:d_choice_16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_choice_16" class="def"
+	    >du_choice_16</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Choice.html#t:T_RawChoice_16" title="MAlonzo.Code.Effect.Choice"
+	    >T_RawChoice_16</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_choice_16" class="link"
+	    >Source</a
+	    > <a href="#v:du_choice_16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_applicativeZero_18" class="def"
+	    >d_applicativeZero_18</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicativeZero_120" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicativeZero_120</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_applicativeZero_18" class="link"
+	    >Source</a
+	    > <a href="#v:d_applicativeZero_18" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_applicativeZero_18" class="def"
+	    >du_applicativeZero_18</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicativeZero_120" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicativeZero_120</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_applicativeZero_18" class="link"
+	    >Source</a
+	    > <a href="#v:du_applicativeZero_18" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_alternative_20" class="def"
+	    >d_alternative_20</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawAlternative_180" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawAlternative_180</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_alternative_20" class="link"
+	    >Source</a
+	    > <a href="#v:d_alternative_20" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_alternative_20" class="def"
+	    >du_alternative_20</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawAlternative_180" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawAlternative_180</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_alternative_20" class="link"
+	    >Source</a
+	    > <a href="#v:du_alternative_20" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_monad_24" class="def"
+	    >d_monad_24</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_monad_24" class="link"
+	    >Source</a
+	    > <a href="#v:d_monad_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_monad_24" class="def"
+	    >du_monad_24</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_monad_24" class="link"
+	    >Source</a
+	    > <a href="#v:du_monad_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_join_26" class="def"
+	    >d_join_26</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; [[<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_join_26" class="link"
+	    >Source</a
+	    > <a href="#v:d_join_26" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_join_26" class="def"
+	    >du_join_26</a
+	    > &#8759; [[<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_join_26" class="link"
+	    >Source</a
+	    > <a href="#v:du_join_26" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_monadZero_30" class="def"
+	    >d_monadZero_30</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadZero_206" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadZero_206</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_monadZero_30" class="link"
+	    >Source</a
+	    > <a href="#v:d_monadZero_30" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_monadZero_30" class="def"
+	    >du_monadZero_30</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadZero_206" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadZero_206</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_monadZero_30" class="link"
+	    >Source</a
+	    > <a href="#v:du_monadZero_30" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_monadPlus_34" class="def"
+	    >d_monadPlus_34</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadPlus_284" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadPlus_284</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_monadPlus_34" class="link"
+	    >Source</a
+	    > <a href="#v:d_monadPlus_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_monadPlus_34" class="def"
+	    >du_monadPlus_34</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadPlus_284" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadPlus_284</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_monadPlus_34" class="link"
+	    >Source</a
+	    > <a href="#v:du_monadPlus_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sequenceA_82" class="def"
+	    >d_sequenceA_82</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_sequenceA_82" class="link"
+	    >Source</a
+	    > <a href="#v:d_sequenceA_82" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_sequenceA_82" class="def"
+	    >du_sequenceA_82</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_sequenceA_82" class="link"
+	    >Source</a
+	    > <a href="#v:du_sequenceA_82" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_mapA_94" class="def"
+	    >d_mapA_94</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_mapA_94" class="link"
+	    >Source</a
+	    > <a href="#v:d_mapA_94" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_mapA_94" class="def"
+	    >du_mapA_94</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_mapA_94" class="link"
+	    >Source</a
+	    > <a href="#v:du_mapA_94" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_forA_104" class="def"
+	    >d_forA_104</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_forA_104" class="link"
+	    >Source</a
+	    > <a href="#v:d_forA_104" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_forA_104" class="def"
+	    >du_forA_104</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_forA_104" class="link"
+	    >Source</a
+	    > <a href="#v:du_forA_104" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_forA_170" class="def"
+	    >d_forA_170</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_forA_170" class="link"
+	    >Source</a
+	    > <a href="#v:d_forA_170" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_forA_170" class="def"
+	    >du_forA_170</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_forA_170" class="link"
+	    >Source</a
+	    > <a href="#v:du_forA_170" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_mapA_172" class="def"
+	    >d_mapA_172</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_mapA_172" class="link"
+	    >Source</a
+	    > <a href="#v:d_mapA_172" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_mapA_172" class="def"
+	    >du_mapA_172</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_mapA_172" class="link"
+	    >Source</a
+	    > <a href="#v:du_mapA_172" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sequenceA_174" class="def"
+	    >d_sequenceA_174</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_sequenceA_174" class="link"
+	    >Source</a
+	    > <a href="#v:d_sequenceA_174" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_sequenceA_174" class="def"
+	    >du_sequenceA_174</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_sequenceA_174" class="link"
+	    >Source</a
+	    > <a href="#v:du_sequenceA_174" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-60-39--39-36-39--39-62-39-__184" class="def"
+	    >d__'60''36''62'__184</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d__%2760%27%2736%27%2762%27__184" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-60-39--39-36-39--39-62-39-__184" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du__-39-60-39--39-36-39--39-62-39-__184" class="def"
+	    >du__'60''36''62'__184</a
+	    > &#8759; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du__%2760%27%2736%27%2762%27__184" class="link"
+	    >Source</a
+	    > <a href="#v:du__-39-60-39--39-36-39--39-62-39-__184" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-62-39--39-62-39--39-61-39-__204" class="def"
+	    >d__'62''62''61'__204</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d__%2762%27%2762%27%2761%27__204" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-62-39--39-62-39--39-61-39-__204" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du__-39-62-39--39-62-39--39-61-39-__204" class="def"
+	    >du__'62''62''61'__204</a
+	    > &#8759; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du__%2762%27%2762%27%2761%27__204" class="link"
+	    >Source</a
+	    > <a href="#v:du__-39-62-39--39-62-39--39-61-39-__204" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-8739-39-__206" class="def"
+	    >d__'8739'__206</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d__%278739%27__206" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-8739-39-__206" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du__-39-8739-39-__206" class="def"
+	    >du__'8739'__206</a
+	    > &#8759; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du__%278739%27__206" class="link"
+	    >Source</a
+	    > <a href="#v:du__-39-8739-39-__206" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-8859-39-__210" class="def"
+	    >d__'8859'__210</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d__%278859%27__210" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-8859-39-__210" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du__-39-8859-39-__210" class="def"
+	    >du__'8859'__210</a
+	    > &#8759; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du__%278859%27__210" class="link"
+	    >Source</a
+	    > <a href="#v:du__-39-8859-39-__210" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_pure_220" class="def"
+	    >d_pure_220</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_pure_220" class="link"
+	    >Source</a
+	    > <a href="#v:d_pure_220" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_pure_220" class="def"
+	    >du_pure_220</a
+	    > &#8759; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_pure_220" class="link"
+	    >Source</a
+	    > <a href="#v:du_pure_220" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_-39-8709-39-_248" class="def"
+	    >d_'8709'_248</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_%278709%27_248" class="link"
+	    >Source</a
+	    > <a href="#v:d_-39-8709-39-_248" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_-39-8709-39-_248" class="def"
+	    >du_'8709'_248</a
+	    > &#8759; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_%278709%27_248" class="link"
+	    >Source</a
+	    > <a href="#v:du_-39-8709-39-_248" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_left-39-45-39-identity_262" class="def"
+	    >d_left'45'identity_262</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_left%2745%27identity_262" class="link"
+	    >Source</a
+	    > <a href="#v:d_left-39-45-39-identity_262" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-identity_274" class="def"
+	    >d_right'45'identity_274</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27identity_274" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-identity_274" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_left-39-45-39-zero_290" class="def"
+	    >d_left'45'zero_290</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_left%2745%27zero_290" class="link"
+	    >Source</a
+	    > <a href="#v:d_left-39-45-39-zero_290" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-zero_302" class="def"
+	    >d_right'45'zero_302</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27zero_302" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-zero_302" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-distributive_330" class="def"
+	    >d_right'45'distributive_330</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27distributive_330" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-distributive_330" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_associative_362" class="def"
+	    >d_associative_362</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_associative_362" class="link"
+	    >Source</a
+	    > <a href="#v:d_associative_362" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_cong_394" class="def"
+	    >d_cong_394</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    >) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_cong_394" class="link"
+	    >Source</a
+	    > <a href="#v:d_cong_394" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_associative_404" class="def"
+	    >d_associative_404</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_associative_404" class="link"
+	    >Source</a
+	    > <a href="#v:d_associative_404" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_cong_406" class="def"
+	    >d_cong_406</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    >) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_cong_406" class="link"
+	    >Source</a
+	    > <a href="#v:d_cong_406" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_left-39-45-39-identity_408" class="def"
+	    >d_left'45'identity_408</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_left%2745%27identity_408" class="link"
+	    >Source</a
+	    > <a href="#v:d_left-39-45-39-identity_408" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_left-39-45-39-zero_410" class="def"
+	    >d_left'45'zero_410</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_left%2745%27zero_410" class="link"
+	    >Source</a
+	    > <a href="#v:d_left-39-45-39-zero_410" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-distributive_412" class="def"
+	    >d_right'45'distributive_412</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27distributive_412" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-distributive_412" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-identity_414" class="def"
+	    >d_right'45'identity_414</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27identity_414" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-identity_414" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-zero_416" class="def"
+	    >d_right'45'zero_416</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27zero_416" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-zero_416" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_pam_424" class="def"
+	    >d_pam_424</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_pam_424" class="link"
+	    >Source</a
+	    > <a href="#v:d_pam_424" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_pam_424" class="def"
+	    >du_pam_424</a
+	    > &#8759; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Data.List.Effectful.html#du_pam_424" class="link"
+	    >Source</a
+	    > <a href="#v:du_pam_424" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_left-39-45-39-zero_438" class="def"
+	    >d_left'45'zero_438</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_left%2745%27zero_438" class="link"
+	    >Source</a
+	    > <a href="#v:d_left-39-45-39-zero_438" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-zero_450" class="def"
+	    >d_right'45'zero_450</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27zero_450" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-zero_450" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_unfold-39-45-39--39-60-39--39-36-39--39-62-39-_470" class="def"
+	    >d_unfold'45''60''36''62'_470</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_unfold%2745%27%2760%27%2736%27%2762%27_470" class="link"
+	    >Source</a
+	    > <a href="#v:d_unfold-39-45-39--39-60-39--39-36-39--39-62-39-_470" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_unfold-39-45-39--39-8859-39-_486" class="def"
+	    >d_unfold'45''8859'_486</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_unfold%2745%27%278859%27_486" class="link"
+	    >Source</a
+	    > <a href="#v:d_unfold-39-45-39--39-8859-39-_486" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_right-39-45-39-distributive_514" class="def"
+	    >d_right'45'distributive_514</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_right%2745%27distributive_514" class="link"
+	    >Source</a
+	    > <a href="#v:d_right-39-45-39-distributive_514" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_identity_536" class="def"
+	    >d_identity_536</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_identity_536" class="link"
+	    >Source</a
+	    > <a href="#v:d_identity_536" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_pam-39-45-39-lemma_556" class="def"
+	    >d_pam'45'lemma_556</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >]) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_pam%2745%27lemma_556" class="link"
+	    >Source</a
+	    > <a href="#v:d_pam-39-45-39-lemma_556" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_composition_584" class="def"
+	    >d_composition_584</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_composition_584" class="link"
+	    >Source</a
+	    > <a href="#v:d_composition_584" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_homomorphism_644" class="def"
+	    >d_homomorphism_644</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_homomorphism_644" class="link"
+	    >Source</a
+	    > <a href="#v:d_homomorphism_644" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_interchange_662" class="def"
+	    >d_interchange_662</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Data.List.Effectful.html#d_interchange_662" class="link"
+	    >Source</a
+	    > <a href="#v:d_interchange_662" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

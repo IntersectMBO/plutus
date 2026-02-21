@@ -1,0 +1,700 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Mark</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Mark.html#markNonFreshTerm"
+	><span class="hs-identifier"
+	  >markNonFreshTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Mark.html#markNonFreshProgram"
+	><span class="hs-identifier"
+	  >markNonFreshProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Set.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>setOf</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#HasUniques"
+	><span class="hs-identifier"
+	  >HasUniques</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-comment"
+      >-- | Marks all the 'Unique's in a term as used, so they will not be generated in future. Useful if you</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-comment"
+      >-- have a term which was not generated in 'Quote'.</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="local-6989586621682044743"
+      ><span id="local-6989586621682044744"
+	><span id="local-6989586621682044745"
+	  ><span id="local-6989586621682044746"
+	    ><span id="local-6989586621682044749"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Mark.html#markNonFreshTerm"
+		  ><span class="hs-identifier hs-type"
+		    >markNonFreshTerm</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-16"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#HasUniques"
+		  ><span class="hs-identifier hs-type"
+		    >HasUniques</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044743"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044744"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044745"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044746"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Quote.html#MonadQuote"
+		  ><span class="hs-identifier hs-type"
+		    >MonadQuote</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044749"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-17"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044743"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044744"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044745"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044746"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044749"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="markNonFreshTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >markNonFreshTerm :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term name uni fun ann), MonadQuote m) =&gt;
+Term name uni fun ann -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Mark.html#markNonFreshTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >markNonFreshTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set Unique -&gt; m ()
+forall (m :: * -&gt; *). MonadQuote m =&gt; Set Unique -&gt; m ()
+</span
+	><a href="PlutusCore.Quote.html#markNonFreshMax"
+	><span class="hs-identifier hs-var"
+	  >markNonFreshMax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Set Unique -&gt; m ())
+-&gt; (Term name uni fun ann -&gt; Set Unique)
+-&gt; Term name uni fun ann
+-&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (Set Unique) (Term name uni fun ann) Unique
+-&gt; Term name uni fun ann -&gt; Set Unique
+forall a s. Getting (Set a) s a -&gt; s -&gt; Set a
+</span
+	><span class="hs-identifier hs-var"
+	>setOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (Set Unique) (Term name uni fun ann) Unique
+forall name (uni :: * -&gt; *) fun ann.
+HasUniques (Term name uni fun ann) =&gt;
+Fold (Term name uni fun ann) Unique
+Fold (Term name uni fun ann) Unique
+</span
+	><a href="UntypedPlutusCore.Core.Plated.html#termUniquesDeep"
+	><span class="hs-identifier hs-var"
+	  >termUniquesDeep</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >-- | Marks all the 'Unique's in a program as used, so they will not be generated in future. Useful if you</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >-- have a program which was not generated in 'Quote'.</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="local-6989586621682044777"
+      ><span id="local-6989586621682044778"
+	><span id="local-6989586621682044779"
+	  ><span id="local-6989586621682044780"
+	    ><span id="local-6989586621682044781"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Mark.html#markNonFreshProgram"
+		  ><span class="hs-identifier hs-type"
+		    >markNonFreshProgram</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-23"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044777"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Quote.html#MonadQuote"
+		  ><span class="hs-identifier hs-type"
+		    >MonadQuote</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044778"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-24"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Program"
+		  ><span class="hs-identifier hs-type"
+		    >Program</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044777"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044779"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044780"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044781"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-25"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682044778"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="markNonFreshProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >markNonFreshProgram :: forall name (m :: * -&gt; *) (uni :: * -&gt; *) fun ann.
+(HasUnique name TermUnique, MonadQuote m) =&gt;
+Program name uni fun ann -&gt; m ()
+</span
+	  ><a href="UntypedPlutusCore.Mark.html#markNonFreshProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >markNonFreshProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682044815"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682044815"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann -&gt; m ()
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term name uni fun ann), MonadQuote m) =&gt;
+Term name uni fun ann -&gt; m ()
+</span
+	><a href="UntypedPlutusCore.Mark.html#markNonFreshTerm"
+	><span class="hs-identifier hs-var"
+	  >markNonFreshTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682044815"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

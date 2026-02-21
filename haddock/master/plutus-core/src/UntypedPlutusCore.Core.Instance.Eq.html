@@ -1,0 +1,5534 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Core.Instance.Eq</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.DeBruijn.html"
+	><span class="hs-identifier"
+	  >PlutusCore.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Eq.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Eq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Rename.Monad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.html"
+	><span class="hs-identifier"
+	  >Universe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.html"
+	><span class="hs-identifier"
+	  >Data.Hashable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html"
+	><span class="hs-identifier"
+	  >Data.Vector</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>V</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682194190"
+      ><span id="local-6989586621682194191"
+	><span id="local-6989586621682194192"
+	  ><span id="local-6989586621682194359"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+		><span class="hs-identifier hs-type"
+		  >GEq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194190"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Universe.Core.html#Closed"
+		><span class="hs-identifier hs-type"
+		  >Closed</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194190"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194190"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Universe.Core.html#Everywhere"
+		><span class="hs-operator hs-type"
+		  >`Everywhere`</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+		><span class="hs-identifier hs-type"
+		  >Eq</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+		><span class="hs-identifier hs-type"
+		  >Eq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194191"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+		><span class="hs-identifier hs-type"
+		  >Eq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194192"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-26"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+		><span class="hs-identifier hs-type"
+		  >Eq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194190"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194191"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194192"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682194373"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term Name uni fun ann
+</span
+	  ><a href="#local-6989586621682194373"
+	  ><span class="hs-identifier hs-var"
+	    >term1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194374"
+      ><span class="annot"
+	><span class="annottext"
+	  >== :: Term Name uni fun ann -&gt; Term Name uni fun ann -&gt; Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >==</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194375"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term Name uni fun ann
+</span
+	  ><a href="#local-6989586621682194375"
+	  ><span class="hs-identifier hs-var"
+	    >term2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique) -&gt; Bool
+forall ren. Monoid ren =&gt; EqRename ren -&gt; Bool
+</span
+	><a href="PlutusCore.Eq.html#runEqRename"
+	><span class="hs-identifier hs-var"
+	  >runEqRename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(EqRename (Renaming TermUnique) -&gt; Bool)
+-&gt; EqRename (Renaming TermUnique) -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name uni fun ann
+-&gt; Term Name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name uni fun ann
+</span
+	><a href="#local-6989586621682194373"
+	><span class="hs-identifier hs-var"
+	  >term1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name uni fun ann
+</span
+	><a href="#local-6989586621682194375"
+	><span class="hs-identifier hs-var"
+	  >term2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="HashableTermConstraints"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#HashableTermConstraints"
+	  ><span class="hs-identifier hs-var"
+	    >HashableTermConstraints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194378"
+      ><span class="annot"
+	><a href="#local-6989586621682194378"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194379"
+      ><span class="annot"
+	><a href="#local-6989586621682194379"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194380"
+      ><span class="annot"
+	><a href="#local-6989586621682194380"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	><span class="hs-identifier hs-type"
+	  >GEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682194378"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.Core.html#Closed"
+	><span class="hs-identifier hs-type"
+	  >Closed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682194378"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682194378"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.Core.html#Everywhere"
+	><span class="hs-operator hs-type"
+	  >`Everywhere`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	><span class="hs-identifier hs-type"
+	  >Eq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682194378"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.Core.html#Everywhere"
+	><span class="hs-operator hs-type"
+	  >`Everywhere`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	><span class="hs-identifier hs-type"
+	  >Hashable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	><span class="hs-identifier hs-type"
+	  >Hashable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682194380"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	><span class="hs-identifier hs-type"
+	  >Hashable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682194379"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >-- This instance is the only logical one, and exists also in the package `vector-instances`.</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-comment"
+      >-- Since this is the same implementation as that one, there isn't even much risk of incoherence.</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682194211"
+      ><span id="local-6989586621682194388"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-type"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194211"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-type"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html#Vector"
+	    ><span class="hs-identifier hs-type"
+	      >V.Vector</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194211"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682194397"
+      ><span class="annot"
+	><span class="annottext"
+	  >hashWithSalt :: Int -&gt; Vector a -&gt; Int
+</span
+	  ><a href="#local-6989586621682194397"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >hashWithSalt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194399"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621682194399"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; [a] -&gt; Int
+forall a. Hashable a =&gt; Int -&gt; a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#hashWithSalt"
+	><span class="hs-identifier hs-var"
+	  >hashWithSalt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621682194399"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; Int) -&gt; (Vector a -&gt; [a]) -&gt; Vector a -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; [a]
+forall a. Vector a -&gt; [a]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#toList"
+	><span class="hs-identifier hs-var"
+	  >toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682194258"
+      ><span id="local-6989586621682194259"
+	><span id="local-6989586621682194260"
+	  ><span id="local-6989586621682194411"
+	    ><span id="local-6989586621682194419"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Core.Instance.Eq.html#HashableTermConstraints"
+		  ><span class="hs-identifier hs-type"
+		    >HashableTermConstraints</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194258"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194259"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194260"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+		  ><span class="hs-identifier hs-type"
+		    >Hashable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194258"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194259"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194260"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-comment"
+      >-- Simple Structural Equality of a `Term NamedDeBruijn`. This implies three things:</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >-- a) We ignore the name part of the nameddebruijn</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-comment"
+      >-- b) We do not do equality &quot;modulo init index, see deBruijnInitIndex&quot;. E.g. `LamAbs 0 (Var 0) /= LamAbs 1 (Var 1)`.</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >-- c) We do not do equality &quot;&quot;modulo annotations&quot;.</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- If a user wants to ignore annotations he must prior do `void &lt;$&gt; term`, to throw away any annotations.</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="local-6989586621682194494"
+      ><span id="local-6989586621682194526"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621682194269"
+	  ><span id="local-6989586621682194270"
+	    ><span id="local-6989586621682194271"
+	      ><span class="annot"
+		><a href="#local-6989586621682194269"
+		  ><span class="hs-keyword hs-type hs-type hs-type"
+		    >stock</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  >
+</span
+	  ><span id="line-52"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	    ><span class="hs-identifier hs-type"
+	      >GEq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194269"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Closed"
+	    ><span class="hs-identifier hs-type"
+	      >Closed</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194269"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194269"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Everywhere"
+	    ><span class="hs-operator hs-type"
+	      >`Everywhere`</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194270"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194271"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-53"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	    ><span class="hs-identifier hs-type"
+	      >NamedDeBruijn</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194269"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194270"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194271"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682194275"
+      ><span id="local-6989586621682194276"
+	><span id="local-6989586621682194277"
+	  ><span id="local-6989586621682194540"
+	    ><span id="local-6989586621682194547"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Core.Instance.Eq.html#HashableTermConstraints"
+		  ><span class="hs-identifier hs-type"
+		    >HashableTermConstraints</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194275"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194276"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194277"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+		  ><span class="hs-identifier hs-type"
+		    >Hashable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+		  ><span class="hs-identifier hs-type"
+		    >NamedDeBruijn</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194275"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194276"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194277"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="local-6989586621682194614"
+      ><span id="local-6989586621682194643"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621682194282"
+	  ><span id="local-6989586621682194283"
+	    ><span id="local-6989586621682194284"
+	      ><span class="annot"
+		><a href="#local-6989586621682194282"
+		  ><span class="hs-keyword hs-type hs-type hs-type"
+		    >stock</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  >
+</span
+	  ><span id="line-58"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	    ><span class="hs-identifier hs-type"
+	      >GEq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194282"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Closed"
+	    ><span class="hs-identifier hs-type"
+	      >Closed</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194282"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194282"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Everywhere"
+	    ><span class="hs-operator hs-type"
+	      >`Everywhere`</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194283"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194284"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-59"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.DeBruijn.Internal.html#FakeNamedDeBruijn"
+	    ><span class="hs-identifier hs-type"
+	      >FakeNamedDeBruijn</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194282"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194283"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194284"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682194288"
+      ><span id="local-6989586621682194289"
+	><span id="local-6989586621682194290"
+	  ><span id="local-6989586621682194656"
+	    ><span id="local-6989586621682194663"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Core.Instance.Eq.html#HashableTermConstraints"
+		  ><span class="hs-identifier hs-type"
+		    >HashableTermConstraints</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194288"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194289"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194290"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+		  ><span class="hs-identifier hs-type"
+		    >Hashable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.DeBruijn.Internal.html#FakeNamedDeBruijn"
+		  ><span class="hs-identifier hs-type"
+		    >FakeNamedDeBruijn</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194288"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194289"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194290"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621682194730"
+      ><span id="local-6989586621682194759"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621682194295"
+	  ><span id="local-6989586621682194296"
+	    ><span id="local-6989586621682194297"
+	      ><span class="annot"
+		><a href="#local-6989586621682194295"
+		  ><span class="hs-keyword hs-type hs-type hs-type"
+		    >stock</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  >
+</span
+	  ><span id="line-64"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	    ><span class="hs-identifier hs-type"
+	      >GEq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194295"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Closed"
+	    ><span class="hs-identifier hs-type"
+	      >Closed</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194295"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194295"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Everywhere"
+	    ><span class="hs-operator hs-type"
+	      >`Everywhere`</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194296"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194297"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-65"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	    ><span class="hs-identifier hs-type"
+	      >DeBruijn</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194295"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194296"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194297"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682194301"
+      ><span id="local-6989586621682194302"
+	><span id="local-6989586621682194303"
+	  ><span id="local-6989586621682194772"
+	    ><span id="local-6989586621682194779"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Core.Instance.Eq.html#HashableTermConstraints"
+		  ><span class="hs-identifier hs-type"
+		    >HashableTermConstraints</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194301"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194302"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194303"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+		  ><span class="hs-identifier hs-type"
+		    >Hashable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.DeBruijn.Internal.html#DeBruijn"
+		  ><span class="hs-identifier hs-type"
+		    >DeBruijn</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194301"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194302"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682194303"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621682194847"
+      ><span id="local-6989586621682194853"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621682194310"
+	  ><span id="local-6989586621682194311"
+	    ><span id="local-6989586621682194312"
+	      ><span id="local-6989586621682194313"
+		><span class="annot"
+		  ><a href="#local-6989586621682194310"
+		    ><span class="hs-keyword hs-type hs-type hs-type hs-type"
+		      >stock</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  >
+</span
+	  ><span id="line-70"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	    ><span class="hs-identifier hs-type"
+	      >GEq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194310"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-71"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Closed"
+	    ><span class="hs-identifier hs-type"
+	      >Closed</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194310"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-72"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194310"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Everywhere"
+	    ><span class="hs-operator hs-type"
+	      >`Everywhere`</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-73"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194311"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-74"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194312"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-75"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194313"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194310"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194311"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194312"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-76"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-77"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Core.Type.html#Program"
+	    ><span class="hs-identifier hs-type"
+	      >Program</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194313"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194310"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194311"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682194312"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Check equality of two 'Term's.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span id="local-6989586621682194202"
+      ><span id="local-6989586621682194203"
+	><span id="local-6989586621682194204"
+	  ><span id="local-6989586621682194205"
+	    ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+		><span class="hs-identifier hs-type"
+		  >eqTermM</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-81"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+		><span class="hs-identifier hs-type"
+		  >GEq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194202"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Universe.Core.html#Closed"
+		><span class="hs-identifier hs-type"
+		  >Closed</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194202"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194202"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Universe.Core.html#Everywhere"
+		><span class="hs-operator hs-type"
+		  >`Everywhere`</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+		><span class="hs-identifier hs-type"
+		  >Eq</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+		><span class="hs-identifier hs-type"
+		  >Eq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194203"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+		><span class="hs-identifier hs-type"
+		  >Eq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194204"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194205"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+		><span class="hs-identifier hs-type"
+		  >TermUnique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-82"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194205"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194202"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194203"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194204"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194205"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194202"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194203"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682194204"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Eq.html#EqRename"
+		><span class="hs-identifier hs-type"
+		  >EqRename</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Rename.Monad.html#Renaming"
+		><span class="hs-identifier hs-type"
+		  >Renaming</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+		><span class="hs-identifier hs-type"
+		  >TermUnique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="eqTermM"
+      ><span class="annot"
+	><span class="annottext"
+	  >eqTermM :: forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	  ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >eqTermM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194979"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194979"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194980"
+      ><span class="annot"
+	><span class="annottext"
+	  >Some (ValueOf uni)
+</span
+	  ><a href="#local-6989586621682194980"
+	  ><span class="hs-identifier hs-var"
+	    >con1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194981"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194981"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194982"
+      ><span class="annot"
+	><span class="annottext"
+	  >Some (ValueOf uni)
+</span
+	  ><a href="#local-6989586621682194982"
+	  ><span class="hs-identifier hs-var"
+	    >con2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194979"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194981"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf uni)
+-&gt; Some (ValueOf uni) -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf uni)
+</span
+	><a href="#local-6989586621682194980"
+	><span class="hs-identifier hs-var"
+	  >con1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf uni)
+</span
+	><a href="#local-6989586621682194982"
+	><span class="hs-identifier hs-var"
+	  >con2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-type"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194985"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194985"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194986"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621682194986"
+	  ><span class="hs-identifier hs-var"
+	    >bi1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-type"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194987"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194987"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194988"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621682194988"
+	  ><span class="hs-identifier hs-var"
+	    >bi2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194985"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194987"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun -&gt; fun -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621682194986"
+	><span class="hs-identifier hs-var"
+	  >bi1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621682194988"
+	><span class="hs-identifier hs-var"
+	  >bi2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194990"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194990"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194991"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682194991"
+	  ><span class="hs-identifier hs-var"
+	    >name1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194992"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194992"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194993"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682194993"
+	  ><span class="hs-identifier hs-var"
+	    >name2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194990"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194992"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; name -&gt; EqRename (Renaming TermUnique)
+forall ren unique name.
+(HasRenaming ren unique, HasUnique name unique, Eq unique) =&gt;
+name -&gt; name -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqNameM"
+	><span class="hs-identifier hs-var"
+	  >eqNameM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682194991"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682194993"
+	><span class="hs-identifier hs-var"
+	  >name2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194996"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194996"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194997"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682194997"
+	  ><span class="hs-identifier hs-var"
+	    >name1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194998"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682194998"
+	  ><span class="hs-identifier hs-var"
+	    >body1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682194999"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682194999"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195000"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682195000"
+	  ><span class="hs-identifier hs-var"
+	    >name2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195001"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195001"
+	  ><span class="hs-identifier hs-var"
+	    >body2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194996"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682194999"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+-&gt; name
+-&gt; EqRename (Renaming TermUnique)
+-&gt; EqRename (Renaming TermUnique)
+forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, Monad m) =&gt;
+name
+-&gt; name
+-&gt; RenameT (Bilateral ren) m c
+-&gt; RenameT (Bilateral ren) m c
+</span
+	><a href="PlutusCore.Eq.html#withTwinBindings"
+	><span class="hs-identifier hs-var"
+	  >withTwinBindings</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682194997"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682195000"
+	><span class="hs-identifier hs-var"
+	  >name2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(EqRename (Renaming TermUnique) -&gt; EqRename (Renaming TermUnique))
+-&gt; EqRename (Renaming TermUnique) -&gt; EqRename (Renaming TermUnique)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682194998"
+	><span class="hs-identifier hs-var"
+	  >body1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195001"
+	><span class="hs-identifier hs-var"
+	  >body2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-type"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195004"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195004"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195005"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195005"
+	  ><span class="hs-identifier hs-var"
+	    >fun1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195006"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195006"
+	  ><span class="hs-identifier hs-var"
+	    >arg1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-type"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195007"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195007"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195008"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195008"
+	  ><span class="hs-identifier hs-var"
+	    >fun2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195009"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195009"
+	  ><span class="hs-identifier hs-var"
+	    >arg2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195004"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195007"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195005"
+	><span class="hs-identifier hs-var"
+	  >fun1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195008"
+	><span class="hs-identifier hs-var"
+	  >fun2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195006"
+	><span class="hs-identifier hs-var"
+	  >arg1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195009"
+	><span class="hs-identifier hs-var"
+	  >arg2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-type"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195011"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195011"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195012"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195012"
+	  ><span class="hs-identifier hs-var"
+	    >term1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-type"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195013"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195013"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195014"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195014"
+	  ><span class="hs-identifier hs-var"
+	    >term2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195011"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195013"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195012"
+	><span class="hs-identifier hs-var"
+	  >term1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195014"
+	><span class="hs-identifier hs-var"
+	  >term2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Force"
+	><span class="hs-identifier hs-type"
+	  >Force</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195016"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195016"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195017"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195017"
+	  ><span class="hs-identifier hs-var"
+	    >term1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Force"
+	><span class="hs-identifier hs-type"
+	  >Force</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195018"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195018"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195019"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195019"
+	  ><span class="hs-identifier hs-var"
+	    >term2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195016"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195018"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195017"
+	><span class="hs-identifier hs-var"
+	  >term1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195019"
+	><span class="hs-identifier hs-var"
+	  >term2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-type"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195021"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195021"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-type"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195022"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195022"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195021"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195022"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-type"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195024"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195024"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195025"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621682195025"
+	  ><span class="hs-identifier hs-var"
+	    >i1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195026"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Term name uni fun ann]
+</span
+	  ><a href="#local-6989586621682195026"
+	  ><span class="hs-identifier hs-var"
+	    >args1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-type"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195027"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195027"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195028"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621682195028"
+	  ><span class="hs-identifier hs-var"
+	    >i2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195029"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Term name uni fun ann]
+</span
+	  ><a href="#local-6989586621682195029"
+	  ><span class="hs-identifier hs-var"
+	    >args2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195024"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195027"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Word64 -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621682195025"
+	><span class="hs-identifier hs-var"
+	  >i1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621682195028"
+	><span class="hs-identifier hs-var"
+	  >i2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term name uni fun ann]
+-&gt; [Term name uni fun ann]
+-&gt; Maybe [(Term name uni fun ann, Term name uni fun ann)]
+forall a b. [a] -&gt; [b] -&gt; Maybe [(a, b)]
+</span
+	><a href="PlutusPrelude.html#zipExact"
+	><span class="hs-identifier hs-var"
+	  >zipExact</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term name uni fun ann]
+</span
+	><a href="#local-6989586621682195026"
+	><span class="hs-identifier hs-var"
+	  >args1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term name uni fun ann]
+</span
+	><a href="#local-6989586621682195029"
+	><span class="hs-identifier hs-var"
+	  >args2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195031"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Term name uni fun ann, Term name uni fun ann)]
+</span
+	  ><a href="#local-6989586621682195031"
+	  ><span class="hs-identifier hs-var"
+	    >ps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Term name uni fun ann, Term name uni fun ann)]
+-&gt; ((Term name uni fun ann, Term name uni fun ann)
+    -&gt; EqRename (Renaming TermUnique))
+-&gt; EqRename (Renaming TermUnique)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#for_"
+	><span class="hs-identifier hs-var"
+	  >for_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Term name uni fun ann, Term name uni fun ann)]
+</span
+	><a href="#local-6989586621682195031"
+	><span class="hs-identifier hs-var"
+	  >ps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((Term name uni fun ann, Term name uni fun ann)
+  -&gt; EqRename (Renaming TermUnique))
+ -&gt; EqRename (Renaming TermUnique))
+-&gt; ((Term name uni fun ann, Term name uni fun ann)
+    -&gt; EqRename (Renaming TermUnique))
+-&gt; EqRename (Renaming TermUnique)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682195033"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195033"
+	  ><span class="hs-identifier hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682195034"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195034"
+	  ><span class="hs-identifier hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195033"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195034"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe [(Term name uni fun ann, Term name uni fun ann)]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195037"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195037"
+	  ><span class="hs-identifier hs-var"
+	    >ann1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195038"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195038"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195039"
+      ><span class="annot"
+	><span class="annottext"
+	  >Vector (Term name uni fun ann)
+</span
+	  ><a href="#local-6989586621682195039"
+	  ><span class="hs-identifier hs-var"
+	    >cs1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195040"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682195040"
+	  ><span class="hs-identifier hs-var"
+	    >ann2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195041"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195041"
+	  ><span class="hs-identifier hs-var"
+	    >a2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195042"
+      ><span class="annot"
+	><span class="annottext"
+	  >Vector (Term name uni fun ann)
+</span
+	  ><a href="#local-6989586621682195042"
+	  ><span class="hs-identifier hs-var"
+	    >cs2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; ann -&gt; EqRename (Renaming TermUnique)
+forall a ren. Eq a =&gt; a -&gt; a -&gt; EqRename ren
+</span
+	><a href="PlutusCore.Eq.html#eqM"
+	><span class="hs-identifier hs-var"
+	  >eqM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195037"
+	><span class="hs-identifier hs-var"
+	  >ann1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682195040"
+	><span class="hs-identifier hs-var"
+	  >ann2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195038"
+	><span class="hs-identifier hs-var"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195041"
+	><span class="hs-identifier hs-var"
+	  >a2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term name uni fun ann]
+-&gt; [Term name uni fun ann]
+-&gt; Maybe [(Term name uni fun ann, Term name uni fun ann)]
+forall a b. [a] -&gt; [b] -&gt; Maybe [(a, b)]
+</span
+	><a href="PlutusPrelude.html#zipExact"
+	><span class="hs-identifier hs-var"
+	  >zipExact</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector (Term name uni fun ann) -&gt; [Term name uni fun ann]
+forall a. Vector a -&gt; [a]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#toList"
+	><span class="hs-identifier hs-var"
+	  >toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector (Term name uni fun ann)
+</span
+	><a href="#local-6989586621682195039"
+	><span class="hs-identifier hs-var"
+	  >cs1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector (Term name uni fun ann) -&gt; [Term name uni fun ann]
+forall a. Vector a -&gt; [a]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#toList"
+	><span class="hs-identifier hs-var"
+	  >toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector (Term name uni fun ann)
+</span
+	><a href="#local-6989586621682195042"
+	><span class="hs-identifier hs-var"
+	  >cs2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682195043"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Term name uni fun ann, Term name uni fun ann)]
+</span
+	  ><a href="#local-6989586621682195043"
+	  ><span class="hs-identifier hs-var"
+	    >ps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Term name uni fun ann, Term name uni fun ann)]
+-&gt; ((Term name uni fun ann, Term name uni fun ann)
+    -&gt; EqRename (Renaming TermUnique))
+-&gt; EqRename (Renaming TermUnique)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#for_"
+	><span class="hs-identifier hs-var"
+	  >for_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Term name uni fun ann, Term name uni fun ann)]
+</span
+	><a href="#local-6989586621682195043"
+	><span class="hs-identifier hs-var"
+	  >ps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((Term name uni fun ann, Term name uni fun ann)
+  -&gt; EqRename (Renaming TermUnique))
+ -&gt; EqRename (Renaming TermUnique))
+-&gt; ((Term name uni fun ann, Term name uni fun ann)
+    -&gt; EqRename (Renaming TermUnique))
+-&gt; EqRename (Renaming TermUnique)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682195044"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195044"
+	  ><span class="hs-identifier hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682195045"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682195045"
+	  ><span class="hs-identifier hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+forall (uni :: * -&gt; *) fun ann name.
+(GEq uni, Closed uni, Everywhere uni Eq, Eq fun, Eq ann,
+ HasUnique name TermUnique) =&gt;
+Term name uni fun ann
+-&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+</span
+	><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195044"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682195045"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe [(Term name uni fun ann, Term name uni fun ann)]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-type"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-type"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-type"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Force"
+	><span class="hs-identifier hs-type"
+	  >Force</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-type"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-type"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Instance.Eq.html#eqTermM"
+	><span class="hs-identifier hs-var"
+	  >eqTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EqRename (Renaming TermUnique)
+forall a. RenameT (Bilateral (Renaming TermUnique)) Maybe a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#empty"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

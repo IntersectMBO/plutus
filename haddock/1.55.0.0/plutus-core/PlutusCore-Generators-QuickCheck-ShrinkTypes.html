@@ -1,0 +1,355 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.QuickCheck.ShrinkTypes</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.QuickCheck.ShrinkTypes.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.QuickCheck.ShrinkTypes</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >This module defines the type shrinker. The shrinking order isn't specified, so the shrinker
+ may or may not behave correctly, we don't really know. If shrinking ever loops, feel free to kill
+ this module or reverse-engineer the shrinker and fix the problem.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:minimalType"
+	      >minimalType</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:fixKind"
+	      >fixKind</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkKindAndType"
+	      >shrinkKindAndType</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()) &#8594; [(<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())]</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkType"
+	      >shrinkType</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; [<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()]</li
+	    ><li class="src short"
+	    ><a href="#v:shrinkTypeAtKind"
+	      >shrinkTypeAtKind</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; [<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:minimalType" class="def"
+	    >minimalType</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.ShrinkTypes.html#minimalType" class="link"
+	    >Source</a
+	    > <a href="#v:minimalType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Give a unique &quot;least&quot; (intentionally vaguely specified by &quot;shrinking order&quot;)
+ type of that kind. Note: this function requires care and attention to not get
+ a shrinking loop. If you think you need to mess with this function:
+ 0. First, you *must* read the note Note [Avoiding Shrinking Loops]
+ 1. You're probably wrong, think again and
+ 2. If you're sure you're not wrong you need to be very careful and
+    test the shrinking to make sure you don't get in a loop.
+ 3. Finally, you *must* read the note Note [Avoiding Shrinking Loops]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fixKind" class="def"
+	    >fixKind</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	    >HasCallStack</a
+	    > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.ShrinkTypes.html#fixKind" class="link"
+	    >Source</a
+	    > <a href="#v:fixKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Take a type in a context and a target kind and try adjust the type to have the target kind.
+ If can't make the adjusting successful, return the <code
+	      ><a href="PlutusCore-Generators-QuickCheck-ShrinkTypes.html#v:minimalType" title="PlutusCore.Generators.QuickCheck.ShrinkTypes"
+		>minimalType</a
+		></code
+	      > of the target kind.
+ Precondition: new kind is smaller or equal to old kind of the type.
+ Complies with the implicit shrinking order.
+ TODO (later): also allow changing which context it's valid in</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkKindAndType" class="def"
+	    >shrinkKindAndType</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	    >HasCallStack</a
+	    > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) &#8594; [(<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > (), <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ())] <a href="src/PlutusCore.Generators.QuickCheck.ShrinkTypes.html#shrinkKindAndType" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkKindAndType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shrink a well-kinded type in a context to new types, possibly with new kinds.
+ The new kinds are guaranteed to be smaller than or equal to the old kind.
+ TODO: also shrink to new context
+       need old context and new context</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkType" class="def"
+	    >shrinkType</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	    >HasCallStack</a
+	    > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; [<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()] <a href="src/PlutusCore.Generators.QuickCheck.ShrinkTypes.html#shrinkType" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shrink a type in a context assuming that it is of kind *.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkTypeAtKind" class="def"
+	    >shrinkTypeAtKind</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	    >HasCallStack</a
+	    > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; [<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()] <a href="src/PlutusCore.Generators.QuickCheck.ShrinkTypes.html#shrinkTypeAtKind" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkTypeAtKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shrink a type of a given kind in a given context in a way that keeps its kind</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

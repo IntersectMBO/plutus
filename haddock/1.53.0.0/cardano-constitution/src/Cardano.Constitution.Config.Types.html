@@ -1,0 +1,2510 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span id="local-6989586621679342190"
+      ><span id="local-6989586621679342191"
+	></span
+	></span
+      ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Cardano.Constitution.Config.Types</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#PredKey"
+	><span class="hs-identifier"
+	  >PredKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicate"
+	><span class="hs-identifier"
+	  >Predicate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#PredMeaning"
+	><span class="hs-identifier"
+	  >PredMeaning</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Param"
+	><span class="hs-identifier"
+	  >Param</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamKey"
+	><span class="hs-identifier"
+	  >ParamKey</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamValue"
+	><span class="hs-identifier"
+	  >ParamValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	><span class="hs-identifier"
+	  >ConstitutionConfig</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ord.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ratio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- | The &quot;unresolved&quot; Predicate names, as read from JSON. At runtime, these PredKeys</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- will each be resolved to actual `PredMeaning` functions.</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="PredKey"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#PredKey"
+	  ><span class="hs-identifier hs-var"
+	    >PredKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span id="MinValue"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#MinValue"
+	  ><span class="hs-identifier hs-var"
+	    >MinValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="MaxValue"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#MaxValue"
+	  ><span class="hs-identifier hs-var"
+	    >MaxValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="NotEqual"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#NotEqual"
+	  ><span class="hs-identifier hs-var"
+	    >NotEqual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679342198"
+      ><span id="local-6989586621679342200"
+	><span class="annot"
+	  ><span class="annottext"
+	    >PredKey -&gt; PredKey -&gt; Bool
+(PredKey -&gt; PredKey -&gt; Bool)
+-&gt; (PredKey -&gt; PredKey -&gt; Bool) -&gt; Eq PredKey
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: PredKey -&gt; PredKey -&gt; Bool
+== :: PredKey -&gt; PredKey -&gt; Bool
+$c/= :: PredKey -&gt; PredKey -&gt; Bool
+/= :: PredKey -&gt; PredKey -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342207"
+      ><span id="local-6989586621679342209"
+	><span id="local-6989586621679342211"
+	  ><span id="local-6989586621679342215"
+	    ><span id="local-6989586621679342218"
+	      ><span id="local-6989586621679342221"
+		><span id="local-6989586621679342224"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq PredKey
+Eq PredKey =&gt;
+(PredKey -&gt; PredKey -&gt; Ordering)
+-&gt; (PredKey -&gt; PredKey -&gt; Bool)
+-&gt; (PredKey -&gt; PredKey -&gt; Bool)
+-&gt; (PredKey -&gt; PredKey -&gt; Bool)
+-&gt; (PredKey -&gt; PredKey -&gt; Bool)
+-&gt; (PredKey -&gt; PredKey -&gt; PredKey)
+-&gt; (PredKey -&gt; PredKey -&gt; PredKey)
+-&gt; Ord PredKey
+PredKey -&gt; PredKey -&gt; Bool
+PredKey -&gt; PredKey -&gt; Ordering
+PredKey -&gt; PredKey -&gt; PredKey
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: PredKey -&gt; PredKey -&gt; Ordering
+compare :: PredKey -&gt; PredKey -&gt; Ordering
+$c&lt; :: PredKey -&gt; PredKey -&gt; Bool
+&lt; :: PredKey -&gt; PredKey -&gt; Bool
+$c&lt;= :: PredKey -&gt; PredKey -&gt; Bool
+&lt;= :: PredKey -&gt; PredKey -&gt; Bool
+$c&gt; :: PredKey -&gt; PredKey -&gt; Bool
+&gt; :: PredKey -&gt; PredKey -&gt; Bool
+$c&gt;= :: PredKey -&gt; PredKey -&gt; Bool
+&gt;= :: PredKey -&gt; PredKey -&gt; Bool
+$cmax :: PredKey -&gt; PredKey -&gt; PredKey
+max :: PredKey -&gt; PredKey -&gt; PredKey
+$cmin :: PredKey -&gt; PredKey -&gt; PredKey
+min :: PredKey -&gt; PredKey -&gt; PredKey
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342228"
+      ><span id="local-6989586621679342230"
+	><span id="local-6989586621679342234"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; PredKey -&gt; ShowS
+[PredKey] -&gt; ShowS
+PredKey -&gt; String
+(Int -&gt; PredKey -&gt; ShowS)
+-&gt; (PredKey -&gt; String) -&gt; ([PredKey] -&gt; ShowS) -&gt; Show PredKey
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; PredKey -&gt; ShowS
+showsPrec :: Int -&gt; PredKey -&gt; ShowS
+$cshow :: PredKey -&gt; String
+show :: PredKey -&gt; String
+$cshowList :: [PredKey] -&gt; ShowS
+showList :: [PredKey] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342238"
+      ><span id="local-6989586621679342246"
+	><span id="local-6989586621679342252"
+	  ><span id="local-6989586621679342262"
+	    ><span id="local-6989586621679342264"
+	      ><span id="local-6989586621679342268"
+		><span id="local-6989586621679342272"
+		  ><span id="local-6989586621679342276"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; PredKey
+PredKey -&gt; Int
+PredKey -&gt; [PredKey]
+PredKey -&gt; PredKey
+PredKey -&gt; PredKey -&gt; [PredKey]
+PredKey -&gt; PredKey -&gt; PredKey -&gt; [PredKey]
+(PredKey -&gt; PredKey)
+-&gt; (PredKey -&gt; PredKey)
+-&gt; (Int -&gt; PredKey)
+-&gt; (PredKey -&gt; Int)
+-&gt; (PredKey -&gt; [PredKey])
+-&gt; (PredKey -&gt; PredKey -&gt; [PredKey])
+-&gt; (PredKey -&gt; PredKey -&gt; [PredKey])
+-&gt; (PredKey -&gt; PredKey -&gt; PredKey -&gt; [PredKey])
+-&gt; Enum PredKey
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: PredKey -&gt; PredKey
+succ :: PredKey -&gt; PredKey
+$cpred :: PredKey -&gt; PredKey
+pred :: PredKey -&gt; PredKey
+$ctoEnum :: Int -&gt; PredKey
+toEnum :: Int -&gt; PredKey
+$cfromEnum :: PredKey -&gt; Int
+fromEnum :: PredKey -&gt; Int
+$cenumFrom :: PredKey -&gt; [PredKey]
+enumFrom :: PredKey -&gt; [PredKey]
+$cenumFromThen :: PredKey -&gt; PredKey -&gt; [PredKey]
+enumFromThen :: PredKey -&gt; PredKey -&gt; [PredKey]
+$cenumFromTo :: PredKey -&gt; PredKey -&gt; [PredKey]
+enumFromTo :: PredKey -&gt; PredKey -&gt; [PredKey]
+$cenumFromThenTo :: PredKey -&gt; PredKey -&gt; PredKey -&gt; [PredKey]
+enumFromThenTo :: PredKey -&gt; PredKey -&gt; PredKey -&gt; [PredKey]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Haskell.Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342280"
+      ><span id="local-6989586621679342282"
+	><span class="annot"
+	  ><span class="annottext"
+	    >PredKey
+PredKey -&gt; PredKey -&gt; Bounded PredKey
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: PredKey
+minBound :: PredKey
+$cmaxBound :: PredKey
+maxBound :: PredKey
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342286"
+      ><span id="local-6989586621679342288"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. PredKey -&gt; Rep PredKey x)
+-&gt; (forall x. Rep PredKey x -&gt; PredKey) -&gt; Generic PredKey
+forall x. Rep PredKey x -&gt; PredKey
+forall x. PredKey -&gt; Rep PredKey x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. PredKey -&gt; Rep PredKey x
+from :: forall x. PredKey -&gt; Rep PredKey x
+$cto :: forall x. Rep PredKey x -&gt; PredKey
+to :: forall x. Rep PredKey x -&gt; PredKey
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342292"
+      ><span id="local-6989586621679342298"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; Code m PredKey)
+-&gt; Lift PredKey
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; Code m PredKey
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; Code m PredKey
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; PredKey -&gt; Code m PredKey
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >TH.Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#Eq"
+	><span class="hs-identifier hs-type"
+	  >Tx.Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#PredKey"
+	><span class="hs-identifier hs-type"
+	  >PredKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >==</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [No catch-all]</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#MinValue"
+	><span class="hs-identifier hs-var"
+	  >MinValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679342309"
+      ><span class="annot"
+	><span class="annottext"
+	  >== :: PredKey -&gt; PredKey -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >==</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#MinValue"
+	><span class="hs-identifier hs-var"
+	  >MinValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >Haskell.True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#MaxValue"
+	><span class="hs-identifier hs-var"
+	  >MaxValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#MaxValue"
+	><span class="hs-identifier hs-var"
+	  >MaxValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >Haskell.True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#NotEqual"
+	><span class="hs-identifier hs-var"
+	  >NotEqual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#NotEqual"
+	><span class="hs-identifier hs-var"
+	  >NotEqual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >Haskell.True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#MinValue"
+	><span class="hs-identifier hs-var"
+	  >MinValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >Haskell.False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#MaxValue"
+	><span class="hs-identifier hs-var"
+	  >MaxValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >Haskell.False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="Cardano.Constitution.Config.Types.html#NotEqual"
+	><span class="hs-identifier hs-var"
+	  >NotEqual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >Haskell.False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Polymorphic over the values. In reality, the value v is an Tx.Integer or Tx.Rational</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Predicate"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#Predicate"
+	  ><span class="hs-identifier hs-var"
+	    >Predicate</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679342310"
+      ><span class="annot"
+	><a href="#local-6989586621679342310"
+	  ><span class="hs-identifier hs-type"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#PredKey"
+	><span class="hs-identifier hs-type"
+	  >PredKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621679342310"
+	><span class="hs-identifier hs-type"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | newtype so we can overload FromJSON</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Predicates"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	  ><span class="hs-identifier hs-var"
+	    >Predicates</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679342156"
+      ><span class="annot"
+	><a href="#local-6989586621679342156"
+	  ><span class="hs-identifier hs-type"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Predicates"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	  ><span class="hs-identifier hs-var"
+	    >Predicates</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unPredicates"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall v. Predicates v -&gt; [Predicate v]
+</span
+	  ><a href="Cardano.Constitution.Config.Types.html#unPredicates"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unPredicates</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicate"
+	><span class="hs-identifier hs-type"
+	  >Predicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679342156"
+	><span class="hs-identifier hs-type"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679342315"
+      ><span id="local-6989586621679342323"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; Predicates v -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    Predicates v -&gt; Code m (Predicates v))
+-&gt; Lift (Predicates v)
+forall v (m :: * -&gt; *). (Lift v, Quote m) =&gt; Predicates v -&gt; m Exp
+forall v (m :: * -&gt; *).
+(Lift v, Quote m) =&gt;
+Predicates v -&gt; Code m (Predicates v)
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; Predicates v -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+Predicates v -&gt; Code m (Predicates v)
+$clift :: forall v (m :: * -&gt; *). (Lift v, Quote m) =&gt; Predicates v -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; Predicates v -&gt; m Exp
+$cliftTyped :: forall v (m :: * -&gt; *).
+(Lift v, Quote m) =&gt;
+Predicates v -&gt; Code m (Predicates v)
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+Predicates v -&gt; Code m (Predicates v)
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >TH.Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679342337"
+      ><span id="local-6989586621679342343"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Predicates v -&gt; Predicates v -&gt; Bool
+(Predicates v -&gt; Predicates v -&gt; Bool)
+-&gt; (Predicates v -&gt; Predicates v -&gt; Bool) -&gt; Eq (Predicates v)
+forall v. Eq v =&gt; Predicates v -&gt; Predicates v -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall v. Eq v =&gt; Predicates v -&gt; Predicates v -&gt; Bool
+== :: Predicates v -&gt; Predicates v -&gt; Bool
+$c/= :: forall v. Eq v =&gt; Predicates v -&gt; Predicates v -&gt; Bool
+/= :: Predicates v -&gt; Predicates v -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342355"
+      ><span id="local-6989586621679342361"
+	><span id="local-6989586621679342366"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Predicates v -&gt; ShowS
+[Predicates v] -&gt; ShowS
+Predicates v -&gt; String
+(Int -&gt; Predicates v -&gt; ShowS)
+-&gt; (Predicates v -&gt; String)
+-&gt; ([Predicates v] -&gt; ShowS)
+-&gt; Show (Predicates v)
+forall v. Show v =&gt; Int -&gt; Predicates v -&gt; ShowS
+forall v. Show v =&gt; [Predicates v] -&gt; ShowS
+forall v. Show v =&gt; Predicates v -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall v. Show v =&gt; Int -&gt; Predicates v -&gt; ShowS
+showsPrec :: Int -&gt; Predicates v -&gt; ShowS
+$cshow :: forall v. Show v =&gt; Predicates v -&gt; String
+show :: Predicates v -&gt; String
+$cshowList :: forall v. Show v =&gt; [Predicates v] -&gt; ShowS
+showList :: [Predicates v] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- | The &quot;meaning&quot; of a predicate, resolved from a `PredKey` (a string in JSON)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- to a Tx binary predicate function.</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="PredMeaning"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#PredMeaning"
+	  ><span class="hs-identifier hs-var"
+	    >PredMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679342378"
+      ><span class="annot"
+	><a href="#local-6989586621679342378"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+	><span class="hs-identifier hs-type"
+	  >Tx.Ord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679342378"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679342378"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ the expected value, supplied from the config (json)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679342378"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ the proposed value, taken from the ScriptContext</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ True means the proposed value meets the expectations.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Promised to be a stable identifier (stable at least for a whole cardano era)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="ParamKey"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ParamKey"
+	  ><span class="hs-identifier hs-var"
+	    >ParamKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ParamValue"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ParamValue"
+	  ><span class="hs-identifier hs-var"
+	    >ParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >      </span
+      ><span id="ParamInteger"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ParamInteger"
+	  ><span class="hs-identifier hs-var"
+	    >ParamInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier hs-type"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ParamRational"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ParamRational"
+	  ><span class="hs-identifier hs-var"
+	    >ParamRational</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier hs-type"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Tx.Rational</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ParamList"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ParamList"
+	  ><span class="hs-identifier hs-var"
+	    >ParamList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamValue"
+	><span class="hs-identifier hs-type"
+	  >ParamValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="ParamAny"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ParamAny"
+	  ><span class="hs-identifier hs-var"
+	    >ParamAny</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679342385"
+      ><span id="local-6989586621679342393"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ParamValue -&gt; ParamValue -&gt; Bool
+(ParamValue -&gt; ParamValue -&gt; Bool)
+-&gt; (ParamValue -&gt; ParamValue -&gt; Bool) -&gt; Eq ParamValue
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ParamValue -&gt; ParamValue -&gt; Bool
+== :: ParamValue -&gt; ParamValue -&gt; Bool
+$c/= :: ParamValue -&gt; ParamValue -&gt; Bool
+/= :: ParamValue -&gt; ParamValue -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342399"
+      ><span id="local-6989586621679342410"
+	><span id="local-6989586621679342414"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ParamValue -&gt; ShowS
+[ParamValue] -&gt; ShowS
+ParamValue -&gt; String
+(Int -&gt; ParamValue -&gt; ShowS)
+-&gt; (ParamValue -&gt; String)
+-&gt; ([ParamValue] -&gt; ShowS)
+-&gt; Show ParamValue
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ParamValue -&gt; ShowS
+showsPrec :: Int -&gt; ParamValue -&gt; ShowS
+$cshow :: ParamValue -&gt; String
+show :: ParamValue -&gt; String
+$cshowList :: [ParamValue] -&gt; ShowS
+showList :: [ParamValue] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342419"
+      ><span id="local-6989586621679342435"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; ParamValue -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    ParamValue -&gt; Code m ParamValue)
+-&gt; Lift ParamValue
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; ParamValue -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; ParamValue -&gt; Code m ParamValue
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; ParamValue -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; ParamValue -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; ParamValue -&gt; Code m ParamValue
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; ParamValue -&gt; Code m ParamValue
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >TH.Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Param"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#Param"
+	  ><span class="hs-identifier hs-var"
+	    >Param</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamKey"
+	><span class="hs-identifier hs-type"
+	  >ParamKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamValue"
+	><span class="hs-identifier hs-type"
+	  >ParamValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Manually constructing a Configuration value]
+
+1. The `ConstitutionConfig` has to be sorted before it is passed to
+the engine (requirement for the Sorted engine implementation).
+2. The `ConstitutionConfig` should not contain duplicates.
+
+Both 1 and 2 are guaranteed by construction only in case of using the JSON constitution format
+and not when manually constructing a `ConstitutionConfig` ADT value.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | See Note [Manually constructing a Configuration value]</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="ConstitutionConfig"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	  ><span class="hs-identifier hs-var"
+	    >ConstitutionConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ConstitutionConfig"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#ConstitutionConfig"
+	  ><span class="hs-identifier hs-var"
+	    >ConstitutionConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unConstitutionConfig"
+      ><span class="annot"
+	><span class="annottext"
+	  >ConstitutionConfig -&gt; [Param]
+</span
+	  ><a href="Cardano.Constitution.Config.Types.html#unConstitutionConfig"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unConstitutionConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Param"
+	><span class="hs-identifier hs-type"
+	  >Param</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679342456"
+      ><span id="local-6989586621679342463"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; ConstitutionConfig -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    ConstitutionConfig -&gt; Code m ConstitutionConfig)
+-&gt; Lift ConstitutionConfig
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; ConstitutionConfig -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+ConstitutionConfig -&gt; Code m ConstitutionConfig
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; ConstitutionConfig -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; ConstitutionConfig -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+ConstitutionConfig -&gt; Code m ConstitutionConfig
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+ConstitutionConfig -&gt; Code m ConstitutionConfig
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >TH.Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679342475"
+      ><span id="local-6989586621679342480"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ConstitutionConfig -&gt; ConstitutionConfig -&gt; Bool
+(ConstitutionConfig -&gt; ConstitutionConfig -&gt; Bool)
+-&gt; (ConstitutionConfig -&gt; ConstitutionConfig -&gt; Bool)
+-&gt; Eq ConstitutionConfig
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ConstitutionConfig -&gt; ConstitutionConfig -&gt; Bool
+== :: ConstitutionConfig -&gt; ConstitutionConfig -&gt; Bool
+$c/= :: ConstitutionConfig -&gt; ConstitutionConfig -&gt; Bool
+/= :: ConstitutionConfig -&gt; ConstitutionConfig -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679342490"
+      ><span id="local-6989586621679342495"
+	><span id="local-6989586621679342500"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ConstitutionConfig -&gt; ShowS
+[ConstitutionConfig] -&gt; ShowS
+ConstitutionConfig -&gt; String
+(Int -&gt; ConstitutionConfig -&gt; ShowS)
+-&gt; (ConstitutionConfig -&gt; String)
+-&gt; ([ConstitutionConfig] -&gt; ShowS)
+-&gt; Show ConstitutionConfig
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ConstitutionConfig -&gt; ShowS
+showsPrec :: Int -&gt; ConstitutionConfig -&gt; ShowS
+$cshow :: ConstitutionConfig -&gt; String
+show :: ConstitutionConfig -&gt; String
+$cshowList :: [ConstitutionConfig] -&gt; ShowS
+showList :: [ConstitutionConfig] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-comment"
+      >-- Taken from the older Reference impl: src/Cardano/Constitution/Validator/Reference/Types.hs</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier hs-type"
+	  >TH.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Tx.Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679342519"
+      ><span class="annot"
+	><span class="annottext"
+	  >lift :: forall (m :: * -&gt; *). Quote m =&gt; Rational -&gt; m Exp
+</span
+	  ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#lift"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >lift</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679342520"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational
+</span
+	  ><a href="#local-6989586621679342520"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[|</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html#unsafeRatio"
+	><span class="hs-identifier hs-type"
+	  >Tx.unsafeRatio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; m Exp
+forall t (m :: * -&gt; *). (Lift t, Quote m) =&gt; t -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; Integer -&gt; m Exp
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#lift"
+	><span class="hs-identifier hs-var"
+	  >TH.lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#numerator"
+	><span class="hs-identifier hs-var"
+	  >Tx.numerator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621679342520"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; m Exp
+forall t (m :: * -&gt; *). (Lift t, Quote m) =&gt; t -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; Integer -&gt; m Exp
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#lift"
+	><span class="hs-identifier hs-var"
+	  >TH.lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#denominator"
+	><span class="hs-identifier hs-var"
+	  >Tx.denominator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621679342520"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >|]</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679342530"
+      ><span class="annot"
+	><span class="annottext"
+	  >liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Rational -&gt; Code m Rational
+</span
+	  ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#liftTyped"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >liftTyped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679342531"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational
+</span
+	  ><a href="#local-6989586621679342531"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[||</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Rational
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#unsafeRatio"
+	><span class="hs-identifier hs-var"
+	  >Tx.unsafeRatio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >$$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Code m Integer
+forall t (m :: * -&gt; *). (Lift t, Quote m) =&gt; t -&gt; Code m t
+forall (m :: * -&gt; *). Quote m =&gt; Integer -&gt; Code m Integer
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#liftTyped"
+	><span class="hs-identifier hs-var"
+	  >TH.liftTyped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#numerator"
+	><span class="hs-identifier hs-var"
+	  >Tx.numerator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621679342531"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >$$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Code m Integer
+forall t (m :: * -&gt; *). (Lift t, Quote m) =&gt; t -&gt; Code m t
+forall (m :: * -&gt; *). Quote m =&gt; Integer -&gt; Code m Integer
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#liftTyped"
+	><span class="hs-identifier hs-var"
+	  >TH.liftTyped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#denominator"
+	><span class="hs-identifier hs-var"
+	  >Tx.denominator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621679342531"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >||]</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

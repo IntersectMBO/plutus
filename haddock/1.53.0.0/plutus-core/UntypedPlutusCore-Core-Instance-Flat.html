@@ -1,0 +1,1161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Core.Instance.Flat</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Core.Instance.Flat.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Core.Instance.Flat</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:termTagWidth"
+	      >termTagWidth</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	      >NumBits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodeTermTag"
+	      >encodeTermTag</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Encoder-Strict.html#t:Encoding" title="Flat.Encoder.Strict"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeTermTag"
+	      >decodeTermTag</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Decoder-Types.html#t:Get" title="Flat.Decoder.Types"
+	      >Get</a
+	      > <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodeTerm"
+	      >encodeTerm</a
+	      > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	      >Binder</a
+	      > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Encoder-Strict.html#t:Encoding" title="Flat.Encoder.Strict"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeTerm"
+	      >decodeTerm</a
+	      > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	      >Binder</a
+	      > name)) &#8658; <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; (fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Decoder-Types.html#t:Get" title="Flat.Decoder.Types"
+	      >Get</a
+	      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:sizeTerm"
+	      >sizeTerm</a
+	      > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	      >Binder</a
+	      > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	      >NumBits</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	      >NumBits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodeProgram"
+	      >encodeProgram</a
+	      > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	      >Binder</a
+	      > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Encoder-Strict.html#t:Encoding" title="Flat.Encoder.Strict"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeProgram"
+	      >decodeProgram</a
+	      > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	      >Binder</a
+	      > name)) &#8658; (fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Decoder-Types.html#t:Get" title="Flat.Decoder.Types"
+	      >Get</a
+	      > (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:sizeProgram"
+	      >sizeProgram</a
+	      > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	      >Binder</a
+	      > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	      >NumBits</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	      >NumBits</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:UnrestrictedProgram"
+	      >UnrestrictedProgram</a
+	      > name uni fun ann = <a href="#v:UnrestrictedProgram"
+	      >UnrestrictedProgram</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unUnrestrictedProgram"
+		  >unUnrestrictedProgram</a
+		  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		  >Program</a
+		  > name uni fun ann</li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termTagWidth" class="def"
+	    >termTagWidth</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	    >NumBits</a
+	    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#termTagWidth" class="link"
+	    >Source</a
+	    > <a href="#v:termTagWidth" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Using 4 bits to encode term tags.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeTermTag" class="def"
+	    >encodeTermTag</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Encoder-Strict.html#t:Encoding" title="Flat.Encoder.Strict"
+	    >Encoding</a
+	    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#encodeTermTag" class="link"
+	    >Source</a
+	    > <a href="#v:encodeTermTag" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeTermTag" class="def"
+	    >decodeTermTag</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Decoder-Types.html#t:Get" title="Flat.Decoder.Types"
+	    >Get</a
+	    > <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#decodeTermTag" class="link"
+	    >Source</a
+	    > <a href="#v:decodeTermTag" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeTerm" class="def"
+	    >encodeTerm</a
+	    > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	    >Binder</a
+	    > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Encoder-Strict.html#t:Encoding" title="Flat.Encoder.Strict"
+	    >Encoding</a
+	    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#encodeTerm" class="link"
+	    >Source</a
+	    > <a href="#v:encodeTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeTerm" class="def"
+	    >decodeTerm</a
+	    > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	    >Binder</a
+	    > name)) &#8658; <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; (fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Decoder-Types.html#t:Get" title="Flat.Decoder.Types"
+	    >Get</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#decodeTerm" class="link"
+	    >Source</a
+	    > <a href="#v:decodeTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sizeTerm" class="def"
+	    >sizeTerm</a
+	    > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	    >Binder</a
+	    > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	    >NumBits</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	    >NumBits</a
+	    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#sizeTerm" class="link"
+	    >Source</a
+	    > <a href="#v:sizeTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeProgram" class="def"
+	    >encodeProgram</a
+	    > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	    >Binder</a
+	    > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Encoder-Strict.html#t:Encoding" title="Flat.Encoder.Strict"
+	    >Encoding</a
+	    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#encodeProgram" class="link"
+	    >Source</a
+	    > <a href="#v:encodeProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An encoder for programs.</p
+	    ><p
+	    >It is not easy to use this correctly with <code
+	      >flat</code
+	      >. The simplest thing
+ is to go via the instance for <code
+	      ><a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		>UnrestrictedProgram</a
+		></code
+	      >, which uses this</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeProgram" class="def"
+	    >decodeProgram</a
+	    > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	    >Binder</a
+	    > name)) &#8658; (fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Decoder-Types.html#t:Get" title="Flat.Decoder.Types"
+	    >Get</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#decodeProgram" class="link"
+	    >Source</a
+	    > <a href="#v:decodeProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sizeProgram" class="def"
+	    >sizeProgram</a
+	    > &#8759; &#8704; name uni fun ann. (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+	    >Binder</a
+	    > name)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	    >NumBits</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+	    >NumBits</a
+	    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#sizeProgram" class="link"
+	    >Source</a
+	    > <a href="#v:sizeProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:UnrestrictedProgram" class="def"
+	    >UnrestrictedProgram</a
+	    > name uni fun ann <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#UnrestrictedProgram" class="link"
+	    >Source</a
+	    > <a href="#t:UnrestrictedProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A program that can be serialized without any restrictions, e.g.
+ on the set of allowable builtins or term constructs. It is generally
+ safe to use this newtype for serializing, but it should only be used
+ for deserializing in tests.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UnrestrictedProgram" class="def"
+		  >UnrestrictedProgram</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unUnrestrictedProgram" class="def"
+			  >unUnrestrictedProgram</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > name uni fun ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UnrestrictedProgram"
+	    >Instances</h4
+	    ><details id="i:UnrestrictedProgram" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:PrettyBy:1"
+		      ></span
+		      > <a href="PlutusCore-Pretty-Plc.html#t:DefaultPrettyPlcStrategy" title="PlutusCore.Pretty.Plc"
+		      >DefaultPrettyPlcStrategy</a
+		      > (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyConfigPlc</a
+		      > (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-251" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlc</a
+			  > &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlc</a
+			  > &#8594; [<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:PrettyBy:2"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-Classic.html#t:PrettyClassic" title="PlutusCore.Pretty.Classic"
+		      >PrettyClassic</a
+		      > name, <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > ann) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > (<a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+		      >PrettyConfigClassic</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      >) (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-255" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:PrettyBy:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+			  >PrettyConfigClassic</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+			  >PrettyConfigClassic</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; [<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:PrettyBy:3"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+		      >PrettyReadable</a
+		      > name, <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+		      >PrettyConfigReadable</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      >) (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-259" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:PrettyBy:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; [<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:Functor:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-245" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:Functor:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun b &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:Show:5"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > name, <a href="Universe-Core.html#t:GShow" title="Universe.Core"
+		      >GShow</a
+		      > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > ann, <a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-248" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:Show:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:Flat:6"
+		      ></span
+		      > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+		      >Flat</a
+		      >, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+		      >Flat</a
+		      > fun, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+		      >Flat</a
+		      > ann, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+		      >Flat</a
+		      > name, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Binder" title="PlutusCore.Core.Type"
+		      >Binder</a
+		      > name)) &#8658; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+		      >Flat</a
+		      > (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-264" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:Flat:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Encoder-Strict.html#t:Encoding" title="Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Decoder-Types.html#t:Get" title="Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann) <a href="https://hackage.haskell.org/package/flat-0.6/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:NumBits" title="Flat.Types"
+			  >NumBits</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:Wrapped:7"
+		      ></span
+		      > Wrapped (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-246" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:Wrapped:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > Unwrapped (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann)</p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_Wrapped-39-"
+			  >_Wrapped'</a
+			  > &#8759; Iso' (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann) (Unwrapped (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann))</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:Rewrapped:8"
+		      ></span
+		      > <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name1 uni1 fun1 ann1 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > t &#8658; Rewrapped (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name2 uni2 fun2 ann2) t</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-246" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:Rewrapped:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnrestrictedProgram:Unwrapped:9"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > Unwrapped (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-246" class="link"
+		    >Source</a
+		    > <a href="#t:UnrestrictedProgram" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnrestrictedProgram:Unwrapped:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> Unwrapped (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			>UnrestrictedProgram</a
+			> name uni fun ann) = <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			>Program</a
+			> name uni fun ann</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

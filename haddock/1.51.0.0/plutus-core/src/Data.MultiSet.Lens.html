@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Data.MultiSet.Lens</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.MultiSet.Lens.html#multiSetOf"
+	><span class="hs-identifier"
+	  >multiSetOf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html"
+	><span class="hs-identifier"
+	  >Data.MultiSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Create a 'MultiSet' from a 'Getter', 'Fold', etc.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span id="local-6989586621681816561"
+      ><span id="local-6989586621681816563"
+	><span class="annot"
+	  ><a href="Data.MultiSet.Lens.html#multiSetOf"
+	    ><span class="hs-identifier hs-type"
+	      >multiSetOf</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Getting</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html#MultiSet"
+	    ><span class="hs-identifier hs-type"
+	      >MultiSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681816561"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681816563"
+	    ><span class="hs-identifier hs-type"
+	      >s</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681816561"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681816563"
+	    ><span class="hs-identifier hs-type"
+	      >s</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html#MultiSet"
+	    ><span class="hs-identifier hs-type"
+	      >MultiSet</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681816561"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-comment"
+      >-- same as 'setOf'</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span id="multiSetOf"
+      ><span class="annot"
+	><span class="annottext"
+	  >multiSetOf :: forall a s. Getting (MultiSet a) s a -&gt; s -&gt; MultiSet a
+</span
+	  ><a href="Data.MultiSet.Lens.html#multiSetOf"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >multiSetOf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681816583"
+      ><span class="annot"
+	><span class="annottext"
+	  >Getting (MultiSet a) s a
+</span
+	  ><a href="#local-6989586621681816583"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (MultiSet a) s a -&gt; (a -&gt; MultiSet a) -&gt; s -&gt; MultiSet a
+forall s (m :: * -&gt; *) r a.
+MonadReader s m =&gt;
+LensLike' (Const r) s a -&gt; (a -&gt; r) -&gt; m r
+</span
+	><span class="hs-identifier hs-var"
+	>views</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (MultiSet a) s a
+</span
+	><a href="#local-6989586621681816583"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; MultiSet a
+forall a. a -&gt; MultiSet a
+</span
+	><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >singleton</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

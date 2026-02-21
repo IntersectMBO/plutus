@@ -1,0 +1,742 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Analysis.Size</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#kindSize"
+	><span class="hs-identifier"
+	  >kindSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#typeSize"
+	><span class="hs-identifier"
+	  >typeSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#tyVarDeclSize"
+	><span class="hs-identifier"
+	  >tyVarDeclSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Size.html#termSize"
+	><span class="hs-identifier"
+	  >termSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#varDeclSize"
+	><span class="hs-identifier"
+	  >varDeclSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#kindSize"
+	><span class="hs-identifier"
+	  >kindSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#tyVarDeclSize"
+	><span class="hs-identifier"
+	  >tyVarDeclSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#typeSize"
+	><span class="hs-identifier"
+	  >typeSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#varDeclSize"
+	><span class="hs-identifier"
+	  >varDeclSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Count the number of AST nodes in a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span id="local-6989586621679467379"
+      ><span id="local-6989586621679467380"
+	><span id="local-6989586621679467381"
+	  ><span id="local-6989586621679467382"
+	    ><span id="local-6989586621679467383"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.Size.html#termSize"
+		  ><span class="hs-identifier hs-type"
+		    >termSize</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679467379"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679467380"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679467381"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679467382"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679467383"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+		  ><span class="hs-identifier hs-type"
+		    >Size</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="termSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >termSize :: forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann -&gt; Size
+</span
+	  ><a href="PlutusIR.Analysis.Size.html#termSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679467454"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679467454"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Size] -&gt; Size
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-var"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679467454"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Getting Size (Term tyname name uni fun ann) Size -&gt; Size
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; Const Size (Kind ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Const Size (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Kind ann -&gt; f (Kind ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubkinds"
+	><span class="hs-identifier hs-var"
+	  >termSubkinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Kind ann -&gt; Const Size (Kind ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Const Size (Term tyname name uni fun ann))
+-&gt; ((Size -&gt; Const Size Size) -&gt; Kind ann -&gt; Const Size (Kind ann))
+-&gt; Getting Size (Term tyname name uni fun ann) Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; Size)
+-&gt; (Size -&gt; Const Size Size) -&gt; Kind ann -&gt; Const Size (Kind ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann -&gt; Size
+forall a. Kind a -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#kindSize"
+	><span class="hs-identifier hs-var"
+	  >kindSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679467454"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Getting Size (Term tyname name uni fun ann) Size -&gt; Size
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Const Size (Type tyname uni ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Const Size (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Type tyname uni a -&gt; f (Type tyname uni a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubtypes"
+	><span class="hs-identifier hs-var"
+	  >termSubtypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Type tyname uni ann -&gt; Const Size (Type tyname uni ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Const Size (Term tyname name uni fun ann))
+-&gt; ((Size -&gt; Const Size Size)
+    -&gt; Type tyname uni ann -&gt; Const Size (Type tyname uni ann))
+-&gt; Getting Size (Term tyname name uni fun ann) Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Size)
+-&gt; (Size -&gt; Const Size Size)
+-&gt; Type tyname uni ann
+-&gt; Const Size (Type tyname uni ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; Size
+forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#typeSize"
+	><span class="hs-identifier hs-var"
+	  >typeSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679467454"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Getting Size (Term tyname name uni fun ann) Size -&gt; Size
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Const Size (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Const Size (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term tyname name uni fun ann
+  -&gt; Const Size (Term tyname name uni fun ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Const Size (Term tyname name uni fun ann))
+-&gt; Getting Size (Term tyname name uni fun ann) Size
+-&gt; Getting Size (Term tyname name uni fun ann) Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; Size)
+-&gt; Getting Size (Term tyname name uni fun ann) Size
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; Size
+forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann -&gt; Size
+</span
+	><a href="PlutusIR.Analysis.Size.html#termSize"
+	><span class="hs-identifier hs-var"
+	  >termSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

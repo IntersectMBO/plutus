@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module UntypedPlutusCore.Transform.Certify.Hints where
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>-- | Certifier hints for the inlining pass.
+<span class="lineno">    4 </span>data Inline
+<span class="lineno">    5 </span>  = InlVar
+<span class="lineno">    6 </span>  | InlLam Inline
+<span class="lineno">    7 </span>  | InlApply Inline Inline
+<span class="lineno">    8 </span>  | InlForce Inline
+<span class="lineno">    9 </span>  | InlDelay Inline
+<span class="lineno">   10 </span>  | InlCon
+<span class="lineno">   11 </span>  | InlBuiltin
+<span class="lineno">   12 </span>  | InlError
+<span class="lineno">   13 </span>  | InlConstr [Inline]
+<span class="lineno">   14 </span>  | InlCase Inline [Inline]
+<span class="lineno">   15 </span>  | InlExpand Inline
+<span class="lineno">   16 </span>  | InlDrop Inline
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>{-| Hints for the certifier.
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>Note that there's a separate and unrelated notion of @InlineHints@. When there's
+<span class="lineno">   21 </span>ambiguity, this should be referred to as &quot;certifier hints&quot;. -}
+<span class="lineno">   22 </span>data Hints
+<span class="lineno">   23 </span>  = Inline Inline
+<span class="lineno">   24 </span>  | NoHints
+
+</pre>
+</body>
+</html>

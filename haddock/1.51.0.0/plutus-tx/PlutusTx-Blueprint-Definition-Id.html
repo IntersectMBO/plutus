@@ -1,0 +1,1115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Definition.Id</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Definition.Id.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Definition.Id</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DefinitionId"
+	      >DefinitionId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:definitionIdFromType"
+	      >definitionIdFromType</a
+	      > &#8759; &#8704; (t &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	      >Typeable</a
+	      > t &#8658; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	      >DefinitionId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:definitionIdFromTypeK"
+	      >definitionIdFromTypeK</a
+	      > &#8759; &#8704; k (t &#8759; k). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	      >Typeable</a
+	      > (t &#8759; k) &#8658; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	      >DefinitionId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:definitionIdToText"
+	      >definitionIdToText</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	      >DefinitionId</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:definitionIdUnit"
+	      >definitionIdUnit</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	      >DefinitionId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:definitionIdList"
+	      >definitionIdList</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	      >DefinitionId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:definitionIdTuple2"
+	      >definitionIdTuple2</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	      >DefinitionId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:definitionIdTuple3"
+	      >definitionIdTuple3</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	      >DefinitionId</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DefinitionId" class="def"
+	    >DefinitionId</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#DefinitionId" class="link"
+	    >Source</a
+	    > <a href="#t:DefinitionId" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A reference to a Schema definition.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DefinitionId"
+	    >Instances</h4
+	    ><details id="i:DefinitionId" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:ToJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:ToJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:ToJSONKey:2"
+		      ></span
+		      > ToJSONKey <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:ToJSONKey:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSONKey"
+			  >toJSONKey</a
+			  > &#8759; ToJSONKeyFunction <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  ></p
+			><p class="src"
+			><a href="#v:toJSONKeyList"
+			  >toJSONKeyList</a
+			  > &#8759; ToJSONKeyFunction [<a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  >]</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:Data:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:Data:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:Semigroup:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:Semigroup:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:Generic:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:Generic:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > x &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:Show:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:Show:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:Eq:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:Eq:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:Ord:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:Ord:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefinitionId:Rep:9"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >DefinitionId</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefinitionId:Rep:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Id.html"
+			>PlutusTx.Blueprint.Definition.Id</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			>DefinitionId</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;DefinitionId&quot; &quot;PlutusTx.Blueprint.Definition.Id&quot; &quot;plutus-tx-1.51.0.0-inplace&quot; '<a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MkDefinitionId&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;definitionIdToText&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			>Text</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionIdFromType" class="def"
+	    >definitionIdFromType</a
+	    > &#8759; &#8704; (t &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	    >Typeable</a
+	    > t &#8658; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	    >DefinitionId</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#definitionIdFromType" class="link"
+	    >Source</a
+	    > <a href="#v:definitionIdFromType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Creates a <code
+	      ><a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		>DefinitionId</a
+		></code
+	      > from a type with a kind <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		>Type</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionIdFromTypeK" class="def"
+	    >definitionIdFromTypeK</a
+	    > &#8759; &#8704; k (t &#8759; k). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	    >Typeable</a
+	    > (t &#8759; k) &#8658; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	    >DefinitionId</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#definitionIdFromTypeK" class="link"
+	    >Source</a
+	    > <a href="#v:definitionIdFromTypeK" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Creates a <code
+	      ><a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		>DefinitionId</a
+		></code
+	      > from a type with a kind other than <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		>Type</a
+		></code
+	      >.
+Example:
+&gt; definitionIdFromTypeK <code
+	      >(Type -&gt; Type) </code
+	      >Maybe</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionIdToText" class="def"
+	    >definitionIdToText</a
+	    > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	    >DefinitionId</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#definitionIdToText" class="link"
+	    >Source</a
+	    > <a href="#v:definitionIdToText" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionIdUnit" class="def"
+	    >definitionIdUnit</a
+	    > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	    >DefinitionId</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#definitionIdUnit" class="link"
+	    >Source</a
+	    > <a href="#v:definitionIdUnit" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionIdList" class="def"
+	    >definitionIdList</a
+	    > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	    >DefinitionId</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#definitionIdList" class="link"
+	    >Source</a
+	    > <a href="#v:definitionIdList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionIdTuple2" class="def"
+	    >definitionIdTuple2</a
+	    > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	    >DefinitionId</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple2" class="link"
+	    >Source</a
+	    > <a href="#v:definitionIdTuple2" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionIdTuple3" class="def"
+	    >definitionIdTuple3</a
+	    > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+	    >DefinitionId</a
+	    > <a href="src/PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple3" class="link"
+	    >Source</a
+	    > <a href="#v:definitionIdTuple3" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

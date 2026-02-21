@@ -1,0 +1,1020 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Eq</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Eq.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Eq</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >An internal module that defines functions for deciding equality of values of data types
+that encode things with binders. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:LR"
+	      >LR</a
+	      > a = <a href="#v:LR"
+	      >LR</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unLR"
+		  >unLR</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:RL"
+	      >RL</a
+	      > a = <a href="#v:RL"
+	      >RL</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unRL"
+		  >unRL</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:EqRename"
+	      >EqRename</a
+	      > ren = <a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+	      >RenameT</a
+	      > (Bilateral ren) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:ScopedEqRename"
+	      >ScopedEqRename</a
+	      > = <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	      >EqRename</a
+	      > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	      >ScopedRenaming</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:runEqRename"
+	      >runEqRename</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > ren &#8658; <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	      >EqRename</a
+	      > ren &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withTwinBindings"
+	      >withTwinBindings</a
+	      > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	      >HasRenaming</a
+	      > ren unique, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name unique, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; name &#8594; name &#8594; <a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+	      >RenameT</a
+	      > (Bilateral ren) m c &#8594; <a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+	      >RenameT</a
+	      > (Bilateral ren) m c</li
+	    ><li class="src short"
+	    ><a href="#v:eqNameM"
+	      >eqNameM</a
+	      > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	      >HasRenaming</a
+	      > ren unique, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name unique, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > unique) &#8658; name &#8594; name &#8594; <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	      >EqRename</a
+	      > ren</li
+	    ><li class="src short"
+	    ><a href="#v:eqM"
+	      >eqM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > a &#8658; a &#8594; a &#8594; <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	      >EqRename</a
+	      > ren</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:LR" class="def"
+	    >LR</a
+	    > a <a href="src/PlutusCore.Eq.html#LR" class="link"
+	    >Source</a
+	    > <a href="#t:LR" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >From left to right.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:LR" class="def"
+		  >LR</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unLR" class="def"
+			  >unLR</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:LR"
+	    >Instances</h4
+	    ><details id="i:LR" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LR:Generic:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+		      >LR</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-110" class="link"
+		    >Source</a
+		    > <a href="#t:LR" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LR:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a) x &#8594; <a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LR:Wrapped:2"
+		      ></span
+		      > Wrapped (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+		      >LR</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:LR" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LR:Wrapped:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > Unwrapped (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a)</p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_Wrapped-39-"
+			  >_Wrapped'</a
+			  > &#8759; Iso' (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a) (Unwrapped (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > a))</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LR:HasUnique:3"
+		      ></span
+		      > <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > name unique &#8658; <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+		      >LR</a
+		      > name) (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+		      >LR</a
+		      > unique)</span
+		    > <a href="src/PlutusCore.Eq.html#line-130" class="link"
+		    >Source</a
+		    > <a href="#t:LR" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LR:HasUnique:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unique"
+			  >unique</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > name) (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			  >LR</a
+			  > unique) <a href="src/PlutusCore.Name.Unique.html#unique" class="link"
+			  >Source</a
+			  > <a href="#v:unique" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LR:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+		      >LR</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-110" class="link"
+		    >Source</a
+		    > <a href="#t:LR" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LR:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			>LR</a
+			> a) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;LR&quot; &quot;PlutusCore.Eq&quot; &quot;plutus-core-1.56.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;LR&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;unLR&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> a)))</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LR:Unwrapped:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > Unwrapped (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+		      >LR</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:LR" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LR:Unwrapped:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> Unwrapped (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			>LR</a
+			> a) = GUnwrapped (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Eq.html#t:LR" title="PlutusCore.Eq"
+			>LR</a
+			> a))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:RL" class="def"
+	    >RL</a
+	    > a <a href="src/PlutusCore.Eq.html#RL" class="link"
+	    >Source</a
+	    > <a href="#t:RL" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >From right to left.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:RL" class="def"
+		  >RL</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unRL" class="def"
+			  >unRL</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:RL"
+	    >Instances</h4
+	    ><details id="i:RL" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RL:Generic:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+		      >RL</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-117" class="link"
+		    >Source</a
+		    > <a href="#t:RL" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RL:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a) x &#8594; <a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RL:Wrapped:2"
+		      ></span
+		      > Wrapped (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+		      >RL</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-129" class="link"
+		    >Source</a
+		    > <a href="#t:RL" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RL:Wrapped:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > Unwrapped (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a)</p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_Wrapped-39-"
+			  >_Wrapped'</a
+			  > &#8759; Iso' (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a) (Unwrapped (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > a))</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RL:HasUnique:3"
+		      ></span
+		      > <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > name unique &#8658; <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		      >HasUnique</a
+		      > (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+		      >RL</a
+		      > name) (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+		      >RL</a
+		      > unique)</span
+		    > <a href="src/PlutusCore.Eq.html#line-131" class="link"
+		    >Source</a
+		    > <a href="#t:RL" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RL:HasUnique:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unique"
+			  >unique</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > name) (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			  >RL</a
+			  > unique) <a href="src/PlutusCore.Name.Unique.html#unique" class="link"
+			  >Source</a
+			  > <a href="#v:unique" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RL:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+		      >RL</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-117" class="link"
+		    >Source</a
+		    > <a href="#t:RL" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RL:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			>RL</a
+			> a) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;RL&quot; &quot;PlutusCore.Eq&quot; &quot;plutus-core-1.56.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;RL&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;unRL&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> a)))</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RL:Unwrapped:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > Unwrapped (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+		      >RL</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Eq.html#line-129" class="link"
+		    >Source</a
+		    > <a href="#t:RL" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RL:Unwrapped:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Eq.html"
+			>PlutusCore.Eq</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> Unwrapped (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			>RL</a
+			> a) = GUnwrapped (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Eq.html#t:RL" title="PlutusCore.Eq"
+			>RL</a
+			> a))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:EqRename" class="def"
+	    >EqRename</a
+	    > ren = <a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+	    >RenameT</a
+	    > (Bilateral ren) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > () <a href="src/PlutusCore.Eq.html#EqRename" class="link"
+	    >Source</a
+	    > <a href="#t:EqRename" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of a runnable equality check. <code
+	      >Maybe ()</code
+	      > is isomorphic to <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		>Bool</a
+		></code
+	      > and we use it
+instead of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		>Bool</a
+		></code
+	      >, because this unlocks the convenient and readable do-notation and allows for
+automatic short-circuiting, which would be tedious with <code
+	      >Rename (Bilateral ren) Bool</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:ScopedEqRename" class="def"
+	    >ScopedEqRename</a
+	    > = <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	    >EqRename</a
+	    > <a href="PlutusCore-Rename-Monad.html#t:ScopedRenaming" title="PlutusCore.Rename.Monad"
+	    >ScopedRenaming</a
+	    > <a href="src/PlutusCore.Eq.html#ScopedEqRename" class="link"
+	    >Source</a
+	    > <a href="#t:ScopedEqRename" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runEqRename" class="def"
+	    >runEqRename</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > ren &#8658; <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	    >EqRename</a
+	    > ren &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusCore.Eq.html#runEqRename" class="link"
+	    >Source</a
+	    > <a href="#v:runEqRename" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run an <code
+	      ><a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+		>EqRename</a
+		></code
+	      > computation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTwinBindings" class="def"
+	    >withTwinBindings</a
+	    > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	    >HasRenaming</a
+	    > ren unique, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name unique, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; name &#8594; name &#8594; <a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+	    >RenameT</a
+	    > (Bilateral ren) m c &#8594; <a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+	    >RenameT</a
+	    > (Bilateral ren) m c <a href="src/PlutusCore.Eq.html#withTwinBindings" class="link"
+	    >Source</a
+	    > <a href="#v:withTwinBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Record that two names map to each other.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eqNameM" class="def"
+	    >eqNameM</a
+	    > &#8759; (<a href="PlutusCore-Rename-Monad.html#t:HasRenaming" title="PlutusCore.Rename.Monad"
+	    >HasRenaming</a
+	    > ren unique, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name unique, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > unique) &#8658; name &#8594; name &#8594; <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	    >EqRename</a
+	    > ren <a href="src/PlutusCore.Eq.html#eqNameM" class="link"
+	    >Source</a
+	    > <a href="#v:eqNameM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check equality of two names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eqM" class="def"
+	    >eqM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a &#8658; a &#8594; a &#8594; <a href="PlutusCore-Eq.html#t:EqRename" title="PlutusCore.Eq"
+	    >EqRename</a
+	    > ren <a href="src/PlutusCore.Eq.html#eqM" class="link"
+	    >Source</a
+	    > <a href="#v:eqM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check equality of things having an <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		>Eq</a
+		></code
+	      > instance.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,1163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- | Defines the type of default machine parameters and a function for creating a value of the type.</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-comment"
+      >-- We keep them separate, because the function unfolds into multiple thousands of lines of Core that</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-comment"
+      >-- we need to be able to visually inspect, hence we dedicate a separate file to it.</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.MachineParameters.Default</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostModelInterface</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.MachineParameters</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#force"
+	><span class="hs-identifier"
+	  >force</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exts.html"
+	><span class="hs-identifier"
+	  >GHC.Exts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#inline"
+	><span class="hs-identifier"
+	  >inline</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The semantics-variant-dependent part of 'MachineParameters'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="DefaultMachineVariantParameters"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.Default.html#DefaultMachineVariantParameters"
+	  ><span class="hs-identifier hs-var"
+	    >DefaultMachineVariantParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+	><span class="hs-identifier hs-type"
+	  >MachineVariantParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekValue"
+	><span class="hs-identifier hs-type"
+	  >CekValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- machine.</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="DefaultMachineParameters"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.Default.html#DefaultMachineParameters"
+	  ><span class="hs-identifier hs-var"
+	    >DefaultMachineParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+	><span class="hs-identifier hs-type"
+	  >MachineParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekValue"
+	><span class="hs-identifier hs-type"
+	  >CekValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Inlining meanings of builtins]
+It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
+that allows GHC to look under lambdas and completely optimize multiple abstractions away.
+
+There are two ways of doing that: by relying on 'INLINE' pragmas all the way up from the
+'ToBuiltinMeaning' instance for the default set of builtins or by ensuring that 'toBuiltinsRuntime'
+is compiled efficient by turning it into a one-method class (see
+https://github.com/IntersectMBO/plutus/pull/4419 for how that looks like). We chose the former,
+because it's simpler. Although it's also less reliable: machine parameters are computed in
+multiple places and we need to make sure that benchmarking, cost model calculations and the actual
+production path have builtins compiled in the same way, 'cause otherwise performance analysis and
+cost predictions can be wrong by a big margin without us knowing. Because of this danger in addition
+to putting @INLINE@ pragmas on every relevant definition, we also stick a call to 'inline' at the
+call site. We also do not attempt to only compile things efficiently where we need that and instead
+inline the meanings of builtins everywhere. Just to be sure.
+
+Note that a combination of @INLINABLE@ + 'inline' does not result in proper inlining for whatever
+reason. It has to be @INLINE@ (and we add 'inline' on top of that for some additional reliability
+as we did have cases where sticking 'inline' on something that already had @INLINE@ would fix
+inlining).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- | Produce a 'DefaultMachineParameters' for each of the given semantics variants.</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >-- The 'CostModelParams' argument is used to update the costing parameters returned by</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-comment"
+      >-- 'cekCostModelForVariant' for each of the semantics variants.</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-comment"
+      >-- Whenever you need to evaluate UPLC in a performance-sensitive manner (e.g. in the production,</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- for benchmarking, for cost calibration etc), you MUST use this definition for creating a</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-comment"
+      >-- 'DefaultMachineParameters' and not any other. Changing this definition in absolutely any way,</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-comment"
+      >-- however trivial, requires running the benchmarks and making sure that the resulting GHC Core is</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-comment"
+      >-- still sensible. E.g. you switch the order of arguments -- you run the benchmarks and check the</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-comment"
+      >-- Core; you move this definition as-is to a different file -- you run the benchmarks and check the</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- Core; you change how it's exported (implicitly as a part of a whole-module export or explicitly</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- as a single definition) -- you get the idea.</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >-- This function is very expensive, so its result needs to be cached if it's going to be used</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-comment"
+      >-- multiple times.</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="local-6989586621681958784"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.Default.html#mkMachineVariantParametersFor"
+	  ><span class="hs-identifier hs-type"
+	    >mkMachineVariantParametersFor</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-67"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	  ><span class="hs-identifier hs-type"
+	    >MonadError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	  ><span class="hs-identifier hs-type"
+	    >CostModelApplyError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681958784"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-68"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinSemanticsVariant</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultFun</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	><span
+	>
+</span
+	><span id="line-69"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	  ><span class="hs-identifier hs-type"
+	    >CostModelParams</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-70"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681958784"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinSemanticsVariant</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultFun</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.Default.html#DefaultMachineVariantParameters"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultMachineVariantParameters</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="mkMachineVariantParametersFor"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkMachineVariantParametersFor :: forall (m :: * -&gt; *).
+MonadError CostModelApplyError m =&gt;
+[BuiltinSemanticsVariant DefaultFun]
+-&gt; CostModelParams
+-&gt; m [(BuiltinSemanticsVariant DefaultFun,
+       DefaultMachineVariantParameters)]
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.Default.html#mkMachineVariantParametersFor"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkMachineVariantParametersFor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681959007"
+      ><span class="annot"
+	><span class="annottext"
+	  >[BuiltinSemanticsVariant DefaultFun]
+</span
+	  ><a href="#local-6989586621681959007"
+	  ><span class="hs-identifier hs-var"
+	    >semVars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681959008"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621681959008"
+	  ><span class="hs-identifier hs-var"
+	    >newCMP</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681959009"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(BuiltinSemanticsVariant DefaultFun,
+  DefaultMachineVariantParameters)]
+</span
+	  ><a href="#local-6989586621681959009"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[BuiltinSemanticsVariant DefaultFun]
+-&gt; (BuiltinSemanticsVariant DefaultFun
+    -&gt; m (BuiltinSemanticsVariant DefaultFun,
+          DefaultMachineVariantParameters))
+-&gt; m [(BuiltinSemanticsVariant DefaultFun,
+       DefaultMachineVariantParameters)]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f (t b)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#for"
+	><span class="hs-identifier hs-var"
+	  >for</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[BuiltinSemanticsVariant DefaultFun]
+</span
+	><a href="#local-6989586621681959007"
+	><span class="hs-identifier hs-var"
+	  >semVars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((BuiltinSemanticsVariant DefaultFun
+  -&gt; m (BuiltinSemanticsVariant DefaultFun,
+        DefaultMachineVariantParameters))
+ -&gt; m [(BuiltinSemanticsVariant DefaultFun,
+        DefaultMachineVariantParameters)])
+-&gt; (BuiltinSemanticsVariant DefaultFun
+    -&gt; m (BuiltinSemanticsVariant DefaultFun,
+          DefaultMachineVariantParameters))
+-&gt; m [(BuiltinSemanticsVariant DefaultFun,
+       DefaultMachineVariantParameters)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681959011"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant DefaultFun
+</span
+	  ><a href="#local-6989586621681959011"
+	  ><span class="hs-identifier hs-var"
+	    >semVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- See Note [Inlining meanings of builtins].</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="#local-6989586621681959011"
+	><span class="hs-identifier hs-var"
+	  >semVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DefaultMachineVariantParameters
+ -&gt; (BuiltinSemanticsVariant DefaultFun,
+     DefaultMachineVariantParameters))
+-&gt; (CostModel CekMachineCosts BuiltinCostModel
+    -&gt; DefaultMachineVariantParameters)
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+-&gt; (BuiltinSemanticsVariant DefaultFun,
+    DefaultMachineVariantParameters)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinSemanticsVariant DefaultFun
+ -&gt; CostModel CekMachineCosts BuiltinCostModel
+ -&gt; DefaultMachineVariantParameters)
+-&gt; BuiltinSemanticsVariant DefaultFun
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+-&gt; DefaultMachineVariantParameters
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#inline"
+	><span class="hs-identifier hs-var"
+	  >inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+-&gt; DefaultMachineVariantParameters
+forall (uni :: * -&gt; *) fun builtincosts val machineCosts.
+(CostingPart uni fun ~ builtincosts, HasMeaningIn uni val,
+ ToBuiltinMeaning uni fun) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; CostModel machineCosts builtincosts
+-&gt; MachineVariantParameters machineCosts fun val
+</span
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineVariantParameters"
+	><span class="hs-identifier hs-var"
+	  >mkMachineVariantParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="#local-6989586621681959011"
+	><span class="hs-identifier hs-var"
+	  >semVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostModel CekMachineCosts BuiltinCostModel
+ -&gt; (BuiltinSemanticsVariant DefaultFun,
+     DefaultMachineVariantParameters))
+-&gt; m (CostModel CekMachineCosts BuiltinCostModel)
+-&gt; m (BuiltinSemanticsVariant DefaultFun,
+      DefaultMachineVariantParameters)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel CekMachineCosts BuiltinCostModel
+-&gt; CostModelParams
+-&gt; m (CostModel CekMachineCosts BuiltinCostModel)
+forall evaluatorcosts builtincosts (m :: * -&gt; *).
+(FromJSON evaluatorcosts, FromJSON builtincosts,
+ ToJSON evaluatorcosts, ToJSON builtincosts,
+ MonadError CostModelApplyError m) =&gt;
+CostModel evaluatorcosts builtincosts
+-&gt; CostModelParams -&gt; m (CostModel evaluatorcosts builtincosts)
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyCostModelParams"
+	><span class="hs-identifier hs-var"
+	  >applyCostModelParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#cekCostModelForVariant"
+	><span class="hs-identifier hs-var"
+	  >cekCostModelForVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+</span
+	><a href="#local-6989586621681959011"
+	><span class="hs-identifier hs-var"
+	  >semVar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621681959008"
+	><span class="hs-identifier hs-var"
+	  >newCMP</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Force all thunks to pay the cost of creating machine parameters upfront. Doing it here saves</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- us from doing that in every single benchmark runner.</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(BuiltinSemanticsVariant DefaultFun,
+  DefaultMachineVariantParameters)]
+-&gt; m [(BuiltinSemanticsVariant DefaultFun,
+       DefaultMachineVariantParameters)]
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(BuiltinSemanticsVariant DefaultFun,
+   DefaultMachineVariantParameters)]
+ -&gt; m [(BuiltinSemanticsVariant DefaultFun,
+        DefaultMachineVariantParameters)])
+-&gt; [(BuiltinSemanticsVariant DefaultFun,
+     DefaultMachineVariantParameters)]
+-&gt; m [(BuiltinSemanticsVariant DefaultFun,
+       DefaultMachineVariantParameters)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24%21"
+	><span class="hs-operator hs-var"
+	  >$!</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(BuiltinSemanticsVariant DefaultFun,
+  DefaultMachineVariantParameters)]
+-&gt; [(BuiltinSemanticsVariant DefaultFun,
+     DefaultMachineVariantParameters)]
+forall a. NFData a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#force"
+	><span class="hs-identifier hs-var"
+	  >force</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(BuiltinSemanticsVariant DefaultFun,
+  DefaultMachineVariantParameters)]
+</span
+	><a href="#local-6989586621681959009"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-comment"
+      >-- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-comment"
+      >-- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-comment"
+      >-- the line.</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

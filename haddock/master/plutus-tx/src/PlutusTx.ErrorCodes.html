@@ -1,0 +1,3572 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.ErrorCodes</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier"
+	  >Map</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Builtins</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >{-
+All error codes in this module should be unique and can be used only once!
+They help to trace the errors in on-chain code.
+
+Error codes (e.g. &quot;PT1&quot;) become a part of the compiled contract contributing to its size,
+therefore we keep them short; On the other hand, the error description isn't part of the
+compiled contract, so it doesn't have to be minimal, just short enough, clear and informative.
+
+Adding new error codes should be done without changing the existing ones:
+- Add a new error code to the list `plutusPreludeErrorCodes` by incrementing the last error code.
+- Add a new function with the error code name and a human-readable description.
+- Update the `troubleshooting.rst` file with the new error code and its description.
+
+When writing a new error description please follow existing patterns:
+  - If an error is expected to be thrown in a specific function,
+    use the fully qualified name of the function.
+  - Describe the invariant which is failed.
+  - Avoid using the word &quot;error&quot; in the description as it is redundant.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [plutusPreludeErrorCodes]
+   This list contains all error codes used in the plutus prelude and it is
+   important that when an error code is added to the prelude it is also added
+   to this list.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | All error codes used in the plutus prelude associated with a human-readable description.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#plutusPreludeErrorCodes"
+	><span class="hs-identifier hs-type"
+	  >plutusPreludeErrorCodes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="plutusPreludeErrorCodes"
+      ><span class="annot"
+	><span class="annottext"
+	  >plutusPreludeErrorCodes :: Map BuiltinString String
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#plutusPreludeErrorCodes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plutusPreludeErrorCodes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(BuiltinString, String)] -&gt; Map BuiltinString String
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT1&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;TH Generation of Indexed Data Error&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT2&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT3&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Ratio: zero denominator&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT5&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Prelude.check: input is 'False'&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT6&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.List.!!: negative index&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT7&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.List.!!: index too large&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT8&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.List.head: empty list&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT9&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.List.tail: empty list&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT19&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.List.last: empty list&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT20&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Ratio.recip: reciprocal of zero&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT21&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.BuiltinList.!!: negative index&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT22&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.BuiltinList.!!: index too large&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT23&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.BuiltinList.head: empty list&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT24&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.BuiltinList.tail: empty list&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT25&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.BuiltinList.last: empty list&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT26&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.succ: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT27&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.pred: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT28&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.toEnum: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- the following are retired</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT10&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.().succ: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT11&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.().pred: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT12&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.().toEnum: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT13&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.Bool.succ: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT14&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.Bool.pred: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT15&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.Bool.toEnum: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT16&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.Ordering.succ: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT17&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.Ordering.pred: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT18&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusTx.Enum.Ordering.toEnum: bad argument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The error happens in TH generation of indexed data</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#reconstructCaseError"
+	><span class="hs-identifier hs-type"
+	  >reconstructCaseError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="reconstructCaseError"
+      ><span class="annot"
+	><span class="annottext"
+	  >reconstructCaseError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#reconstructCaseError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reconstructCaseError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT1&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#reconstructCaseError"
+	><span class="hs-pragma hs-type"
+	  >reconstructCaseError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Error case of 'unsafeFromBuiltinData'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#voidIsNotSupportedError"
+	><span class="hs-identifier hs-type"
+	  >voidIsNotSupportedError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="voidIsNotSupportedError"
+      ><span class="annot"
+	><span class="annottext"
+	  >voidIsNotSupportedError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#voidIsNotSupportedError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >voidIsNotSupportedError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT2&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#voidIsNotSupportedError"
+	><span class="hs-pragma hs-type"
+	  >voidIsNotSupportedError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Ratio number can't have a zero denominator</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#ratioHasZeroDenominatorError"
+	><span class="hs-identifier hs-type"
+	  >ratioHasZeroDenominatorError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="ratioHasZeroDenominatorError"
+      ><span class="annot"
+	><span class="annottext"
+	  >ratioHasZeroDenominatorError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#ratioHasZeroDenominatorError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ratioHasZeroDenominatorError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT3&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#ratioHasZeroDenominatorError"
+	><span class="hs-pragma hs-type"
+	  >ratioHasZeroDenominatorError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | 'check' input is 'False'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#checkHasFailedError"
+	><span class="hs-identifier hs-type"
+	  >checkHasFailedError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="checkHasFailedError"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkHasFailedError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#checkHasFailedError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkHasFailedError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT5&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#checkHasFailedError"
+	><span class="hs-pragma hs-type"
+	  >checkHasFailedError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.List.!!: negative index</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#negativeIndexError"
+	><span class="hs-identifier hs-type"
+	  >negativeIndexError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="negativeIndexError"
+      ><span class="annot"
+	><span class="annottext"
+	  >negativeIndexError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#negativeIndexError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >negativeIndexError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT6&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#negativeIndexError"
+	><span class="hs-pragma hs-type"
+	  >negativeIndexError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.List.!!: index too large</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#indexTooLargeError"
+	><span class="hs-identifier hs-type"
+	  >indexTooLargeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="indexTooLargeError"
+      ><span class="annot"
+	><span class="annottext"
+	  >indexTooLargeError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#indexTooLargeError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >indexTooLargeError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT7&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#indexTooLargeError"
+	><span class="hs-pragma hs-type"
+	  >indexTooLargeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.List.head: empty list</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#headEmptyListError"
+	><span class="hs-identifier hs-type"
+	  >headEmptyListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span id="headEmptyListError"
+      ><span class="annot"
+	><span class="annottext"
+	  >headEmptyListError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#headEmptyListError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >headEmptyListError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT8&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#headEmptyListError"
+	><span class="hs-pragma hs-type"
+	  >headEmptyListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.List.tail: empty list</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#tailEmptyListError"
+	><span class="hs-identifier hs-type"
+	  >tailEmptyListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="tailEmptyListError"
+      ><span class="annot"
+	><span class="annottext"
+	  >tailEmptyListError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#tailEmptyListError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tailEmptyListError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT9&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#tailEmptyListError"
+	><span class="hs-pragma hs-type"
+	  >tailEmptyListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.().succ: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >succBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="succBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >succBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#succBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >succBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT26&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >succBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.().pred: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >predBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span id="predBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >predBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#predBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >predBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT27&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >predBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.().toEnum: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >toEnumBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="toEnumBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEnumBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#toEnumBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toEnumBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT28&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >toEnumBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="hs-pragma"
+      >{-# DEPRECATED</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >succVoidBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >predVoidBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >toEnumVoidBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >succBoolBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >predBoolBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >toEnumBoolBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >succOrderingBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >predOrderingBadArgumentError</span
+      ><span class="hs-pragma"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >toEnumOrderingBadArgumentError</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >&quot;Use [succ|pred|toEnum]BadArgumentError instead.&quot;</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.().succ: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succVoidBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >succVoidBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span id="succVoidBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >succVoidBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#succVoidBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >succVoidBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT10&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succVoidBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >succVoidBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.().pred: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predVoidBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >predVoidBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span id="predVoidBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >predVoidBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#predVoidBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >predVoidBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT11&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predVoidBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >predVoidBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.().toEnum: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumVoidBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >toEnumVoidBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span id="toEnumVoidBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEnumVoidBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#toEnumVoidBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toEnumVoidBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT12&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumVoidBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >toEnumVoidBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.Bool.succ: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succBoolBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >succBoolBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span id="succBoolBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >succBoolBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#succBoolBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >succBoolBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT13&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succBoolBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >succBoolBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.Bool.pred: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predBoolBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >predBoolBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span id="predBoolBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >predBoolBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#predBoolBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >predBoolBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT14&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predBoolBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >predBoolBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.Bool.toEnum: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumBoolBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >toEnumBoolBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span id="toEnumBoolBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEnumBoolBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#toEnumBoolBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toEnumBoolBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT15&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumBoolBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >toEnumBoolBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.Ordering.succ: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succOrderingBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >succOrderingBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span id="succOrderingBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >succOrderingBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#succOrderingBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >succOrderingBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT16&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#succOrderingBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >succOrderingBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.Ordering.pred: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predOrderingBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >predOrderingBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span id="predOrderingBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >predOrderingBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#predOrderingBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >predOrderingBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT17&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#predOrderingBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >predOrderingBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Enum.Ordering.toEnum: bad argument</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumOrderingBadArgumentError"
+	><span class="hs-identifier hs-type"
+	  >toEnumOrderingBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span id="toEnumOrderingBadArgumentError"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEnumOrderingBadArgumentError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#toEnumOrderingBadArgumentError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toEnumOrderingBadArgumentError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT18&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#toEnumOrderingBadArgumentError"
+	><span class="hs-pragma hs-type"
+	  >toEnumOrderingBadArgumentError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.List.last: empty list</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#lastEmptyListError"
+	><span class="hs-identifier hs-type"
+	  >lastEmptyListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span id="lastEmptyListError"
+      ><span class="annot"
+	><span class="annottext"
+	  >lastEmptyListError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#lastEmptyListError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lastEmptyListError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT19&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#lastEmptyListError"
+	><span class="hs-pragma hs-type"
+	  >lastEmptyListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.Ratio.recip: reciprocal of zero</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#reciprocalOfZeroError"
+	><span class="hs-identifier hs-type"
+	  >reciprocalOfZeroError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span id="reciprocalOfZeroError"
+      ><span class="annot"
+	><span class="annottext"
+	  >reciprocalOfZeroError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#reciprocalOfZeroError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reciprocalOfZeroError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT20&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#reciprocalOfZeroError"
+	><span class="hs-pragma hs-type"
+	  >reciprocalOfZeroError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.BuiltinList.!!: negative index</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#builtinListNegativeIndexError"
+	><span class="hs-identifier hs-type"
+	  >builtinListNegativeIndexError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span id="builtinListNegativeIndexError"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinListNegativeIndexError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#builtinListNegativeIndexError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinListNegativeIndexError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT21&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#builtinListNegativeIndexError"
+	><span class="hs-pragma hs-type"
+	  >builtinListNegativeIndexError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.BuiltinList.!!: index too large</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#builtinListIndexTooLargeError"
+	><span class="hs-identifier hs-type"
+	  >builtinListIndexTooLargeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span id="builtinListIndexTooLargeError"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinListIndexTooLargeError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#builtinListIndexTooLargeError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinListIndexTooLargeError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT22&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#builtinListIndexTooLargeError"
+	><span class="hs-pragma hs-type"
+	  >builtinListIndexTooLargeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.BuiltinList.head: empty list</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#headEmptyBuiltinListError"
+	><span class="hs-identifier hs-type"
+	  >headEmptyBuiltinListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span id="headEmptyBuiltinListError"
+      ><span class="annot"
+	><span class="annottext"
+	  >headEmptyBuiltinListError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#headEmptyBuiltinListError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >headEmptyBuiltinListError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT23&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#headEmptyBuiltinListError"
+	><span class="hs-pragma hs-type"
+	  >headEmptyBuiltinListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.BuiltinList.tail: empty list</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#tailEmptyBuiltinListError"
+	><span class="hs-identifier hs-type"
+	  >tailEmptyBuiltinListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span id="tailEmptyBuiltinListError"
+      ><span class="annot"
+	><span class="annottext"
+	  >tailEmptyBuiltinListError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#tailEmptyBuiltinListError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tailEmptyBuiltinListError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT24&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#tailEmptyBuiltinListError"
+	><span class="hs-pragma hs-type"
+	  >tailEmptyBuiltinListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | PlutusTx.BuiltinList.last: empty list</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#lastEmptyBuiltinListError"
+	><span class="hs-identifier hs-type"
+	  >lastEmptyBuiltinListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span id="lastEmptyBuiltinListError"
+      ><span class="annot"
+	><span class="annottext"
+	  >lastEmptyBuiltinListError :: BuiltinString
+</span
+	  ><a href="PlutusTx.ErrorCodes.html#lastEmptyBuiltinListError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lastEmptyBuiltinListError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;PT25&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.ErrorCodes.html#lastEmptyBuiltinListError"
+	><span class="hs-pragma hs-type"
+	  >lastEmptyBuiltinListError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

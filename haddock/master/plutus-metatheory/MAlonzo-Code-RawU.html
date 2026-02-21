@@ -1,0 +1,1781 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.RawU</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.58.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.RawU.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.RawU</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Tag" class="def"
+	    >Tag</a
+	    > = <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="src/MAlonzo.Code.RawU.html#Tag" class="link"
+	    >Source</a
+	    > <a href="#t:Tag" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagInt" class="def"
+	    >TagInt</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagInt" class="link"
+	    >Source</a
+	    > <a href="#v:TagInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagBS" class="def"
+	    >TagBS</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagBS" class="link"
+	    >Source</a
+	    > <a href="#v:TagBS" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagStr" class="def"
+	    >TagStr</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagStr" class="link"
+	    >Source</a
+	    > <a href="#v:TagStr" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagBool" class="def"
+	    >TagBool</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagBool" class="link"
+	    >Source</a
+	    > <a href="#v:TagBool" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagUnit" class="def"
+	    >TagUnit</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > () &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagUnit" class="link"
+	    >Source</a
+	    > <a href="#v:TagUnit" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagData" class="def"
+	    >TagData</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagData" class="link"
+	    >Source</a
+	    > <a href="#v:TagData" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagPair" class="def"
+	    >TagPair</a
+	    > &#8759; &#8704; {a} {k1} {k2} {f1 &#8759; k1 &#8594; k2} {a1 &#8759; k1} {k3} {k4} {f2 &#8759; k3 &#8594; k4} {a2 &#8759; k3}. () &#8658; &#8704;. (a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f1 a1), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f1 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f2 a2), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f2 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+	    >(,)</a
+	    >) &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a2) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a1) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagPair" class="link"
+	    >Source</a
+	    > <a href="#v:TagPair" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagList" class="def"
+	    >TagList</a
+	    > &#8759; &#8704; {a} {k1} {k2} {f &#8759; k1 &#8594; k2} {a1 &#8759; k1}. () &#8658; &#8704;. (a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f a1), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+	    >List</a
+	    >) &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a1) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagList" class="link"
+	    >Source</a
+	    > <a href="#v:TagList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagArray" class="def"
+	    >TagArray</a
+	    > &#8759; &#8704; {a} {k1} {k2} {f &#8759; k1 &#8594; k2} {a1 &#8759; k1}. () &#8658; &#8704;. (a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f a1), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+	    >Vector</a
+	    >) &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a1) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagArray" class="link"
+	    >Source</a
+	    > <a href="#v:TagArray" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagBLS12_381_G1_Element" class="def"
+	    >TagBLS12_381_G1_Element</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+	    >Element</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagBLS12_381_G1_Element" class="link"
+	    >Source</a
+	    > <a href="#v:TagBLS12_381_G1_Element" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagBLS12_381_G2_Element" class="def"
+	    >TagBLS12_381_G2_Element</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+	    >Element</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagBLS12_381_G2_Element" class="link"
+	    >Source</a
+	    > <a href="#v:TagBLS12_381_G2_Element" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagBLS12_381_MlResult" class="def"
+	    >TagBLS12_381_MlResult</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#TagBLS12_381_MlResult" class="link"
+	    >Source</a
+	    > <a href="#v:TagBLS12_381_MlResult" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TagCon" class="def"
+	    >TagCon</a
+	    > = <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#TagCon" class="link"
+	    >Source</a
+	    > <a href="#t:TagCon" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TagCon" class="def"
+	    >TagCon</a
+	    > &#8759; () &#8658; uni (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; a &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) <a href="src/MAlonzo.Code.RawU.html#TagCon" class="link"
+	    >Source</a
+	    > <a href="#v:TagCon" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_SigTy_4" class="def"
+	    >d_SigTy_4</a
+	    > &#8759; p &#8594; p &#8594; p &#8594; p &#8594; p &#8594; p &#8594; p &#8594; p &#8594; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.RawU.html#d_SigTy_4" class="link"
+	    >Source</a
+	    > <a href="#v:d_SigTy_4" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_convSigTy_6" class="def"
+	    >d_convSigTy_6</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__150" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__150</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__150" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__150</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__150" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__150</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__150" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__150</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Nf-39-8902-39-__4" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Nf'8902'__4</a
+	    > &#8594; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Nf-39-8902-39-__4" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Nf'8902'__4</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T_SigTy_266" title="MAlonzo.Code.Builtin.Signature"
+	    >T_SigTy_266</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T_SigTy_266" title="MAlonzo.Code.Builtin.Signature"
+	    >T_SigTy_266</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_convSigTy_6" class="link"
+	    >Source</a
+	    > <a href="#v:d_convSigTy_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_convSigTy_6" class="def"
+	    >du_convSigTy_6</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin-Signature.html#t:T_SigTy_266" title="MAlonzo.Code.Builtin.Signature"
+	    >T_SigTy_266</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T_SigTy_266" title="MAlonzo.Code.Builtin.Signature"
+	    >T_SigTy_266</a
+	    > <a href="src/MAlonzo.Code.RawU.html#du_convSigTy_6" class="link"
+	    >Source</a
+	    > <a href="#v:du_convSigTy_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sig2type_8" class="def"
+	    >d_sig2type_8</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin-Signature.html#t:T_Sig_72" title="MAlonzo.Code.Builtin.Signature"
+	    >T_Sig_72</a
+	    > &#8594; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Nf-39-8902-39-__4" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Nf'8902'__4</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_sig2type_8" class="link"
+	    >Source</a
+	    > <a href="#v:d_sig2type_8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sigTy2type_10" class="def"
+	    >d_sigTy2type_10</a
+	    > &#8759; <a href="MAlonzo-Code-Type.html#t:T_Ctx-39-8902-39-_2" title="MAlonzo.Code.Type"
+	    >T_Ctx'8902'_2</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Nf-39-8902-39-__4" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Nf'8902'__4</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__150" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__150</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__150" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__150</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T_SigTy_266" title="MAlonzo.Code.Builtin.Signature"
+	    >T_SigTy_266</a
+	    > &#8594; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Nf-39-8902-39-__4" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Nf'8902'__4</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_sigTy2type_10" class="link"
+	    >Source</a
+	    > <a href="#v:d_sigTy2type_10" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_sigTy2type_10" class="def"
+	    >du_sigTy2type_10</a
+	    > &#8759; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Nf-39-8902-39-__4" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Nf'8902'__4</a
+	    > &#8594; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Nf-39-8902-39-__4" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Nf'8902'__4</a
+	    > <a href="src/MAlonzo.Code.RawU.html#du_sigTy2type_10" class="link"
+	    >Source</a
+	    > <a href="#v:du_sigTy2type_10" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_-39-8866-39--39-9839-39-2TyNe-39-9839-39-_12" class="def"
+	    >d_'8866''9839'2TyNe'9839'_12</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > &#8594; <a href="MAlonzo-Code-Type-BetaNormal.html#t:T__-39-8866-39-Ne-39-8902-39-__6" title="MAlonzo.Code.Type.BetaNormal"
+	    >T__'8866'Ne'8902'__6</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_%278866%27%279839%272TyNe%279839%27_12" class="link"
+	    >Source</a
+	    > <a href="#v:d_-39-8866-39--39-9839-39-2TyNe-39-9839-39-_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Esc_24" class="def"
+	    >d_Esc_24</a
+	    > &#8759; p &#8594; () <a href="src/MAlonzo.Code.RawU.html#d_Esc_24" class="link"
+	    >Source</a
+	    > <a href="#v:d_Esc_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Esc_24" class="def"
+	    >T_Esc_24</a
+	    > a0 = <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a0 <a href="src/MAlonzo.Code.RawU.html#T_Esc_24" class="link"
+	    >Source</a
+	    > <a href="#t:T_Esc_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_Esc_24" class="def"
+	    >cover_Esc_24</a
+	    > &#8759; <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a1 &#8594; () <a href="src/MAlonzo.Code.RawU.html#cover_Esc_24" class="link"
+	    >Source</a
+	    > <a href="#v:cover_Esc_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Tag_28" class="def"
+	    >d_Tag_28</a
+	    > &#8759; p &#8594; () <a href="src/MAlonzo.Code.RawU.html#d_Tag_28" class="link"
+	    >Source</a
+	    > <a href="#v:d_Tag_28" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Tag_28" class="def"
+	    >T_Tag_28</a
+	    > = <a href="MAlonzo-Code-RawU.html#t:Tag" title="MAlonzo.Code.RawU"
+	    >Tag</a
+	    > <a href="src/MAlonzo.Code.RawU.html#T_Tag_28" class="link"
+	    >Source</a
+	    > <a href="#t:T_Tag_28" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_integer_30" class="def"
+	    >C_integer_30</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_integer_30" class="link"
+	    >Source</a
+	    > <a href="#v:C_integer_30" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_bytestring_32" class="def"
+	    >C_bytestring_32</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_bytestring_32" class="link"
+	    >Source</a
+	    > <a href="#v:C_bytestring_32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_string_34" class="def"
+	    >C_string_34</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_string_34" class="link"
+	    >Source</a
+	    > <a href="#v:C_string_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_bool_36" class="def"
+	    >C_bool_36</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_bool_36" class="link"
+	    >Source</a
+	    > <a href="#v:C_bool_36" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_unit_38" class="def"
+	    >C_unit_38</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > () &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_unit_38" class="link"
+	    >Source</a
+	    > <a href="#v:C_unit_38" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_pdata_40" class="def"
+	    >C_pdata_40</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_pdata_40" class="link"
+	    >Source</a
+	    > <a href="#v:C_pdata_40" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_pair_46" class="def"
+	    >C_pair_46</a
+	    > &#8759; &#8704; {a} {k1} {k2} {f1 &#8759; k1 &#8594; k2} {a1 &#8759; k1} {k3} {k4} {f2 &#8759; k3 &#8594; k4} {a2 &#8759; k3}. () &#8658; &#8704;. (a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f1 a1), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f1 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f2 a2), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f2 <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+	    >(,)</a
+	    >) &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a2) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a1) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_pair_46" class="link"
+	    >Source</a
+	    > <a href="#v:C_pair_46" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_list_50" class="def"
+	    >C_list_50</a
+	    > &#8759; &#8704; {a} {k1} {k2} {f &#8759; k1 &#8594; k2} {a1 &#8759; k1}. () &#8658; &#8704;. (a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f a1), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+	    >List</a
+	    >) &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a1) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_list_50" class="link"
+	    >Source</a
+	    > <a href="#v:C_list_50" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_array_54" class="def"
+	    >C_array_54</a
+	    > &#8759; &#8704; {a} {k1} {k2} {f &#8759; k1 &#8594; k2} {a1 &#8759; k1}. () &#8658; &#8704;. (a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > (f a1), <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+	    >Vector</a
+	    >) &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a1) &#8594; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_array_54" class="link"
+	    >Source</a
+	    > <a href="#v:C_array_54" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_bls12-39-45-39-381-39-45-39-g1-39-45-39-element_56" class="def"
+	    >C_bls12'45'381'45'g1'45'element_56</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+	    >Element</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_bls12%2745%27381%2745%27g1%2745%27element_56" class="link"
+	    >Source</a
+	    > <a href="#v:C_bls12-39-45-39-381-39-45-39-g1-39-45-39-element_56" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_bls12-39-45-39-381-39-45-39-g2-39-45-39-element_58" class="def"
+	    >C_bls12'45'381'45'g2'45'element_58</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+	    >Element</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_bls12%2745%27381%2745%27g2%2745%27element_58" class="link"
+	    >Source</a
+	    > <a href="#v:C_bls12-39-45-39-381-39-45-39-g2-39-45-39-element_58" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_bls12-39-45-39-381-39-45-39-mlresult_60" class="def"
+	    >C_bls12'45'381'45'mlresult_60</a
+	    > &#8759; () &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a <a href="src/MAlonzo.Code.RawU.html#C_bls12%2745%27381%2745%27mlresult_60" class="link"
+	    >Source</a
+	    > <a href="#v:C_bls12-39-45-39-381-39-45-39-mlresult_60" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_integer_30" class="def"
+	    >check_integer_30</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_integer_30" class="link"
+	    >Source</a
+	    > <a href="#v:check_integer_30" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_bytestring_32" class="def"
+	    >check_bytestring_32</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_ByteString_386" title="MAlonzo.Code.Utils"
+	    >T_ByteString_386</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_bytestring_32" class="link"
+	    >Source</a
+	    > <a href="#v:check_bytestring_32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_string_34" class="def"
+	    >check_string_34</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_string_34" class="link"
+	    >Source</a
+	    > <a href="#v:check_string_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_bool_36" class="def"
+	    >check_bool_36</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_bool_36" class="link"
+	    >Source</a
+	    > <a href="#v:check_bool_36" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_unit_38" class="def"
+	    >check_unit_38</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_unit_38" class="link"
+	    >Source</a
+	    > <a href="#v:check_unit_38" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_pdata_40" class="def"
+	    >check_pdata_40</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_DATA_524" title="MAlonzo.Code.Utils"
+	    >T_DATA_524</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_pdata_40" class="link"
+	    >Source</a
+	    > <a href="#v:check_pdata_40" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_pair_46" class="def"
+	    >check_pair_46</a
+	    > &#8759; &#8704; xA. &#8704; xB. <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > xA) &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > xB) &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__396" title="MAlonzo.Code.Utils"
+	    >T__'215'__396</a
+	    > xA xB)) <a href="src/MAlonzo.Code.RawU.html#check_pair_46" class="link"
+	    >Source</a
+	    > <a href="#v:check_pair_46" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_list_50" class="def"
+	    >check_list_50</a
+	    > &#8759; &#8704; xA. <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > xA) &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T_List_414" title="MAlonzo.Code.Utils"
+	    >T_List_414</a
+	    > xA)) <a href="src/MAlonzo.Code.RawU.html#check_list_50" class="link"
+	    >Source</a
+	    > <a href="#v:check_list_50" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_array_54" class="def"
+	    >check_array_54</a
+	    > &#8759; &#8704; xA. <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > xA) &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T_Array_508" title="MAlonzo.Code.Utils"
+	    >T_Array_508</a
+	    > xA)) <a href="src/MAlonzo.Code.RawU.html#check_array_54" class="link"
+	    >Source</a
+	    > <a href="#v:check_array_54" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_bls12-39-45-39-381-39-45-39-g1-39-45-39-element_56" class="def"
+	    >check_bls12'45'381'45'g1'45'element_56</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-G1-39-45-39-Element_670" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'G1'45'Element_670</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_bls12%2745%27381%2745%27g1%2745%27element_56" class="link"
+	    >Source</a
+	    > <a href="#v:check_bls12-39-45-39-381-39-45-39-g1-39-45-39-element_56" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_bls12-39-45-39-381-39-45-39-g2-39-45-39-element_58" class="def"
+	    >check_bls12'45'381'45'g2'45'element_58</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-G2-39-45-39-Element_674" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'G2'45'Element_674</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_bls12%2745%27381%2745%27g2%2745%27element_58" class="link"
+	    >Source</a
+	    > <a href="#v:check_bls12-39-45-39-381-39-45-39-g2-39-45-39-element_58" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_bls12-39-45-39-381-39-45-39-mlresult_60" class="def"
+	    >check_bls12'45'381'45'mlresult_60</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-MlResult_678" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'MlResult_678</a
+	    >) <a href="src/MAlonzo.Code.RawU.html#check_bls12%2745%27381%2745%27mlresult_60" class="link"
+	    >Source</a
+	    > <a href="#v:check_bls12-39-45-39-381-39-45-39-mlresult_60" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_Tag_28" class="def"
+	    >cover_Tag_28</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:Tag" title="MAlonzo.Code.RawU"
+	    >Tag</a
+	    > a1 &#8594; () <a href="src/MAlonzo.Code.RawU.html#cover_Tag_28" class="link"
+	    >Source</a
+	    > <a href="#v:cover_Tag_28" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_TyTag_62" class="def"
+	    >d_TyTag_62</a
+	    > &#8759; () <a href="src/MAlonzo.Code.RawU.html#d_TyTag_62" class="link"
+	    >Source</a
+	    > <a href="#v:d_TyTag_62" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_-39-10214-39-_-39-10215-39-tag_64" class="def"
+	    >d_'10214'_'10215'tag_64</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > &#8594; () <a href="src/MAlonzo.Code.RawU.html#d_%2710214%27_%2710215%27tag_64" class="link"
+	    >Source</a
+	    > <a href="#v:d_-39-10214-39-_-39-10215-39-tag_64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_decTyTag_68" class="def"
+	    >d_decTyTag_68</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > &#8594; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_decTyTag_68" class="link"
+	    >Source</a
+	    > <a href="#v:d_decTyTag_68" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_TagCon_106" class="def"
+	    >d_TagCon_106</a
+	    > &#8759; () <a href="src/MAlonzo.Code.RawU.html#d_TagCon_106" class="link"
+	    >Source</a
+	    > <a href="#v:d_TagCon_106" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_TagCon_106" class="def"
+	    >T_TagCon_106</a
+	    > = <a href="MAlonzo-Code-RawU.html#t:TagCon" title="MAlonzo.Code.RawU"
+	    >TagCon</a
+	    > <a href="src/MAlonzo.Code.RawU.html#T_TagCon_106" class="link"
+	    >Source</a
+	    > <a href="#t:T_TagCon_106" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_tagCon_110" class="def"
+	    >C_tagCon_110</a
+	    > &#8759; () &#8658; uni (<a href="../plutus-core/Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; a &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) <a href="src/MAlonzo.Code.RawU.html#C_tagCon_110" class="link"
+	    >Source</a
+	    > <a href="#v:C_tagCon_110" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_tagCon_110" class="def"
+	    >check_tagCon_110</a
+	    > &#8759; &#8704; xA. <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > xA) &#8594; xA &#8594; <a href="MAlonzo-Code-RawU.html#t:T_TagCon_106" title="MAlonzo.Code.RawU"
+	    >T_TagCon_106</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_tagCon_110" class="link"
+	    >Source</a
+	    > <a href="#v:check_tagCon_110" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_TagCon_106" class="def"
+	    >cover_TagCon_106</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:TagCon" title="MAlonzo.Code.RawU"
+	    >TagCon</a
+	    > &#8594; () <a href="src/MAlonzo.Code.RawU.html#cover_TagCon_106" class="link"
+	    >Source</a
+	    > <a href="#v:cover_TagCon_106" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_decTagCon-39--39-_124" class="def"
+	    >d_decTagCon''_124</a
+	    > &#8759; () &#8594; () &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_decTagCon%27%27_124" class="link"
+	    >Source</a
+	    > <a href="#v:d_decTagCon-39--39-_124" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_decTagCon-39--39-_124" class="def"
+	    >du_decTagCon''_124</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.RawU.html#du_decTagCon%27%27_124" class="link"
+	    >Source</a
+	    > <a href="#v:du_decTagCon-39--39-_124" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_decTagCon_192" class="def"
+	    >d_decTagCon_192</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_TagCon_106" title="MAlonzo.Code.RawU"
+	    >T_TagCon_106</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_TagCon_106" title="MAlonzo.Code.RawU"
+	    >T_TagCon_106</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_decTagCon_192" class="link"
+	    >Source</a
+	    > <a href="#v:d_decTagCon_192" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_TmCon_202" class="def"
+	    >d_TmCon_202</a
+	    > &#8759; () <a href="src/MAlonzo.Code.RawU.html#d_TmCon_202" class="link"
+	    >Source</a
+	    > <a href="#v:d_TmCon_202" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_TmCon_202" class="def"
+	    >T_TmCon_202</a
+	    > <a href="src/MAlonzo.Code.RawU.html#T_TmCon_202" class="link"
+	    >Source</a
+	    > <a href="#t:T_TmCon_202" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_tmCon_206" class="def"
+		  >C_tmCon_206</a
+		  > <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+		  >T__'8866''9839'_4</a
+		  > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Untyped_208" class="def"
+	    >d_Untyped_208</a
+	    > &#8759; () <a href="src/MAlonzo.Code.RawU.html#d_Untyped_208" class="link"
+	    >Source</a
+	    > <a href="#v:d_Untyped_208" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Untyped_208" class="def"
+	    >T_Untyped_208</a
+	    > = <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#T_Untyped_208" class="link"
+	    >Source</a
+	    > <a href="#t:T_Untyped_208" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UVar_210" class="def"
+	    >C_UVar_210</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UVar_210" class="link"
+	    >Source</a
+	    > <a href="#v:C_UVar_210" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_ULambda_212" class="def"
+	    >C_ULambda_212</a
+	    > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_ULambda_212" class="link"
+	    >Source</a
+	    > <a href="#v:C_ULambda_212" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UApp_214" class="def"
+	    >C_UApp_214</a
+	    > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UApp_214" class="link"
+	    >Source</a
+	    > <a href="#v:C_UApp_214" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UCon_216" class="def"
+	    >C_UCon_216</a
+	    > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UCon_216" class="link"
+	    >Source</a
+	    > <a href="#v:C_UCon_216" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UError_218" class="def"
+	    >C_UError_218</a
+	    > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UError_218" class="link"
+	    >Source</a
+	    > <a href="#v:C_UError_218" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UBuiltin_220" class="def"
+	    >C_UBuiltin_220</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UBuiltin_220" class="link"
+	    >Source</a
+	    > <a href="#v:C_UBuiltin_220" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UDelay_222" class="def"
+	    >C_UDelay_222</a
+	    > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UDelay_222" class="link"
+	    >Source</a
+	    > <a href="#v:C_UDelay_222" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UForce_224" class="def"
+	    >C_UForce_224</a
+	    > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UForce_224" class="link"
+	    >Source</a
+	    > <a href="#v:C_UForce_224" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UConstr_226" class="def"
+	    >C_UConstr_226</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; [<a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    >] &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UConstr_226" class="link"
+	    >Source</a
+	    > <a href="#v:C_UConstr_226" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_UCase_228" class="def"
+	    >C_UCase_228</a
+	    > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > &#8594; [<a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    >] &#8594; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > <a href="src/MAlonzo.Code.RawU.html#C_UCase_228" class="link"
+	    >Source</a
+	    > <a href="#v:C_UCase_228" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UVar_210" class="def"
+	    >check_UVar_210</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UVar_210" class="link"
+	    >Source</a
+	    > <a href="#v:check_UVar_210" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_ULambda_212" class="def"
+	    >check_ULambda_212</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_ULambda_212" class="link"
+	    >Source</a
+	    > <a href="#v:check_ULambda_212" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UApp_214" class="def"
+	    >check_UApp_214</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UApp_214" class="link"
+	    >Source</a
+	    > <a href="#v:check_UApp_214" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UCon_216" class="def"
+	    >check_UCon_216</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_TagCon_106" title="MAlonzo.Code.RawU"
+	    >T_TagCon_106</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UCon_216" class="link"
+	    >Source</a
+	    > <a href="#v:check_UCon_216" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UError_218" class="def"
+	    >check_UError_218</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UError_218" class="link"
+	    >Source</a
+	    > <a href="#v:check_UError_218" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UBuiltin_220" class="def"
+	    >check_UBuiltin_220</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin.html#t:T_Builtin_2" title="MAlonzo.Code.Builtin"
+	    >T_Builtin_2</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UBuiltin_220" class="link"
+	    >Source</a
+	    > <a href="#v:check_UBuiltin_220" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UDelay_222" class="def"
+	    >check_UDelay_222</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UDelay_222" class="link"
+	    >Source</a
+	    > <a href="#v:check_UDelay_222" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UForce_224" class="def"
+	    >check_UForce_224</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UForce_224" class="link"
+	    >Source</a
+	    > <a href="#v:check_UForce_224" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UConstr_226" class="def"
+	    >check_UConstr_226</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_414" title="MAlonzo.Code.Utils"
+	    >T_List_414</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UConstr_226" class="link"
+	    >Source</a
+	    > <a href="#v:check_UConstr_226" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_UCase_228" class="def"
+	    >check_UCase_228</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_414" title="MAlonzo.Code.Utils"
+	    >T_List_414</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > <a href="src/MAlonzo.Code.RawU.html#check_UCase_228" class="link"
+	    >Source</a
+	    > <a href="#v:check_UCase_228" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_Untyped_208" class="def"
+	    >cover_Untyped_208</a
+	    > &#8759; <a href="FFI-Untyped.html#t:UTerm" title="FFI.Untyped"
+	    >UTerm</a
+	    > &#8594; () <a href="src/MAlonzo.Code.RawU.html#cover_Untyped_208" class="link"
+	    >Source</a
+	    > <a href="#v:cover_Untyped_208" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_tag2TyTag_232" class="def"
+	    >d_tag2TyTag_232</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_tag2TyTag_232" class="link"
+	    >Source</a
+	    > <a href="#v:d_tag2TyTag_232" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_tag2TyTag_232" class="def"
+	    >du_tag2TyTag_232</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > <a href="src/MAlonzo.Code.RawU.html#du_tag2TyTag_232" class="link"
+	    >Source</a
+	    > <a href="#v:du_tag2TyTag_232" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_tagLemma_246" class="def"
+	    >d_tagLemma_246</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-RawU.html#t:T_Tag_28" title="MAlonzo.Code.RawU"
+	    >T_Tag_28</a
+	    > (<a href="MAlonzo-Code-RawU.html#t:T_Esc_24" title="MAlonzo.Code.RawU"
+	    >T_Esc_24</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_tagLemma_246" class="link"
+	    >Source</a
+	    > <a href="#v:d_tagLemma_246" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_tagCon2TmCon_256" class="def"
+	    >d_tagCon2TmCon_256</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_TagCon_106" title="MAlonzo.Code.RawU"
+	    >T_TagCon_106</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_TmCon_202" title="MAlonzo.Code.RawU"
+	    >T_TmCon_202</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_tagCon2TmCon_256" class="link"
+	    >Source</a
+	    > <a href="#v:d_tagCon2TmCon_256" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_tyTag2Tag_310" class="def"
+	    >d_tyTag2Tag_310</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Sigma.html#t:T_-931-_14" title="MAlonzo.Code.Agda.Builtin.Sigma"
+	    >T_&#931;_14</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_tyTag2Tag_310" class="link"
+	    >Source</a
+	    > <a href="#v:d_tyTag2Tag_310" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_tyTagLemma_358" class="def"
+	    >d_tyTagLemma_358</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin-Signature.html#t:T__-39-8866-39--39-9839-39-_4" title="MAlonzo.Code.Builtin.Signature"
+	    >T__'8866''9839'_4</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_tyTagLemma_358" class="link"
+	    >Source</a
+	    > <a href="#v:d_tyTagLemma_358" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_tmCon2TagCon_368" class="def"
+	    >d_tmCon2TagCon_368</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_TmCon_202" title="MAlonzo.Code.RawU"
+	    >T_TmCon_202</a
+	    > &#8594; <a href="MAlonzo-Code-RawU.html#t:T_TagCon_106" title="MAlonzo.Code.RawU"
+	    >T_TagCon_106</a
+	    > <a href="src/MAlonzo.Code.RawU.html#d_tmCon2TagCon_368" class="link"
+	    >Source</a
+	    > <a href="#v:d_tmCon2TagCon_368" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

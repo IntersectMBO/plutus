@@ -1,0 +1,254 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Core.Zip</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Core.Zip.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Core.Zip</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:pzipWith"
+	      >pzipWith</a
+	      > &#8759; &#8704; p name uni fun ann1 ann2 ann3 m. (p <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > m) &#8658; (ann1 &#8594; ann2 &#8594; ann3) &#8594; p ann1 &#8594; p ann2 &#8594; m (p ann3)</li
+	    ><li class="src short"
+	    ><a href="#v:pzip"
+	      >pzip</a
+	      > &#8759; (p <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > m) &#8658; p ann1 &#8594; p ann2 &#8594; m (p (ann1, ann2))</li
+	    ><li class="src short"
+	    ><a href="#v:tzipWith"
+	      >tzipWith</a
+	      > &#8759; &#8704; t name uni fun ann1 ann2 ann3 m. (t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > (t ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > m) &#8658; (ann1 &#8594; ann2 &#8594; ann3) &#8594; t ann1 &#8594; t ann2 &#8594; m (t ann3)</li
+	    ><li class="src short"
+	    ><a href="#v:tzip"
+	      >tzip</a
+	      > &#8759; (t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > (t ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > m) &#8658; t ann1 &#8594; t ann2 &#8594; m (t (ann1, ann2))</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pzipWith" class="def"
+	    >pzipWith</a
+	    > &#8759; &#8704; p name uni fun ann1 ann2 ann3 m. (p <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > m) &#8658; (ann1 &#8594; ann2 &#8594; ann3) &#8594; p ann1 &#8594; p ann2 &#8594; m (p ann3) <a href="src/UntypedPlutusCore.Core.Zip.html#pzipWith" class="link"
+	    >Source</a
+	    > <a href="#v:pzipWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Zip two programs using a combinator function for annotations.</p
+	    ><p
+	    >Throws an error if the input programs are not &quot;equal&quot; modulo annotations.
+Note that the function is &quot;left-biased&quot;, so in case that the 2 input programs contain <code
+	      >Name</code
+	      >s,
+the output program will contain just the <code
+	      >Name</code
+	      >s of the first input program. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pzip" class="def"
+	    >pzip</a
+	    > &#8759; (p <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > m) &#8658; p ann1 &#8594; p ann2 &#8594; m (p (ann1, ann2)) <a href="src/UntypedPlutusCore.Core.Zip.html#pzip" class="link"
+	    >Source</a
+	    > <a href="#v:pzip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Zip 2 programs by pairing their annotations</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tzipWith" class="def"
+	    >tzipWith</a
+	    > &#8759; &#8704; t name uni fun ann1 ann2 ann3 m. (t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > (t ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > m) &#8658; (ann1 &#8594; ann2 &#8594; ann3) &#8594; t ann1 &#8594; t ann2 &#8594; m (t ann3) <a href="src/UntypedPlutusCore.Core.Zip.html#tzipWith" class="link"
+	    >Source</a
+	    > <a href="#v:tzipWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Zip two terms using a combinator function for annotations.</p
+	    ><p
+	    >Throws an error if the input terms are not &quot;equal&quot; modulo annotations.
+Note that the function is &quot;left-biased&quot;, so in case that the 2 input terms contain <code
+	      >Name</code
+	      >s,
+the output term will contain just the <code
+	      >Name</code
+	      >s of the first input term.
+TODO: this is not an optimal implementation </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tzip" class="def"
+	    >tzip</a
+	    > &#8759; (t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > (t ()), <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > m) &#8658; t ann1 &#8594; t ann2 &#8594; m (t (ann1, ann2)) <a href="src/UntypedPlutusCore.Core.Zip.html#tzip" class="link"
+	    >Source</a
+	    > <a href="#v:tzip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Zip 2 terms by pairing their annotations</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

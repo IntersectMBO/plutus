@@ -1,0 +1,1902 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Quote</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Quote.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Quote</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:runQuoteT"
+	      >runQuoteT</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+	      >QuoteT</a
+	      > m a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:runQuote"
+	      >runQuote</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:freshUnique"
+	      >freshUnique</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; m <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:freshName"
+	      >freshName</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; m <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:freshTyName"
+	      >freshTyName</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; m <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:freshenName"
+	      >freshenName</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > &#8594; m <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:freshenTyName"
+	      >freshenTyName</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; m <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:QuoteT"
+	      >QuoteT</a
+	      > m a = <a href="#v:QuoteT"
+	      >QuoteT</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unQuoteT"
+		  >unQuoteT</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+		  >StateT</a
+		  > <a href="PlutusCore-Quote.html#t:FreshState" title="PlutusCore.Quote"
+		  >FreshState</a
+		  > m a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Quote"
+	      >Quote</a
+	      > = <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+	      >QuoteT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	      >Identity</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="#t:MonadQuote"
+	      >MonadQuote</a
+	      > m</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:FreshState"
+	      >FreshState</a
+	      > = <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:liftQuote"
+	      >liftQuote</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:markNonFreshBelow"
+	      >markNonFreshBelow</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      > &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:markNonFresh"
+	      >markNonFresh</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      > &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:markNonFreshMax"
+	      >markNonFreshMax</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      > &#8594; m ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runQuoteT" class="def"
+	    >runQuoteT</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+	    >QuoteT</a
+	    > m a &#8594; m a <a href="src/PlutusCore.Quote.html#runQuoteT" class="link"
+	    >Source</a
+	    > <a href="#v:runQuoteT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
+ be safely combined with other terms - that should happen inside <code
+	      ><a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		>QuoteT</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runQuote" class="def"
+	    >runQuote</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > a &#8594; a <a href="src/PlutusCore.Quote.html#runQuote" class="link"
+	    >Source</a
+	    > <a href="#v:runQuote" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >See <code
+	      ><a href="PlutusCore-Quote.html#v:runQuoteT" title="PlutusCore.Quote"
+		>runQuoteT</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:freshUnique" class="def"
+	    >freshUnique</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; m <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusCore.Quote.html#freshUnique" class="link"
+	    >Source</a
+	    > <a href="#v:freshUnique" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a fresh <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:freshName" class="def"
+	    >freshName</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; m <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="src/PlutusCore.Quote.html#freshName" class="link"
+	    >Source</a
+	    > <a href="#v:freshName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a fresh <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		>Name</a
+		></code
+	      >, given the annotation and the <code
+	      ><a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		>Text</a
+		></code
+	      > name.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:freshTyName" class="def"
+	    >freshTyName</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; m <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="src/PlutusCore.Quote.html#freshTyName" class="link"
+	    >Source</a
+	    > <a href="#v:freshTyName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a fresh <code
+	      ><a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		>TyName</a
+		></code
+	      >, given the annotation and the <code
+	      ><a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		>Text</a
+		></code
+	      > name.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:freshenName" class="def"
+	    >freshenName</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > &#8594; m <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="src/PlutusCore.Quote.html#freshenName" class="link"
+	    >Source</a
+	    > <a href="#v:freshenName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a copy of the given <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		>Name</a
+		></code
+	      > that is distinct from the old one.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:freshenTyName" class="def"
+	    >freshenTyName</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; m <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="src/PlutusCore.Quote.html#freshenTyName" class="link"
+	    >Source</a
+	    > <a href="#v:freshenTyName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a copy of the given <code
+	      ><a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		>TyName</a
+		></code
+	      > that is distinct from the old one.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:QuoteT" class="def"
+	    >QuoteT</a
+	    > m a <a href="src/PlutusCore.Quote.html#QuoteT" class="link"
+	    >Source</a
+	    > <a href="#t:QuoteT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The &quot;quotation&quot; monad transformer. Within this monad you can do safe construction of PLC
+ terms using quasiquotation, fresh-name generation, and parsing.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:QuoteT" class="def"
+		  >QuoteT</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unQuoteT" class="def"
+			  >unQuoteT</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+			  >StateT</a
+			  > <a href="PlutusCore-Quote.html#t:FreshState" title="PlutusCore.Quote"
+			  >FreshState</a
+			  > m a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:QuoteT"
+	    >Instances</h4
+	    ><details id="i:QuoteT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadTrans:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/Control-Monad-Morph.html#t:MonadTrans" title="Control.Monad.Morph"
+		      >MonadTrans</a
+		      > <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      ></span
+		    > <a href="src/PlutusCore.Quote.html#line-62" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadTrans:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MFunctor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+		      >MFunctor</a
+		      > <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      ></span
+		    > <a href="src/PlutusCore.Quote.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MFunctor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:hoist"
+			  >hoist</a
+			  > &#8759; &#8704; m n (b &#8759; k). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; a. m a &#8594; n a) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > n b <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hoist" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadError:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > e m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > e (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadError:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; e &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; (e &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadReader:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > r m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > r (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadReader:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m r <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; (r &#8594; r) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; (r &#8594; a) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadState:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+		      >MonadState</a
+		      > s m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+		      >MonadState</a
+		      > s (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadState:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:get"
+			  >get</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m s <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:get" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:put"
+			  >put</a
+			  > &#8759; s &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m () <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:put" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:state"
+			  >state</a
+			  > &#8759; (s &#8594; (a, s)) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:state" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadWriter:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+		      >MonadWriter</a
+		      > w m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+		      >MonadWriter</a
+		      > w (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadWriter:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:writer"
+			  >writer</a
+			  > &#8759; (a, w) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:writer" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tell"
+			  >tell</a
+			  > &#8759; w &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m () <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:tell" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:listen"
+			  >listen</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m (a, w) <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:listen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pass"
+			  >pass</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m (a, w &#8594; w) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pass" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadFix:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-Fix.html#t:MonadFix" title="Control.Monad.Fix"
+		      >MonadFix</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-Fix.html#t:MonadFix" title="Control.Monad.Fix"
+		      >MonadFix</a
+		      > (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadFix:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mfix"
+			  >mfix</a
+			  > &#8759; (a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mfix" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadIO:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-IO-Class.html#t:MonadIO" title="Control.Monad.IO.Class"
+		      >MonadIO</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-IO-Class.html#t:MonadIO" title="Control.Monad.IO.Class"
+		      >MonadIO</a
+		      > (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadIO:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftIO"
+			  >liftIO</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftIO" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:Applicative:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-60" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:Applicative:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m (a &#8594; b) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:Functor:10"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:Functor:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:Monad:11"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:Monad:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; (a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b) &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:QuoteT:MonadQuote:12"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:QuoteT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:QuoteT:MonadQuote:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Quote" class="def"
+	    >Quote</a
+	    > = <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+	    >QuoteT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	    >Identity</a
+	    > <a href="src/PlutusCore.Quote.html#Quote" class="link"
+	    >Source</a
+	    > <a href="#t:Quote" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A non-transformer version of <code
+	      ><a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		>QuoteT</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a id="t:MonadQuote" class="def"
+	    >MonadQuote</a
+	    > m <a href="src/PlutusCore.Quote.html#MonadQuote" class="link"
+	    >Source</a
+	    > <a href="#t:MonadQuote" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A monad that allows lifting of quoted expressions.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MonadQuote"
+	    >Instances</h4
+	    ><details id="i:MonadQuote" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:1"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+		      >GenT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+			  >GenT</a
+			  > m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:2"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+		      >PropertyT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+			  >PropertyT</a
+			  > m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+		      >QuoteT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Quote.html#t:QuoteT" title="PlutusCore.Quote"
+			  >QuoteT</a
+			  > m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:4"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/Control-Monad-Trans-Maybe.html#t:MaybeT" title="Control.Monad.Trans.Maybe"
+		      >MaybeT</a
+		      > m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-90" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/Control-Monad-Trans-Maybe.html#t:MaybeT" title="Control.Monad.Trans.Maybe"
+			  >MaybeT</a
+			  > m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:5"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+		      >RenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Rename.Monad.html#line-41" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename-Monad.html"
+			>PlutusCore.Rename.Monad</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+			  >RenameT</a
+			  > ren m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:6"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		      >ExceptT</a
+		      > e m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-91" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > e m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:7"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+		      >ReaderT</a
+		      > r m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-92" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+			  >ReaderT</a
+			  > r m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:8"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+		      >StateT</a
+		      > s m)</span
+		    > <a href="src/PlutusCore.Quote.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Quote.html"
+			>PlutusCore.Quote</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+			  >StateT</a
+			  > s m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:9"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Stream" title="Text.Megaparsec.Stream"
+		      >Stream</a
+		      > s, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m) &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Internal.html#t:ParsecT" title="Text.Megaparsec.Internal"
+		      >ParsecT</a
+		      > e s m)</span
+		    > <a href="src/PlutusCore.Parser.ParserCommon.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Parser-ParserCommon.html"
+			>PlutusCore.Parser.ParserCommon</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Internal.html#t:ParsecT" title="Text.Megaparsec.Internal"
+			  >ParsecT</a
+			  > e s m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:10"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadQuote:MonadQuote:11"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+		      >SimplifierT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:MonadQuote" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadQuote:MonadQuote:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Simplifier.html"
+			>UntypedPlutusCore.Transform.Simplifier</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:FreshState" class="def"
+	    >FreshState</a
+	    > = <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusCore.Quote.html#FreshState" class="link"
+	    >Source</a
+	    > <a href="#t:FreshState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The state contains the &quot;next&quot; <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      > that should be used for a name</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftQuote" class="def"
+	    >liftQuote</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > a &#8594; m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+	    >Source</a
+	    > <a href="#v:liftQuote" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:markNonFreshBelow" class="def"
+	    >markNonFreshBelow</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > &#8594; m () <a href="src/PlutusCore.Quote.html#markNonFreshBelow" class="link"
+	    >Source</a
+	    > <a href="#v:markNonFreshBelow" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Mark all <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s less than the given <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      > as used, so they will not be generated
+ in future.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:markNonFresh" class="def"
+	    >markNonFresh</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > &#8594; m () <a href="src/PlutusCore.Quote.html#markNonFresh" class="link"
+	    >Source</a
+	    > <a href="#v:markNonFresh" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Mark a given <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      > (and implicitly all <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s less than it) as used, so they will
+ not be generated in future.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:markNonFreshMax" class="def"
+	    >markNonFreshMax</a
+	    > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > &#8594; m () <a href="src/PlutusCore.Quote.html#markNonFreshMax" class="link"
+	    >Source</a
+	    > <a href="#v:markNonFreshMax" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Mark the maximal <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      > from a set of <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s (and implicitly all <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >s less than it)
+ as used, so they will not be generated in future.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

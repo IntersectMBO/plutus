@@ -1,0 +1,2470 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveGeneric #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Pre-value and post-value byte alignments</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Filler</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#Filler"
+	><span class="hs-identifier"
+	  >Filler</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#fillerLength"
+	><span class="hs-identifier"
+	  >fillerLength</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#PreAligned"
+	><span class="hs-identifier"
+	  >PreAligned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#preAligned"
+	><span class="hs-identifier"
+	  >preAligned</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#PostAligned"
+	><span class="hs-identifier"
+	  >PostAligned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#postAligned"
+	><span class="hs-identifier"
+	  >postAligned</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#preAlignedDecoder"
+	><span class="hs-identifier"
+	  >preAlignedDecoder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#postAlignedDecoder"
+	><span class="hs-identifier"
+	  >postAlignedDecoder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.html"
+	><span class="hs-identifier"
+	  >Data.Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder.Types</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier"
+	  >Get</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#eFiller"
+	><span class="hs-identifier"
+	  >eFiller</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#sFillerMax"
+	><span class="hs-identifier"
+	  >sFillerMax</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A meaningless sequence of 0 bits terminated with a 1 bit (easier to implement than the reverse)
+
+ Used to align encoded values at byte/word boundaries. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Filler"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#Filler"
+	  ><span class="hs-identifier hs-var"
+	    >Filler</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="FillerBit"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#FillerBit"
+	  ><span class="hs-identifier hs-var"
+	    >FillerBit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#Filler"
+	><span class="hs-identifier hs-type"
+	  >Filler</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="FillerEnd"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#FillerEnd"
+	  ><span class="hs-identifier hs-var"
+	    >FillerEnd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679106987"
+      ><span id="local-6989586621679106993"
+	><span id="local-6989586621679106996"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Filler -&gt; ShowS
+[Filler] -&gt; ShowS
+Filler -&gt; String
+(Int -&gt; Filler -&gt; ShowS)
+-&gt; (Filler -&gt; String) -&gt; ([Filler] -&gt; ShowS) -&gt; Show Filler
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Filler -&gt; ShowS
+showsPrec :: Int -&gt; Filler -&gt; ShowS
+$cshow :: Filler -&gt; String
+show :: Filler -&gt; String
+$cshowList :: [Filler] -&gt; ShowS
+showList :: [Filler] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107000"
+      ><span id="local-6989586621679107004"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Filler -&gt; Filler -&gt; Bool
+(Filler -&gt; Filler -&gt; Bool)
+-&gt; (Filler -&gt; Filler -&gt; Bool) -&gt; Eq Filler
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Filler -&gt; Filler -&gt; Bool
+== :: Filler -&gt; Filler -&gt; Bool
+$c/= :: Filler -&gt; Filler -&gt; Bool
+/= :: Filler -&gt; Filler -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107010"
+      ><span id="local-6989586621679107014"
+	><span id="local-6989586621679107017"
+	  ><span id="local-6989586621679107020"
+	    ><span id="local-6989586621679107023"
+	      ><span id="local-6989586621679107026"
+		><span id="local-6989586621679107029"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Filler
+Eq Filler =&gt;
+(Filler -&gt; Filler -&gt; Ordering)
+-&gt; (Filler -&gt; Filler -&gt; Bool)
+-&gt; (Filler -&gt; Filler -&gt; Bool)
+-&gt; (Filler -&gt; Filler -&gt; Bool)
+-&gt; (Filler -&gt; Filler -&gt; Bool)
+-&gt; (Filler -&gt; Filler -&gt; Filler)
+-&gt; (Filler -&gt; Filler -&gt; Filler)
+-&gt; Ord Filler
+Filler -&gt; Filler -&gt; Bool
+Filler -&gt; Filler -&gt; Ordering
+Filler -&gt; Filler -&gt; Filler
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Filler -&gt; Filler -&gt; Ordering
+compare :: Filler -&gt; Filler -&gt; Ordering
+$c&lt; :: Filler -&gt; Filler -&gt; Bool
+&lt; :: Filler -&gt; Filler -&gt; Bool
+$c&lt;= :: Filler -&gt; Filler -&gt; Bool
+&lt;= :: Filler -&gt; Filler -&gt; Bool
+$c&gt; :: Filler -&gt; Filler -&gt; Bool
+&gt; :: Filler -&gt; Filler -&gt; Bool
+$c&gt;= :: Filler -&gt; Filler -&gt; Bool
+&gt;= :: Filler -&gt; Filler -&gt; Bool
+$cmax :: Filler -&gt; Filler -&gt; Filler
+max :: Filler -&gt; Filler -&gt; Filler
+$cmin :: Filler -&gt; Filler -&gt; Filler
+min :: Filler -&gt; Filler -&gt; Filler
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107033"
+      ><span id="local-6989586621679107035"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Filler -&gt; Rep Filler x)
+-&gt; (forall x. Rep Filler x -&gt; Filler) -&gt; Generic Filler
+forall x. Rep Filler x -&gt; Filler
+forall x. Filler -&gt; Rep Filler x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Filler -&gt; Rep Filler x
+from :: forall x. Filler -&gt; Rep Filler x
+$cto :: forall x. Rep Filler x -&gt; Filler
+to :: forall x. Rep Filler x -&gt; Filler
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107039"
+      ><span class="annot"
+	><span class="annottext"
+	  >Filler -&gt; ()
+(Filler -&gt; ()) -&gt; NFData Filler
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Filler -&gt; ()
+rnf :: Filler -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Use a special encoding for the filler</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107058"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#Filler"
+	  ><span class="hs-identifier hs-type"
+	    >Filler</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679107074"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Filler -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679107074"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Encoding
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#eFiller"
+	><span class="hs-identifier hs-var"
+	  >eFiller</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679107076"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: Filler -&gt; Int -&gt; Int
+</span
+	  ><a href="#local-6989586621679107076"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler -&gt; Int -&gt; Int
+forall a. Size a
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#sFillerMax"
+	><span class="hs-identifier hs-var"
+	  >sFillerMax</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-comment"
+      >-- use generated decode</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A Post aligned value, a value followed by a filler
+
+ Useful to complete the encoding of a top-level value -}</span
+	></span
+      ><span class="hs-cpp"
+      >
+#ifdef ETA_VERSION
+</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PostAligned</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >a</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PostAligned</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >postValue</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >a</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >postFiller</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Filler</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >Show</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Eq</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Ord</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Generic</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >NFData</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Flat</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >a</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Flat</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >PostAligned</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >a</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-identifier"
+      >encode</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >PostAligned</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >val</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >fill</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >trampolineEncoding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >encode</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >val</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-operator"
+      >&lt;&gt;</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >encode</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >fill</span
+      ><span class="hs-cpp"
+      >
+
+#else
+</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="PostAligned"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#PostAligned"
+	  ><span class="hs-identifier hs-var"
+	    >PostAligned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679106909"
+      ><span class="annot"
+	><a href="#local-6989586621679106909"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="PostAligned"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#PostAligned"
+	  ><span class="hs-identifier hs-var"
+	    >PostAligned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="postValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. PostAligned a -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#postValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >postValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679106909"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="postFiller"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. PostAligned a -&gt; Filler
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#postFiller"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >postFiller</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#Filler"
+	><span class="hs-identifier hs-type"
+	  >Filler</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679107083"
+      ><span id="local-6989586621679107088"
+	><span id="local-6989586621679107092"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; PostAligned a -&gt; ShowS
+[PostAligned a] -&gt; ShowS
+PostAligned a -&gt; String
+(Int -&gt; PostAligned a -&gt; ShowS)
+-&gt; (PostAligned a -&gt; String)
+-&gt; ([PostAligned a] -&gt; ShowS)
+-&gt; Show (PostAligned a)
+forall a. Show a =&gt; Int -&gt; PostAligned a -&gt; ShowS
+forall a. Show a =&gt; [PostAligned a] -&gt; ShowS
+forall a. Show a =&gt; PostAligned a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; PostAligned a -&gt; ShowS
+showsPrec :: Int -&gt; PostAligned a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; PostAligned a -&gt; String
+show :: PostAligned a -&gt; String
+$cshowList :: forall a. Show a =&gt; [PostAligned a] -&gt; ShowS
+showList :: [PostAligned a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107096"
+      ><span id="local-6989586621679107100"
+	><span class="annot"
+	  ><span class="annottext"
+	    >PostAligned a -&gt; PostAligned a -&gt; Bool
+(PostAligned a -&gt; PostAligned a -&gt; Bool)
+-&gt; (PostAligned a -&gt; PostAligned a -&gt; Bool) -&gt; Eq (PostAligned a)
+forall a. Eq a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+== :: PostAligned a -&gt; PostAligned a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+/= :: PostAligned a -&gt; PostAligned a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107108"
+      ><span id="local-6989586621679107112"
+	><span id="local-6989586621679107116"
+	  ><span id="local-6989586621679107120"
+	    ><span id="local-6989586621679107123"
+	      ><span id="local-6989586621679107126"
+		><span id="local-6989586621679107129"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (PostAligned a)
+Eq (PostAligned a) =&gt;
+(PostAligned a -&gt; PostAligned a -&gt; Ordering)
+-&gt; (PostAligned a -&gt; PostAligned a -&gt; Bool)
+-&gt; (PostAligned a -&gt; PostAligned a -&gt; Bool)
+-&gt; (PostAligned a -&gt; PostAligned a -&gt; Bool)
+-&gt; (PostAligned a -&gt; PostAligned a -&gt; Bool)
+-&gt; (PostAligned a -&gt; PostAligned a -&gt; PostAligned a)
+-&gt; (PostAligned a -&gt; PostAligned a -&gt; PostAligned a)
+-&gt; Ord (PostAligned a)
+PostAligned a -&gt; PostAligned a -&gt; Bool
+PostAligned a -&gt; PostAligned a -&gt; Ordering
+PostAligned a -&gt; PostAligned a -&gt; PostAligned a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (PostAligned a)
+forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; Ordering
+forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; PostAligned a
+$ccompare :: forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; Ordering
+compare :: PostAligned a -&gt; PostAligned a -&gt; Ordering
+$c&lt; :: forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+&lt; :: PostAligned a -&gt; PostAligned a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+&lt;= :: PostAligned a -&gt; PostAligned a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+&gt; :: PostAligned a -&gt; PostAligned a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; Bool
+&gt;= :: PostAligned a -&gt; PostAligned a -&gt; Bool
+$cmax :: forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; PostAligned a
+max :: PostAligned a -&gt; PostAligned a -&gt; PostAligned a
+$cmin :: forall a. Ord a =&gt; PostAligned a -&gt; PostAligned a -&gt; PostAligned a
+min :: PostAligned a -&gt; PostAligned a -&gt; PostAligned a
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107133"
+      ><span id="local-6989586621679107135"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. PostAligned a -&gt; Rep (PostAligned a) x)
+-&gt; (forall x. Rep (PostAligned a) x -&gt; PostAligned a)
+-&gt; Generic (PostAligned a)
+forall x. Rep (PostAligned a) x -&gt; PostAligned a
+forall x. PostAligned a -&gt; Rep (PostAligned a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (PostAligned a) x -&gt; PostAligned a
+forall a x. PostAligned a -&gt; Rep (PostAligned a) x
+$cfrom :: forall a x. PostAligned a -&gt; Rep (PostAligned a) x
+from :: forall x. PostAligned a -&gt; Rep (PostAligned a) x
+$cto :: forall a x. Rep (PostAligned a) x -&gt; PostAligned a
+to :: forall x. Rep (PostAligned a) x -&gt; PostAligned a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107139"
+      ><span class="annot"
+	><span class="annottext"
+	  >PostAligned a -&gt; ()
+(PostAligned a -&gt; ()) -&gt; NFData (PostAligned a)
+forall a. NFData a =&gt; PostAligned a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: forall a. NFData a =&gt; PostAligned a -&gt; ()
+rnf :: PostAligned a -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span id="local-6989586621679107155"
+      ><span id="local-6989586621679107162"
+	><span id="local-6989586621679107168"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Get (PostAligned a)
+PostAligned a -&gt; Encoding
+PostAligned a -&gt; Int -&gt; Int
+(PostAligned a -&gt; Encoding)
+-&gt; Get (PostAligned a)
+-&gt; (PostAligned a -&gt; Int -&gt; Int)
+-&gt; Flat (PostAligned a)
+forall a. Flat a =&gt; Get (PostAligned a)
+forall a. Flat a =&gt; PostAligned a -&gt; Encoding
+forall a. Flat a =&gt; PostAligned a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+$cencode :: forall a. Flat a =&gt; PostAligned a -&gt; Encoding
+encode :: PostAligned a -&gt; Encoding
+$cdecode :: forall a. Flat a =&gt; Get (PostAligned a)
+decode :: Get (PostAligned a)
+$csize :: forall a. Flat a =&gt; PostAligned a -&gt; Int -&gt; Int
+size :: PostAligned a -&gt; Int -&gt; Int
+</span
+	      ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Flat</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A Pre aligned value, a value preceded by a filler
+
+ Useful to prealign ByteArrays, Texts and any structure that can be encoded more efficiently when byte aligned. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="PreAligned"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#PreAligned"
+	  ><span class="hs-identifier hs-var"
+	    >PreAligned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679106949"
+      ><span class="annot"
+	><a href="#local-6989586621679106949"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="PreAligned"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#PreAligned"
+	  ><span class="hs-identifier hs-var"
+	    >PreAligned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="preFiller"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. PreAligned a -&gt; Filler
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#preFiller"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preFiller</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#Filler"
+	><span class="hs-identifier hs-type"
+	  >Filler</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="preValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. PreAligned a -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#preValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679106949"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679107206"
+      ><span id="local-6989586621679107211"
+	><span id="local-6989586621679107215"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; PreAligned a -&gt; ShowS
+[PreAligned a] -&gt; ShowS
+PreAligned a -&gt; String
+(Int -&gt; PreAligned a -&gt; ShowS)
+-&gt; (PreAligned a -&gt; String)
+-&gt; ([PreAligned a] -&gt; ShowS)
+-&gt; Show (PreAligned a)
+forall a. Show a =&gt; Int -&gt; PreAligned a -&gt; ShowS
+forall a. Show a =&gt; [PreAligned a] -&gt; ShowS
+forall a. Show a =&gt; PreAligned a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; PreAligned a -&gt; ShowS
+showsPrec :: Int -&gt; PreAligned a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; PreAligned a -&gt; String
+show :: PreAligned a -&gt; String
+$cshowList :: forall a. Show a =&gt; [PreAligned a] -&gt; ShowS
+showList :: [PreAligned a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107219"
+      ><span id="local-6989586621679107223"
+	><span class="annot"
+	  ><span class="annottext"
+	    >PreAligned a -&gt; PreAligned a -&gt; Bool
+(PreAligned a -&gt; PreAligned a -&gt; Bool)
+-&gt; (PreAligned a -&gt; PreAligned a -&gt; Bool) -&gt; Eq (PreAligned a)
+forall a. Eq a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+== :: PreAligned a -&gt; PreAligned a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+/= :: PreAligned a -&gt; PreAligned a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107231"
+      ><span id="local-6989586621679107235"
+	><span id="local-6989586621679107239"
+	  ><span id="local-6989586621679107243"
+	    ><span id="local-6989586621679107246"
+	      ><span id="local-6989586621679107249"
+		><span id="local-6989586621679107252"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (PreAligned a)
+Eq (PreAligned a) =&gt;
+(PreAligned a -&gt; PreAligned a -&gt; Ordering)
+-&gt; (PreAligned a -&gt; PreAligned a -&gt; Bool)
+-&gt; (PreAligned a -&gt; PreAligned a -&gt; Bool)
+-&gt; (PreAligned a -&gt; PreAligned a -&gt; Bool)
+-&gt; (PreAligned a -&gt; PreAligned a -&gt; Bool)
+-&gt; (PreAligned a -&gt; PreAligned a -&gt; PreAligned a)
+-&gt; (PreAligned a -&gt; PreAligned a -&gt; PreAligned a)
+-&gt; Ord (PreAligned a)
+PreAligned a -&gt; PreAligned a -&gt; Bool
+PreAligned a -&gt; PreAligned a -&gt; Ordering
+PreAligned a -&gt; PreAligned a -&gt; PreAligned a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (PreAligned a)
+forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; Ordering
+forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; PreAligned a
+$ccompare :: forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; Ordering
+compare :: PreAligned a -&gt; PreAligned a -&gt; Ordering
+$c&lt; :: forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+&lt; :: PreAligned a -&gt; PreAligned a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+&lt;= :: PreAligned a -&gt; PreAligned a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+&gt; :: PreAligned a -&gt; PreAligned a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; Bool
+&gt;= :: PreAligned a -&gt; PreAligned a -&gt; Bool
+$cmax :: forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; PreAligned a
+max :: PreAligned a -&gt; PreAligned a -&gt; PreAligned a
+$cmin :: forall a. Ord a =&gt; PreAligned a -&gt; PreAligned a -&gt; PreAligned a
+min :: PreAligned a -&gt; PreAligned a -&gt; PreAligned a
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107255"
+      ><span id="local-6989586621679107257"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. PreAligned a -&gt; Rep (PreAligned a) x)
+-&gt; (forall x. Rep (PreAligned a) x -&gt; PreAligned a)
+-&gt; Generic (PreAligned a)
+forall x. Rep (PreAligned a) x -&gt; PreAligned a
+forall x. PreAligned a -&gt; Rep (PreAligned a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (PreAligned a) x -&gt; PreAligned a
+forall a x. PreAligned a -&gt; Rep (PreAligned a) x
+$cfrom :: forall a x. PreAligned a -&gt; Rep (PreAligned a) x
+from :: forall x. PreAligned a -&gt; Rep (PreAligned a) x
+$cto :: forall a x. Rep (PreAligned a) x -&gt; PreAligned a
+to :: forall x. Rep (PreAligned a) x -&gt; PreAligned a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107261"
+      ><span class="annot"
+	><span class="annottext"
+	  >PreAligned a -&gt; ()
+(PreAligned a -&gt; ()) -&gt; NFData (PreAligned a)
+forall a. NFData a =&gt; PreAligned a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: forall a. NFData a =&gt; PreAligned a -&gt; ()
+rnf :: PreAligned a -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107276"
+      ><span id="local-6989586621679107283"
+	><span id="local-6989586621679107289"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Get (PreAligned a)
+PreAligned a -&gt; Encoding
+PreAligned a -&gt; Int -&gt; Int
+(PreAligned a -&gt; Encoding)
+-&gt; Get (PreAligned a)
+-&gt; (PreAligned a -&gt; Int -&gt; Int)
+-&gt; Flat (PreAligned a)
+forall a. Flat a =&gt; Get (PreAligned a)
+forall a. Flat a =&gt; PreAligned a -&gt; Encoding
+forall a. Flat a =&gt; PreAligned a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+$cencode :: forall a. Flat a =&gt; PreAligned a -&gt; Encoding
+encode :: PreAligned a -&gt; Encoding
+$cdecode :: forall a. Flat a =&gt; Get (PreAligned a)
+decode :: Get (PreAligned a)
+$csize :: forall a. Flat a =&gt; PreAligned a -&gt; Int -&gt; Int
+size :: PreAligned a -&gt; Int -&gt; Int
+</span
+	      ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Flat</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Length of a filler in bits</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="local-6989586621679106965"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#fillerLength"
+	  ><span class="hs-identifier hs-type"
+	    >fillerLength</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+	  ><span class="hs-identifier hs-type"
+	    >Num</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106965"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#Filler"
+	  ><span class="hs-identifier hs-type"
+	    >Filler</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106965"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="fillerLength"
+      ><span class="annot"
+	><span class="annottext"
+	  >fillerLength :: forall a. Num a =&gt; Filler -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#fillerLength"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fillerLength</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler
+</span
+	><a href="PlutusCore.Flat.Filler.html#FillerEnd"
+	><span class="hs-identifier hs-var"
+	  >FillerEnd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#fillerLength"
+	><span class="hs-identifier hs-var"
+	  >fillerLength</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#FillerBit"
+	><span class="hs-identifier hs-type"
+	  >FillerBit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107319"
+      ><span class="annot"
+	><span class="annottext"
+	  >Filler
+</span
+	  ><a href="#local-6989586621679107319"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; a
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler -&gt; a
+forall a. Num a =&gt; Filler -&gt; a
+</span
+	><a href="PlutusCore.Flat.Filler.html#fillerLength"
+	><span class="hs-identifier hs-var"
+	  >fillerLength</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler
+</span
+	><a href="#local-6989586621679107319"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Post align a value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621679106968"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#postAligned"
+	  ><span class="hs-identifier hs-type"
+	    >postAligned</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106968"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#PostAligned"
+	  ><span class="hs-identifier hs-type"
+	    >PostAligned</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106968"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="postAligned"
+      ><span class="annot"
+	><span class="annottext"
+	  >postAligned :: forall a. a -&gt; PostAligned a
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#postAligned"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >postAligned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107321"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679107321"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Filler -&gt; PostAligned a
+forall a. a -&gt; Filler -&gt; PostAligned a
+</span
+	><a href="PlutusCore.Flat.Filler.html#PostAligned"
+	><span class="hs-identifier hs-var"
+	  >PostAligned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107321"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler
+</span
+	><a href="PlutusCore.Flat.Filler.html#FillerEnd"
+	><span class="hs-identifier hs-var"
+	  >FillerEnd</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Pre align a value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="local-6989586621679106970"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#preAligned"
+	  ><span class="hs-identifier hs-type"
+	    >preAligned</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106970"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#PreAligned"
+	  ><span class="hs-identifier hs-type"
+	    >PreAligned</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106970"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="preAligned"
+      ><span class="annot"
+	><span class="annottext"
+	  >preAligned :: forall a. a -&gt; PreAligned a
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#preAligned"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preAligned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler -&gt; a -&gt; PreAligned a
+forall a. Filler -&gt; a -&gt; PreAligned a
+</span
+	><a href="PlutusCore.Flat.Filler.html#PreAligned"
+	><span class="hs-identifier hs-var"
+	  >PreAligned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler
+</span
+	><a href="PlutusCore.Flat.Filler.html#FillerEnd"
+	><span class="hs-identifier hs-var"
+	  >FillerEnd</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Decode a value assuming that is PostAligned</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="local-6989586621679106972"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#postAlignedDecoder"
+	  ><span class="hs-identifier hs-type"
+	    >postAlignedDecoder</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106972"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106972"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="postAlignedDecoder"
+      ><span class="annot"
+	><span class="annottext"
+	  >postAlignedDecoder :: forall b. Get b -&gt; Get b
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#postAlignedDecoder"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >postAlignedDecoder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107327"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get b
+</span
+	  ><a href="#local-6989586621679107327"
+	  ><span class="hs-identifier hs-var"
+	    >dec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679107328"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679107328"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get b
+</span
+	><a href="#local-6989586621679107327"
+	><span class="hs-identifier hs-var"
+	  >dec</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#Filler"
+	><span class="hs-identifier hs-type"
+	  >Filler</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get Filler
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Get b
+forall a. a -&gt; Get a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679107328"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Decode a value assuming that is PreAligned
+
+ @since 0.5 -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="local-6989586621679107330"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Filler.html#preAlignedDecoder"
+	  ><span class="hs-identifier hs-type"
+	    >preAlignedDecoder</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107330"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107330"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="preAlignedDecoder"
+      ><span class="annot"
+	><span class="annottext"
+	  >preAlignedDecoder :: forall b. Get b -&gt; Get b
+</span
+	  ><a href="PlutusCore.Flat.Filler.html#preAlignedDecoder"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preAlignedDecoder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107333"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get b
+</span
+	  ><a href="#local-6989586621679107333"
+	  ><span class="hs-identifier hs-var"
+	    >dec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Filler
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#Filler"
+	><span class="hs-identifier hs-type"
+	  >Filler</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get Filler
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get b
+</span
+	><a href="#local-6989586621679107333"
+	><span class="hs-identifier hs-var"
+	  >dec</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

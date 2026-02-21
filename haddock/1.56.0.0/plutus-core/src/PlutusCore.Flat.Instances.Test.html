@@ -1,0 +1,2116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>-- | doctest utilities</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Instances.Test</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Test.html#tst"
+	><span class="hs-identifier"
+	  >tst</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Test.html#tstBits"
+	><span class="hs-identifier"
+	  >tstBits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Test.html#asList"
+	><span class="hs-identifier"
+	  >asList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Test.html#flatBits"
+	><span class="hs-identifier"
+	  >flatBits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Test.html#allBits"
+	><span class="hs-identifier"
+	  >allBits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Test.html#encBits"
+	><span class="hs-identifier"
+	  >encBits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#prettyShow"
+	><span class="hs-identifier"
+	  >prettyShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator"
+	  >(&gt;=&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Bits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#Bits"
+	><span class="hs-identifier"
+	  >Bits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#asBytes"
+	><span class="hs-identifier"
+	  >asBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#bits"
+	><span class="hs-identifier"
+	  >bits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#paddedBits"
+	><span class="hs-identifier"
+	  >paddedBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#takeBits"
+	><span class="hs-identifier"
+	  >takeBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#toBools"
+	><span class="hs-identifier"
+	  >toBools</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Prim.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder.Prim</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Prim.html#eFillerF"
+	><span class="hs-identifier"
+	  >eFillerF</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	><span class="hs-identifier"
+	  >Encoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	><span class="hs-identifier"
+	  >Encoding</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#numEncodedBits"
+	><span class="hs-identifier"
+	  >numEncodedBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#strictEncoder"
+	><span class="hs-identifier"
+	  >strictEncoder</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Run</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#flat"
+	><span class="hs-identifier"
+	  >flat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#unflat"
+	><span class="hs-identifier"
+	  >unflat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Types.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Types</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Types.html#NumBits"
+	><span class="hs-identifier"
+	  >NumBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html"
+	><span class="hs-identifier"
+	  >Text.PrettyPrint.HughesPJClass</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#prettyShow"
+	><span class="hs-identifier"
+	  >prettyShow</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Returns: result of flat/unflat test, encoding size in bits, byte encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span id="local-6989586621679107611"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Test.html#tst"
+	  ><span class="hs-identifier hs-type"
+	    >tst</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	  ><span class="hs-identifier hs-type"
+	    >Eq</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107611"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107611"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107611"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Types.html#NumBits"
+	  ><span class="hs-identifier hs-type"
+	    >NumBits</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	  ><span class="hs-identifier hs-type"
+	    >Word8</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="tst"
+      ><span class="annot"
+	><span class="annottext"
+	  >tst :: forall a. (Eq a, Flat a) =&gt; a -&gt; (Bool, NumBits, [Word8])
+</span
+	  ><a href="PlutusCore.Flat.Instances.Test.html#tst"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tst</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107701"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679107701"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Decoded a
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="PlutusCore.Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; ByteString
+forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="PlutusCore.Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107701"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Decoded a -&gt; Decoded a -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Decoded a
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107701"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; NumBits -&gt; NumBits
+forall a. Flat a =&gt; a -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107701"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits -&gt; NumBits -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Bool] -&gt; NumBits
+forall a. [a] -&gt; NumBits
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; NumBits
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bits -&gt; [Bool]
+</span
+	><a href="PlutusCore.Flat.Bits.html#toBools"
+	><span class="hs-identifier hs-var"
+	  >toBools</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bits
+forall a. Flat a =&gt; a -&gt; Bits
+</span
+	><a href="PlutusCore.Flat.Bits.html#bits"
+	><span class="hs-identifier hs-var"
+	  >bits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107701"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; NumBits -&gt; NumBits
+forall a. Flat a =&gt; a -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107701"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; [Word8]
+forall a. Flat a =&gt; a -&gt; [Word8]
+</span
+	><a href="PlutusCore.Flat.Instances.Test.html#showBytes"
+	><span class="hs-identifier hs-var"
+	  >showBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107701"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Returns: result of flat/unflat test, encoding size in bits, bits encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621679107634"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Test.html#tstBits"
+	  ><span class="hs-identifier hs-type"
+	    >tstBits</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	  ><span class="hs-identifier hs-type"
+	    >Eq</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107634"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107634"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107634"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Types.html#NumBits"
+	  ><span class="hs-identifier hs-type"
+	    >NumBits</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	  ><span class="hs-identifier hs-type"
+	    >String</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="tstBits"
+      ><span class="annot"
+	><span class="annottext"
+	  >tstBits :: forall a. (Eq a, Flat a) =&gt; a -&gt; (Bool, NumBits, String)
+</span
+	  ><a href="PlutusCore.Flat.Instances.Test.html#tstBits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tstBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107715"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679107715"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Decoded a
+forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	><a href="PlutusCore.Flat.Run.html#unflat"
+	><span class="hs-identifier hs-var"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; ByteString
+forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="PlutusCore.Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107715"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Decoded a -&gt; Decoded a -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Decoded a
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107715"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; NumBits -&gt; NumBits
+forall a. Flat a =&gt; a -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107715"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall a. Flat a =&gt; a -&gt; String
+</span
+	><a href="PlutusCore.Flat.Instances.Test.html#flatBits"
+	><span class="hs-identifier hs-var"
+	  >flatBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107715"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Test that container is serialised as a List</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="local-6989586621679107637"
+      ><span id="local-6989586621679107638"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Instances.Test.html#asList"
+	    ><span class="hs-identifier hs-type"
+	      >asList</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107637"
+	    ><span class="hs-identifier hs-type"
+	      >a1</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107638"
+	    ><span class="hs-identifier hs-type"
+	      >a2</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107637"
+	    ><span class="hs-identifier hs-type"
+	      >a1</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107638"
+	    ><span class="hs-identifier hs-type"
+	      >a2</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107638"
+	    ><span class="hs-identifier hs-type"
+	      >a2</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107637"
+	    ><span class="hs-identifier hs-type"
+	      >a1</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107638"
+	    ><span class="hs-identifier hs-type"
+	      >a2</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	    ><span class="hs-identifier hs-type"
+	      >Bool</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="asList"
+      ><span class="annot"
+	><span class="annottext"
+	  >asList :: forall a1 a2.
+(Eq a1, Eq a2, Flat a1, Flat a2) =&gt;
+(a2 -&gt; a1) -&gt; a2 -&gt; Bool
+</span
+	  ><a href="PlutusCore.Flat.Instances.Test.html#asList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >asList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107734"
+      ><span class="annot"
+	><span class="annottext"
+	  >a2 -&gt; a1
+</span
+	  ><a href="#local-6989586621679107734"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107735"
+      ><span class="annot"
+	><span class="annottext"
+	  >a2
+</span
+	  ><a href="#local-6989586621679107735"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a1 -&gt; (Bool, NumBits, [Word8])
+forall a. (Eq a, Flat a) =&gt; a -&gt; (Bool, NumBits, [Word8])
+</span
+	><a href="PlutusCore.Flat.Instances.Test.html#tst"
+	><span class="hs-identifier hs-var"
+	  >tst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a2 -&gt; a1
+</span
+	><a href="#local-6989586621679107734"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a2
+</span
+	><a href="#local-6989586621679107735"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool, NumBits, [Word8]) -&gt; (Bool, NumBits, [Word8]) -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a2 -&gt; (Bool, NumBits, [Word8])
+forall a. (Eq a, Flat a) =&gt; a -&gt; (Bool, NumBits, [Word8])
+</span
+	><a href="PlutusCore.Flat.Instances.Test.html#tst"
+	><span class="hs-identifier hs-var"
+	  >tst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a2
+</span
+	><a href="#local-6989586621679107735"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621679107636"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Test.html#flatBits"
+	  ><span class="hs-identifier hs-type"
+	    >flatBits</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107636"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107636"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	  ><span class="hs-identifier hs-type"
+	    >String</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span id="flatBits"
+      ><span class="annot"
+	><span class="annottext"
+	  >flatBits :: forall a. Flat a =&gt; a -&gt; String
+</span
+	  ><a href="PlutusCore.Flat.Instances.Test.html#flatBits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flatBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bits -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#prettyShow"
+	><span class="hs-identifier hs-var"
+	  >prettyShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bits -&gt; String) -&gt; (a -&gt; Bits) -&gt; a -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bits
+forall a. Flat a =&gt; a -&gt; Bits
+</span
+	><a href="PlutusCore.Flat.Bits.html#bits"
+	><span class="hs-identifier hs-var"
+	  >bits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="local-6989586621679107741"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Test.html#allBits"
+	  ><span class="hs-identifier hs-type"
+	    >allBits</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107741"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107741"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	  ><span class="hs-identifier hs-type"
+	    >String</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="allBits"
+      ><span class="annot"
+	><span class="annottext"
+	  >allBits :: forall a. Flat a =&gt; a -&gt; String
+</span
+	  ><a href="PlutusCore.Flat.Instances.Test.html#allBits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >allBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bits -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#prettyShow"
+	><span class="hs-identifier hs-var"
+	  >prettyShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bits -&gt; String) -&gt; (a -&gt; Bits) -&gt; a -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bits
+forall a. Flat a =&gt; a -&gt; Bits
+</span
+	><a href="PlutusCore.Flat.Bits.html#paddedBits"
+	><span class="hs-identifier hs-var"
+	  >paddedBits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | @since 0.5</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Test.html#encBits"
+	><span class="hs-identifier hs-type"
+	  >encBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Types.html#NumBits"
+	><span class="hs-identifier hs-type"
+	  >NumBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	><span class="hs-identifier hs-type"
+	  >Encoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#Bits"
+	><span class="hs-identifier hs-type"
+	  >Bits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="encBits"
+      ><span class="annot"
+	><span class="annottext"
+	  >encBits :: NumBits -&gt; Encoding -&gt; Bits
+</span
+	  ><a href="PlutusCore.Flat.Instances.Test.html#encBits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107745"
+      ><span class="annot"
+	><span class="annottext"
+	  >NumBits
+</span
+	  ><a href="#local-6989586621679107745"
+	  ><span class="hs-identifier hs-var"
+	    >maxNumBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107746"
+      ><span class="annot"
+	><span class="annottext"
+	  >e :: Encoding
+</span
+	  ><a href="#local-6989586621679107746"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	><span class="hs-identifier hs-type"
+	  >Encoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107747"
+      ><span class="annot"
+	><span class="annottext"
+	  >Prim
+</span
+	  ><a href="#local-6989586621679107747"
+	  ><span class="hs-identifier hs-var"
+	    >enc</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits -&gt; ByteString -&gt; Bits
+</span
+	><a href="PlutusCore.Flat.Bits.html#takeBits"
+	><span class="hs-identifier hs-var"
+	  >takeBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits -&gt; Encoding -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#numEncodedBits"
+	><span class="hs-identifier hs-var"
+	  >numEncodedBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits
+</span
+	><a href="#local-6989586621679107745"
+	><span class="hs-identifier hs-var"
+	  >maxNumBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Encoding
+</span
+	><a href="#local-6989586621679107746"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits -&gt; Encoding -&gt; ByteString
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#strictEncoder"
+	><span class="hs-identifier hs-var"
+	  >strictEncoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits
+</span
+	><a href="#local-6989586621679107745"
+	><span class="hs-identifier hs-var"
+	  >maxNumBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Prim -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	><span class="hs-identifier hs-var"
+	  >Encoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Prim -&gt; Encoding) -&gt; Prim -&gt; Encoding
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Prim
+</span
+	><a href="#local-6989586621679107747"
+	><span class="hs-identifier hs-var"
+	  >enc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Prim -&gt; Prim -&gt; Prim
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Prim
+</span
+	><a href="PlutusCore.Flat.Encoder.Prim.html#eFillerF"
+	><span class="hs-identifier hs-var"
+	  >eFillerF</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621679107633"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Test.html#showBytes"
+	  ><span class="hs-identifier hs-type"
+	    >showBytes</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107633"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107633"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	  ><span class="hs-identifier hs-type"
+	    >Word8</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="showBytes"
+      ><span class="annot"
+	><span class="annottext"
+	  >showBytes :: forall a. Flat a =&gt; a -&gt; [Word8]
+</span
+	  ><a href="PlutusCore.Flat.Instances.Test.html#showBytes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >showBytes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bits -&gt; [Word8]
+</span
+	><a href="PlutusCore.Flat.Bits.html#asBytes"
+	><span class="hs-identifier hs-var"
+	  >asBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bits -&gt; [Word8]) -&gt; (a -&gt; Bits) -&gt; a -&gt; [Word8]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bits
+forall a. Flat a =&gt; a -&gt; Bits
+</span
+	><a href="PlutusCore.Flat.Bits.html#bits"
+	><span class="hs-identifier hs-var"
+	  >bits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

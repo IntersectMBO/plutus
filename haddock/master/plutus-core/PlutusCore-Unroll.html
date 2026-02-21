@@ -1,0 +1,642 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Unroll</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Unroll.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Unroll</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Peano numbers</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Statically unrolled list drop</a
+	      ></li
+	    ><li
+	    ><a href="#g:3"
+	      >Statically unrolled effectful iteration</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Static loop unrolling utilities using type-level Peano numbers.</p
+	  ><p
+	  >This module provides utilities for statically unrolling loops at compile time.
+GHC resolves the type class instances at compile time, resulting in unrolled
+code that avoids runtime overhead.</p
+	  ><p
+	  >See Note [Static loop unrolling] for details on the technique. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Peano"
+	      >Peano</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Z"
+		  >Z</a
+		  ></li
+		><li
+		>| <a href="#v:S"
+		  >S</a
+		  > <a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+		  >Peano</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:NatToPeano"
+	      >NatToPeano</a
+	      > (n &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:Nat" title="GHC.TypeNats"
+	      >Nat</a
+	      >) &#8759; <a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+	      >Peano</a
+	      > <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Drop"
+	      >Drop</a
+	      > (n &#8759; <a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+	      >Peano</a
+	      >) <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:drop-39-"
+		  >drop'</a
+		  > &#8759; [a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > [a]</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:dropN"
+	      >dropN</a
+	      > &#8759; &#8704; n a. <a href="PlutusCore-Unroll.html#t:Drop" title="PlutusCore.Unroll"
+	      >Drop</a
+	      > (<a href="PlutusCore-Unroll.html#t:NatToPeano" title="PlutusCore.Unroll"
+	      >NatToPeano</a
+	      > n) &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > [a]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; <a href="#t:UpwardsM"
+	      >UpwardsM</a
+	      > f n <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:upwardsM"
+		  >upwardsM</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > &#8594; f ()) &#8594; f ()</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >Peano numbers</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Peano" class="def"
+	    >Peano</a
+	    > <a href="src/PlutusCore.Unroll.html#Peano" class="link"
+	    >Source</a
+	    > <a href="#t:Peano" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Peano representation of natural numbers for type-level recursion.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Z" class="def"
+		  >Z</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:S" class="def"
+		  >S</a
+		  > <a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+		  >Peano</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:NatToPeano" class="def"
+	    >NatToPeano</a
+	    > (n &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:Nat" title="GHC.TypeNats"
+	    >Nat</a
+	    >) &#8759; <a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+	    >Peano</a
+	    > <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusCore.Unroll.html#NatToPeano" class="link"
+	    >Source</a
+	    > <a href="#t:NatToPeano" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a type-level <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:Nat" title="GHC.TypeNats"
+		>Nat</a
+		></code
+	      > to <code
+	      ><a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+		>Peano</a
+		></code
+	      > form for instance resolution.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Unroll.html#t:NatToPeano" title="PlutusCore.Unroll"
+		  >NatToPeano</a
+		  > 0 = '<a href="PlutusCore-Unroll.html#v:Z" title="PlutusCore.Unroll"
+		  >Z</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Unroll.html#t:NatToPeano" title="PlutusCore.Unroll"
+		  >NatToPeano</a
+		  > n = '<a href="PlutusCore-Unroll.html#v:S" title="PlutusCore.Unroll"
+		  >S</a
+		  > (<a href="PlutusCore-Unroll.html#t:NatToPeano" title="PlutusCore.Unroll"
+		  >NatToPeano</a
+		  > (n <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:-45-" title="GHC.TypeNats"
+		  >-</a
+		  > 1))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Statically unrolled list drop</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Drop" class="def"
+	    >Drop</a
+	    > (n &#8759; <a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+	    >Peano</a
+	    >) <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Unroll.html#Drop" class="link"
+	    >Source</a
+	    > <a href="#t:Drop" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Statically unrolled drop: drops exactly <code
+	      >n</code
+	      > elements if possible.
+Returns <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+		>Nothing</a
+		></code
+	      > if the list has fewer than <code
+	      >n</code
+	      > elements.</p
+	    ><p
+	    >The <code
+	      >n</code
+	      > parameter is a <code
+	      ><a href="PlutusCore-Unroll.html#t:Peano" title="PlutusCore.Unroll"
+		>Peano</a
+		></code
+	      > number that guides instance resolution.
+Use <code
+	      ><a href="PlutusCore-Unroll.html#v:dropN" title="PlutusCore.Unroll"
+		>dropN</a
+		></code
+	      > for a more convenient interface with <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:Nat" title="GHC.TypeNats"
+		>Nat</a
+		></code
+	      > literals. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:drop-39-" class="def"
+	      >drop'</a
+	      > &#8759; [a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > [a] <a href="src/PlutusCore.Unroll.html#drop%27" class="link"
+	      >Source</a
+	      > <a href="#v:drop-39-" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Drop"
+	    >Instances</h4
+	    ><details id="i:Drop" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Drop:Drop:1"
+		      ></span
+		      > <a href="PlutusCore-Unroll.html#t:Drop" title="PlutusCore.Unroll"
+		      >Drop</a
+		      > '<a href="PlutusCore-Unroll.html#v:Z" title="PlutusCore.Unroll"
+		      >Z</a
+		      ></span
+		    > <a href="src/PlutusCore.Unroll.html#line-81" class="link"
+		    >Source</a
+		    > <a href="#t:Drop" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Drop:Drop:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Unroll.html"
+			>PlutusCore.Unroll</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:drop-39-"
+			  >drop'</a
+			  > &#8759; [a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > [a] <a href="src/PlutusCore.Unroll.html#drop%27" class="link"
+			  >Source</a
+			  > <a href="#v:drop-39-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Drop:Drop:2"
+		      ></span
+		      > <a href="PlutusCore-Unroll.html#t:Drop" title="PlutusCore.Unroll"
+		      >Drop</a
+		      > n &#8658; <a href="PlutusCore-Unroll.html#t:Drop" title="PlutusCore.Unroll"
+		      >Drop</a
+		      > ('<a href="PlutusCore-Unroll.html#v:S" title="PlutusCore.Unroll"
+		      >S</a
+		      > n)</span
+		    > <a href="src/PlutusCore.Unroll.html#line-85" class="link"
+		    >Source</a
+		    > <a href="#t:Drop" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Drop:Drop:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Unroll.html"
+			>PlutusCore.Unroll</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:drop-39-"
+			  >drop'</a
+			  > &#8759; [a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > [a] <a href="src/PlutusCore.Unroll.html#drop%27" class="link"
+			  >Source</a
+			  > <a href="#v:drop-39-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dropN" class="def"
+	    >dropN</a
+	    > &#8759; &#8704; n a. <a href="PlutusCore-Unroll.html#t:Drop" title="PlutusCore.Unroll"
+	    >Drop</a
+	    > (<a href="PlutusCore-Unroll.html#t:NatToPeano" title="PlutusCore.Unroll"
+	    >NatToPeano</a
+	    > n) &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > [a] <a href="src/PlutusCore.Unroll.html#dropN" class="link"
+	    >Source</a
+	    > <a href="#v:dropN" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Drop exactly <code
+	      >n</code
+	      > elements from a list, returning <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+		>Nothing</a
+		></code
+	      > if too short.</p
+	    ><p
+	    >The drop count is statically unrolled at compile time via instance resolution.</p
+	    ><pre
+	    >dropN @3 [1,2,3,4,5] == Just [4,5]
+dropN @3 [1,2]       == Nothing
+</pre
+	    ></div
+	  ></div
+	><a href="#g:3" id="g:3"
+	><h1
+	  >Statically unrolled effectful iteration</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; <a id="t:UpwardsM" class="def"
+	    >UpwardsM</a
+	    > f n <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Unroll.html#UpwardsM" class="link"
+	    >Source</a
+	    > <a href="#t:UpwardsM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Statically unrolled effectful iteration over a range.</p
+	    ><p
+	    ><code
+	      >upwardsM i k</code
+	      > means <code
+	      >k i *&gt; k (i + 1) *&gt; ... *&gt; k (i + n - 1)</code
+	      >.</p
+	    ><p
+	    >We use this to statically unroll loops through instance resolution.
+This makes validation benchmarks a couple of percent faster. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:upwardsM" class="def"
+	      >upwardsM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; f ()) &#8594; f () <a href="src/PlutusCore.Unroll.html#upwardsM" class="link"
+	      >Source</a
+	      > <a href="#v:upwardsM" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UpwardsM"
+	    >Instances</h4
+	    ><details id="i:UpwardsM" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UpwardsM:UpwardsM:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > f &#8658; <a href="PlutusCore-Unroll.html#t:UpwardsM" title="PlutusCore.Unroll"
+		      >UpwardsM</a
+		      > f '<a href="PlutusCore-Unroll.html#v:Z" title="PlutusCore.Unroll"
+		      >Z</a
+		      ></span
+		    > <a href="src/PlutusCore.Unroll.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:UpwardsM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UpwardsM:UpwardsM:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Unroll.html"
+			>PlutusCore.Unroll</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:upwardsM"
+			  >upwardsM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; f ()) &#8594; f () <a href="src/PlutusCore.Unroll.html#upwardsM" class="link"
+			  >Source</a
+			  > <a href="#v:upwardsM" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UpwardsM:UpwardsM:2"
+		      ></span
+		      > <a href="PlutusCore-Unroll.html#t:UpwardsM" title="PlutusCore.Unroll"
+		      >UpwardsM</a
+		      > f n &#8658; <a href="PlutusCore-Unroll.html#t:UpwardsM" title="PlutusCore.Unroll"
+		      >UpwardsM</a
+		      > f ('<a href="PlutusCore-Unroll.html#v:S" title="PlutusCore.Unroll"
+		      >S</a
+		      > n)</span
+		    > <a href="src/PlutusCore.Unroll.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:UpwardsM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UpwardsM:UpwardsM:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Unroll.html"
+			>PlutusCore.Unroll</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:upwardsM"
+			  >upwardsM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; f ()) &#8594; f () <a href="src/PlutusCore.Unroll.html#upwardsM" class="link"
+			  >Source</a
+			  > <a href="#v:upwardsM" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

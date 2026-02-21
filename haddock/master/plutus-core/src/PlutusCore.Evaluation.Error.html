@@ -1,0 +1,2016 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >-- appears in the generated instances</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The exceptions that an abstract machine can throw.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Error</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	><span class="hs-identifier"
+	  >EvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifoldable.html"
+	><span class="hs-identifier"
+	  >Data.Bifoldable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bitraversable.html"
+	><span class="hs-identifier"
+	  >Data.Bitraversable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The type of errors that can occur during evaluation. There are two kinds of errors:
+
+1. Structural ones -- these are errors that are indicative of the _structure_ of the program being
+   wrong. For example, a free variable was encountered during evaluation, a non-function was
+   applied to an argument or 'tailList' was applied to a non-list.
+2. Operational ones -- these are errors that are indicative of the _logic_ of the program being
+   wrong. For example, 'error' was executed, 'tailList' was applied to an empty list or evaluation
+   ran out of gas.
+
+On the chain both of these are just regular failures and we don't distinguish between them there:
+if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
+matter why the failure occurred: a structural error may indicate that the test was written
+incorrectly while an operational error may be entirely expected.
+
+In other words, structural errors are \&quot;runtime type errors\&quot; and operational errors are regular
+runtime errors. Which means that evaluating an (erased) well-typed program should never produce a
+structural error, only an operational one. This creates a sort of \&quot;runtime type system\&quot; for UPLC
+and it would be great to stick to it and enforce in tests etc, but we currently don't. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="EvaluationError"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	  ><span class="hs-identifier hs-var"
+	    >EvaluationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072421"
+      ><span class="annot"
+	><a href="#local-6989586621682072421"
+	  ><span class="hs-identifier hs-type"
+	    >structural</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072422"
+      ><span class="annot"
+	><a href="#local-6989586621682072422"
+	  ><span class="hs-identifier hs-type"
+	    >operational</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="StructuralError"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	  ><span class="hs-identifier hs-var"
+	    >StructuralError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="#local-6989586621682072421"
+	><span class="hs-identifier hs-type"
+	  >structural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="OperationalError"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	  ><span class="hs-identifier hs-var"
+	    >OperationalError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="#local-6989586621682072422"
+	><span class="hs-identifier hs-type"
+	  >operational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682072490"
+      ><span id="local-6989586621682072497"
+	><span id="local-6989586621682072501"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; EvaluationError structural operational -&gt; ShowS
+[EvaluationError structural operational] -&gt; ShowS
+EvaluationError structural operational -&gt; String
+(Int -&gt; EvaluationError structural operational -&gt; ShowS)
+-&gt; (EvaluationError structural operational -&gt; String)
+-&gt; ([EvaluationError structural operational] -&gt; ShowS)
+-&gt; Show (EvaluationError structural operational)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall structural operational.
+(Show structural, Show operational) =&gt;
+Int -&gt; EvaluationError structural operational -&gt; ShowS
+forall structural operational.
+(Show structural, Show operational) =&gt;
+[EvaluationError structural operational] -&gt; ShowS
+forall structural operational.
+(Show structural, Show operational) =&gt;
+EvaluationError structural operational -&gt; String
+$cshowsPrec :: forall structural operational.
+(Show structural, Show operational) =&gt;
+Int -&gt; EvaluationError structural operational -&gt; ShowS
+showsPrec :: Int -&gt; EvaluationError structural operational -&gt; ShowS
+$cshow :: forall structural operational.
+(Show structural, Show operational) =&gt;
+EvaluationError structural operational -&gt; String
+show :: EvaluationError structural operational -&gt; String
+$cshowList :: forall structural operational.
+(Show structural, Show operational) =&gt;
+[EvaluationError structural operational] -&gt; ShowS
+showList :: [EvaluationError structural operational] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682072507"
+      ><span id="local-6989586621682072511"
+	><span class="annot"
+	  ><span class="annottext"
+	    >EvaluationError structural operational
+-&gt; EvaluationError structural operational -&gt; Bool
+(EvaluationError structural operational
+ -&gt; EvaluationError structural operational -&gt; Bool)
+-&gt; (EvaluationError structural operational
+    -&gt; EvaluationError structural operational -&gt; Bool)
+-&gt; Eq (EvaluationError structural operational)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall structural operational.
+(Eq structural, Eq operational) =&gt;
+EvaluationError structural operational
+-&gt; EvaluationError structural operational -&gt; Bool
+$c== :: forall structural operational.
+(Eq structural, Eq operational) =&gt;
+EvaluationError structural operational
+-&gt; EvaluationError structural operational -&gt; Bool
+== :: EvaluationError structural operational
+-&gt; EvaluationError structural operational -&gt; Bool
+$c/= :: forall structural operational.
+(Eq structural, Eq operational) =&gt;
+EvaluationError structural operational
+-&gt; EvaluationError structural operational -&gt; Bool
+/= :: EvaluationError structural operational
+-&gt; EvaluationError structural operational -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682072516"
+      ><span id="local-6989586621682072518"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b.
+ (a -&gt; b)
+ -&gt; EvaluationError structural a -&gt; EvaluationError structural b)
+-&gt; (forall a b.
+    a -&gt; EvaluationError structural b -&gt; EvaluationError structural a)
+-&gt; Functor (EvaluationError structural)
+forall a b.
+a -&gt; EvaluationError structural b -&gt; EvaluationError structural a
+forall a b.
+(a -&gt; b)
+-&gt; EvaluationError structural a -&gt; EvaluationError structural b
+forall structural a b.
+a -&gt; EvaluationError structural b -&gt; EvaluationError structural a
+forall structural a b.
+(a -&gt; b)
+-&gt; EvaluationError structural a -&gt; EvaluationError structural b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall structural a b.
+(a -&gt; b)
+-&gt; EvaluationError structural a -&gt; EvaluationError structural b
+fmap :: forall a b.
+(a -&gt; b)
+-&gt; EvaluationError structural a -&gt; EvaluationError structural b
+$c&lt;$ :: forall structural a b.
+a -&gt; EvaluationError structural b -&gt; EvaluationError structural a
+&lt;$ :: forall a b.
+a -&gt; EvaluationError structural b -&gt; EvaluationError structural a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682072522"
+      ><span id="local-6989586621682072524"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x.
+ EvaluationError structural operational
+ -&gt; Rep (EvaluationError structural operational) x)
+-&gt; (forall x.
+    Rep (EvaluationError structural operational) x
+    -&gt; EvaluationError structural operational)
+-&gt; Generic (EvaluationError structural operational)
+forall x.
+Rep (EvaluationError structural operational) x
+-&gt; EvaluationError structural operational
+forall x.
+EvaluationError structural operational
+-&gt; Rep (EvaluationError structural operational) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall structural operational x.
+Rep (EvaluationError structural operational) x
+-&gt; EvaluationError structural operational
+forall structural operational x.
+EvaluationError structural operational
+-&gt; Rep (EvaluationError structural operational) x
+$cfrom :: forall structural operational x.
+EvaluationError structural operational
+-&gt; Rep (EvaluationError structural operational) x
+from :: forall x.
+EvaluationError structural operational
+-&gt; Rep (EvaluationError structural operational) x
+$cto :: forall structural operational x.
+Rep (EvaluationError structural operational) x
+-&gt; EvaluationError structural operational
+to :: forall x.
+Rep (EvaluationError structural operational) x
+-&gt; EvaluationError structural operational
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682072530"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvaluationError structural operational -&gt; ()
+(EvaluationError structural operational -&gt; ())
+-&gt; NFData (EvaluationError structural operational)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall structural operational.
+(NFData structural, NFData operational) =&gt;
+EvaluationError structural operational -&gt; ()
+$crnf :: forall structural operational.
+(NFData structural, NFData operational) =&gt;
+EvaluationError structural operational -&gt; ()
+rnf :: EvaluationError structural operational -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682072551"
+      ><span id="local-6989586621682072555"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#Bifunctor"
+	    ><span class="hs-identifier hs-type"
+	      >Bifunctor</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	    ><span class="hs-identifier hs-type"
+	      >EvaluationError</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682072558"
+      ><span class="annot"
+	><span class="annottext"
+	  >bimap :: forall a b c d.
+(a -&gt; b) -&gt; (c -&gt; d) -&gt; EvaluationError a c -&gt; EvaluationError b d
+</span
+	  ><a href="#local-6989586621682072558"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >bimap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072560"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621682072560"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c -&gt; d
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-type"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072561"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682072561"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; EvaluationError b d
+forall structural operational.
+structural -&gt; EvaluationError structural operational
+</span
+	><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-var"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(b -&gt; EvaluationError b d) -&gt; b -&gt; EvaluationError b d
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621682072560"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682072561"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#bimap"
+	><span class="hs-identifier hs-var"
+	  >bimap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072562"
+      ><span class="annot"
+	><span class="annottext"
+	  >c -&gt; d
+</span
+	  ><a href="#local-6989586621682072562"
+	  ><span class="hs-identifier hs-var"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-type"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072563"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621682072563"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>d -&gt; EvaluationError b d
+forall structural operational.
+operational -&gt; EvaluationError structural operational
+</span
+	><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-var"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(d -&gt; EvaluationError b d) -&gt; d -&gt; EvaluationError b d
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c -&gt; d
+</span
+	><a href="#local-6989586621682072562"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621682072563"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#bimap"
+	><span class="hs-pragma hs-type"
+	  >bimap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682072565"
+      ><span id="local-6989586621682072572"
+	><span id="local-6989586621682072575"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifoldable.html#Bifoldable"
+	      ><span class="hs-identifier hs-type"
+		>Bifoldable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	      ><span class="hs-identifier hs-type"
+		>EvaluationError</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682072579"
+      ><span class="annot"
+	><span class="annottext"
+	  >bifoldMap :: forall m a b.
+Monoid m =&gt;
+(a -&gt; m) -&gt; (b -&gt; m) -&gt; EvaluationError a b -&gt; m
+</span
+	  ><a href="#local-6989586621682072579"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >bifoldMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072581"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; m
+</span
+	  ><a href="#local-6989586621682072581"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; m
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-type"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072582"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682072582"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; m
+</span
+	><a href="#local-6989586621682072581"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682072582"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifoldable.html#bifoldMap"
+	><span class="hs-identifier hs-var"
+	  >bifoldMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; m
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072583"
+      ><span class="annot"
+	><span class="annottext"
+	  >b -&gt; m
+</span
+	  ><a href="#local-6989586621682072583"
+	  ><span class="hs-identifier hs-var"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-type"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072584"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621682072584"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; m
+</span
+	><a href="#local-6989586621682072583"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621682072584"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifoldable.html#bifoldMap"
+	><span class="hs-pragma hs-type"
+	  >bifoldMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bitraversable.html#Bitraversable"
+	><span class="hs-identifier hs-type"
+	  >Bitraversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	><span class="hs-identifier hs-type"
+	  >EvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682072597"
+      ><span class="annot"
+	><span class="annottext"
+	  >bitraverse :: forall (f :: * -&gt; *) a c b d.
+Applicative f =&gt;
+(a -&gt; f c)
+-&gt; (b -&gt; f d) -&gt; EvaluationError a b -&gt; f (EvaluationError c d)
+</span
+	  ><a href="#local-6989586621682072597"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >bitraverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072599"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; f c
+</span
+	  ><a href="#local-6989586621682072599"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; f d
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-type"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072600"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682072600"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c -&gt; EvaluationError c d
+forall structural operational.
+structural -&gt; EvaluationError structural operational
+</span
+	><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-var"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(c -&gt; EvaluationError c d) -&gt; f c -&gt; f (EvaluationError c d)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f c
+</span
+	><a href="#local-6989586621682072599"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682072600"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bitraversable.html#bitraverse"
+	><span class="hs-identifier hs-var"
+	  >bitraverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f c
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072602"
+      ><span class="annot"
+	><span class="annottext"
+	  >b -&gt; f d
+</span
+	  ><a href="#local-6989586621682072602"
+	  ><span class="hs-identifier hs-var"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-type"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072603"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621682072603"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>d -&gt; EvaluationError c d
+forall structural operational.
+operational -&gt; EvaluationError structural operational
+</span
+	><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-var"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(d -&gt; EvaluationError c d) -&gt; f d -&gt; f (EvaluationError c d)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; f d
+</span
+	><a href="#local-6989586621682072602"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621682072603"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bitraversable.html#bitraverse"
+	><span class="hs-pragma hs-type"
+	  >bitraverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682072472"
+      ><span id="local-6989586621682072473"
+	><span id="local-6989586621682072474"
+	  ><span id="local-6989586621682072609"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#HasPrettyDefaults"
+		><span class="hs-identifier hs-type"
+		  >HasPrettyDefaults</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682072472"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		><span class="hs-operator hs-type"
+		  >~</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >'</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+		><span class="hs-identifier hs-type"
+		  >True</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-66"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682072472"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682072473"
+		><span class="hs-identifier hs-type"
+		  >structural</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-67"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682072474"
+		><span class="hs-identifier hs-type"
+		  >operational</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-68"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-69"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682072472"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+		><span class="hs-identifier hs-type"
+		  >EvaluationError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682072473"
+		><span class="hs-identifier hs-type"
+		  >structural</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682072474"
+		><span class="hs-identifier hs-type"
+		  >operational</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682072618"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann.
+config -&gt; EvaluationError structural operational -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621682072618"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072620"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621682072620"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-type"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072621"
+      ><span class="annot"
+	><span class="annottext"
+	  >structural
+</span
+	  ><a href="#local-6989586621682072621"
+	  ><span class="hs-identifier hs-var"
+	    >structural</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; structural -&gt; Doc ann
+forall ann. config -&gt; structural -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621682072620"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>structural
+</span
+	><a href="#local-6989586621682072621"
+	><span class="hs-identifier hs-var"
+	  >structural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-type"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072622"
+      ><span class="annot"
+	><span class="annottext"
+	  >operational
+</span
+	  ><a href="#local-6989586621682072622"
+	  ><span class="hs-identifier hs-var"
+	    >operational</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>operational -&gt; Doc ann
+forall ann. operational -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>operational
+</span
+	><a href="#local-6989586621682072622"
+	><span class="hs-identifier hs-var"
+	  >operational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682072481"
+      ><span id="local-6989586621682072482"
+	><span id="local-6989586621682072628"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682072481"
+	      ><span class="hs-identifier hs-type"
+		>structural</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682072482"
+	      ><span class="hs-identifier hs-type"
+		>operational</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-76"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	      ><span class="hs-identifier hs-type"
+		>EvaluationError</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682072481"
+	      ><span class="hs-identifier hs-type"
+		>structural</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682072482"
+	      ><span class="hs-identifier hs-type"
+		>operational</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682072634"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. EvaluationError structural operational -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-type"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072635"
+      ><span class="annot"
+	><span class="annottext"
+	  >structural
+</span
+	  ><a href="#local-6989586621682072635"
+	  ><span class="hs-identifier hs-var"
+	    >structural</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>structural -&gt; Doc ann
+forall ann. structural -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>structural
+</span
+	><a href="#local-6989586621682072635"
+	><span class="hs-identifier hs-var"
+	  >structural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-type"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682072636"
+      ><span class="annot"
+	><span class="annottext"
+	  >operational
+</span
+	  ><a href="#local-6989586621682072636"
+	  ><span class="hs-identifier hs-var"
+	    >operational</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>operational -&gt; Doc ann
+forall ann. operational -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>operational
+</span
+	><a href="#local-6989586621682072636"
+	><span class="hs-identifier hs-var"
+	  >operational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

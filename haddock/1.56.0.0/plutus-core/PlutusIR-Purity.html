@@ -1,0 +1,820 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Purity</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Purity.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Purity</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:isPure"
+	      >isPure</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isSaturated"
+	      >isSaturated</a
+	      > &#8759; &#8704; tyname name uni fun a. <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; fun &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isWorkFree"
+	      >isWorkFree</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:EvalOrder"
+	      >EvalOrder</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:unEvalOrder"
+	      >unEvalOrder</a
+	      > &#8759; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+	      >EvalOrder</a
+	      > tyname name uni fun a &#8594; [<a href="PlutusIR-Purity.html#t:EvalTerm" title="PlutusIR.Purity"
+	      >EvalTerm</a
+	      > tyname name uni fun a]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:EvalTerm"
+	      >EvalTerm</a
+	      > tyname name uni fun a<ul class="subs"
+	      ><li
+		>= <a href="#v:Unknown"
+		  >Unknown</a
+		  ></li
+		><li
+		>| <a href="#v:EvalTerm"
+		  >EvalTerm</a
+		  > <a href="PlutusIR-Purity.html#t:Purity" title="PlutusIR.Purity"
+		  >Purity</a
+		  > WorkFreedom (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun a)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Purity"
+	      >Purity</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:MaybeImpure"
+		  >MaybeImpure</a
+		  ></li
+		><li
+		>| <a href="#v:Pure"
+		  >Pure</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:termEvaluationOrder"
+	      >termEvaluationOrder</a
+	      > &#8759; &#8704; tyname name uni fun a. (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+	      >EvalOrder</a
+	      > tyname name uni fun a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isPure" class="def"
+	    >isPure</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Purity.html#isPure" class="link"
+	    >Source</a
+	    > <a href="#v:isPure" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Will evaluating this term have side effects (looping or error)?
+This is slightly wider than the definition of a value, as
+it includes applications that are known to be pure, as well as
+things that can't be returned from the machine (as they'd be ill-scoped). </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isSaturated" class="def"
+	    >isSaturated</a
+	    > &#8759; &#8704; tyname name uni fun a. <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; fun &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Purity.html#isSaturated" class="link"
+	    >Source</a
+	    > <a href="#v:isSaturated" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is the given application saturated? Returns <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+		>Nothing</a
+		></code
+	      > if we can't tell.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isWorkFree" class="def"
+	    >isWorkFree</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Purity.html#isWorkFree" class="link"
+	    >Source</a
+	    > <a href="#v:isWorkFree" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is the given term 'work-free'?</p
+	    ><p
+	    >Note: The definition of 'work-free' is a little unclear, but the idea is that
+evaluating this term should do very a trivial amount of work. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvalOrder" class="def"
+	    >EvalOrder</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Purity.html#EvalOrder" class="link"
+	    >Source</a
+	    > <a href="#t:EvalOrder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The order in which terms get evaluated, along with their purities.
+We use a DList here for efficient and lazy concatenation </p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvalOrder"
+	    >Instances</h4
+	    ><details id="i:EvalOrder" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalOrder:PrettyBy:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun a) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+		      >EvalOrder</a
+		      > tyname name uni fun a)</span
+		    > <a href="src/PlutusIR.Purity.html#line-129" class="link"
+		    >Source</a
+		    > <a href="#t:EvalOrder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalOrder:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Purity.html"
+			>PlutusIR.Purity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalOrder:Monoid:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+		      >EvalOrder</a
+		      > tyname name uni fun a)</span
+		    > <a href="src/PlutusIR.Purity.html#line-110" class="link"
+		    >Source</a
+		    > <a href="#t:EvalOrder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalOrder:Monoid:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Purity.html"
+			>PlutusIR.Purity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a] &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalOrder:Semigroup:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+		      >EvalOrder</a
+		      > tyname name uni fun a)</span
+		    > <a href="src/PlutusIR.Purity.html#line-110" class="link"
+		    >Source</a
+		    > <a href="#t:EvalOrder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalOrder:Semigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Purity.html"
+			>PlutusIR.Purity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a) &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+			  >EvalOrder</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unEvalOrder" class="def"
+	    >unEvalOrder</a
+	    > &#8759; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+	    >EvalOrder</a
+	    > tyname name uni fun a &#8594; [<a href="PlutusIR-Purity.html#t:EvalTerm" title="PlutusIR.Purity"
+	    >EvalTerm</a
+	    > tyname name uni fun a] <a href="src/PlutusIR.Purity.html#unEvalOrder" class="link"
+	    >Source</a
+	    > <a href="#v:unEvalOrder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the evaluation order as a list of <code
+	      ><a href="PlutusIR-Purity.html#t:EvalTerm" title="PlutusIR.Purity"
+		>EvalTerm</a
+		></code
+	      >s. Either terminates in a single
+<code
+	      ><a href="PlutusIR-Purity.html#v:Unknown" title="PlutusIR.Purity"
+		>Unknown</a
+		></code
+	      >, which means that we got to a point where evaluation continues but we don't
+know where; or terminates normally, in which case we actually got to the end of the
+evaluation order for the term. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvalTerm" class="def"
+	    >EvalTerm</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Purity.html#EvalTerm" class="link"
+	    >Source</a
+	    > <a href="#t:EvalTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Either the &quot;next&quot; term to be evaluated, along with its <code
+	      ><a href="PlutusIR-Purity.html#t:Purity" title="PlutusIR.Purity"
+		>Purity</a
+		></code
+	      > and <code
+	      >WorkFreedom</code
+	      >,
+or we don't know what comes next. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Unknown" class="def"
+		  >Unknown</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:EvalTerm" class="def"
+		  >EvalTerm</a
+		  > <a href="PlutusIR-Purity.html#t:Purity" title="PlutusIR.Purity"
+		  >Purity</a
+		  > WorkFreedom (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvalTerm"
+	    >Instances</h4
+	    ><details id="i:EvalTerm" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvalTerm:PrettyBy:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun a) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusIR-Purity.html#t:EvalTerm" title="PlutusIR.Purity"
+		      >EvalTerm</a
+		      > tyname name uni fun a)</span
+		    > <a href="src/PlutusIR.Purity.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:EvalTerm" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvalTerm:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Purity.html"
+			>PlutusIR.Purity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusIR-Purity.html#t:EvalTerm" title="PlutusIR.Purity"
+			  >EvalTerm</a
+			  > tyname name uni fun a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusIR-Purity.html#t:EvalTerm" title="PlutusIR.Purity"
+			  >EvalTerm</a
+			  > tyname name uni fun a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Purity" class="def"
+	    >Purity</a
+	    > <a href="src/PlutusIR.Purity.html#Purity" class="link"
+	    >Source</a
+	    > <a href="#t:Purity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is this pure? Either yes, or maybe not.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MaybeImpure" class="def"
+		  >MaybeImpure</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Pure" class="def"
+		  >Pure</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Purity"
+	    >Instances</h4
+	    ><details id="i:Purity" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Purity:Pretty:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusIR-Purity.html#t:Purity" title="PlutusIR.Purity"
+		      >Purity</a
+		      ></span
+		    > <a href="src/PlutusIR.Purity.html#line-83" class="link"
+		    >Source</a
+		    > <a href="#t:Purity" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Purity:Pretty:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Purity.html"
+			>PlutusIR.Purity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusIR-Purity.html#t:Purity" title="PlutusIR.Purity"
+			  >Purity</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusIR-Purity.html#t:Purity" title="PlutusIR.Purity"
+			  >Purity</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termEvaluationOrder" class="def"
+	    >termEvaluationOrder</a
+	    > &#8759; &#8704; tyname name uni fun a. (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Purity.html#t:EvalOrder" title="PlutusIR.Purity"
+	    >EvalOrder</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Purity.html#termEvaluationOrder" class="link"
+	    >Source</a
+	    > <a href="#v:termEvaluationOrder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given a term, return the order in which it and its sub-terms will be evaluated.</p
+	    ><p
+	    >This aims to be a sound under-approximation: if we don't know, we just say <code
+	      ><a href="PlutusIR-Purity.html#v:Unknown" title="PlutusIR.Purity"
+		>Unknown</a
+		></code
+	      >.
+Typically there will be a sequence of terms that we do know, which will terminate
+in <code
+	      ><a href="PlutusIR-Purity.html#v:Unknown" title="PlutusIR.Purity"
+		>Unknown</a
+		></code
+	      > once we do something like call a function.</p
+	    ><p
+	    >This makes some assumptions about the evaluator, in particular about the order in
+which we evaluate sub-terms, but these match the current evaluator and we are not
+planning on changing it. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

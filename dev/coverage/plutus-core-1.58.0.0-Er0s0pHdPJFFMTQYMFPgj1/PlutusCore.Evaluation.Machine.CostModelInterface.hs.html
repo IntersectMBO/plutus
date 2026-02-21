@@ -1,0 +1,384 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DeriveDataTypeable #-}
+<span class="lineno">    4 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE RecordWildCards #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>module PlutusCore.Evaluation.Machine.CostModelInterface
+<span class="lineno">    9 </span>  ( CostModelParams
+<span class="lineno">   10 </span>  , CekMachineCosts
+<span class="lineno">   11 </span>  , extractCostModelParams
+<span class="lineno">   12 </span>  , applyCostModelParams
+<span class="lineno">   13 </span>  , CostModelApplyError (..)
+<span class="lineno">   14 </span>  , CostModelApplyWarn (..)
+<span class="lineno">   15 </span>  )
+<span class="lineno">   16 </span>where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+<span class="lineno">   19 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+<span class="lineno">   20 </span>  ( CekMachineCosts
+<span class="lineno">   21 </span>  , cekMachineCostsPrefix
+<span class="lineno">   22 </span>  )
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import Control.DeepSeq (NFData)
+<span class="lineno">   25 </span>import Control.Exception
+<span class="lineno">   26 </span>import Control.Monad.Except
+<span class="lineno">   27 </span>import Data.Aeson
+<span class="lineno">   28 </span>import Data.Aeson.Flatten
+<span class="lineno">   29 </span>import Data.Data (Data)
+<span class="lineno">   30 </span>import Data.HashMap.Strict qualified as HM
+<span class="lineno">   31 </span>import Data.Int (Int64)
+<span class="lineno">   32 </span>import Data.Map qualified as Map
+<span class="lineno">   33 </span>import Data.Map.Merge.Lazy qualified as Map
+<span class="lineno">   34 </span>import Data.Text qualified as Text
+<span class="lineno">   35 </span>import GHC.Generics (Generic)
+<span class="lineno">   36 </span>import NoThunks.Class
+<span class="lineno">   37 </span>import Prettyprinter
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>{- Note [Cost model parameters]
+<span class="lineno">   40 </span>We want to expose to the ledger some notion of the &quot;cost model
+<span class="lineno">   41 </span>parameters&quot;. Intuitively, these should be all the numbers that appear in the
+<span class="lineno">   42 </span>cost model.
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>However, there are quite a few quirks to deal with.
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>1. BuiltinCostModel is stuctured.
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>That is, it's a complex data structure and the numbers in question are often
+<span class="lineno">   49 </span>nested inside it.  To deal with this quickly, we take the ugly approach of
+<span class="lineno">   50 </span>operating on the JSON representation of the model.  We flatten this down into a
+<span class="lineno">   51 </span>simple key-value mapping (see 'flattenObject' and 'unflattenObject'), and then
+<span class="lineno">   52 </span>look only at the numbers.
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>2. We use CostingIntegers, Aeson uses Data.Scientific.
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>The numbers in CostModel objects are CostingIntegers, which are usually the
+<span class="lineno">   57 </span>64-bit SatInt type (but Integer on 32-bit machines).  Numerical values in
+<span class="lineno">   58 </span>Aeson-encoded JSON objects are represented as Data.Scientific (Integer mantissa,
+<span class="lineno">   59 </span>Int exponent). We should be able to convert between these types without loss of
+<span class="lineno">   60 </span>precision, except that Scientific numbers of large magnitude will overflow to
+<span class="lineno">   61 </span>SatInt::MaxBound or underflow to SatInt::MinBound.  This is OK because
+<span class="lineno">   62 </span>CostModelParams objects should never contain such large numbers. Any Plutus Core
+<span class="lineno">   63 </span>programs whose cost reaches MaxBound will fail due to excessive resource usage.
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>3. BuiltinCostModel includes the *type* of the model, which isn't a parameter
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>We can just strip the type out, but in particular this means that the parameters are
+<span class="lineno">   68 </span>not enough to *construct* a model.  So we punt and say that you can *update* a
+<span class="lineno">   69 </span>model by giving the parameters. So you can take the default model and then
+<span class="lineno">   70 </span>overwrite the parameters, which seems okay.
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>This is also implemented in a horrible JSON-y way.
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>4. The implementation is not nice.
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>Ugly JSON stuff and failure possibilities where there probably shouldn't be any.
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>5. The overall cost model now includes two components: a model for the internal
+<span class="lineno">   79 </span>costs of the evaluator and a model for built-in evaluation costs.  We just
+<span class="lineno">   80 </span>re-use the technique mentioned above to extract parameters for the evaluator
+<span class="lineno">   81 </span>costs, merging these with the parameters for the builtin cost model to obtain
+<span class="lineno">   82 </span>parameters for the overall model.  To recover cost model components we assume
+<span class="lineno">   83 </span>that every field in the cost model for the evaluator begins with a prefix (eg
+<span class="lineno">   84 </span>&quot;cek&quot;) which is does not occur as a prefix of any built-in function, and use
+<span class="lineno">   85 </span>that to split the map of parameters into two maps.
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>-}
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>{- Note [Cost model parameters from the ledger's point of view]
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>A newly-voted protocol update may have some of the following effects:
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>a) Introduce a new plutus-language version accompanied by a whole new set of cost model parameters for that new version.
+<span class="lineno">   94 </span>b) Update any values of existing cost model parameters for an existing plutus version.
+<span class="lineno">   95 </span>c) Bring new builtins to an existing plutus version, thus also extending
+<span class="lineno">   96 </span>the set of current cost model parameters of that version with new parameters for the new builtins.
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>Note that, removing existing builtins is only possible by issuing a brand-new plutus language version
+<span class="lineno">   99 </span>that would exclude them (and their cost model parameters).
+<span class="lineno">  100 </span>An alternative without issuing a new protocol update and affecting a current version,
+<span class="lineno">  101 </span>would be to set via (b) the builtins' cost model parameters prohibitively high,
+<span class="lineno">  102 </span>so as to make those builtins impossible to execute given the current maximum transaction budget,
+<span class="lineno">  103 </span>thus effectively disabling their execution.
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>The ledger-state stores a *mapping* of each plutus-language version to its current set of cost model parameters.
+<span class="lineno">  106 </span>Each set of parameters is represented as an *array of plain integer values*,
+<span class="lineno">  107 </span>without the  cost model parameter names. Overall this ledger-state can be conceptualized as `Map PlutusVersion [Integer]`.
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>The implementation of (a) and (b) effects by the node software is straightforward:
+<span class="lineno">  110 </span>for (a) introduce a whole new entry to the Map; for (b) update the affected array in-place with the new values.
+<span class="lineno">  111 </span>As a consequence for implementing (c), we arrive to four restrictions that hold for ALL protocol updates:
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>1) In case of (b), the values of the existing parameters may change, but their *meaning*,
+<span class="lineno">  114 </span>i.e. which parameter name and thus which builtin parameter they correspond to,  ABSOLUTELY CANNOT change. In other words,
+<span class="lineno">  115 </span>the existing parameters cannot be re-ordered.
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>2) In case of (c) the new parameters (for the new builtins) must be appended **to the end** of the existing array for the affected version.
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>3) The node software is responsible to re-create the plutus runtimes when a new protocol is voted in ---
+<span class="lineno">  120 </span>one plutus runtime a.k.a. `plutus-ledger-api.EvaluationContext` per plutus-version.
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>4) The node software will always pass the array in its entirety to each plutus-runtime,
+<span class="lineno">  123 </span>and not partially just the updated-parameter values (in case of (b)) or just the new-parameter values (in case of (c)).
+<span class="lineno">  124 </span>
+<span class="lineno">  125 </span>To make (c) work, we must allow a node to continue operating when receiving either more or
+<span class="lineno">  126 </span>fewer cost model parameters than it expects. As an example, suppose at the beginning of
+<span class="lineno">  127 </span>major protocol version 9 (PV9), PlutusV3 has 100 cost model parameters. During PV9, we add
+<span class="lineno">  128 </span>some more builtins to Plutus V3 (to be enabled after the hard fork, at PV10), requiring 20
+<span class="lineno">  129 </span>additional cost model parameters. Then, one submits a proposal updating the number of PlutusV3
+<span class="lineno">  130 </span>cost model parameters to 120.
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>During PV9, both node-9.x and node-10.x must operate normally and agree on everything. This means
+<span class="lineno">  133 </span>node-9.x must allow receiving more cost model parameters than it expects (since it may receive
+<span class="lineno">  134 </span>120), and node-10.x must allow receiving fewer than it expects (since it may receive 100).
+<span class="lineno">  135 </span>Node-10.x should fill in the missing parameters with a large enough number to prevent the new
+<span class="lineno">  136 </span>builtins from being used, in case the hard fork to PV10 happens without first updating the number
+<span class="lineno">  137 </span>of PlutusV3 cost model parameters to 120 (which is unlikely to happen, but just in case).
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>During PV10, node-9.x stops working.
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>The overall logic for the expected number of cost model paremeters is as follows:
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>(expected number in node software == received number by ledger) =&gt; NOWARNING &amp; NOERROR
+<span class="lineno">  144 </span>(expected number in node software &lt; received number by ledger)  =&gt; WARNING
+<span class="lineno">  145 </span>(expected number in node software &gt; received number by ledger)  =&gt; WARNING
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>If the received number is EQ or GT the expected (WARNING), we
+<span class="lineno">  148 </span>will take the first n from the received cost model parameters (n==expected number),
+<span class="lineno">  149 </span>and create the internal (nameful) representation of cost model parameters, by assigning a parameter name
+<span class="lineno">  150 </span>to its value: see `PlutusLedgerApi.Common.ParamName.tagWithParamNames` and the `ParamName` datatypes in
+<span class="lineno">  151 </span>plutus-ledger-api.
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>If the received number is LT the expected (WARNING), we will fill in the missing parameters
+<span class="lineno">  154 </span>with maxBound :: Int64.
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>See https://github.com/IntersectMBO/cardano-ledger/issues/2902 for a discussion
+<span class="lineno">  157 </span>of these issues and the rationale for adopting the system described above.
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>-}
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>{- Note [Table of all possible ledger's states w.r.t. cost model parameters update]
+<span class="lineno">  162 </span>What Note [Cost model parameters from the ledger's point of view] says can be summarized in a table.
+<span class="lineno">  163 </span>We'll need to enumerate all possible combinations of
+<span class="lineno">  164 </span>
+<span class="lineno">  165 </span>    old_node / new_node
+<span class="lineno">  166 </span>    before_HF / after_HF
+<span class="lineno">  167 </span>    shorter_list / exact_list / longer_list
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>where the last ones are about the list of cost model parameters supplied by the ledger, e.g.
+<span class="lineno">  170 </span>@shorter_list@ means that the ledger supplied a list of cost model parameters that is shorter than
+<span class="lineno">  171 </span>expected by the appropriate Plutus ledger language at the specific protocol version.
+<span class="lineno">  172 </span>
+<span class="lineno">  173 </span>Note that the exact same list may be @exact_list@ for @old_node@ and @shorter_list@ for @new_node@.
+<span class="lineno">  174 </span>And the exact same list may be @longer_list@ for @old_node@ and @exact_list@ for @new_node@.
+<span class="lineno">  175 </span>
+<span class="lineno">  176 </span>We'll also need to consider changing the cost model parameters of old builtins and adding cost model
+<span class="lineno">  177 </span>parameters for new builtins separately, because there are non-trivial differences. For old builtins
+<span class="lineno">  178 </span>we'll only consider the case of adding new cost model parameters, because the case of reducing the
+<span class="lineno">  179 </span>number of cost model parameters is trivial: the only thing we can do about it is simply keeping the
+<span class="lineno">  180 </span>redundant arguments and asking the ledger to continue providing them, as there's no way for us to
+<span class="lineno">  181 </span>remove them form the middle of the cost model parameter list. And if the number of parameters
+<span class="lineno">  182 </span>doesn't change, then there's nothing to worry about.
+<span class="lineno">  183 </span>
+<span class="lineno">  184 </span>We'll also only consider the case when the Plutus ledger language stays the same, because if it
+<span class="lineno">  185 </span>changes, then everything becomes trivial: we don't need to worry about any backward compatibility
+<span class="lineno">  186 </span>and can simply &quot;start over&quot; for a new ledger language.
+<span class="lineno">  187 </span>
+<span class="lineno">  188 </span>&quot;OK&quot; in the table below means &quot;we handle this situation correctly as implied by
+<span class="lineno">  189 </span>Note [Cost model parameters from the ledger's point of view]&quot;.
+<span class="lineno">  190 </span>
+<span class="lineno">  191 </span>The table then looks like this:
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>                                         old_builtin new_builtin
+<span class="lineno">  194 </span>    old_node / before_HF / shorter_list    OK [1]      OK [1]
+<span class="lineno">  195 </span>    old_node / before_HF / exact_list      OK [2]      OK [3]
+<span class="lineno">  196 </span>    old_node / before_HF / longer_list     OK [4]      OK [3]
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>    old_node / after_HF / shorter_list     OK [5]      OK [5]
+<span class="lineno">  199 </span>    old_node / after_HF / exact_list       OK [5]      OK [5]
+<span class="lineno">  200 </span>    old_node / after_HF / longer_list      OK [5]      OK [5]
+<span class="lineno">  201 </span>
+<span class="lineno">  202 </span>    new_node / before_HF / shorter_list    OK [6]      OK [3]
+<span class="lineno">  203 </span>    new_node / before_HF / exact_list      OK [2]      OK [3]
+<span class="lineno">  204 </span>    new_node / before_HF / longer_list     OK [7]      OK [7]
+<span class="lineno">  205 </span>
+<span class="lineno">  206 </span>    new_node / after_HF / shorter_list     OK [8]      OK [9]
+<span class="lineno">  207 </span>    new_node / after_HF / exact_list       OK [2]      OK [2]
+<span class="lineno">  208 </span>    new_node / after_HF / longer_list      OK [10]     OK [10]
+<span class="lineno">  209 </span>
+<span class="lineno">  210 </span>[1] this is the same case as `new_node / after_HF / shorter_list`, just in the context of a different hardfork
+<span class="lineno">  211 </span>[2] the most straightforward case, nothing to consider
+<span class="lineno">  212 </span>[3] a new builtin cannot be used before the hardfork as `scriptCBORDecoder` will fail with &quot;built-in function X is not available&quot;
+<span class="lineno">  213 </span>[4] an old builtin does not touch its new cost model parameters (if any) before the hardfork, hence it's safe to ignore those extra parameters
+<span class="lineno">  214 </span>[5] the old node is not alive after the hardfork, hence anything is OK
+<span class="lineno">  215 </span>[6] an old builtin does not touch its new cost model parameters (if any) before the hardfork, hence it's safe to make those extra parameters all `maxBound`
+<span class="lineno">  216 </span>[7] this is a bit weird, but theoretically possible (one can propose protocol parameter updates, including updating the number of PlutusV3 cost model parameters to 100000, or updating the max block size to 0. Those will be rejected, especially if there's a guardrail in place). But even it happens in practice, `longer_list` should never be a problem, since the extra numbers are simply ignored
+<span class="lineno">  217 </span>[8] this is a tricky one: since it's a shorter list, the missing cost model parameters all become 'maxBound' meaning for an old builtin we end up in a situation where some of its cost model parameters are 'maxBound' and some are not, which is not enough to prevent the builtin from running. Which is however not a problem, because it _is_ fine to run the builtin after the hardfork, all we care about is that it's not undercosted and making some of the cost model parameters 'maxBound' ensures that it's not as it's literally the highest value that they can have
+<span class="lineno">  218 </span>[9] same as [8] except this does ensure that the builtin never runs, because all of its cost model parameters are 'maxBound', which makes the cost of the builtin higher than any reasonable budget
+<span class="lineno">  219 </span>[10] this is the same case as `old_node / before_HF / longer_list`, just in the context of a different hardfork
+<span class="lineno">  220 </span>-}
+<span class="lineno">  221 </span>
+<span class="lineno">  222 </span>{-| A raw representation of the ledger's cost model parameters.
+<span class="lineno">  223 </span>
+<span class="lineno">  224 </span>The associated keys/names to the parameter values are arbitrarily set by the plutus team; the ledger does not hold any such names.
+<span class="lineno">  225 </span>
+<span class="lineno">  226 </span>See Note [Cost model parameters] -}
+<span class="lineno">  227 </span>type CostModelParams = Map.Map Text.Text Int64
+<span class="lineno">  228 </span>
+<span class="lineno">  229 </span>-- See Note [Cost model parameters]
+<span class="lineno">  230 </span>-- | Extract the model parameters from a model.
+<span class="lineno">  231 </span>extractParams :: ToJSON a =&gt; a -&gt; Maybe CostModelParams
+<span class="lineno">  232 </span><span class="decl"><span class="istickedoff">extractParams cm = case toJSON cm of</span>
+<span class="lineno">  233 </span><span class="spaces">  </span><span class="istickedoff">Object o -&gt;</span>
+<span class="lineno">  234 </span><span class="spaces">    </span><span class="istickedoff">let</span>
+<span class="lineno">  235 </span><span class="spaces">      </span><span class="istickedoff">flattened = objToHm $ flattenObject &quot;-&quot; o</span>
+<span class="lineno">  236 </span><span class="spaces">      </span><span class="istickedoff">usingCostingIntegers = HM.mapMaybe (\case Number n -&gt; Just $ ceiling n; _ -&gt; Nothing) flattened</span>
+<span class="lineno">  237 </span><span class="spaces">      </span><span class="istickedoff">-- \^ Only (the contents of) the &quot;Just&quot; values are retained in the output map.</span>
+<span class="lineno">  238 </span><span class="spaces">      </span><span class="istickedoff">mapified = Map.fromList $ HM.toList usingCostingIntegers</span>
+<span class="lineno">  239 </span><span class="spaces">     </span><span class="istickedoff">in</span>
+<span class="lineno">  240 </span><span class="spaces">      </span><span class="istickedoff">Just mapified</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  242 </span>
+<span class="lineno">  243 </span>-- | A fatal error when trying to create a cost given some plain costmodel parameters.
+<span class="lineno">  244 </span>data CostModelApplyError
+<span class="lineno">  245 </span>  = -- | a costmodel parameter with the give name does not exist in the costmodel to be applied upon
+<span class="lineno">  246 </span>    CMUnknownParamError !Text.Text
+<span class="lineno">  247 </span>  | -- | internal error when we are transforming the applyParams' input to json (should not happen)
+<span class="lineno">  248 </span>    CMInternalReadError
+<span class="lineno">  249 </span>  | -- | internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
+<span class="lineno">  250 </span>    CMInternalWriteError !String
+<span class="lineno">  251 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">  252 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Exception</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">NoThunks</span></span></span></span></span></span>)
+<span class="lineno">  253 </span>
+<span class="lineno">  254 </span>-- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
+<span class="lineno">  255 </span>data CostModelApplyWarn
+<span class="lineno">  256 </span>  = -- | See Note [Cost model parameters from the ledger's point of view]
+<span class="lineno">  257 </span>    CMTooManyParamsWarn {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">cmExpected</span></span></span> :: !Int, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">cmActual</span></span></span> :: !Int}
+<span class="lineno">  258 </span>  | -- | See Note [Cost model parameters from the ledger's point of view]
+<span class="lineno">  259 </span>    CMTooFewParamsWarn {cmExpected :: !Int, cmActual :: !Int}
+<span class="lineno">  260 </span>
+<span class="lineno">  261 </span>instance <span class="decl"><span class="nottickedoff">Pretty CostModelApplyError</span></span> where
+<span class="lineno">  262 </span>  <span class="decl"><span class="nottickedoff">pretty =</span>
+<span class="lineno">  263 </span><span class="spaces">    </span><span class="nottickedoff">(preamble &lt;+&gt;) . \case</span>
+<span class="lineno">  264 </span><span class="spaces">      </span><span class="nottickedoff">CMUnknownParamError k -&gt; &quot;No such parameter in target cost model:&quot; &lt;+&gt; pretty k</span>
+<span class="lineno">  265 </span><span class="spaces">      </span><span class="nottickedoff">CMInternalReadError -&gt; &quot;Internal problem occurred upon reading the given cost model parameters&quot;</span>
+<span class="lineno">  266 </span><span class="spaces">      </span><span class="nottickedoff">CMInternalWriteError str -&gt; &quot;Internal problem occurred upon generating the applied cost model parameters with JSON error:&quot; &lt;+&gt; pretty str</span>
+<span class="lineno">  267 </span><span class="spaces">    </span><span class="nottickedoff">where</span>
+<span class="lineno">  268 </span><span class="spaces">      </span><span class="nottickedoff">preamble = &quot;applyParams error:&quot;</span></span>
+<span class="lineno">  269 </span>
+<span class="lineno">  270 </span>instance <span class="decl"><span class="nottickedoff">Pretty CostModelApplyWarn</span></span> where
+<span class="lineno">  271 </span>  <span class="decl"><span class="nottickedoff">pretty =</span>
+<span class="lineno">  272 </span><span class="spaces">    </span><span class="nottickedoff">(preamble &lt;+&gt;) . \case</span>
+<span class="lineno">  273 </span><span class="spaces">      </span><span class="nottickedoff">CMTooManyParamsWarn {..} -&gt; &quot;Too many cost model parameters passed, expected&quot; &lt;+&gt; pretty cmExpected &lt;+&gt; &quot;but got&quot; &lt;+&gt; pretty cmActual</span>
+<span class="lineno">  274 </span><span class="spaces">      </span><span class="nottickedoff">CMTooFewParamsWarn {..} -&gt; &quot;Too few cost model parameters passed, expected&quot; &lt;+&gt; pretty cmExpected &lt;+&gt; &quot;but got&quot; &lt;+&gt; pretty cmActual</span>
+<span class="lineno">  275 </span><span class="spaces">    </span><span class="nottickedoff">where</span>
+<span class="lineno">  276 </span><span class="spaces">      </span><span class="nottickedoff">preamble = &quot;applyParams warn:&quot;</span></span>
+<span class="lineno">  277 </span>
+<span class="lineno">  278 </span>-- See Note [Cost model parameters]
+<span class="lineno">  279 </span>-- | Update a model by overwriting the parameters with the given ones.
+<span class="lineno">  280 </span>applyParams
+<span class="lineno">  281 </span>  :: (FromJSON a, ToJSON a, MonadError CostModelApplyError m)
+<span class="lineno">  282 </span>  =&gt; a
+<span class="lineno">  283 </span>  -&gt; CostModelParams
+<span class="lineno">  284 </span>  -&gt; m a
+<span class="lineno">  285 </span><span class="decl"><span class="istickedoff">applyParams cm params = case toJSON cm of</span>
+<span class="lineno">  286 </span><span class="spaces">  </span><span class="istickedoff">Object o -&gt;</span>
+<span class="lineno">  287 </span><span class="spaces">    </span><span class="istickedoff">let</span>
+<span class="lineno">  288 </span><span class="spaces">      </span><span class="istickedoff">usingScientific = fmap (Number . fromIntegral) params</span>
+<span class="lineno">  289 </span><span class="spaces">      </span><span class="istickedoff">flattened = fromHash $ objToHm $ flattenObject &quot;-&quot; o</span>
+<span class="lineno">  290 </span><span class="spaces">     </span><span class="istickedoff">in</span>
+<span class="lineno">  291 </span><span class="spaces">      </span><span class="istickedoff">do</span>
+<span class="lineno">  292 </span><span class="spaces">        </span><span class="istickedoff">-- this is where the overwriting happens</span>
+<span class="lineno">  293 </span><span class="spaces">        </span><span class="istickedoff">-- fail when key is in params (left) but not in the model (right)</span>
+<span class="lineno">  294 </span><span class="spaces">        </span><span class="istickedoff">merged &lt;- Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened</span>
+<span class="lineno">  295 </span><span class="spaces">        </span><span class="istickedoff">let unflattened = unflattenObject &quot;-&quot; $ hmToObj $ toHash merged</span>
+<span class="lineno">  296 </span><span class="spaces">        </span><span class="istickedoff">case fromJSON (Object unflattened) of</span>
+<span class="lineno">  297 </span><span class="spaces">          </span><span class="istickedoff">Success a -&gt; pure a</span>
+<span class="lineno">  298 </span><span class="spaces">          </span><span class="istickedoff">Error str -&gt; <span class="nottickedoff">throwError $ CMInternalWriteError str</span></span>
+<span class="lineno">  299 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">throwError CMInternalReadError</span></span>
+<span class="lineno">  300 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  301 </span><span class="spaces">    </span><span class="istickedoff">toHash = HM.fromList . Map.toList</span>
+<span class="lineno">  302 </span><span class="spaces">    </span><span class="istickedoff">fromHash = Map.fromList . HM.toList</span>
+<span class="lineno">  303 </span><span class="spaces">    </span><span class="istickedoff">-- fail when field missing</span>
+<span class="lineno">  304 </span><span class="spaces">    </span><span class="istickedoff">failMissing = Map.traverseMissing $ \k _v -&gt; throwError $ <span class="nottickedoff">CMUnknownParamError k</span></span>
+<span class="lineno">  305 </span><span class="spaces">    </span><span class="istickedoff">-- left-biased merging when key found in both maps</span>
+<span class="lineno">  306 </span><span class="spaces">    </span><span class="istickedoff">leftBiased _k l _r = l</span></span>
+<span class="lineno">  307 </span>
+<span class="lineno">  308 </span>-- | Parameters for a machine step model and a builtin evaluation model bundled together.
+<span class="lineno">  309 </span>data SplitCostModelParams
+<span class="lineno">  310 </span>  = SplitCostModelParams
+<span class="lineno">  311 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_machineParams</span></span></span> :: CostModelParams
+<span class="lineno">  312 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_builtinParams</span></span></span> :: CostModelParams
+<span class="lineno">  313 </span>  }
+<span class="lineno">  314 </span>
+<span class="lineno">  315 </span>{-| Split a CostModelParams object into two subobjects according to some prefix:
+<span class="lineno">  316 </span>see item 5 of Note [Cost model parameters]. -}
+<span class="lineno">  317 </span>splitParams :: Text.Text -&gt; CostModelParams -&gt; SplitCostModelParams
+<span class="lineno">  318 </span><span class="decl"><span class="istickedoff">splitParams prefix params =</span>
+<span class="lineno">  319 </span><span class="spaces">  </span><span class="istickedoff">let (machineparams, builtinparams) = Map.partitionWithKey (\k _ -&gt; Text.isPrefixOf prefix k) params</span>
+<span class="lineno">  320 </span><span class="spaces">   </span><span class="istickedoff">in SplitCostModelParams machineparams builtinparams</span></span>
+<span class="lineno">  321 </span>
+<span class="lineno">  322 </span>-- | Given a CostModel, produce a single map containing the parameters from both components
+<span class="lineno">  323 </span>extractCostModelParams
+<span class="lineno">  324 </span>  :: (ToJSON machinecosts, ToJSON builtincosts)
+<span class="lineno">  325 </span>  =&gt; CostModel machinecosts builtincosts -&gt; Maybe CostModelParams
+<span class="lineno">  326 </span><span class="decl"><span class="istickedoff">extractCostModelParams model =</span>
+<span class="lineno">  327 </span><span class="spaces">  </span><span class="istickedoff">-- this is using the applicative instance of Maybe</span>
+<span class="lineno">  328 </span><span class="spaces">  </span><span class="istickedoff">Map.union &lt;$&gt; extractParams (_machineCostModel model) &lt;*&gt; extractParams (_builtinCostModel model)</span></span>
+<span class="lineno">  329 </span>
+<span class="lineno">  330 </span>{-| Given a set of cost model parameters, split it into two parts according to
+<span class="lineno">  331 </span>some prefix and use those parts to update the components of a cost model. -}
+<span class="lineno">  332 </span>
+<span class="lineno">  333 </span>{- Strictly we don't need to do the splitting: when we call fromJSON in
+<span class="lineno">  334 </span>   applyParams any superfluous objects in the map being decoded will be
+<span class="lineno">  335 </span>   discarded, so we could update both components of the cost model with the
+<span class="lineno">  336 </span>   entire set of parameters without having to worry about splitting the
+<span class="lineno">  337 </span>   parameters on a prefix of the key.  This relies on what appears to be an
+<span class="lineno">  338 </span>   undocumented implementation choice in Aeson though (other JSON decoders (for
+<span class="lineno">  339 </span>   other languages) seem to vary in how unknown fields are handled), so let's be
+<span class="lineno">  340 </span>   explicit. -}
+<span class="lineno">  341 </span>applySplitCostModelParams
+<span class="lineno">  342 </span>  :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
+<span class="lineno">  343 </span>  =&gt; Text.Text
+<span class="lineno">  344 </span>  -&gt; CostModel evaluatorcosts builtincosts
+<span class="lineno">  345 </span>  -&gt; CostModelParams
+<span class="lineno">  346 </span>  -&gt; m (CostModel evaluatorcosts builtincosts)
+<span class="lineno">  347 </span><span class="decl"><span class="istickedoff">applySplitCostModelParams prefix model params =</span>
+<span class="lineno">  348 </span><span class="spaces">  </span><span class="istickedoff">let SplitCostModelParams machineparams builtinparams = splitParams prefix params</span>
+<span class="lineno">  349 </span><span class="spaces">   </span><span class="istickedoff">in CostModel</span>
+<span class="lineno">  350 </span><span class="spaces">        </span><span class="istickedoff">&lt;$&gt; applyParams (_machineCostModel model) machineparams</span>
+<span class="lineno">  351 </span><span class="spaces">        </span><span class="istickedoff">&lt;*&gt; applyParams (_builtinCostModel model) builtinparams</span></span>
+<span class="lineno">  352 </span>
+<span class="lineno">  353 </span>{-| Update a CostModel for the CEK machine with a given set of parameters.
+<span class="lineno">  354 </span>Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).
+<span class="lineno">  355 </span>Callers are recommended to call this once and cache the results. -}
+<span class="lineno">  356 </span>applyCostModelParams
+<span class="lineno">  357 </span>  :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
+<span class="lineno">  358 </span>  =&gt; CostModel evaluatorcosts builtincosts
+<span class="lineno">  359 </span>  -&gt; CostModelParams
+<span class="lineno">  360 </span>  -&gt; m (CostModel evaluatorcosts builtincosts)
+<span class="lineno">  361 </span><span class="decl"><span class="istickedoff">applyCostModelParams = applySplitCostModelParams cekMachineCostsPrefix</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,821 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    4 </span>{-# LANGUAGE Rank2Types #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TupleSections #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>-- | This module defines Haskell data types that simplify construction of PLC types and terms.
+<span class="lineno">    8 </span>module PlutusCore.StdLib.Type
+<span class="lineno">    9 </span>  ( RecursiveType (..)
+<span class="lineno">   10 </span>  , makeRecursiveType
+<span class="lineno">   11 </span>  ) where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusPrelude
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Core
+<span class="lineno">   16 </span>import PlutusCore.MkPlc
+<span class="lineno">   17 </span>import PlutusCore.Name.Unique
+<span class="lineno">   18 </span>import PlutusCore.Pretty
+<span class="lineno">   19 </span>import PlutusCore.Quote
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>{- Note [Arity of patterns functors]
+<span class="lineno">   22 </span>The arity of a pattern functor is the number of arguments the pattern functor receives in addition
+<span class="lineno">   23 </span>to the first argument representing the recursive case. So
+<span class="lineno">   24 </span>@f :: * -&gt; *@                           has arity 0
+<span class="lineno">   25 </span>@f :: (k -&gt; *) -&gt; k -&gt; *@               has arity 1
+<span class="lineno">   26 </span>@f :: (k1 -&gt; k2 -&gt; *) -&gt; k1 -&gt; k2 -&gt; *@ has arity 2
+<span class="lineno">   27 </span>etc
+<span class="lineno">   28 </span>-}
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>{- Note [InterList]
+<span class="lineno">   31 </span>This data type is much like the 'list' data type, but it receives two types arguments rather than one
+<span class="lineno">   32 </span>and &quot;interleaves&quot; them (see 'example_InterList').
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>    data InterList a b
+<span class="lineno">   35 </span>        = InterNil
+<span class="lineno">   36 </span>        | InterCons a b (InterList b a)
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>    example_InterList :: InterList Char Int
+<span class="lineno">   39 </span>    example_InterList = InterCons 'a' 1 . InterCons 2 'b' . InterCons 'c' 3 $ InterNil
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>The data type is interesting, because we need some way of getting
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>    fix2 :: ((k1 -&gt; k2 -&gt; *) -&gt; k1 -&gt; k2 -&gt; *) -&gt; k1 -&gt; k2 -&gt; *
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>in order to encode it directly, so we use this data type in examples in order to show admissibility
+<span class="lineno">   46 </span>of 'fix2' which is an instance of the more generic
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>    fix :: (k -&gt; k) -&gt; k
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>I.e. we show how the more generic 'fix' can be encoded for any particular 'k' by taking
+<span class="lineno">   51 </span>@k ~ (k1 -&gt; k2 -&gt; *)@ as example and constructing 'fix2'.
+<span class="lineno">   52 </span>-}
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>{- Note [Natural representation]
+<span class="lineno">   55 </span>Having @fix :: (* -&gt; *) -&gt; *@ we can easily define the @list@ data type as a fixed point of
+<span class="lineno">   56 </span>an appropriate pattern functor:
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>    listF = \(a :: *) (list :: *) -&gt; all (r :: *). r -&gt; (a -&gt; list -&gt; r) -&gt; r
+<span class="lineno">   59 </span>    list  = \(a :: *) -&gt; fix (listF a) a
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>There are a few problems with this definition however:
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>1. In @listF@ there is no indication that @list@ is supposed to contain elements of type @a@.
+<span class="lineno">   64 </span>So @listF@ binds both @a@ and @list@, but does not specify there is a relation between these two
+<span class="lineno">   65 </span>things. The burden of connecting @a@ and @list@ together is on the caller, which is not a big deal,
+<span class="lineno">   66 </span>because the only callers are @fix@, in terms of which the data type is defined, and @wrap@ that
+<span class="lineno">   67 </span>allows to define the constructors of the data type, but still, this way the code looks strangely
+<span class="lineno">   68 </span>structured.
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>2. Related to 1: such encoding diverges from what one would write having a data construction
+<span class="lineno">   71 </span>machinery. A standard Haskell definition would be
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>    data List a
+<span class="lineno">   74 </span>        = Nil
+<span class="lineno">   75 </span>        | Cons a (List a)
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>In this definition we explicitly apply @List@ to @a@ in the @Cons@ case. Thus, the encoding looks
+<span class="lineno">   78 </span>somewhat unnatural.
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>3. @wrap@ constructing a @list@ must carry @listF a@ in the same way @fix@ carries it. This makes
+<span class="lineno">   81 </span>it very hard to construct terms using the AST directly as shown in
+<span class="lineno">   82 </span>@plutus/plutus-core/docs/Holed types.md@.
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>4. There are data types that can't be defined this way. See Note [InterList] for one example.
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>There is however an approach that allows to encode data types in a &quot;natural&quot; way, does not cause
+<span class="lineno">   87 </span>any trouble while constructing data types and can handle much more data types than what is shown
+<span class="lineno">   88 </span>above. Here is how the @list@ example looks like with it:
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>    listF = \(list :: * -&gt; *) (a :: *) -&gt; all (r :: *). r -&gt; (a -&gt; list a -&gt; r) -&gt; r
+<span class="lineno">   91 </span>    list  = \(a :: *) -&gt; fix listF a
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>I.e. instead of tying the knot over @list :: *@ we tie the knot over @list :: * -&gt; *@. This simple
+<span class="lineno">   94 </span>trick solves all the problems described avove.
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>But the code is actually ill-kinded. The reason for this is that @fix :: (* -&gt; *) -&gt; *@ is no longer
+<span class="lineno">   97 </span>enough, because we're taking a fixed point of a pattern functor of kind @(* -&gt; *) -&gt; * -&gt; *@
+<span class="lineno">   98 </span>rather than just @* -&gt; *@. Hence we need a more permissive fixed-point operator.
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>Read next: Note [The kind of fix].
+<span class="lineno">  101 </span>-}
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>{- Note [The kind of fix]
+<span class="lineno">  104 </span>In Note [Natural representation] we concluded that @fix :: (* -&gt; *) -&gt; *@ is not enough to encode
+<span class="lineno">  105 </span>@list@ in a satisfying way. In that particular case it would be enough to have
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>    fix :: ((* -&gt; *) -&gt; * -&gt; *) -&gt; * -&gt; *
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>but what about other cases? The example from Note [InterList] requires
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>    fix :: ((* -&gt; * -&gt; *) -&gt; * -&gt; * -&gt; *) -&gt; * -&gt; * -&gt; *
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>and of course we still need
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>    fix :: (* -&gt; *) -&gt; *
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>occasionally. This suggests to change the kind signature of @fix@ to
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>    fix :: (k -&gt; k) -&gt; k
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>which covers all those cases. However, it's not clear how to implement such @fix@.
+<span class="lineno">  122 </span>See @docs/fomega/deep-isorecursive/README.md@ for details.
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>But it turns out that
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>    ifix :: ((k -&gt; *) -&gt; k -&gt; *) -&gt; k -&gt; *
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>is enough for all cases.
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>Read next: Note [Packing n-ary pattern functors semantically].
+<span class="lineno">  131 </span>-}
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>{- Note [Packing n-ary pattern functors semantically]
+<span class="lineno">  134 </span>An n-ary pattern functor has the following generic signature:
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>    patN :: k -&gt; k
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>where @k@ is of the @k1 -&gt; k2 -&gt; ... -&gt; *@ form. We need to encode 'patN' as an equivalent 1-ary
+<span class="lineno">  139 </span>pattern functor with this signature:
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>    pat1 :: ((k' -&gt; *) -&gt; k' -&gt; *
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>because that's what 'ifix' accepts.
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>@plutus/docs/fomega/mutual-type-level-recursion/IFixIsEnough.agda@ describes the encoding trick
+<span class="lineno">  146 </span>at great detail, but let's look at an example here. The pattern functor of 'InterList'
+<span class="lineno">  147 </span>(see Note [InterList]) is defined as
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span>    interlistF =
+<span class="lineno">  150 </span>        \(interlist :: * -&gt; * -&gt; *) (a :: *) (b :: *) -&gt;
+<span class="lineno">  151 </span>            all (r :: *). r -&gt; (a -&gt; b -&gt; interlist b a -&gt; r) -&gt; r
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>We can't pass the pattern functor to 'ifix', because it's of kind
+<span class="lineno">  154 </span>
+<span class="lineno">  155 </span>    ((* -&gt; * -&gt; *) -&gt; * -&gt; * -&gt; *) -&gt; * -&gt; * -&gt; *
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>So we're going to &quot;pack&quot; the pattern functor to make it a 1-ary one. The idea is simple:
+<span class="lineno">  158 </span>instead of passing two arguments to the recursive case, we pass a single continuation that applies
+<span class="lineno">  159 </span>a function it receives to those two arguments. Morever, we can define the packed version of
+<span class="lineno">  160 </span>'interlistF' in terms of 'interlistF' itself. It looks like this:
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>    withSpine =
+<span class="lineno">  163 </span>        \(rec :: ((* -&gt; * -&gt; *) -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  164 </span>            \(a :: *) (b :: *) -&gt; rec (\(interlist :: * -&gt; * -&gt; *) -&gt; interlist a b)
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>    interlistF' =
+<span class="lineno">  167 </span>        \(rec :: ((* -&gt; * -&gt; *) -&gt; *) -&gt; *) (spine :: (* -&gt; * -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  168 </span>            spine (\(a :: *) (b :: *) -&gt; interlistF (withSpine rec) a b)
+<span class="lineno">  169 </span>
+<span class="lineno">  170 </span>Here 'spine' encapsulates 'a' and 'b' as arguments passed to a function 'spine' receives.
+<span class="lineno">  171 </span>This even can be guessed from its signature:
+<span class="lineno">  172 </span>
+<span class="lineno">  173 </span>    spine :: (* -&gt; * -&gt; *) -&gt; *
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>which can be read as &quot;give me a function of two arguments and I'll provide those arguments and
+<span class="lineno">  176 </span>return the result&quot;.
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>'withSpine' on the other hand receives
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>1. a function that expects a CPS-transformed spine
+<span class="lineno">  181 </span>2. two arguments, 'a' and 'b', which together form a spine that is not CPS-trasformed
+<span class="lineno">  182 </span>
+<span class="lineno">  183 </span>and then 'withSpine' applies said function to the spine by CPSing it first.
+<span class="lineno">  184 </span>
+<span class="lineno">  185 </span>So nothing interesting happens here: we just pack/unpack spines using continuations.
+<span class="lineno">  186 </span>
+<span class="lineno">  187 </span>If we eta-contract @interlistF'@, we'll get
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>    interlistF' =
+<span class="lineno">  190 </span>        \(rec :: ((* -&gt; * -&gt; *) -&gt; *) -&gt; *) (spine :: (* -&gt; * -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  191 </span>            spine (interlistF (withSpine rec))
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>And this can be generalized to arbitrary n-ary pattern functors:
+<span class="lineno">  194 </span>
+<span class="lineno">  195 </span>    toPat1 =
+<span class="lineno">  196 </span>        \(withSpine :: ((k -&gt; *) -&gt; *) -&gt; k) (patN :: k -&gt; k) -&gt;
+<span class="lineno">  197 </span>            \(rec :: (k -&gt; *) -&gt; *) (spine :: k -&gt; *) -&gt;
+<span class="lineno">  198 </span>                spine (pat (withSpine rec))
+<span class="lineno">  199 </span>
+<span class="lineno">  200 </span>which reads like this: having 'withSpine' constructed for a particular 'k' and an n-ary pattern
+<span class="lineno">  201 </span>functor of kind @k -&gt; k@ we can get a 1-ary pattern functor of kind
+<span class="lineno">  202 </span>
+<span class="lineno">  203 </span>    ((k -&gt; *) -&gt; *) -&gt; (k -&gt; *) -&gt; *
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>We derive various 'withSpine's automatically on the Haskell side from 'k' itself.
+<span class="lineno">  206 </span>
+<span class="lineno">  207 </span>Read next: Note [Generic fix].
+<span class="lineno">  208 </span>-}
+<span class="lineno">  209 </span>
+<span class="lineno">  210 </span>{- Note [Generic fix]
+<span class="lineno">  211 </span>Now that we know how to pack n-ary functors into 1-ary ones
+<span class="lineno">  212 </span>(see [Packing n-ary pattern functors semantically]), only a few tiny steps remain to get the generic
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>    fix :: (k -&gt; k) -&gt; k
+<span class="lineno">  215 </span>
+<span class="lineno">  216 </span>from just
+<span class="lineno">  217 </span>
+<span class="lineno">  218 </span>    ifix :: ((i -&gt; *) -&gt; i -&gt; *) -&gt; i -&gt; *
+<span class="lineno">  219 </span>
+<span class="lineno">  220 </span>Having @pat :: k -&gt; k@ we can pack it as
+<span class="lineno">  221 </span>
+<span class="lineno">  222 </span>    toPat1 withSpine patN :: ((k -&gt; *) -&gt; *) -&gt; (k -&gt; *) -&gt; *
+<span class="lineno">  223 </span>
+<span class="lineno">  224 </span>(where 'withSpine' is constructed automatically from 'k' on the Haskell side) and we can apply
+<span class="lineno">  225 </span>'ifix' to this 1-ary pattern functor and get
+<span class="lineno">  226 </span>
+<span class="lineno">  227 </span>    ifix (toPat1 withSpine patN) :: (k -&gt; *) -&gt; *
+<span class="lineno">  228 </span>
+<span class="lineno">  229 </span>It only remains to turn something of kind @(k -&gt; *) -&gt; *@ into something of kind @*@, i.e. to define
+<span class="lineno">  230 </span>a type function of kind @((k -&gt; *) -&gt; *) -&gt; k@. But we already have such a function: 'withSpine',
+<span class="lineno">  231 </span>so the final encoding is
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>    fix = \(patN :: k -&gt; k) -&gt; withSpine (ifix (toPat1 withSpine patN))
+<span class="lineno">  234 </span>
+<span class="lineno">  235 </span>The meaning of 'withSpine' here is the same as we've seen before: we use it to pack @n@ type
+<span class="lineno">  236 </span>arguments as a single CPS-encoded spine and pass it to some function.
+<span class="lineno">  237 </span>
+<span class="lineno">  238 </span>Summarizing, 'fix' receives an n-ary pattern functor and @n@ type arguments, the pattern functor
+<span class="lineno">  239 </span>gets packed as a 1-ary one, the type arguments get packed into a single CPS-encoded spine and
+<span class="lineno">  240 </span>'ifix' gets applied to the 1-ary pattern functor and the spine.
+<span class="lineno">  241 </span>
+<span class="lineno">  242 </span>Read next: Note [Encoded InterList].
+<span class="lineno">  243 </span>-}
+<span class="lineno">  244 </span>
+<span class="lineno">  245 </span>{- Note [Encoded InterList]
+<span class="lineno">  246 </span>Let's now look at an example.
+<span class="lineno">  247 </span>
+<span class="lineno">  248 </span>Recall that the pattern functor of 'interlist' is
+<span class="lineno">  249 </span>
+<span class="lineno">  250 </span>    interlistF =
+<span class="lineno">  251 </span>        \(interlist :: * -&gt; * -&gt; *) (a :: *) (b :: *) -&gt;
+<span class="lineno">  252 </span>            all (r :: *). r -&gt; (a -&gt; b -&gt; interlist b a -&gt; r) -&gt; r
+<span class="lineno">  253 </span>
+<span class="lineno">  254 </span>We can apply generic 'fix' (see Note [Generic fix]) to this pattern functor directly:
+<span class="lineno">  255 </span>
+<span class="lineno">  256 </span>    fix interlistF :: * -&gt; *
+<span class="lineno">  257 </span>
+<span class="lineno">  258 </span>which after eta-expansion and some reductions becomes
+<span class="lineno">  259 </span>
+<span class="lineno">  260 </span>    \(a :: *) -&gt; withSpine (ifix (toPat1 withSpine interlistF)) a
+<span class="lineno">  261 </span>
+<span class="lineno">  262 </span>(as per Note [Generic fix]) which after some more reductions becomes
+<span class="lineno">  263 </span>
+<span class="lineno">  264 </span>    -- Two type arguments that the data type receives and the 'ifix' primitive.
+<span class="lineno">  265 </span>    \(a :: *) (b -&gt; *) -&gt; ifix
+<span class="lineno">  266 </span>        -- The variable responsible for recursion and the variable representing a CPS-encoded spine
+<span class="lineno">  267 </span>        -- of two elements. Note that the kind of the argument that the variable responsible for
+<span class="lineno">  268 </span>        -- recursion receives is the same as the kind of 'spine', i.e. we always instantiate
+<span class="lineno">  269 </span>        -- recursion at some spine.
+<span class="lineno">  270 </span>        (\(rec :: ((* -&gt; * -&gt; *) -&gt; *) -&gt; *) -&gt; \(spine :: (* -&gt; * -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  271 </span>            -- 'spine' unpacks a CPS-encoded spine and passes all its elements to a continuation.
+<span class="lineno">  272 </span>            spine
+<span class="lineno">  273 </span>              -- The 'interlistF' pattern functor given above applied to a function that receives
+<span class="lineno">  274 </span>              -- two type arguments, packs them as a CPS-encoded spine and passes the spine to the
+<span class="lineno">  275 </span>              -- variable responsible for recursion.
+<span class="lineno">  276 </span>              (interlistF (\(a :: *) (b :: *) -&gt; rec (\(dat :: * -&gt; * -&gt; *) -&gt; dat a b)))
+<span class="lineno">  277 </span>        )
+<span class="lineno">  278 </span>        -- The two type arguments packed as a CPS-encoded spine.
+<span class="lineno">  279 </span>        (\(dat :: * -&gt; * -&gt; *) -&gt; dat a b)
+<span class="lineno">  280 </span>
+<span class="lineno">  281 </span>We've elaborated the encoding on example, but there is a problem to consider here.
+<span class="lineno">  282 </span>Read next: Note [Denormalization]
+<span class="lineno">  283 </span>-}
+<span class="lineno">  284 </span>
+<span class="lineno">  285 </span>{- Note [Denormalization]
+<span class="lineno">  286 </span>Originally, we were binding 'withSpine' and 'patN' (taken from the end of Note
+<span class="lineno">  287 </span>[Packing n-ary pattern functors semantically]) on the Plutus Core side and this
+<span class="lineno">  288 </span>resulted in huge unreadable types being produced. Now we bind 'withSpine',
+<span class="lineno">  289 </span>'patN' and what 'withSpine' receives on the Haskell side, i.e. we use Haskell
+<span class="lineno">  290 </span>lambdas to bind variables and regular function application to eliminate those
+<span class="lineno">  291 </span>lambdas which allows us to defer type reduction business to Haskell.  Here is
+<span class="lineno">  292 </span>how the definition of 'list' looks like:
+<span class="lineno">  293 </span>
+<span class="lineno">  294 </span>    \(a :: *) -&gt; ifix
+<span class="lineno">  295 </span>        (\(rec :: ((* -&gt; *) -&gt; *) -&gt; *) -&gt; \(spine :: (* -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  296 </span>            spine (listF (\(a :: *) -&gt; rec (\(dat :: * -&gt; *) -&gt; dat a)))
+<span class="lineno">  297 </span>        )
+<span class="lineno">  298 </span>        (\(dat :: * -&gt; *) -&gt; dat a)
+<span class="lineno">  299 </span>
+<span class="lineno">  300 </span>This is pretty readable (once you know how to read it, see Note [Encoded InterList] for a similar
+<span class="lineno">  301 </span>example) and doesn't contain any 'withSpine' or 'patN' variables, but if we inline 'listF', we'll get
+<span class="lineno">  302 </span>
+<span class="lineno">  303 </span>    (\(list :: * -&gt; *) -&gt; \(a :: *) -&gt; all (r :: *). r -&gt; (a -&gt; list a -&gt; r) -&gt; r)
+<span class="lineno">  304 </span>    (\(a :: *) -&gt; rec (\(dat :: * -&gt; *) -&gt; dat a))
+<span class="lineno">  305 </span>
+<span class="lineno">  306 </span>which is an applied lambda abstraction. This essentially means that in the pattern functor of 'list'
+<span class="lineno">  307 </span>
+<span class="lineno">  308 </span>    \(a :: *) -&gt; all (r :: *). r -&gt; (a -&gt; list a -&gt; r) -&gt; r
+<span class="lineno">  309 </span>
+<span class="lineno">  310 </span>'list' is defined as
+<span class="lineno">  311 </span>
+<span class="lineno">  312 </span>    \(a :: *) -&gt; rec (\(dat :: * -&gt; *) -&gt; dat a)
+<span class="lineno">  313 </span>
+<span class="lineno">  314 </span>This all is fine, that's how our encoding trick works, but note that we produced a type that is not
+<span class="lineno">  315 </span>in normal form. This is a bit worrying: the user writes something that looks like it's normalized,
+<span class="lineno">  316 </span>but in the end types are not normalized due to how the encoding works. In Plutus Core we have two
+<span class="lineno">  317 </span>modes for type checking:
+<span class="lineno">  318 </span>
+<span class="lineno">  319 </span>1. off-chain, type normalization is allowed
+<span class="lineno">  320 </span>2. on-chain, type normalization is not allowed and types must already be normalized
+<span class="lineno">  321 </span>
+<span class="lineno">  322 </span>Thus, we do care about whether types are normalized or not. In the compilation pipeline we just
+<span class="lineno">  323 </span>explicitly normalize types whenever normalized types are required, but since this module belongs
+<span class="lineno">  324 </span>to a library it better be general and not rely on particular details of downstream code.
+<span class="lineno">  325 </span>
+<span class="lineno">  326 </span>Preserving properties of user-written code is generally a good idea while transforming it,
+<span class="lineno">  327 </span>so we also do not want to remove redexes from user-written code and thus we can't just normalize
+<span class="lineno">  328 </span>everything in sight to overcome the denormalization problem.
+<span class="lineno">  329 </span>
+<span class="lineno">  330 </span>Then the question is whether it's possible to preserve redexes in user-written types and not to
+<span class="lineno">  331 </span>produce new ones while encoding the types. And the answer is &quot;yes, but it's too costly&quot;.
+<span class="lineno">  332 </span>
+<span class="lineno">  333 </span>But read Note [Spiney API] first.
+<span class="lineno">  334 </span>-}
+<span class="lineno">  335 </span>
+<span class="lineno">  336 </span>{- Note [Spiney API]
+<span class="lineno">  337 </span>Encoding of n-ary pattern functors into 1-ary pattern functors is hidden behind an API that pretends
+<span class="lineno">  338 </span>our types are in head-spine form. See @plutus/docs/fomega/deep-isorecursive/alternatives.md@ for
+<span class="lineno">  339 </span>details and discussion about the head-spine form approach.
+<span class="lineno">  340 </span>
+<span class="lineno">  341 </span>The reasons for providing such API are
+<span class="lineno">  342 </span>
+<span class="lineno">  343 </span>1. it's simple
+<span class="lineno">  344 </span>2. it hides all the gory details in such a way that we can change the representation of types and
+<span class="lineno">  345 </span>not change the API. For example, we can encode pattern functors in different ways (and we, in fact,
+<span class="lineno">  346 </span>do this) or we even can have the head-spine form in the AST and that wouldn't affect the API
+<span class="lineno">  347 </span>
+<span class="lineno">  348 </span>We could have an API like this: the user provides an n-ary pattern functor and we manipulate the AST
+<span class="lineno">  349 </span>directly which may or may not involve deconstruction of the AST depending on how we perform encoding.
+<span class="lineno">  350 </span>However the user might provide something that is not a pattern functor, but computes to a pattern
+<span class="lineno">  351 </span>functor and everything becomes more complicated. Instead, we require that the user provides the name
+<span class="lineno">  352 </span>of the data type being defined, a list of type variables (the ones that the pattern functor binds)
+<span class="lineno">  353 </span>along with their kinds and the body of the pattern functor separately. Having this information is
+<span class="lineno">  354 </span>enought to perform whatever encoding we want. Here is how it looks on the 'interlist' example:
+<span class="lineno">  355 </span>
+<span class="lineno">  356 </span>the n-ary pattern functor of 'interlist' is
+<span class="lineno">  357 </span>
+<span class="lineno">  358 </span>    \(interlist :: * -&gt; * -&gt; *) (a :: *) (b :: *) -&gt;
+<span class="lineno">  359 </span>        all (r :: *). r -&gt; (a -&gt; b -&gt; interlist b a -&gt; r) -&gt; r
+<span class="lineno">  360 </span>
+<span class="lineno">  361 </span>and we require the user (where &quot;the user&quot; means someone generating Plutus Core or writing it directly,
+<span class="lineno">  362 </span>i.e. either someone writing a compiler to Plutus Core or one of the creators of the language) to split
+<span class="lineno">  363 </span>this type into three components
+<span class="lineno">  364 </span>
+<span class="lineno">  365 </span>1. &quot;interlist&quot;         -- the name of the data type
+<span class="lineno">  366 </span>2. @[a :: *, b :: *]@  -- other type variables the pattern functors binds along with their kinds
+<span class="lineno">  367 </span>3. @all (r :: *). r -&gt; (a -&gt; b -&gt; interlist b a -&gt; r) -&gt; r@  -- the body of the pattern functor
+<span class="lineno">  368 </span>
+<span class="lineno">  369 </span>and pass them to the 'makeRecursiveType' function (which also receives an annotation as its first
+<span class="lineno">  370 </span>argument just so that we have something to place in the AST when needed). Note that we do not require
+<span class="lineno">  371 </span>to provide the kind of 'interlist', because we can compute it from the kinds of other type variables.
+<span class="lineno">  372 </span>
+<span class="lineno">  373 </span>The code constructing the data type itself:
+<span class="lineno">  374 </span>
+<span class="lineno">  375 </span>    -- Introduce names in scope.
+<span class="lineno">  376 </span>    [a, b, interlist, r] &lt;- traverse freshTyName [&quot;a&quot;, &quot;b&quot;, &quot;interlist&quot;, &quot;r&quot;]
+<span class="lineno">  377 </span>
+<span class="lineno">  378 </span>    -- Define some aliases.
+<span class="lineno">  379 </span>    let interlistBA = mkIterTyAppNoAnn (TyVar () interlist) [TyVar () b, TyVar () a]
+<span class="lineno">  380 </span>        nilElimTy   = TyVar () r
+<span class="lineno">  381 </span>        consElimTy  = mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
+<span class="lineno">  382 </span>
+<span class="lineno">  383 </span>    -- Construct the actual data type.
+<span class="lineno">  384 </span>    makeRecursiveType () interlist [TyVarDecl () a $ Type (), TyVarDecl () b $ Type ()]
+<span class="lineno">  385 </span>        . TyForall () r (Type ())  -- all (r :: *).
+<span class="lineno">  386 </span>        . TyFun () nilElimTy       --     r -&gt;
+<span class="lineno">  387 </span>        . TyFun () consElimTy      --         (a -&gt; b -&gt; interlist b a -&gt; r) -&gt;
+<span class="lineno">  388 </span>        $ TyVar () r               --             r
+<span class="lineno">  389 </span>
+<span class="lineno">  390 </span>So for the user the interface this module provides is rather simple considering how much stuff is
+<span class="lineno">  391 </span>hidden behind it.
+<span class="lineno">  392 </span>
+<span class="lineno">  393 </span>Read next: Note [Packing n-ary pattern functors syntactically]
+<span class="lineno">  394 </span>-}
+<span class="lineno">  395 </span>
+<span class="lineno">  396 </span>{- Note [Packing n-ary pattern functors syntactically]
+<span class="lineno">  397 </span>Now that we know how the API looks like (see Note [Spiney API]), we can discuss a solution to
+<span class="lineno">  398 </span>the denormalization problem (see Note [Denormalization]).
+<span class="lineno">  399 </span>
+<span class="lineno">  400 </span>Recall (or see Note [Packing n-ary pattern functors semantically]) that if we pack the pattern
+<span class="lineno">  401 </span>functor of 'list'
+<span class="lineno">  402 </span>
+<span class="lineno">  403 </span>    listF = \(list :: * -&gt; *) (a :: *) -&gt; all (r :: *). r -&gt; (a -&gt; list a -&gt; r) -&gt; r
+<span class="lineno">  404 </span>
+<span class="lineno">  405 </span>semantically and normalize the result, we'll get
+<span class="lineno">  406 </span>
+<span class="lineno">  407 </span>    semListF =
+<span class="lineno">  408 </span>        \(rec :: ((* -&gt; *) -&gt; *) -&gt; *) -&gt; \(spine :: (* -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  409 </span>            spine (\(a :: *) -&gt; all (r :: *). r -&gt; (a -&gt; rec (\(dat :: * -&gt; *) -&gt; dat a) -&gt; r) -&gt; r)
+<span class="lineno">  410 </span>
+<span class="lineno">  411 </span>The question is how to get the same without full-scale normalization.
+<span class="lineno">  412 </span>
+<span class="lineno">  413 </span>In this particular case it's easy: since we receive the body of 'listF' separately from the variables
+<span class="lineno">  414 </span>the leading lambdas bind, we can simply enclose the body of 'listF' like this:
+<span class="lineno">  415 </span>
+<span class="lineno">  416 </span>    \(rec :: ((* -&gt; *) -&gt; *) -&gt; *) -&gt; \(spine :: (* -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  417 </span>                spine (\(a :: *) -&gt; &lt;body_of_listF&gt;)
+<span class="lineno">  418 </span>
+<span class="lineno">  419 </span>and replace each occurrence of @list a@ by
+<span class="lineno">  420 </span>
+<span class="lineno">  421 </span>    rec (\(dat :: * -&gt; *) -&gt; dat a)
+<span class="lineno">  422 </span>
+<span class="lineno">  423 </span>and that's all.
+<span class="lineno">  424 </span>
+<span class="lineno">  425 </span>The slightly tricky part is how exactly we perform the replacement: we need to traverse each sequence
+<span class="lineno">  426 </span>of consecutive function applications in the pattern functor, remember all encountered arguments and
+<span class="lineno">  427 </span>if the head of consecutive applications is 'list' then rename it to 'dat' (and freshen the unique of
+<span class="lineno">  428 </span>the variable, because it's easy and it's nice not to break the global uniqueness condition, but this
+<span class="lineno">  429 </span>is not too important), apply 'dat' to all the remembered arguments and enclose the result by
+<span class="lineno">  430 </span>
+<span class="lineno">  431 </span>    rec (\(dat :: * -&gt; *) -&gt; _)
+<span class="lineno">  432 </span>
+<span class="lineno">  433 </span>But that doesn't work in the general case. The user might write
+<span class="lineno">  434 </span>
+<span class="lineno">  435 </span>    app = \(f :: * -&gt; *) (a :: *) -&gt; f a
+<span class="lineno">  436 </span>    listF = \(list :: * -&gt; *) (a :: *) -&gt; all (r :: *). r -&gt; (a -&gt; app list a -&gt; r) -&gt; r
+<span class="lineno">  437 </span>
+<span class="lineno">  438 </span>i.e. a type containing a non-saturated 'list' and the outlined algorithm can't handle this case,
+<span class="lineno">  439 </span>because it always just restores all the arguments in a sequence of applications (which we have none
+<span class="lineno">  440 </span>in this example) while we need to generate the following:
+<span class="lineno">  441 </span>
+<span class="lineno">  442 </span>    semAppListF =
+<span class="lineno">  443 </span>        \(rec :: ((* -&gt; *) -&gt; *) -&gt; *) -&gt; \(spine :: (* -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  444 </span>            let list = \(a :: *) -&gt; rec (\(dat :: * -&gt; *) -&gt; dat a)
+<span class="lineno">  445 </span>                in spine (\(a :: *) -&gt; all (r :: *). r -&gt; (a -&gt; app list a -&gt; r) -&gt; r)
+<span class="lineno">  446 </span>
+<span class="lineno">  447 </span>(where @let list = ... in ...@ is pseudosyntax introduced for readability)
+<span class="lineno">  448 </span>So if a recursive case is not saturated, we have to generate as many lambdas as there are missing
+<span class="lineno">  449 </span>arguments and prepend the lambdas to the encoding of the recursive case.
+<span class="lineno">  450 </span>
+<span class="lineno">  451 </span>This way we can preserve the user's redexes and not introduce additional ones.
+<span class="lineno">  452 </span>
+<span class="lineno">  453 </span>Read next: Note [Comparing approaches to pattern functor packing]
+<span class="lineno">  454 </span>-}
+<span class="lineno">  455 </span>
+<span class="lineno">  456 </span>{- Note [Comparing approaches to pattern functor packing]
+<span class="lineno">  457 </span>Packing n-ary pattern functors semantically (see Note [Packing n-ary pattern functors semantically]):
+<span class="lineno">  458 </span>Pros:
+<span class="lineno">  459 </span>    1. easy to get right. Kinds match? You're all set
+<span class="lineno">  460 </span>    2. does not require manual manipulations with syntax (which would be very error-prone)
+<span class="lineno">  461 </span>    3. does not evaluate redexes written by the user
+<span class="lineno">  462 </span>    4. pattern functors with more than one recursive case are smaller being encoded this way than
+<span class="lineno">  463 </span>       when everything is fully inlined (in the latter case the overhead is O(n) where 'n' is the
+<span class="lineno">  464 </span>       number of recursive occurrences in a pattern functor)
+<span class="lineno">  465 </span>Cons:
+<span class="lineno">  466 </span>    1. resulting types contain additional redexes. I.e. we can turn normalized types into
+<span class="lineno">  467 </span>       non-normalized ones
+<span class="lineno">  468 </span>    2. pattern functors with one recursive case are slightly bigger being encoded this way than
+<span class="lineno">  469 </span>       when everything is fully inlined
+<span class="lineno">  470 </span>
+<span class="lineno">  471 </span>Packing n-ary pattern functors syntactically (see Note [Packing n-ary pattern functors syntactically]):
+<span class="lineno">  472 </span>Pros:
+<span class="lineno">  473 </span>    1. neither introduces new redexes nor evaluates ones written by the user
+<span class="lineno">  474 </span>Cons:
+<span class="lineno">  475 </span>    1. super easy to get wrong. While implementing this approach, I got it wrong three times.
+<span class="lineno">  476 </span>       I'm still not sure it's sound
+<span class="lineno">  477 </span>    2. requires testing against the other way to encode n-ary pattern functors
+<span class="lineno">  478 </span>    3. requires manipulations with uniques which always look fine until you get an incomprehensible
+<span class="lineno">  479 </span>       error message after 82 generated test cases pass
+<span class="lineno">  480 </span>    4. pattern functors with more than one recursive case are bigger being encoded this way than
+<span class="lineno">  481 </span>       with the other approach (the overhead here is O(n) where 'n' is the number of recursive
+<span class="lineno">  482 </span>       occurrences in a pattern functor)
+<span class="lineno">  483 </span>    5. someone who generates Plutus Core does not care much about whether types are normalized,
+<span class="lineno">  484 </span>       because it's a pain and if you want normalized types, just normalize what you generated
+<span class="lineno">  485 </span>       in the end.
+<span class="lineno">  486 </span>
+<span class="lineno">  487 </span>Therefore, the costs of encoding n-ary pattern functors as 1-ary pattern functors in normal form
+<span class="lineno">  488 </span>are rather high while the benefits are minor, and thus we go with the semantic packing approach.
+<span class="lineno">  489 </span>-}
+<span class="lineno">  490 </span>
+<span class="lineno">  491 </span>{-| A recursive type packaged along with a specified 'Wrap' that allows to construct elements
+<span class="lineno">  492 </span>of this type. -}
+<span class="lineno">  493 </span>data RecursiveType uni fun ann = RecursiveType
+<span class="lineno">  494 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_recursiveType</span></span></span> :: Type TyName uni ann
+<span class="lineno">  495 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_recursiveWrap</span></span></span>
+<span class="lineno">  496 </span>      :: forall term
+<span class="lineno">  497 </span>       . TermLike term TyName Name uni fun
+<span class="lineno">  498 </span>      =&gt; [Type TyName uni ann] -&gt; term ann -&gt; term ann
+<span class="lineno">  499 </span>  }
+<span class="lineno">  500 </span>
+<span class="lineno">  501 </span>{-| This exception is thrown when @_recursiveWrap@ is applied to a spine the length of which
+<span class="lineno">  502 </span>is not equal to the length of the spine that @_recursiveType@ contains.
+<span class="lineno">  503 </span>This can only happen if someone writing/generating Plutus Core made a mistake. -}
+<span class="lineno">  504 </span>data IndicesLengthsMismatchException = IndicesLengthsMismatchException
+<span class="lineno">  505 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_indicesLengthsMismatchExceptionExpected</span></span></span> :: Int
+<span class="lineno">  506 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_indicesLengthsMismatchExceptionActual</span></span></span> :: Int
+<span class="lineno">  507 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_indicesLengthsMismatchExceptionTyName</span></span></span> :: TyName
+<span class="lineno">  508 </span>  }
+<span class="lineno">  509 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Exception</span></span></span></span></span></span>)
+<span class="lineno">  510 </span>
+<span class="lineno">  511 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show IndicesLengthsMismatchException</span></span></span></span> where
+<span class="lineno">  512 </span>  <span class="decl"><span class="nottickedoff">show (IndicesLengthsMismatchException expected actual tyName) =</span>
+<span class="lineno">  513 </span><span class="spaces">    </span><span class="nottickedoff">concat</span>
+<span class="lineno">  514 </span><span class="spaces">      </span><span class="nottickedoff">[ &quot;Wrong number of elements\n&quot;</span>
+<span class="lineno">  515 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;expected: &quot;</span>
+<span class="lineno">  516 </span><span class="spaces">      </span><span class="nottickedoff">, show expected</span>
+<span class="lineno">  517 </span><span class="spaces">      </span><span class="nottickedoff">, &quot; , actual: &quot;</span>
+<span class="lineno">  518 </span><span class="spaces">      </span><span class="nottickedoff">, show actual</span>
+<span class="lineno">  519 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;\n&quot;</span>
+<span class="lineno">  520 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;while constructing a &quot;</span>
+<span class="lineno">  521 </span><span class="spaces">      </span><span class="nottickedoff">, displayPlc tyName</span>
+<span class="lineno">  522 </span><span class="spaces">      </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  523 </span>
+<span class="lineno">  524 </span>{-| Get the kind of a data type having the kinds of its arguments.
+<span class="lineno">  525 </span>
+<span class="lineno">  526 </span>&gt; argKindsToDataKindN _ [k1, k2 ... kn] = k1 -&gt; k2 -&gt; ... -&gt; kn -&gt; * -}
+<span class="lineno">  527 </span>argKindsToDataKindN :: ann -&gt; [Kind ann] -&gt; Kind ann
+<span class="lineno">  528 </span><span class="decl"><span class="istickedoff">argKindsToDataKindN ann argKinds = mkIterKindArrow <span class="nottickedoff">ann</span> argKinds $ Type <span class="nottickedoff">ann</span></span></span>
+<span class="lineno">  529 </span>
+<span class="lineno">  530 </span>{-| Get the kind of @spine@ having the kind of a data type.
+<span class="lineno">  531 </span>
+<span class="lineno">  532 </span>&gt; dataKindToSpineKind _ dataKind = dataKind -&gt; * -}
+<span class="lineno">  533 </span>dataKindToSpineKind :: ann -&gt; Kind ann -&gt; Kind ann
+<span class="lineno">  534 </span><span class="decl"><span class="istickedoff">dataKindToSpineKind ann dataKind = KindArrow <span class="nottickedoff">ann</span> dataKind $ Type <span class="nottickedoff">ann</span></span></span>
+<span class="lineno">  535 </span>
+<span class="lineno">  536 </span>{-| Get the kind of @rec@ having the kind of @spine@.
+<span class="lineno">  537 </span>
+<span class="lineno">  538 </span>&gt; spineKindToRecKind _ spineKind = spineKind -&gt; * -}
+<span class="lineno">  539 </span>spineKindToRecKind :: ann -&gt; Kind ann -&gt; Kind ann
+<span class="lineno">  540 </span><span class="decl"><span class="istickedoff">spineKindToRecKind ann spineKind = KindArrow <span class="nottickedoff">ann</span> spineKind $ Type <span class="nottickedoff">ann</span></span></span>
+<span class="lineno">  541 </span>
+<span class="lineno">  542 </span>{-| Make a function that packs a list of 'TyDecl's as a spine using the CPS trick.
+<span class="lineno">  543 </span>
+<span class="lineno">  544 </span>&gt; getToSpine _ =
+<span class="lineno">  545 </span>&gt;     \[a1 :: k1, a2 :: k2 ... an :: kn] -&gt; (dat :: k1 -&gt; k2 -&gt; ... kn -&gt; *) -&gt; dat a1 a2 ... an
+<span class="lineno">  546 </span>
+<span class="lineno">  547 </span>For example,
+<span class="lineno">  548 </span>
+<span class="lineno">  549 </span>&gt; getToSpine _ =
+<span class="lineno">  550 </span>&gt;     \[a1 :: k1, a2 :: k2] -&gt; (dat :: k1 -&gt; k2 -&gt; *) -&gt; dat a1 a2 -}
+<span class="lineno">  551 </span>getToSpine :: ann -&gt; Quote ([TyDecl TyName uni ann] -&gt; Type TyName uni ann)
+<span class="lineno">  552 </span><span class="decl"><span class="istickedoff">getToSpine ann = do</span>
+<span class="lineno">  553 </span><span class="spaces">  </span><span class="istickedoff">dat &lt;- freshTyName &quot;dat&quot;</span>
+<span class="lineno">  554 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  555 </span><span class="spaces">  </span><span class="istickedoff">return $ \args -&gt;</span>
+<span class="lineno">  556 </span><span class="spaces">    </span><span class="istickedoff">TyLam <span class="nottickedoff">ann</span> dat (argKindsToDataKindN <span class="nottickedoff">ann</span> $ map _tyDeclKind args)</span>
+<span class="lineno">  557 </span><span class="spaces">      </span><span class="istickedoff">. mkIterTyApp (TyVar <span class="nottickedoff">ann</span> dat)</span>
+<span class="lineno">  558 </span><span class="spaces">      </span><span class="istickedoff">$ map ((<span class="nottickedoff">ann</span>,) . _tyDeclType) args</span></span>
+<span class="lineno">  559 </span>
+<span class="lineno">  560 </span>{-| Pack a list of 'TyDecl's as a spine using the CPS trick.
+<span class="lineno">  561 </span>
+<span class="lineno">  562 </span>&gt; getSpine _ [a1 :: k1, a2 :: k2 ... an :: kn] =
+<span class="lineno">  563 </span>&gt;     \(dat :: k1 -&gt; k2 -&gt; ... kn -&gt; *) -&gt; dat a1 a2 ... an
+<span class="lineno">  564 </span>
+<span class="lineno">  565 </span>For example,
+<span class="lineno">  566 </span>
+<span class="lineno">  567 </span>&gt; getSpine _ [a1 :: k1, a2 :: k2] =
+<span class="lineno">  568 </span>&gt;     \(dat :: k1 -&gt; k2 -&gt; *) -&gt; dat a1 a2 -}
+<span class="lineno">  569 </span>getSpine :: ann -&gt; [TyDecl TyName uni ann] -&gt; Quote (Type TyName uni ann)
+<span class="lineno">  570 </span><span class="decl"><span class="istickedoff">getSpine ann args = ($ args) &lt;$&gt; getToSpine <span class="nottickedoff">ann</span></span></span>
+<span class="lineno">  571 </span>
+<span class="lineno">  572 </span>-- See Note [Packing n-ary pattern functors semantically].
+<span class="lineno">  573 </span>{-| Having a list of type variables along with their kinds, make a function that receives
+<span class="lineno">  574 </span>
+<span class="lineno">  575 </span>1. a function expecting a spine in CPS form
+<span class="lineno">  576 </span>2. a sequence of types
+<span class="lineno">  577 </span>
+<span class="lineno">  578 </span>packs the types into a CPS-encoded spine and passes the spine to the function.
+<span class="lineno">  579 </span>
+<span class="lineno">  580 </span>&gt; getWithSpine _ [v1 :: k1, v2 :: k2 ... vn :: kn] =
+<span class="lineno">  581 </span>&gt;     \(cont :: ((k1 -&gt; k2 -&gt; ... -&gt; kn -&gt; *) -&gt; *) -&gt; *)
+<span class="lineno">  582 </span>&gt;      (v1 :: k1) (v2 :: k2) ... (vn :: kn) -&gt;
+<span class="lineno">  583 </span>&gt;          cont \(dat :: k1 -&gt; k2 -&gt; ... kn -&gt; *) -&gt; dat v1 v2 ... vn
+<span class="lineno">  584 </span>
+<span class="lineno">  585 </span>For example,
+<span class="lineno">  586 </span>
+<span class="lineno">  587 </span>&gt; getWithSpine _ [v1 :: k1, v2 :: k2] =
+<span class="lineno">  588 </span>&gt;     \(cont : ((k1 -&gt; k2 -&gt; *) -&gt; *) -&gt; *) (v1 :: k1) (v2 :: k2) -&gt;
+<span class="lineno">  589 </span>&gt;          cont \(dat :: k1 -&gt; k2 -&gt; *) -&gt; dat v1 v2 -}
+<span class="lineno">  590 </span>getWithSpine
+<span class="lineno">  591 </span>  :: ann
+<span class="lineno">  592 </span>  -&gt; [TyVarDecl TyName ann]
+<span class="lineno">  593 </span>  -&gt; Quote ((Type TyName uni ann -&gt; Type TyName uni ann) -&gt; Type TyName uni ann)
+<span class="lineno">  594 </span><span class="decl"><span class="istickedoff">getWithSpine ann argVars = do</span>
+<span class="lineno">  595 </span><span class="spaces">  </span><span class="istickedoff">spine &lt;- getSpine <span class="nottickedoff">ann</span> $ map tyDeclVar argVars</span>
+<span class="lineno">  596 </span><span class="spaces">  </span><span class="istickedoff">return $ \k -&gt; mkIterTyLam argVars $ k spine</span></span>
+<span class="lineno">  597 </span>
+<span class="lineno">  598 </span>-- See Note [Spiney API].
+<span class="lineno">  599 </span>type FromDataPieces uni ann a =
+<span class="lineno">  600 </span>  ann
+<span class="lineno">  601 </span>  -- ^ An annotation placed everywhere we do not have annotations.
+<span class="lineno">  602 </span>  -&gt; TyName
+<span class="lineno">  603 </span>  -- ^ The name of the data type being defined.
+<span class="lineno">  604 </span>  -&gt; [TyVarDecl TyName ann]
+<span class="lineno">  605 </span>  -- ^ A list of @n@ type variables bound in a pattern functor.
+<span class="lineno">  606 </span>  -&gt; Type TyName uni ann
+<span class="lineno">  607 </span>  -- ^ The body of the n-ary pattern functor.
+<span class="lineno">  608 </span>  -&gt; Quote a
+<span class="lineno">  609 </span>
+<span class="lineno">  610 </span>-- See Note [Packing n-ary pattern functors semantically].
+<span class="lineno">  611 </span>{-| Pack the body of an n-ary pattern functor and make the corresponding 1-ary pattern functor.
+<span class="lineno">  612 </span>
+<span class="lineno">  613 </span>&gt; packPatternFunctorBodyN _ dataName [v1 :: k1, v2 :: k2 ... vn :: kn] patBodyN =
+<span class="lineno">  614 </span>&gt;     let patN = \(dataName :: k1 -&gt; k2 -&gt; ... -&gt; kn -&gt; *) (v1 :: k1) (v2 :: k2) ... (vn :: kn) -&gt;
+<span class="lineno">  615 </span>&gt;                     patBodyN
+<span class="lineno">  616 </span>&gt;         in \(rec :: ((k1 -&gt; k2 -&gt; ... kn -&gt; *) -&gt; *) -&gt; *)
+<span class="lineno">  617 </span>&gt;             (spine :: (k1 -&gt; k2 -&gt; ... -&gt; kn -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  618 </span>&gt;                 spine (patN (withSpine rec))
+<span class="lineno">  619 </span>
+<span class="lineno">  620 </span>For example,
+<span class="lineno">  621 </span>
+<span class="lineno">  622 </span>&gt; packPatternFunctorBodyN _ dataName [v1 :: k1, v2 :: k2] patBodyN =
+<span class="lineno">  623 </span>&gt;     let patN = \(dataName :: k1 -&gt; k2 -&gt; *) (v1 :: k1) (v2 :: k2) -&gt;
+<span class="lineno">  624 </span>&gt;                     patBodyN
+<span class="lineno">  625 </span>&gt;         in \(rec :: ((k1 -&gt; k2 -&gt; *) -&gt; *) -&gt; *)
+<span class="lineno">  626 </span>&gt;             (spine :: (k1 -&gt; k2 -&gt; *) -&gt; *) -&gt;
+<span class="lineno">  627 </span>&gt;                 spine (patN (withSpine rec)) -}
+<span class="lineno">  628 </span>packPatternFunctorBodyN :: FromDataPieces uni ann (Type TyName uni ann)
+<span class="lineno">  629 </span><span class="decl"><span class="istickedoff">packPatternFunctorBodyN ann dataName argVars patBodyN = do</span>
+<span class="lineno">  630 </span><span class="spaces">  </span><span class="istickedoff">let dataKind = argKindsToDataKindN <span class="nottickedoff">ann</span> $ map _tyVarDeclKind argVars</span>
+<span class="lineno">  631 </span><span class="spaces">      </span><span class="istickedoff">spineKind = dataKindToSpineKind <span class="nottickedoff">ann</span> dataKind</span>
+<span class="lineno">  632 </span><span class="spaces">      </span><span class="istickedoff">recKind = spineKindToRecKind <span class="nottickedoff">ann</span> spineKind</span>
+<span class="lineno">  633 </span><span class="spaces">      </span><span class="istickedoff">vDat = TyVarDecl <span class="nottickedoff">ann</span> dataName dataKind</span>
+<span class="lineno">  634 </span><span class="spaces">      </span><span class="istickedoff">patN = mkIterTyLam (vDat : argVars) patBodyN</span>
+<span class="lineno">  635 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  636 </span><span class="spaces">  </span><span class="istickedoff">withSpine &lt;- getWithSpine <span class="nottickedoff">ann</span> argVars</span>
+<span class="lineno">  637 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  638 </span><span class="spaces">  </span><span class="istickedoff">rec &lt;- freshTyName &quot;rec&quot;</span>
+<span class="lineno">  639 </span><span class="spaces">  </span><span class="istickedoff">spine &lt;- freshTyName &quot;spine&quot;</span>
+<span class="lineno">  640 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  641 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  642 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">ann</span> rec recKind</span>
+<span class="lineno">  643 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">ann</span> spine spineKind</span>
+<span class="lineno">  644 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">ann</span> (TyVar <span class="nottickedoff">ann</span> spine)</span>
+<span class="lineno">  645 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">ann</span> patN</span>
+<span class="lineno">  646 </span><span class="spaces">    </span><span class="istickedoff">. withSpine</span>
+<span class="lineno">  647 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">ann</span></span>
+<span class="lineno">  648 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">ann</span> rec</span></span>
+<span class="lineno">  649 </span>
+<span class="lineno">  650 </span>-- | Construct a data type out of pieces.
+<span class="lineno">  651 </span>getPackedType :: FromDataPieces uni ann (Type TyName uni ann)
+<span class="lineno">  652 </span><span class="decl"><span class="istickedoff">getPackedType ann dataName argVars patBodyN = do</span>
+<span class="lineno">  653 </span><span class="spaces">  </span><span class="istickedoff">withSpine &lt;- getWithSpine <span class="nottickedoff">ann</span> argVars</span>
+<span class="lineno">  654 </span><span class="spaces">  </span><span class="istickedoff">withSpine . TyIFix <span class="nottickedoff">ann</span> &lt;$&gt; packPatternFunctorBodyN <span class="nottickedoff">ann</span> dataName argVars patBodyN</span></span>
+<span class="lineno">  655 </span>
+<span class="lineno">  656 </span>{-| An auxiliary type for returning a polymorphic @wrap@. Haskell's support for impredicative
+<span class="lineno">  657 </span>polymorphism isn't good enough to do without this. -}
+<span class="lineno">  658 </span>newtype PolyWrap uni fun ann
+<span class="lineno">  659 </span>  = PolyWrap
+<span class="lineno">  660 </span>      (forall term. TermLike term TyName Name uni fun =&gt; [Type TyName uni ann] -&gt; term ann -&gt; term ann)
+<span class="lineno">  661 </span>
+<span class="lineno">  662 </span>{-| Make a generic @wrap@ that takes a spine of type arguments and the rest of a term, packs
+<span class="lineno">  663 </span>the spine using the CPS trick and passes the spine and the term to 'IWrap' along with a 1-ary
+<span class="lineno">  664 </span>pattern functor constructed from pieces of a data type passed as arguments to 'getWrap'. -}
+<span class="lineno">  665 </span>getPackedWrap :: FromDataPieces uni ann (PolyWrap uni fun ann)
+<span class="lineno">  666 </span><span class="decl"><span class="istickedoff">getPackedWrap ann dataName argVars patBodyN = do</span>
+<span class="lineno">  667 </span><span class="spaces">  </span><span class="istickedoff">pat1 &lt;- packPatternFunctorBodyN <span class="nottickedoff">ann</span> dataName argVars patBodyN</span>
+<span class="lineno">  668 </span><span class="spaces">  </span><span class="istickedoff">toSpine &lt;- getToSpine <span class="nottickedoff">ann</span></span>
+<span class="lineno">  669 </span><span class="spaces">  </span><span class="istickedoff">let instVar v ty = TyDecl <span class="nottickedoff">ann</span> ty $ _tyVarDeclKind v</span>
+<span class="lineno">  670 </span><span class="spaces">  </span><span class="istickedoff">return $ PolyWrap $ \args -&gt;</span>
+<span class="lineno">  671 </span><span class="spaces">    </span><span class="istickedoff">let argVarsLen = length argVars</span>
+<span class="lineno">  672 </span><span class="spaces">        </span><span class="istickedoff">argsLen = length args</span>
+<span class="lineno">  673 </span><span class="spaces">     </span><span class="istickedoff">in if <span class="tickonlytrue">argVarsLen == argsLen</span></span>
+<span class="lineno">  674 </span><span class="spaces">          </span><span class="istickedoff">then iWrap <span class="nottickedoff">ann</span> pat1 . toSpine $ zipWith instVar argVars args</span>
+<span class="lineno">  675 </span><span class="spaces">          </span><span class="istickedoff">else <span class="nottickedoff">throw . IndicesLengthsMismatchException argVarsLen argsLen $ dataName</span></span></span>
+<span class="lineno">  676 </span>
+<span class="lineno">  677 </span>{- Note [Special cases]
+<span class="lineno">  678 </span>The notes above describe how the general case is compiled, however for the 0-ary and 1-ary cases
+<span class="lineno">  679 </span>there are more efficient compilation schemes.
+<span class="lineno">  680 </span>
+<span class="lineno">  681 </span>Compiled generally, @fix0 (pat :: * -&gt; *)@ looks like this:
+<span class="lineno">  682 </span>
+<span class="lineno">  683 </span>    ifix
+<span class="lineno">  684 </span>        (\(rec :: (* -&gt; *) -&gt; *) (spine :: * -&gt; *) -&gt; spine (pat (rec (\(dat :: *) -&gt; dat))))
+<span class="lineno">  685 </span>        (\(dat :: *) -&gt; dat)
+<span class="lineno">  686 </span>
+<span class="lineno">  687 </span>A more efficient compilation scheme is
+<span class="lineno">  688 </span>
+<span class="lineno">  689 </span>    ifix
+<span class="lineno">  690 </span>        (\(rec :: (* -&gt; *) -&gt; *) (f :: * -&gt; *) -&gt; f (rec f))
+<span class="lineno">  691 </span>        pat
+<span class="lineno">  692 </span>
+<span class="lineno">  693 </span>This is the one that we use in 'makeRecursiveType0'. Note however that 'makeRecursiveType*'
+<span class="lineno">  694 </span>functions always receive the body of a pattern functor and not the pattern functor itself,
+<span class="lineno">  695 </span>so in the 0-ary case we turn the body of the pattern functor into the pattern functor by
+<span class="lineno">  696 </span>prepending a lambda binding a variable with the same name as that of the data type being
+<span class="lineno">  697 </span>defined. Note also that the pattern functor of the resulting 'ifix' is always the same --
+<span class="lineno">  698 </span>it's the index that differs.
+<span class="lineno">  699 </span>
+<span class="lineno">  700 </span>Compiled generally, @fix1 (pat :: (k -&gt; *) -&gt; k -&gt; *) (arg :: *)@ looks like this:
+<span class="lineno">  701 </span>
+<span class="lineno">  702 </span>    \(v :: k) -&gt;
+<span class="lineno">  703 </span>        ifix
+<span class="lineno">  704 </span>            (\(rec :: (* -&gt; *) -&gt; *) (spine :: * -&gt; *) -&gt;
+<span class="lineno">  705 </span>                spine (pat (\(x :: v) -&gt; rec (\(dat :: k -&gt; *) -&gt; dat v))))
+<span class="lineno">  706 </span>            (\(dat :: k -&gt; *) -&gt; dat v)
+<span class="lineno">  707 </span>
+<span class="lineno">  708 </span>But we clearly don't need to represent a single type argument as a CPS-encoded spine,
+<span class="lineno">  709 </span>because the only point of representing things like that is to get a single type argument out of
+<span class="lineno">  710 </span>@n@ type arguments and when @n = 1@ no such tricks are needed.
+<span class="lineno">  711 </span>
+<span class="lineno">  712 </span>So the encoding that we use is
+<span class="lineno">  713 </span>
+<span class="lineno">  714 </span>    \(v :: k) -&gt; ifix pat v
+<span class="lineno">  715 </span>
+<span class="lineno">  716 </span>And as in the 0-ary case we need to turn the body of a pattern functor into a pattern functor,
+<span class="lineno">  717 </span>this time not only by prepending a lambda binding a variable with the same name as that of
+<span class="lineno">  718 </span>the data type being defined, but also by prepending a lambda binding a variable representing the
+<span class="lineno">  719 </span>index.
+<span class="lineno">  720 </span>-}
+<span class="lineno">  721 </span>
+<span class="lineno">  722 </span>-- See Note [Special cases].
+<span class="lineno">  723 </span>{-| Construct a 'RecursiveType' by passing a 0-ary pattern functor to 'TyIFix' and 'IWrap'
+<span class="lineno">  724 </span>/as an index/. -}
+<span class="lineno">  725 </span>makeRecursiveType0
+<span class="lineno">  726 </span>  :: ann
+<span class="lineno">  727 </span>  -- ^ An annotation placed everywhere we do not have annotations.
+<span class="lineno">  728 </span>  -&gt; TyName
+<span class="lineno">  729 </span>  -- ^ The name of the data type being defined.
+<span class="lineno">  730 </span>  -&gt; Type TyName uni ann
+<span class="lineno">  731 </span>  -- ^ The body of the pattern functor.
+<span class="lineno">  732 </span>  -&gt; Quote (RecursiveType uni fun ann)
+<span class="lineno">  733 </span><span class="decl"><span class="istickedoff">makeRecursiveType0 ann dataName patBody0 = do</span>
+<span class="lineno">  734 </span><span class="spaces">  </span><span class="istickedoff">rec &lt;- freshTyName &quot;rec&quot;</span>
+<span class="lineno">  735 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">  736 </span><span class="spaces">  </span><span class="istickedoff">let argKind = KindArrow ann (Type ann) $ Type ann</span>
+<span class="lineno">  737 </span><span class="spaces">      </span><span class="istickedoff">recKind = KindArrow ann argKind $ Type ann</span>
+<span class="lineno">  738 </span><span class="spaces">      </span><span class="istickedoff">pat1 =</span>
+<span class="lineno">  739 </span><span class="spaces">        </span><span class="istickedoff">TyLam ann rec recKind</span>
+<span class="lineno">  740 </span><span class="spaces">          </span><span class="istickedoff">. TyLam ann f argKind</span>
+<span class="lineno">  741 </span><span class="spaces">          </span><span class="istickedoff">. TyApp ann (TyVar ann f)</span>
+<span class="lineno">  742 </span><span class="spaces">          </span><span class="istickedoff">. TyApp ann (TyVar ann rec)</span>
+<span class="lineno">  743 </span><span class="spaces">          </span><span class="istickedoff">$ TyVar ann f</span>
+<span class="lineno">  744 </span><span class="spaces">      </span><span class="istickedoff">arg = TyLam ann dataName (Type ann) patBody0</span>
+<span class="lineno">  745 </span><span class="spaces">      </span><span class="istickedoff">-- recType =</span>
+<span class="lineno">  746 </span><span class="spaces">      </span><span class="istickedoff">--     ifix</span>
+<span class="lineno">  747 </span><span class="spaces">      </span><span class="istickedoff">--         (\(rec :: (* -&gt; *) -&gt; *) (f :: * -&gt; *) -&gt; f (rec f))</span>
+<span class="lineno">  748 </span><span class="spaces">      </span><span class="istickedoff">--         (\(dataName :: *) -&gt; patBody0)</span>
+<span class="lineno">  749 </span><span class="spaces">      </span><span class="istickedoff">recType = TyIFix ann pat1 arg</span>
+<span class="lineno">  750 </span><span class="spaces">      </span><span class="istickedoff">wrap args = case args of</span>
+<span class="lineno">  751 </span><span class="spaces">        </span><span class="istickedoff">[] -&gt; iWrap ann pat1 arg</span>
+<span class="lineno">  752 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">throw . IndicesLengthsMismatchException 0 (length args) $ dataName</span></span>
+<span class="lineno">  753 </span><span class="spaces">  </span><span class="istickedoff">return $ RecursiveType recType wrap</span></span>
+<span class="lineno">  754 </span>
+<span class="lineno">  755 </span>-- See Note [Special cases].
+<span class="lineno">  756 </span>-- | Construct a 'RecursiveType' by passing a 1-ary pattern functor to 'TyIFix' and 'IWrap'.
+<span class="lineno">  757 </span>makeRecursiveType1
+<span class="lineno">  758 </span>  :: ann
+<span class="lineno">  759 </span>  -- ^ An annotation placed everywhere we do not have annotations.
+<span class="lineno">  760 </span>  -&gt; TyName
+<span class="lineno">  761 </span>  -- ^ The name of the data type being defined.
+<span class="lineno">  762 </span>  -&gt; TyVarDecl TyName ann
+<span class="lineno">  763 </span>  -- ^ The index type variable.
+<span class="lineno">  764 </span>  -&gt; Type TyName uni ann
+<span class="lineno">  765 </span>  -- ^ The body of the pattern functor.
+<span class="lineno">  766 </span>  -&gt; Quote (RecursiveType uni fun ann)
+<span class="lineno">  767 </span><span class="decl"><span class="istickedoff">makeRecursiveType1 ann dataName argVar patBody1 = do</span>
+<span class="lineno">  768 </span><span class="spaces">  </span><span class="istickedoff">let varName = _tyVarDeclName argVar</span>
+<span class="lineno">  769 </span><span class="spaces">      </span><span class="istickedoff">varKind = _tyVarDeclKind argVar</span>
+<span class="lineno">  770 </span><span class="spaces">  </span><span class="istickedoff">varName' &lt;- freshenTyName varName</span>
+<span class="lineno">  771 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">  772 </span><span class="spaces">    </span><span class="istickedoff">recKind = KindArrow ann varKind $ Type ann</span>
+<span class="lineno">  773 </span><span class="spaces">    </span><span class="istickedoff">pat1 = TyLam ann dataName recKind $ TyLam ann varName varKind patBody1</span>
+<span class="lineno">  774 </span><span class="spaces">    </span><span class="istickedoff">-- recType = \(v :: k) -&gt; ifix (\(dataName :: k -&gt; *) (v :: k) -&gt; patBody1) v</span>
+<span class="lineno">  775 </span><span class="spaces">    </span><span class="istickedoff">recType = TyLam ann varName' varKind . TyIFix ann pat1 $ TyVar ann varName'</span>
+<span class="lineno">  776 </span><span class="spaces">    </span><span class="istickedoff">wrap args = case args of</span>
+<span class="lineno">  777 </span><span class="spaces">      </span><span class="istickedoff">[arg] -&gt; iWrap ann pat1 arg</span>
+<span class="lineno">  778 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">throw . IndicesLengthsMismatchException 1 (length args) $ dataName</span></span>
+<span class="lineno">  779 </span><span class="spaces">  </span><span class="istickedoff">return $ RecursiveType recType wrap</span></span>
+<span class="lineno">  780 </span>
+<span class="lineno">  781 </span>-- See all the Notes above.
+<span class="lineno">  782 </span>{-| Construct a 'RecursiveType' by encoding an n-ary pattern functor as the corresponding 1-ary one
+<span class="lineno">  783 </span>and passing it to 'TyIFix' and 'IWrap'. @n@ type arguments get packaged together as a CPS-encoded
+<span class="lineno">  784 </span>spine. -}
+<span class="lineno">  785 </span>makeRecursiveTypeN :: FromDataPieces uni ann (RecursiveType uni fun ann)
+<span class="lineno">  786 </span><span class="decl"><span class="istickedoff">makeRecursiveTypeN ann dataName argVars patBodyN = do</span>
+<span class="lineno">  787 </span><span class="spaces">  </span><span class="istickedoff">recType &lt;- getPackedType <span class="nottickedoff">ann</span> dataName argVars patBodyN</span>
+<span class="lineno">  788 </span><span class="spaces">  </span><span class="istickedoff">PolyWrap wrap &lt;- getPackedWrap <span class="nottickedoff">ann</span> dataName argVars patBodyN</span>
+<span class="lineno">  789 </span><span class="spaces">  </span><span class="istickedoff">return $ RecursiveType recType wrap</span></span>
+<span class="lineno">  790 </span>
+<span class="lineno">  791 </span>{-| Construct a 'RecursiveType' out of its name, variables bound in its pattern functor
+<span class="lineno">  792 </span>and the body of the pattern functor. The 0- and 1-ary pattern functors are special-cased,
+<span class="lineno">  793 </span>while in the general case the pattern functor and type arguments get encoded into a 1-ary
+<span class="lineno">  794 </span>form first. -}
+<span class="lineno">  795 </span>makeRecursiveType :: FromDataPieces uni ann (RecursiveType uni fun ann)
+<span class="lineno">  796 </span><span class="decl"><span class="istickedoff">makeRecursiveType ann dataName [] = makeRecursiveType0 ann dataName</span>
+<span class="lineno">  797 </span><span class="spaces"></span><span class="istickedoff">makeRecursiveType ann dataName [argVar] = makeRecursiveType1 ann dataName argVar</span>
+<span class="lineno">  798 </span><span class="spaces"></span><span class="istickedoff">makeRecursiveType ann dataName argVars = makeRecursiveTypeN <span class="nottickedoff">ann</span> dataName argVars</span></span>
+
+</pre>
+</body>
+</html>

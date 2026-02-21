@@ -1,0 +1,1067 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Various file paths used in plutus-core, currently all to do with the cost
+model. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.DataFilePaths</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/System.FilePath.html"
+	><span class="hs-identifier"
+	  >System.FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-type"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span id="costModelDataDir"
+      ><span class="annot"
+	><span class="annottext"
+	  >costModelDataDir :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >costModelDataDir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;cost-model&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;data&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#builtinCostModelFileA"
+	><span class="hs-identifier hs-type"
+	  >builtinCostModelFileA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span id="builtinCostModelFileA"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinCostModelFileA :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#builtinCostModelFileA"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinCostModelFileA</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;builtinCostModelA&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;json&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#builtinCostModelFileB"
+	><span class="hs-identifier hs-type"
+	  >builtinCostModelFileB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="builtinCostModelFileB"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinCostModelFileB :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#builtinCostModelFileB"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinCostModelFileB</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;builtinCostModelB&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;json&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#builtinCostModelFileC"
+	><span class="hs-identifier hs-type"
+	  >builtinCostModelFileC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="builtinCostModelFileC"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinCostModelFileC :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#builtinCostModelFileC"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinCostModelFileC</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;builtinCostModelC&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;json&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#latestBuiltinCostModelFile"
+	><span class="hs-identifier hs-type"
+	  >latestBuiltinCostModelFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="latestBuiltinCostModelFile"
+      ><span class="annot"
+	><span class="annottext"
+	  >latestBuiltinCostModelFile :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#latestBuiltinCostModelFile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >latestBuiltinCostModelFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#builtinCostModelFileC"
+	><span class="hs-identifier hs-var"
+	  >builtinCostModelFileC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFileA"
+	><span class="hs-identifier hs-type"
+	  >cekMachineCostsFileA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span id="cekMachineCostsFileA"
+      ><span class="annot"
+	><span class="annottext"
+	  >cekMachineCostsFileA :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFileA"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekMachineCostsFileA</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;cekMachineCostsA&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;json&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFileB"
+	><span class="hs-identifier hs-type"
+	  >cekMachineCostsFileB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="cekMachineCostsFileB"
+      ><span class="annot"
+	><span class="annottext"
+	  >cekMachineCostsFileB :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFileB"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekMachineCostsFileB</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;cekMachineCostsB&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;json&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFileC"
+	><span class="hs-identifier hs-type"
+	  >cekMachineCostsFileC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="cekMachineCostsFileC"
+      ><span class="annot"
+	><span class="annottext"
+	  >cekMachineCostsFileC :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFileC"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekMachineCostsFileC</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;cekMachineCostsC&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;json&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#latestMachineCostsFile"
+	><span class="hs-identifier hs-type"
+	  >latestMachineCostsFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="latestMachineCostsFile"
+      ><span class="annot"
+	><span class="annottext"
+	  >latestMachineCostsFile :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#latestMachineCostsFile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >latestMachineCostsFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFileC"
+	><span class="hs-identifier hs-var"
+	  >cekMachineCostsFileC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The file containing the R models: only needed for cost-model-test.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#rModelFile"
+	><span class="hs-identifier hs-type"
+	  >rModelFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="rModelFile"
+      ><span class="annot"
+	><span class="annottext"
+	  >rModelFile :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#rModelFile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >rModelFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;models&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;R&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The file containing the benchmark results for the built-in functions: only
+needed for cost-model-test. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#benchingResultsFile"
+	><span class="hs-identifier hs-type"
+	  >benchingResultsFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="benchingResultsFile"
+      ><span class="annot"
+	><span class="annottext"
+	  >benchingResultsFile :: FilePath
+</span
+	  ><a href="PlutusCore.DataFilePaths.html#benchingResultsFile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >benchingResultsFile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="PlutusCore.DataFilePaths.html#costModelDataDir"
+	><span class="hs-identifier hs-var"
+	  >costModelDataDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C%2F%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;/&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;benching-conway&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; FilePath -&gt; FilePath
+</span
+	><a href="https://hackage.haskell.org/package/filepath-1.4.301.0/docs/src/System.FilePath.Posix.html#%3C.%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;.&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-string"
+	>&quot;csv&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

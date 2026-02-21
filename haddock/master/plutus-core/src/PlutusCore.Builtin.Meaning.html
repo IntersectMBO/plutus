@@ -1,0 +1,8033 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE AllowAmbiguousTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ExistentialQuantification #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StandaloneKindSignatures #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StrictData #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Builtin.Meaning</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.Elaborate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.HasConstant.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.HasConstant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.KnownKind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownType.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.KnownType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.KnownTypeAst</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.Runtime</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.TypeScheme</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.html"
+	><span class="hs-identifier"
+	  >Data.Array</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>GHC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.GADT.html"
+	><span class="hs-identifier"
+	  >Data.Some.GADT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exts.html"
+	><span class="hs-identifier"
+	  >GHC.Exts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#inline"
+	><span class="hs-identifier"
+	  >inline</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#lazy"
+	><span class="hs-identifier"
+	  >lazy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#oneShot"
+	><span class="hs-identifier"
+	  >oneShot</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeLits.html"
+	><span class="hs-identifier"
+	  >GHC.TypeLits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Turn a list of Haskell types @args@ into a functional type ending in @res@.
+
+&gt;&gt;&gt; :set -XDataKinds
+&gt;&gt;&gt; :kind! FoldArgs [(), Bool] Integer
+FoldArgs [(), Bool] Integer :: *
+= () -&gt; Bool -&gt; Integer -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="FoldArgs"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	  ><span class="hs-identifier hs-var"
+	    >FoldArgs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149273"
+      ><span class="annot"
+	><a href="#local-6989586621682149273"
+	  ><span class="hs-identifier hs-type"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149274"
+      ><span class="annot"
+	><a href="#local-6989586621682149274"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span id="FoldArgs"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	  ><span class="hs-identifier hs-var"
+	    >FoldArgs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149275"
+      ><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149275"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149275"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span id="FoldArgs"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	  ><span class="hs-identifier hs-var"
+	    >FoldArgs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149276"
+      ><span id="local-6989586621682149277"
+	><span id="local-6989586621682149278"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149276"
+	      ><span class="hs-identifier hs-type"
+		>arg</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="hs-glyph"
+	    >:</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149277"
+	      ><span class="hs-identifier hs-type"
+		>args</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149278"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149276"
+	><span class="hs-identifier hs-type"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	><span class="hs-identifier hs-type"
+	  >FoldArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149277"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149278"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The meaning of a built-in function consists of its type represented as a 'TypeScheme',
+its Haskell denotation and its uninstantiated runtime denotation.
+
+The 'TypeScheme' of a built-in function is used for example for
+
+1. computing the PLC type of the function to be used during type checking
+2. getting arity information
+3. generating arbitrary values to apply the function to in tests
+
+The denotation is lazy, so that we don't need to worry about a builtin being bottom
+(happens in tests). The production path is not affected by that, since only runtime denotations
+are used for evaluation. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinMeaning"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149251"
+      ><span class="annot"
+	><a href="#local-6989586621682149251"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149254"
+      ><span class="annot"
+	><a href="#local-6989586621682149254"
+	  ><span class="hs-identifier hs-type"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149279"
+      ><span class="annot"
+	><a href="#local-6989586621682149279"
+	  ><span class="hs-identifier hs-type"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149280"
+      ><span class="annot"
+	><a href="#local-6989586621682149280"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span id="BuiltinMeaning"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html#TypeScheme"
+	><span class="hs-identifier hs-type"
+	  >TypeScheme</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149251"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149279"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149280"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	><span class="hs-identifier hs-type"
+	  >FoldArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149279"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149280"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149254"
+	><span class="hs-identifier hs-type"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149251"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Constraints available when defining a built-in function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="HasMeaningIn"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#HasMeaningIn"
+	  ><span class="hs-identifier hs-var"
+	    >HasMeaningIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149282"
+      ><span class="annot"
+	><a href="#local-6989586621682149282"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149283"
+      ><span class="annot"
+	><a href="#local-6989586621682149283"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier hs-type"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149283"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149283"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.HasConstant.html#HasConstantIn"
+	><span class="hs-identifier hs-type"
+	  >HasConstantIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149282"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149283"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A type class for \&quot;each function from a set of built-in functions has a 'BuiltinMeaning'\&quot;.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier hs-type"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149088"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier hs-type"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149089"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	><span class="hs-identifier hs-type"
+	  >Bounded</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149089"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+	><span class="hs-identifier hs-type"
+	  >Enum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149089"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ix.html#Ix"
+	><span class="hs-identifier hs-type"
+	  >Ix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149089"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Default</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149089"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span id="ToBuiltinMeaning"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+	  ><span class="hs-identifier hs-var"
+	    >ToBuiltinMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149088"
+      ><span class="annot"
+	><a href="#local-6989586621682149088"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149089"
+      ><span class="annot"
+	><a href="#local-6989586621682149089"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | The @cost@ part of 'BuiltinMeaning'.</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CostingPart"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#CostingPart"
+	  ><span class="hs-identifier hs-var"
+	    >CostingPart</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149088"
+      ><span class="annot"
+	><a href="#local-6989586621682149088"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149089"
+      ><span class="annot"
+	><a href="#local-6989586621682149089"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | See Note [Builtin semantics variants]</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinSemanticsVariant"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinSemanticsVariant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149089"
+      ><span class="annot"
+	><a href="#local-6989586621682149089"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | Get the 'BuiltinMeaning' of a built-in function.</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span id="toBuiltinMeaning"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#toBuiltinMeaning"
+	  ><span class="hs-identifier hs-type"
+	    >toBuiltinMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149111"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#HasMeaningIn"
+	  ><span class="hs-identifier hs-type"
+	    >HasMeaningIn</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149088"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149111"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-91"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinSemanticsVariant</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149089"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-92"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149089"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-93"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinMeaning</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149111"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#CostingPart"
+	  ><span class="hs-identifier hs-type"
+	    >CostingPart</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149088"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149089"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Feed the 'TypeScheme' of the given built-in function to the continuation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#withTypeSchemeOfBuiltinFunction"
+	><span class="hs-identifier hs-type"
+	  >withTypeSchemeOfBuiltinFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149093"
+      ><span class="annot"
+	><a href="#local-6989586621682149093"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149095"
+      ><span class="annot"
+	><a href="#local-6989586621682149095"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149101"
+      ><span class="annot"
+	><a href="#local-6989586621682149101"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >ToBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#UniOf"
+	><span class="hs-identifier hs-type"
+	  >UniOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149093"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149095"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149093"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier hs-type"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149093"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.HasConstant.html#HasConstant"
+	><span class="hs-identifier hs-type"
+	  >HasConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149093"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149095"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149095"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149098"
+      ><span class="annot"
+	><a href="#local-6989586621682149098"
+	  ><span class="hs-identifier hs-type"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149099"
+      ><span class="annot"
+	><a href="#local-6989586621682149099"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html#TypeScheme"
+	><span class="hs-identifier hs-type"
+	  >TypeScheme</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149093"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149098"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149099"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149101"
+	><span class="hs-identifier hs-type"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149101"
+	><span class="hs-identifier hs-type"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span id="withTypeSchemeOfBuiltinFunction"
+      ><span class="annot"
+	><span class="annottext"
+	  >withTypeSchemeOfBuiltinFunction :: forall val fun r.
+(ToBuiltinMeaning (UniOf val) fun, ExMemoryUsage val, Typeable val,
+ HasConstant val) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun
+-&gt; (forall (args :: [*]) res. TypeScheme val args res -&gt; r)
+-&gt; r
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#withTypeSchemeOfBuiltinFunction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withTypeSchemeOfBuiltinFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149303"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621682149303"
+	  ><span class="hs-identifier hs-var"
+	    >semVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149304"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621682149304"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149305"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (args :: [*]) res. TypeScheme val args res -&gt; r
+</span
+	  ><a href="#local-6989586621682149305"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart (UniOf val) fun)
+forall val.
+HasMeaningIn (UniOf val) val =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart (UniOf val) fun)
+forall (uni :: * -&gt; *) fun val.
+(ToBuiltinMeaning uni fun, HasMeaningIn uni val) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart uni fun)
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toBuiltinMeaning"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621682149303"
+	><span class="hs-identifier hs-var"
+	  >semVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621682149304"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149306"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeScheme val args res
+</span
+	  ><a href="#local-6989586621682149306"
+	  ><span class="hs-identifier hs-var"
+	    >sch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FoldArgs args res
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingPart (UniOf val) fun -&gt; BuiltinRuntime val
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res -&gt; r
+forall (args :: [*]) res. TypeScheme val args res -&gt; r
+</span
+	><a href="#local-6989586621682149305"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res
+</span
+	><a href="#local-6989586621682149306"
+	><span class="hs-identifier hs-var"
+	  >sch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the type of a built-in function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#typeOfBuiltinFunction"
+	><span class="hs-identifier hs-type"
+	  >typeOfBuiltinFunction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149117"
+      ><span class="annot"
+	><a href="#local-6989586621682149117"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149118"
+      ><span class="annot"
+	><a href="#local-6989586621682149118"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >ToBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149117"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149118"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149118"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149118"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149117"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span id="typeOfBuiltinFunction"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeOfBuiltinFunction :: forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+BuiltinSemanticsVariant fun -&gt; fun -&gt; Type TyName uni ()
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#typeOfBuiltinFunction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeOfBuiltinFunction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149325"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621682149325"
+	  ><span class="hs-identifier hs-var"
+	    >semVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149326"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621682149326"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall val fun r.
+(ToBuiltinMeaning (UniOf val) fun, ExMemoryUsage val, Typeable val,
+ HasConstant val) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun
+-&gt; (forall (args :: [*]) res. TypeScheme val args res -&gt; r)
+-&gt; r
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#withTypeSchemeOfBuiltinFunction"
+	><span class="hs-identifier hs-var"
+	  >withTypeSchemeOfBuiltinFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149117"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149118"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621682149325"
+	><span class="hs-identifier hs-var"
+	  >semVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621682149326"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme (Term TyName Name uni fun ()) args res
+-&gt; Type TyName uni ()
+TypeScheme (Term TyName Name uni fun ()) args res
+-&gt; Type TyName (UniOf (Term TyName Name uni fun ())) ()
+forall (args :: [*]) res.
+TypeScheme (Term TyName Name uni fun ()) args res
+-&gt; Type TyName uni ()
+forall val (args :: [*]) res.
+TypeScheme val args res -&gt; Type TyName (UniOf val) ()
+</span
+	><a href="PlutusCore.Builtin.TypeScheme.html#typeSchemeToType"
+	><span class="hs-identifier hs-var"
+	  >typeSchemeToType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Builtin semantics variants]
+The purpose of the &quot;builtin semantics variant&quot; feature is to provide multiple,
+different denotations (implementations) for the same builtin(s).  An example use
+of this feature is for &quot;fixing&quot; the behaviour of `ConsByteString` builtin to
+throw an error instead of overflowing its first argument.
+
+One denotation from each builtin is grouped into a 'BuiltinSemanticsVariant'.
+Each Plutus Language version is linked to a specific 'BuiltinSemanticsVariant'
+(done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are linked to
+'DefaultFunSemanticsVariantA' and 'DefaultFunSemanticsVariantB', whereas
+plutus-v3 changes the set of denotations to 'DefaultFunSemanticsVariantC' (thus
+fixing 'ConsByteString').
+
+Each 'BuiltinSemanticsVariant' (grouping) can change the denotation of one or
+more builtins --- or none, but what's the point in that?
+
+This 'BuiltinSemanticsVariant' is modelled as a datatype *associated* to the
+@fun@. This associated datatype is required to provide an instance of 'Default'
+for quality-of-life purpose; the 'def'ault builtin semantics variant is expected
+to point to the builtin semantics variant that the plutus-tx/plutus-ir compiler
+is currently targeting.
+
+Note that (old) denotations of a 'BuiltinSemanticsVariant' cannot be removed or
+deprecated once published to the chain.
+
+The way that this feature is implemented buys us more than we currently need:
+- allows also a versioned change to a builtin's *type signature*, i.e. type of arguments/result as
+  well as number of arguments.
+- allows also a versioned change to a builtin's cost model parameters
+
+Besides having no need for this currently, it complicates the codebase since the
+typechecker now pointlessly wants to know the builtin semantics before
+typechecking. To alleviate this, we use the 'Default.def' builtin semantics
+variant during typechecking / lifting. @effectfully: the solution to the problem
+would be to establish what kind of backwards compatibility we're willing to
+maintain and pull all of that into a separate data type and make it a part of
+BuiltinMeaning.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Automatic derivation of type schemes]
+We use two type classes for automatic derivation of type/runtime schemes and runtime denotations:
+'KnownPolytype' and 'KnownMonotype'.
+The terminology is due to
+https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system#The_Hindley%E2%80%93Milner_
+type_system
+
+Check out the source of &quot;PlutusCore.Builtin.Runtime&quot; for an explanation of what a runtime
+denotation is.
+
+'KnownPolytype' and 'KnownMonotype' are responsible for deriving polymorphic and monomorphic types,
+respectively.
+
+'KnownPolytype' turns every bound variable into a 'TypeSchemeAll'/'BuiltinExpectForce'. We extract
+variables from the type of the Haskell denotation using the 'ToBinds' associated type
+family. Variables are collected in the order that they appear in (i.e. just like in Haskell). For
+example, processing a type like
+
+      :: ( a ~ Opaque val (TyVarRep ('TyNameRep &quot;a&quot; 0))
+         , b ~ Opaque val (TyVarRep ('TyNameRep &quot;b&quot; 1))
+         )
+      =&gt; b -&gt; a -&gt; b
+
+with 'ToBinds' results in the following list of bindings:
+
+    '[ 'Some ('TyNameRep &quot;b&quot; 1), 'Some ('TyNameRep &quot;a&quot; 0) ]
+
+'KnownMonotype' turns every argument that the Haskell denotation of a builtin receives into a
+'TypeSchemeArrow'/'BuiltinExpectArgument'. We extract the arguments from the type of the Haskell
+denotation using the 'GetArgs' type family.
+
+Higher-kinded type variables are fully supported.
+
+At this point in the pipeline the type of the denotation of a builtin is assumed to be fully
+elaborated (i.e. monomorphic).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Chop a function type to get a list of its argument types.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#GetArgs"
+	><span class="hs-identifier hs-type"
+	  >GetArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="GetArgs"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#GetArgs"
+	  ><span class="hs-identifier hs-var"
+	    >GetArgs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149328"
+      ><span class="annot"
+	><a href="#local-6989586621682149328"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >  </span
+      ><span id="GetArgs"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#GetArgs"
+	  ><span class="hs-identifier hs-var"
+	    >GetArgs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149329"
+      ><span id="local-6989586621682149330"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149329"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149330"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149329"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#GetArgs"
+	><span class="hs-identifier hs-type"
+	  >GetArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149330"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >  </span
+      ><span id="GetArgs"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#GetArgs"
+	  ><span class="hs-identifier hs-var"
+	    >GetArgs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Merging the denotation and the costing function]
+The runtime denotation of a builtin computes both the builtin application and its cost
+(see the docs of 'BuiltinRuntime' for details). Doing both at the same time has a number of benefits
+(see Note [runCostingFun* API]), however in the user-facing API we want to separate the concepts
+of the denotation and the costing function. This is because:
+
+1. the two are fundamentally distinct and we have loads of documentation for each of them
+   separately, so conflating them in the actual API would be unnecessary coupling
+2. right now it's clear which bits of the definition of a builtin constitute evaluation and which
+   ones constitute costing as the two are different arguments to 'makeBuiltinMeaning'. If evaluation
+   and costing were intertwined, it would be much harder to review the definition of a builtin
+3. ... and it would also be more boilerplate and less clear type signatures
+
+Hence we want 'makeBuiltinMeaning' to take evaluation and costing bits separately and intertwine
+them behind the scenes. Which is straightforward: we only need to pass the two together in the
+methods of the 'KnownMonotype' and 'KnownPolytype' classes and zip them argument by argument
+into a single 'BuiltinRuntime'.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A class that allows us to derive a monotype for a builtin.
+We could've computed the runtime denotation from the
+'TypeScheme' and the denotation of the builtin, but not statically (due to unfolding not working
+for recursive functions and 'TypeScheme' being recursive, i.e. requiring the conversion function
+to be recursive), and so it would cause us to retain a lot of evaluation-irrelevant stuff in the
+constructors of 'BuiltinRuntime', which has to make evaluation slower (we didn't check) and
+certainly makes the generated Core much harder to read. Technically speaking, we could get
+a 'RuntimeScheme' from the 'TypeScheme' and the denotation statically if we changed the
+definition of 'TypeScheme' and made it a singleton, but then the conversion function would have
+to become a class anyway and we'd just replicate what we have here, except in a much more
+complicated way. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="KnownMonotype"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#KnownMonotype"
+	  ><span class="hs-identifier hs-var"
+	    >KnownMonotype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149142"
+      ><span class="annot"
+	><a href="#local-6989586621682149142"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149143"
+      ><span class="annot"
+	><a href="#local-6989586621682149143"
+	  ><span class="hs-identifier hs-type"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149144"
+      ><span class="annot"
+	><a href="#local-6989586621682149144"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >  </span
+      ><span id="knownMonotype"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#knownMonotype"
+	  ><span class="hs-identifier hs-type"
+	    >knownMonotype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html#TypeScheme"
+	><span class="hs-identifier hs-type"
+	  >TypeScheme</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149142"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149143"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149144"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >{-| Convert the denotation of a builtin to its runtime counterpart .
+  The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
+  passing the action returning the builtin application around until full saturation, which is
+  when the action actually gets run. -}</span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span
+      >  </span
+      ><span id="toMonoF"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#toMonoF"
+	  ><span class="hs-identifier hs-type"
+	    >toMonoF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownType.html#ReadKnownM"
+	><span class="hs-identifier hs-type"
+	  >ReadKnownM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	><span class="hs-identifier hs-type"
+	  >FoldArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149143"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149144"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	><span class="hs-identifier hs-type"
+	  >FoldArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149143"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149142"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Once we've run out of term-level arguments, we return a
+'TypeSchemeResult'/'RuntimeSchemeResult'. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149147"
+      ><span id="local-6989586621682149148"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	    ><span class="hs-identifier hs-type"
+	      >Typeable</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149147"
+	    ><span class="hs-identifier hs-type"
+	      >res</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownTypeAst.html#KnownTypeAst"
+	    ><span class="hs-identifier hs-type"
+	      >KnownTypeAst</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#TyName"
+	    ><span class="hs-identifier hs-type"
+	      >TyName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#UniOf"
+	    ><span class="hs-identifier hs-type"
+	      >UniOf</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149148"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149147"
+	    ><span class="hs-identifier hs-type"
+	      >res</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownType.html#MakeKnown"
+	    ><span class="hs-identifier hs-type"
+	      >MakeKnown</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149148"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149147"
+	    ><span class="hs-identifier hs-type"
+	      >res</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-244"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Meaning.html#KnownMonotype"
+	    ><span class="hs-identifier hs-type"
+	      >KnownMonotype</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149148"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149147"
+	    ><span class="hs-identifier hs-type"
+	      >res</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149344"
+      ><span class="annot"
+	><span class="annottext"
+	  >knownMonotype :: TypeScheme val '[] res
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#knownMonotype"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >knownMonotype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val '[] res
+forall res val.
+(Typeable res, KnownTypeAst TyName (UniOf val) res,
+ MakeKnown val res) =&gt;
+TypeScheme val '[] res
+</span
+	><a href="PlutusCore.Builtin.TypeScheme.html#TypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >TypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149347"
+      ><span class="annot"
+	><span class="annottext"
+	  >toMonoF :: ReadKnownM (FoldArgs '[] res, FoldArgs '[] ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#toMonoF"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toMonoF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinError -&gt; BuiltinRuntime val)
+-&gt; ((res, ExBudgetStream) -&gt; BuiltinRuntime val)
+-&gt; Either BuiltinError (res, ExBudgetStream)
+-&gt; BuiltinRuntime val
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#either"
+	><span class="hs-identifier hs-var"
+	  >either</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Unlifting has failed and we don't care about costing at this point, since we're about</span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- to terminate evaluation anyway, hence we put 'mempty' as the cost of the operation.</span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Note that putting the cost inside of 'BuiltinResult' is not an option, since forcing</span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- the 'BuiltinResult' computation is exactly forcing the builtin application, which we</span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- can't do before accounting for the cost of the application, i.e. the cost must be</span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- outside of 'BuiltinResult'.</span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- We could introduce a level of indirection and say that a 'BuiltinCostedResult' is</span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- either a budgeting failure or a budgeting success with a cost and a 'BuiltinResult'</span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- computation inside, but that would slow things down a bit and the current strategy is</span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- reasonable enough.</span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError -&gt; BuiltinRuntime val
+forall val. BuiltinError -&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Runtime.html#builtinRuntimeFailure"
+	><span class="hs-identifier hs-var"
+	  >builtinRuntimeFailure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-263"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682149350"
+      ><span class="annot"
+	><span class="annottext"
+	  >res
+</span
+	  ><a href="#local-6989586621682149350"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149351"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudgetStream
+</span
+	  ><a href="#local-6989586621682149351"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetStream -&gt; BuiltinResult val -&gt; BuiltinRuntime val
+forall val.
+ExBudgetStream -&gt; BuiltinResult val -&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinCostedResult"
+	><span class="hs-identifier hs-var"
+	  >BuiltinCostedResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetStream
+</span
+	><a href="#local-6989586621682149351"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinResult val -&gt; BuiltinRuntime val)
+-&gt; BuiltinResult val -&gt; BuiltinRuntime val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>res -&gt; BuiltinResult val
+forall (uni :: * -&gt; *) val a.
+MakeKnownIn uni val a =&gt;
+a -&gt; BuiltinResult val
+</span
+	><a href="PlutusCore.Builtin.KnownType.html#makeKnown"
+	><span class="hs-identifier hs-var"
+	  >makeKnown</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>res
+</span
+	><a href="#local-6989586621682149350"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-264"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#toMonoF"
+	><span class="hs-pragma hs-type"
+	  >toMonoF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-265"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-266"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [One-shotting runtime denotations]
+In @KnownMonotype val (arg ': args) res@ we 'oneShot' the runtime denotations. Otherwise GHC creates
+let-bindings and lifts them out of some of the lambdas in the runtime denotation, which would speed
+up partial applications if they were getting reused, but at some point it was verified that we
+didn't have any reusage of partial applications: https://github.com/IntersectMBO/plutus/pull/4629
+
+One-shotting the runtime denotations alone made certain game contracts slower by ~9%. A lot of time
+was spent on the investigation, but we still don't know why that was happening. Plus, basically any
+other change to the builtins machinery would cause the same kind of slowdown, so we just admitted
+defeat and decided it wasn't worth investigating the issue further.
+Relevant thread: https://github.com/IntersectMBO/plutus/pull/4620
+
+The speedup that adding a call to 'oneShot' gives us, if any, is smaller than our noise threshold,
+however it also makes those confusing allocations disappear from the generated Core, which is enough
+of a reason to add the call.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-282"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-283"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Strict application in runtime denotations]
+Runtime denotations contain strict let-bindings. Those are important: without them GHC thinks that
+the argument may not be needed in the end and so creates a thunk for it, which is not only
+unnecessary allocation, but also prevents things from being unboxed. The argument may indeed not be
+needed in the end, but in that case we've got an evaluation failure and we're about to terminate
+evaluation anyway, hence we care much more about optimizing the happy path.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-290"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-291"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-292"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-293"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149168"
+      ><span id="local-6989586621682149169"
+	><span id="local-6989586621682149170"
+	  ><span id="local-6989586621682149171"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+		><span class="hs-identifier hs-type"
+		  >Typeable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149168"
+		><span class="hs-identifier hs-type"
+		  >arg</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-294"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.KnownTypeAst.html#KnownTypeAst"
+		><span class="hs-identifier hs-type"
+		  >KnownTypeAst</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#UniOf"
+		><span class="hs-identifier hs-type"
+		  >UniOf</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149169"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149168"
+		><span class="hs-identifier hs-type"
+		  >arg</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-295"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.KnownType.html#MakeKnown"
+		><span class="hs-identifier hs-type"
+		  >MakeKnown</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149169"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149168"
+		><span class="hs-identifier hs-type"
+		  >arg</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-296"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.KnownType.html#ReadKnown"
+		><span class="hs-identifier hs-type"
+		  >ReadKnown</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149169"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149168"
+		><span class="hs-identifier hs-type"
+		  >arg</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-297"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Meaning.html#KnownMonotype"
+		><span class="hs-identifier hs-type"
+		  >KnownMonotype</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149169"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149170"
+		><span class="hs-identifier hs-type"
+		  >args</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149171"
+		><span class="hs-identifier hs-type"
+		  >res</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-298"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-299"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Meaning.html#KnownMonotype"
+		><span class="hs-identifier hs-type"
+		  >KnownMonotype</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149169"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149168"
+		><span class="hs-identifier hs-type"
+		  >arg</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >'</span
+	      ><span class="hs-glyph"
+	      >:</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149170"
+		><span class="hs-identifier hs-type"
+		  >args</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149171"
+		><span class="hs-identifier hs-type"
+		  >res</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-300"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-301"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149368"
+      ><span class="annot"
+	><span class="annottext"
+	  >knownMonotype :: TypeScheme val (arg : args) res
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#knownMonotype"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >knownMonotype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res -&gt; TypeScheme val (arg : args) res
+forall arg val (args1 :: [*]) res.
+(Typeable arg, KnownTypeAst TyName (UniOf val) arg,
+ MakeKnown val arg, ReadKnown val arg) =&gt;
+TypeScheme val args1 res -&gt; TypeScheme val (arg : args1) res
+</span
+	><a href="PlutusCore.Builtin.TypeScheme.html#TypeSchemeArrow"
+	><span class="hs-identifier hs-var"
+	  >TypeSchemeArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res
+forall val (args :: [*]) res.
+KnownMonotype val args res =&gt;
+TypeScheme val args res
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#knownMonotype"
+	><span class="hs-identifier hs-var"
+	  >knownMonotype</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-302"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-303"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- See Note [One-shotting runtime denotations].</span
+      ><span
+      >
+</span
+      ><span id="line-304"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Grow the builtin application within the received action and recurse on the result.</span
+      ><span
+      >
+</span
+      ><span id="line-305"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149377"
+      ><span class="annot"
+	><span class="annottext"
+	  >toMonoF :: ReadKnownM
+  (FoldArgs (arg : args) res, FoldArgs (arg : args) ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#toMonoF"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toMonoF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149378"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReadKnownM
+  (FoldArgs (arg : args) res, FoldArgs (arg : args) ExBudgetStream)
+</span
+	  ><a href="#local-6989586621682149378"
+	  ><span class="hs-identifier hs-var"
+	    >getBoth</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(val -&gt; BuiltinRuntime val) -&gt; BuiltinRuntime val
+forall val. (val -&gt; BuiltinRuntime val) -&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinExpectArgument"
+	><span class="hs-identifier hs-var"
+	  >BuiltinExpectArgument</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((val -&gt; BuiltinRuntime val) -&gt; BuiltinRuntime val)
+-&gt; ((val -&gt; BuiltinRuntime val) -&gt; val -&gt; BuiltinRuntime val)
+-&gt; (val -&gt; BuiltinRuntime val)
+-&gt; BuiltinRuntime val
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(val -&gt; BuiltinRuntime val) -&gt; val -&gt; BuiltinRuntime val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#oneShot"
+	><span class="hs-identifier hs-var"
+	  >oneShot</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((val -&gt; BuiltinRuntime val) -&gt; BuiltinRuntime val)
+-&gt; (val -&gt; BuiltinRuntime val) -&gt; BuiltinRuntime val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682149381"
+      ><span class="annot"
+	><span class="annottext"
+	  >val
+</span
+	  ><a href="#local-6989586621682149381"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-306"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- The lazy application of 'toMonoF' ensures that unlifting of the argument will happen</span
+      ><span
+      >
+</span
+      ><span id="line-307"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- upon full saturation and not before that. This is known as &quot;operationally deferred</span
+      ><span
+      >
+</span
+      ><span id="line-308"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- unlifting&quot; (as opposed to &quot;operationally immediate unlifting&quot;) or &quot;call-by-name</span
+      ><span
+      >
+</span
+      ><span id="line-309"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- unlifting&quot; (as opposed to &quot;call-by-value unlifting&quot;). We do it this way to guarantee that</span
+      ><span
+      >
+</span
+      ><span id="line-310"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- the cost of unlifting will be accounted for before unlifting is performed. If we did</span
+      ><span
+      >
+</span
+      ><span id="line-311"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- unlifting eagerly here, this would make the node do work that is not accounted for until</span
+      ><span
+      >
+</span
+      ><span id="line-312"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- full saturation is reached, which may never happen if the partial application is thrown</span
+      ><span
+      >
+</span
+      ><span id="line-313"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- away.</span
+      ><span
+      >
+</span
+      ><span id="line-314"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-315"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- The disadvantage of this approach is that @addInteger 42@ will always unlift @42@ upon</span
+      ><span
+      >
+</span
+      ><span id="line-316"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- full saturation even if this partial application is saved to a variable. But the way</span
+      ><span
+      >
+</span
+      ><span id="line-317"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- costing calibration benchmarks are set up, we always evaluate a single application, so</span
+      ><span
+      >
+</span
+      ><span id="line-318"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- the cost of unlifting is included in the cost of the builtin regardless of whether</span
+      ><span
+      >
+</span
+      ><span id="line-319"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- there's caching of unlifting or not. Hence the user pays for unlifting anyway and we can</span
+      ><span
+      >
+</span
+      ><span id="line-320"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- prioritize safety over performance here.</span
+      ><span
+      >
+</span
+      ><span id="line-321"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-322"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- 'oneShot' ensures that GHC doesn't attempt to pull stuff out of the builtin</span
+      ><span
+      >
+</span
+      ><span id="line-323"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- implementation to create thunks. This would give us a &quot;call-by-need&quot; behavior, which may</span
+      ><span
+      >
+</span
+      ><span id="line-324"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- sound enticing as it would give us both caching and operationally deferred unlifting, but</span
+      ><span
+      >
+</span
+      ><span id="line-325"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- this comes at a cost of creating unnecessary thunks in the most common case where there's</span
+      ><span
+      >
+</span
+      ><span id="line-326"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- no benefit from having caching as the builtin application is going to be computed only</span
+      ><span
+      >
+</span
+      ><span id="line-327"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- once. So we choose the &quot;call-by-name&quot; behavior and 'oneShot' is what enables that.</span
+      ><span
+      >
+</span
+      ><span id="line-328"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either
+   BuiltinError (FoldArgs args res, FoldArgs args ExBudgetStream)
+ -&gt; BuiltinRuntime val)
+-&gt; Either
+     BuiltinError (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#oneShot"
+	><span class="hs-identifier hs-var"
+	  >oneShot</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall val (args :: [*]) res.
+KnownMonotype val args res =&gt;
+ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toMonoF"
+	><span class="hs-identifier hs-var"
+	  >toMonoF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149169"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149170"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149171"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either
+   BuiltinError (FoldArgs args res, FoldArgs args ExBudgetStream)
+ -&gt; BuiltinRuntime val)
+-&gt; Either
+     BuiltinError (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-329"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682149382"
+      ><span class="annot"
+	><span class="annottext"
+	  >arg -&gt; FoldArgs args res
+</span
+	  ><a href="#local-6989586621682149382"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149383"
+      ><span class="annot"
+	><span class="annottext"
+	  >arg -&gt; FoldArgs args ExBudgetStream
+</span
+	  ><a href="#local-6989586621682149383"
+	  ><span class="hs-identifier hs-var"
+	    >exF</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReadKnownM
+  (FoldArgs (arg : args) res, FoldArgs (arg : args) ExBudgetStream)
+Either
+  BuiltinError
+  (arg -&gt; FoldArgs args res, arg -&gt; FoldArgs args ExBudgetStream)
+</span
+	><a href="#local-6989586621682149378"
+	><span class="hs-identifier hs-var"
+	  >getBoth</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-330"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Force the argument that gets passed to the denotation. This seems to help performance</span
+      ><span
+      >
+</span
+      ><span id="line-331"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- a bit (possibly due to its impact on strictness analysis), plus this way we ensure</span
+      ><span
+      >
+</span
+      ><span id="line-332"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- that if computing the argument throws an exception (isn't supposed to happen), we'll</span
+      ><span
+      >
+</span
+      ><span id="line-333"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- catch it in tests.</span
+      ><span
+      >
+</span
+      ><span id="line-334"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621682149384"
+      ><span class="annot"
+	><span class="annottext"
+	  >arg
+</span
+	  ><a href="#local-6989586621682149384"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>val -&gt; ReadKnownM arg
+forall (uni :: * -&gt; *) val a.
+ReadKnownIn uni val a =&gt;
+val -&gt; ReadKnownM a
+</span
+	><a href="PlutusCore.Builtin.KnownType.html#readKnown"
+	><span class="hs-identifier hs-var"
+	  >readKnown</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>val
+</span
+	><a href="#local-6989586621682149381"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-335"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- See Note [Strict application in runtime denotations].</span
+      ><span
+      >
+</span
+      ><span id="line-336"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621682149386"
+      ><span class="annot"
+	><span class="annottext"
+	  >exY :: FoldArgs args ExBudgetStream
+</span
+	  ><a href="#local-6989586621682149386"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >exY</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>arg -&gt; FoldArgs args ExBudgetStream
+</span
+	><a href="#local-6989586621682149383"
+	><span class="hs-identifier hs-var"
+	  >exF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>arg
+</span
+	><a href="#local-6989586621682149384"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-337"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; Either
+     BuiltinError (FoldArgs args res, FoldArgs args ExBudgetStream)
+forall a. a -&gt; Either BuiltinError a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>arg -&gt; FoldArgs args res
+</span
+	><a href="#local-6989586621682149382"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>arg
+</span
+	><a href="#local-6989586621682149384"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FoldArgs args ExBudgetStream
+</span
+	><a href="#local-6989586621682149386"
+	><span class="hs-identifier hs-var"
+	  >exY</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-338"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#toMonoF"
+	><span class="hs-pragma hs-type"
+	  >toMonoF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-339"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-340"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A class that allows us to derive a polytype for a builtin.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-341"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#KnownMonotype"
+	><span class="hs-identifier hs-type"
+	  >KnownMonotype</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149192"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149193"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149194"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="KnownPolytype"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#KnownPolytype"
+	  ><span class="hs-identifier hs-var"
+	    >KnownPolytype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682149191"
+      ><span class="annot"
+	><a href="#local-6989586621682149191"
+	  ><span class="hs-identifier hs-type"
+	    >binds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.GADT.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Polymorphism.html#TyNameRep"
+	><span class="hs-identifier hs-type"
+	  >TyNameRep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149192"
+      ><span class="annot"
+	><a href="#local-6989586621682149192"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149193"
+      ><span class="annot"
+	><a href="#local-6989586621682149193"
+	  ><span class="hs-identifier hs-type"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149194"
+      ><span class="annot"
+	><a href="#local-6989586621682149194"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-342"
+      ></span
+      ><span
+      >  </span
+      ><span id="knownPolytype"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#knownPolytype"
+	  ><span class="hs-identifier hs-type"
+	    >knownPolytype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html#TypeScheme"
+	><span class="hs-identifier hs-type"
+	  >TypeScheme</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149192"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149193"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149194"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-343"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-344"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >{-| Convert the denotation of a builtin to its runtime counterpart.
+  The argument is in 'ReadKnownM', because that's what we need to do:
+  passing the action returning the builtin application around until full saturation, which is
+  when the action actually gets run. -}</span
+      ><span
+      >
+</span
+      ><span id="line-348"
+      ></span
+      ><span
+      >  </span
+      ><span id="toPolyF"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#toPolyF"
+	  ><span class="hs-identifier hs-type"
+	    >toPolyF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-349"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownType.html#ReadKnownM"
+	><span class="hs-identifier hs-type"
+	  >ReadKnownM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	><span class="hs-identifier hs-type"
+	  >FoldArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149193"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149194"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	><span class="hs-identifier hs-type"
+	  >FoldArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149193"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-350"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149192"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-351"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-352"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Once we've run out of type-level arguments, we start handling term-level ones.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-353"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149199"
+      ><span id="local-6989586621682149200"
+	><span id="local-6989586621682149201"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Builtin.Meaning.html#KnownMonotype"
+	      ><span class="hs-identifier hs-type"
+		>KnownMonotype</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149199"
+	      ><span class="hs-identifier hs-type"
+		>val</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149200"
+	      ><span class="hs-identifier hs-type"
+		>args</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149201"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Builtin.Meaning.html#KnownPolytype"
+	      ><span class="hs-identifier hs-type"
+		>KnownPolytype</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="hs-special"
+	    >]</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149199"
+	      ><span class="hs-identifier hs-type"
+		>val</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149200"
+	      ><span class="hs-identifier hs-type"
+		>args</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682149201"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-354"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149398"
+      ><span class="annot"
+	><span class="annottext"
+	  >knownPolytype :: TypeScheme val args res
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#knownPolytype"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >knownPolytype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res
+forall val (args :: [*]) res.
+KnownMonotype val args res =&gt;
+TypeScheme val args res
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#knownMonotype"
+	><span class="hs-identifier hs-var"
+	  >knownMonotype</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-355"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-356"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149400"
+      ><span class="annot"
+	><span class="annottext"
+	  >toPolyF :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#toPolyF"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toPolyF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall val (args :: [*]) res.
+KnownMonotype val args res =&gt;
+ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toMonoF"
+	><span class="hs-identifier hs-var"
+	  >toMonoF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149199"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149200"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149201"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-357"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#toPolyF"
+	><span class="hs-pragma hs-type"
+	  >toPolyF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-358"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-359"
+      ></span
+      ><span class="hs-comment"
+      >-- Here we unpack an existentially packed @kind@ and constrain it afterwards!</span
+      ><span
+      >
+</span
+      ><span id="line-360"
+      ></span
+      ><span class="hs-comment"
+      >-- So promoted existentials are true sigmas! If we were at the term level, we'd have to pack</span
+      ><span
+      >
+</span
+      ><span id="line-361"
+      ></span
+      ><span class="hs-comment"
+      >-- @kind@ along with the @KnownKind kind@ constraint, otherwise when we unpack the existential,</span
+      ><span
+      >
+</span
+      ><span id="line-362"
+      ></span
+      ><span class="hs-comment"
+      >-- all information is lost and we can't do anything with @kind@.</span
+      ><span
+      >
+</span
+      ><span id="line-363"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Every type-level argument becomes a 'TypeSchemeAll'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-364"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-365"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149213"
+      ><span id="local-6989586621682149214"
+	><span id="local-6989586621682149215"
+	  ><span id="local-6989586621682149216"
+	    ><span id="local-6989586621682149217"
+	      ><span id="local-6989586621682149218"
+		><span id="local-6989586621682149219"
+		  ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeLits.html#KnownSymbol"
+		      ><span class="hs-identifier hs-type"
+			>KnownSymbol</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149213"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#KnownNat"
+		      ><span class="hs-identifier hs-type"
+			>KnownNat</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149214"
+		      ><span class="hs-identifier hs-type"
+			>uniq</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+		      ><span class="hs-identifier hs-type"
+			>KnownKind</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149215"
+		      ><span class="hs-identifier hs-type"
+			>kind</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Meaning.html#KnownPolytype"
+		      ><span class="hs-identifier hs-type"
+			>KnownPolytype</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149216"
+		      ><span class="hs-identifier hs-type"
+			>binds</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149217"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149218"
+		      ><span class="hs-identifier hs-type"
+			>args</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149219"
+		      ><span class="hs-identifier hs-type"
+			>res</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    >
+</span
+		    ><span id="line-366"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Meaning.html#KnownPolytype"
+		      ><span class="hs-identifier hs-type"
+			>KnownPolytype</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.GADT.html#Some"
+		      ><span class="hs-identifier hs-type"
+			>Some</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Polymorphism.html#TyNameRep"
+		      ><span class="hs-identifier hs-type"
+			>TyNameRep</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >@</span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149215"
+		      ><span class="hs-identifier hs-type"
+			>kind</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149213"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149214"
+		      ><span class="hs-identifier hs-type"
+			>uniq</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-glyph"
+		    >:</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149216"
+		      ><span class="hs-identifier hs-type"
+			>binds</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149217"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149218"
+		      ><span class="hs-identifier hs-type"
+			>args</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149219"
+		      ><span class="hs-identifier hs-type"
+			>res</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-367"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-368"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149416"
+      ><span class="annot"
+	><span class="annottext"
+	  >knownPolytype :: TypeScheme val args res
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#knownPolytype"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >knownPolytype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (text :: Symbol) (uniq :: Nat) kind val (args :: [*]) res.
+(KnownSymbol text, KnownNat uniq, KnownKind kind) =&gt;
+Proxy '(text, uniq, kind)
+-&gt; TypeScheme val args res -&gt; TypeScheme val args res
+</span
+	><a href="PlutusCore.Builtin.TypeScheme.html#TypeSchemeAll"
+	><span class="hs-identifier hs-var"
+	  >TypeSchemeAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149213"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149214"
+	><span class="hs-identifier hs-type"
+	  >uniq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149215"
+	><span class="hs-identifier hs-type"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy '(name, uniq, kind)
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeScheme val args res -&gt; TypeScheme val args res)
+-&gt; TypeScheme val args res -&gt; TypeScheme val args res
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (binds :: [Some TyNameRep]) val (args :: [*]) res.
+KnownPolytype binds val args res =&gt;
+TypeScheme val args res
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#knownPolytype"
+	><span class="hs-identifier hs-var"
+	  >knownPolytype</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149216"
+	><span class="hs-identifier hs-type"
+	  >binds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-369"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-370"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149419"
+      ><span class="annot"
+	><span class="annottext"
+	  >toPolyF :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#toPolyF"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toPolyF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinRuntime val -&gt; BuiltinRuntime val
+forall val. BuiltinRuntime val -&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinExpectForce"
+	><span class="hs-identifier hs-var"
+	  >BuiltinExpectForce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinRuntime val -&gt; BuiltinRuntime val)
+-&gt; (ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+    -&gt; BuiltinRuntime val)
+-&gt; ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (binds :: [Some TyNameRep]) val (args :: [*]) res.
+KnownPolytype binds val args res =&gt;
+ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toPolyF"
+	><span class="hs-identifier hs-var"
+	  >toPolyF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149216"
+	><span class="hs-identifier hs-type"
+	  >binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149217"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149218"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149219"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-371"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#toPolyF"
+	><span class="hs-pragma hs-type"
+	  >toPolyF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-372"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-373"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Ensure a built-in function is not nullary and throw a nice error otherwise.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-374"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#ThrowOnBothEmpty"
+	><span class="hs-identifier hs-type"
+	  >ThrowOnBothEmpty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.GADT.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Polymorphism.html#TyNameRep"
+	><span class="hs-identifier hs-type"
+	  >TyNameRep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-375"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="ThrowOnBothEmpty"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#ThrowOnBothEmpty"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnBothEmpty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149421"
+      ><span class="annot"
+	><a href="#local-6989586621682149421"
+	  ><span class="hs-identifier hs-type"
+	    >binds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149422"
+      ><span class="annot"
+	><a href="#local-6989586621682149422"
+	  ><span class="hs-identifier hs-type"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149423"
+      ><span class="annot"
+	><a href="#local-6989586621682149423"
+	  ><span class="hs-identifier hs-type"
+	    >isBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149424"
+      ><span class="annot"
+	><a href="#local-6989586621682149424"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-376"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowOnBothEmpty"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#ThrowOnBothEmpty"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnBothEmpty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149425"
+      ><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	  ><span class="hs-identifier hs-type"
+	    >True</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149425"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-377"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier hs-type"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-378"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;A built-in function must take at least one type or term argument&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-379"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;&#8216;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-380"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#ShowType"
+	><span class="hs-identifier hs-type"
+	  >ShowType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682149425"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-381"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;&#8217; is a built-in type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-382"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot; so you can embed any of its values as a constant&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-383"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;If you still want a built-in function, add a dummy &#8216;()&#8217; argument&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-384"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-385"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowOnBothEmpty"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#ThrowOnBothEmpty"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnBothEmpty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149426"
+      ><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	  ><span class="hs-identifier hs-type"
+	    >False</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149426"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-386"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier hs-type"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-387"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;A built-in function must take at least one type or term argument&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-388"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;To fix this error add a dummy &#8216;()&#8217; argument&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-389"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-390"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowOnBothEmpty"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#ThrowOnBothEmpty"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnBothEmpty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-391"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-392"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A function turned into a type class with exactly one fully general instance.
+We can't package up the constraints of 'makeBuiltinMeaning' (see the instance) into a type or
+class synonym, because they contain a bunch of variables defined by @~@ or determined via
+functional dependencies and neither class nor type definitions can handle that
+(see https://gitlab.haskell.org/ghc/ghc/-/issues/7100). Inlining three lines of constraints
+whenever we need to call 'makeBuiltinMeaning' over a non-concrete type is a bad option and this
+abstraction is free anyway, hence its existence.
+
+The @a@ type variable goes first, because @makeBuiltinMeaning \@A@ is a common pattern. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-401"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="MakeBuiltinMeaning"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#MakeBuiltinMeaning"
+	  ><span class="hs-identifier hs-var"
+	    >MakeBuiltinMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149232"
+      ><span class="annot"
+	><a href="#local-6989586621682149232"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149233"
+      ><span class="annot"
+	><a href="#local-6989586621682149233"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-402"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- See Note [Automatic derivation of type schemes]</span
+      ><span
+      >
+</span
+      ><span id="line-403"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >{-| Construct the meaning for a built-in function by automatically deriving its
+  'TypeScheme', given
+
+  1. the denotation of the builtin
+  2. an uninstantiated costing function -}</span
+      ><span
+      >
+</span
+      ><span id="line-408"
+      ></span
+      ><span
+      >  </span
+      ><span id="makeBuiltinMeaning"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#makeBuiltinMeaning"
+	  ><span class="hs-identifier hs-type"
+	    >makeBuiltinMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-409"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621682149228"
+      ><span class="annot"
+	><a href="#local-6989586621682149232"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-410"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621682149228"
+	  ><span class="hs-identifier hs-type"
+	    >cost</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+	  ><span class="hs-identifier hs-type"
+	    >FoldArgs</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#GetArgs"
+	  ><span class="hs-identifier hs-type"
+	    >GetArgs</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149232"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	  ><span class="hs-identifier hs-type"
+	    >ExBudgetStream</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-411"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinMeaning</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149233"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682149228"
+	  ><span class="hs-identifier hs-type"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-412"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-413"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-414"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149243"
+      ><span id="local-6989586621682149244"
+	><span id="local-6989586621682149245"
+	  ><span id="local-6989586621682149246"
+	    ><span id="local-6989586621682149247"
+	      ><span id="local-6989586621682149248"
+		><span id="local-6989586621682149249"
+		  ><span class="hs-special"
+		    >(</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149243"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		      ><span class="hs-operator hs-type"
+			>~</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Core.Type.html#UniOf"
+		      ><span class="hs-identifier hs-type"
+			>UniOf</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149244"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-415"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149245"
+		      ><span class="hs-identifier hs-type"
+			>binds</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		      ><span class="hs-operator hs-type"
+			>~</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.KnownTypeAst.html#ToBinds"
+		      ><span class="hs-identifier hs-type"
+			>ToBinds</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149243"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-special"
+		    >[</span
+		    ><span class="hs-special"
+		    >]</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149246"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-416"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149247"
+		      ><span class="hs-identifier hs-type"
+			>args</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		      ><span class="hs-operator hs-type"
+			>~</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Meaning.html#GetArgs"
+		      ><span class="hs-identifier hs-type"
+			>GetArgs</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149246"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-417"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149246"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		      ><span class="hs-operator hs-type"
+			>~</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Meaning.html#FoldArgs"
+		      ><span class="hs-identifier hs-type"
+			>FoldArgs</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149247"
+		      ><span class="hs-identifier hs-type"
+			>args</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149248"
+		      ><span class="hs-identifier hs-type"
+			>res</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-418"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Meaning.html#ThrowOnBothEmpty"
+		      ><span class="hs-identifier hs-type"
+			>ThrowOnBothEmpty</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149245"
+		      ><span class="hs-identifier hs-type"
+			>binds</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149247"
+		      ><span class="hs-identifier hs-type"
+			>args</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin"
+		      ><span class="hs-identifier hs-type"
+			>IsBuiltin</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149243"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149246"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149246"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-419"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Elaborate.html#ElaborateFromTo"
+		      ><span class="hs-identifier hs-type"
+			>ElaborateFromTo</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149243"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><span class="hs-number"
+		      >0</span
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149249"
+		      ><span class="hs-identifier hs-type"
+			>j</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149244"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149246"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-420"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Meaning.html#KnownPolytype"
+		      ><span class="hs-identifier hs-type"
+			>KnownPolytype</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149245"
+		      ><span class="hs-identifier hs-type"
+			>binds</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149244"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149247"
+		      ><span class="hs-identifier hs-type"
+			>args</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149248"
+		      ><span class="hs-identifier hs-type"
+			>res</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-421"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    >
+</span
+		    ><span id="line-422"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Meaning.html#MakeBuiltinMeaning"
+		      ><span class="hs-identifier hs-type"
+			>MakeBuiltinMeaning</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149246"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682149244"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-423"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-424"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682149445"
+      ><span class="annot"
+	><span class="annottext"
+	  >makeBuiltinMeaning :: forall cost.
+a
+-&gt; (cost -&gt; FoldArgs (GetArgs a) ExBudgetStream)
+-&gt; BuiltinMeaning val cost
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#makeBuiltinMeaning"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >makeBuiltinMeaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149446"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682149446"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149447"
+      ><span class="annot"
+	><span class="annottext"
+	  >cost -&gt; FoldArgs (GetArgs a) ExBudgetStream
+</span
+	  ><a href="#local-6989586621682149447"
+	  ><span class="hs-identifier hs-var"
+	    >toExF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-425"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res
+-&gt; FoldArgs args res
+-&gt; (cost -&gt; BuiltinRuntime val)
+-&gt; BuiltinMeaning val cost
+forall val cost (args :: [*]) res.
+TypeScheme val args res
+-&gt; FoldArgs args res
+-&gt; (cost -&gt; BuiltinRuntime val)
+-&gt; BuiltinMeaning val cost
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	><span class="hs-identifier hs-var"
+	  >BuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (binds :: [Some TyNameRep]) val (args :: [*]) res.
+KnownPolytype binds val args res =&gt;
+TypeScheme val args res
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#knownPolytype"
+	><span class="hs-identifier hs-var"
+	  >knownPolytype</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149245"
+	><span class="hs-identifier hs-type"
+	  >binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149244"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149247"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149248"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+FoldArgs args res
+</span
+	><a href="#local-6989586621682149446"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((cost -&gt; BuiltinRuntime val) -&gt; BuiltinMeaning val cost)
+-&gt; (cost -&gt; BuiltinRuntime val) -&gt; BuiltinMeaning val cost
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682149448"
+      ><span class="annot"
+	><span class="annottext"
+	  >cost
+</span
+	  ><a href="#local-6989586621682149448"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-426"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- In order to make the 'BuiltinRuntime' of a builtin cacheable we need to tell GHC to</span
+      ><span
+      >
+</span
+      ><span id="line-427"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- create a thunk for it, which we achieve by applying 'lazy' to the 'BuiltinRuntime'</span
+      ><span
+      >
+</span
+      ><span id="line-428"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- here.</span
+      ><span
+      >
+</span
+      ><span id="line-429"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-430"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Those thunks however require a lot of care to be properly shared rather than</span
+      ><span
+      >
+</span
+      ><span id="line-431"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- recreated every time a builtin application is evaluated, see 'toBuiltinsRuntime' for</span
+      ><span
+      >
+</span
+      ><span id="line-432"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- how we sort it out.</span
+      ><span
+      >
+</span
+      ><span id="line-433"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinRuntime val -&gt; BuiltinRuntime val
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#lazy"
+	><span class="hs-identifier hs-var"
+	  >lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinRuntime val -&gt; BuiltinRuntime val)
+-&gt; BuiltinRuntime val -&gt; BuiltinRuntime val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cost -&gt; FoldArgs (GetArgs a) ExBudgetStream
+</span
+	><a href="#local-6989586621682149447"
+	><span class="hs-identifier hs-var"
+	  >toExF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cost
+</span
+	><a href="#local-6989586621682149448"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-434"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- See Note [Optimizations of runCostingFun*] for why we use strict @case@.</span
+      ><span
+      >
+</span
+      ><span id="line-435"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621682149449"
+      ><span class="annot"
+	><span class="annottext"
+	  >FoldArgs (GetArgs a) ExBudgetStream
+</span
+	  ><a href="#local-6989586621682149449"
+	  ><span class="hs-identifier hs-var"
+	    >exF</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (binds :: [Some TyNameRep]) val (args :: [*]) res.
+KnownPolytype binds val args res =&gt;
+ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toPolyF"
+	><span class="hs-identifier hs-var"
+	  >toPolyF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149245"
+	><span class="hs-identifier hs-type"
+	  >binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149244"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149247"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682149248"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+ -&gt; BuiltinRuntime val)
+-&gt; ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+-&gt; BuiltinRuntime val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a, FoldArgs args ExBudgetStream)
+-&gt; Either BuiltinError (a, FoldArgs args ExBudgetStream)
+forall a. a -&gt; Either BuiltinError a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682149446"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FoldArgs args ExBudgetStream
+FoldArgs (GetArgs a) ExBudgetStream
+</span
+	><a href="#local-6989586621682149449"
+	><span class="hs-identifier hs-var"
+	  >exF</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-436"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#makeBuiltinMeaning"
+	><span class="hs-pragma hs-type"
+	  >makeBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-437"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-438"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given a cost model.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-439"
+      ></span
+      ><span id="local-6989586621682149255"
+      ><span id="local-6989586621682149256"
+	><span class="annot"
+	  ><a href="PlutusCore.Builtin.Meaning.html#toBuiltinRuntime"
+	    ><span class="hs-identifier hs-type"
+	      >toBuiltinRuntime</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149255"
+	    ><span class="hs-identifier hs-type"
+	      >cost</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinMeaning</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149256"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149255"
+	    ><span class="hs-identifier hs-type"
+	      >cost</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinRuntime</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682149256"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-440"
+      ></span
+      ><span id="toBuiltinRuntime"
+      ><span class="annot"
+	><span class="annottext"
+	  >toBuiltinRuntime :: forall cost val.
+cost -&gt; BuiltinMeaning val cost -&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#toBuiltinRuntime"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toBuiltinRuntime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149451"
+      ><span class="annot"
+	><span class="annottext"
+	  >cost
+</span
+	  ><a href="#local-6989586621682149451"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FoldArgs args res
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149452"
+      ><span class="annot"
+	><span class="annottext"
+	  >cost -&gt; BuiltinRuntime val
+</span
+	  ><a href="#local-6989586621682149452"
+	  ><span class="hs-identifier hs-var"
+	    >denot</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cost -&gt; BuiltinRuntime val
+</span
+	><a href="#local-6989586621682149452"
+	><span class="hs-identifier hs-var"
+	  >denot</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cost
+</span
+	><a href="#local-6989586621682149451"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-441"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#toBuiltinRuntime"
+	><span class="hs-pragma hs-type"
+	  >toBuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-442"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-443"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Inlining meanings of builtins].</span
+      ><span
+      >
+</span
+      ><span id="line-444"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Calculate runtime info for all built-in functions given meanings of builtins (as a constraint),
+the semantics variant of the set of builtins and a cost model. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-446"
+      ></span
+      ><span id="local-6989586621682149261"
+      ><span id="local-6989586621682149262"
+	><span id="local-6989586621682149263"
+	  ><span id="local-6989586621682149264"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Meaning.html#toBuiltinsRuntime"
+		><span class="hs-identifier hs-type"
+		  >toBuiltinsRuntime</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-447"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149261"
+		><span class="hs-identifier hs-type"
+		  >cost</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		><span class="hs-operator hs-type"
+		  >~</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Meaning.html#CostingPart"
+		><span class="hs-identifier hs-type"
+		  >CostingPart</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149262"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149263"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		><span class="hs-identifier hs-type"
+		  >ToBuiltinMeaning</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149262"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149263"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Meaning.html#HasMeaningIn"
+		><span class="hs-identifier hs-type"
+		  >HasMeaningIn</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149262"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149264"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-448"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+		><span class="hs-identifier hs-type"
+		  >BuiltinSemanticsVariant</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149263"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-449"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149261"
+		><span class="hs-identifier hs-type"
+		  >cost</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-450"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+		><span class="hs-identifier hs-type"
+		  >BuiltinsRuntime</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149263"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682149264"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-451"
+      ></span
+      ><span id="toBuiltinsRuntime"
+      ><span class="annot"
+	><span class="annottext"
+	  >toBuiltinsRuntime :: forall cost (uni :: * -&gt; *) fun val.
+(cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun,
+ HasMeaningIn uni val) =&gt;
+BuiltinSemanticsVariant fun -&gt; cost -&gt; BuiltinsRuntime fun val
+</span
+	  ><a href="PlutusCore.Builtin.Meaning.html#toBuiltinsRuntime"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toBuiltinsRuntime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149472"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621682149472"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682149473"
+      ><span class="annot"
+	><span class="annottext"
+	  >cost
+</span
+	  ><a href="#local-6989586621682149473"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-452"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- A call to 'lazy' is to make sure that the returned 'BuiltinsRuntime' is properly cached in a</span
+      ><span
+      >
+</span
+      ><span id="line-453"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- 'let'-binding. This makes it easier for GHC to optimize the internals of builtins, because</span
+      ><span
+      >
+</span
+      ><span id="line-454"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- without a 'let'-binding GHC would sometimes refuse to cooperate and push 'toBuiltinRuntime'</span
+      ><span
+      >
+</span
+      ><span id="line-455"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- to the inside of the inlined 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's</span
+      ><span
+      >
+</span
+      ><span id="line-456"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a lambda</span
+      ><span
+      >
+</span
+      ><span id="line-457"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- binding the @cost@ variable, which makes the optimizations useless.</span
+      ><span
+      >
+</span
+      ><span id="line-458"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- By using 'lazy' we tell GHC to create a separate thunk, which it can properly optimize,</span
+      ><span
+      >
+</span
+      ><span id="line-459"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- because the other bazillion things don't get in the way. We used to use an explicit</span
+      ><span
+      >
+</span
+      ><span id="line-460"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- 'let'-binding marked with @OPAQUE@, but that turned out to be unreliable, because GHC</span
+      ><span
+      >
+</span
+      ><span id="line-461"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- feels free to turn it into a join point instead of a proper thunk.</span
+      ><span
+      >
+</span
+      ><span id="line-462"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsRuntime fun val -&gt; BuiltinsRuntime fun val
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#lazy"
+	><span class="hs-identifier hs-var"
+	  >lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinsRuntime fun val -&gt; BuiltinsRuntime fun val)
+-&gt; ((fun -&gt; BuiltinRuntime val) -&gt; BuiltinsRuntime fun val)
+-&gt; (fun -&gt; BuiltinRuntime val)
+-&gt; BuiltinsRuntime fun val
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(fun -&gt; BuiltinRuntime val) -&gt; BuiltinsRuntime fun val
+forall fun val.
+(fun -&gt; BuiltinRuntime val) -&gt; BuiltinsRuntime fun val
+</span
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	><span class="hs-identifier hs-var"
+	  >BuiltinsRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((fun -&gt; BuiltinRuntime val) -&gt; BuiltinsRuntime fun val)
+-&gt; (fun -&gt; BuiltinRuntime val) -&gt; BuiltinsRuntime fun val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cost -&gt; BuiltinMeaning val cost -&gt; BuiltinRuntime val
+forall cost val.
+cost -&gt; BuiltinMeaning val cost -&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toBuiltinRuntime"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cost
+</span
+	><a href="#local-6989586621682149473"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinMeaning val cost -&gt; BuiltinRuntime val)
+-&gt; (fun -&gt; BuiltinMeaning val cost) -&gt; fun -&gt; BuiltinRuntime val
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinSemanticsVariant fun -&gt; fun -&gt; BuiltinMeaning val cost)
+-&gt; BuiltinSemanticsVariant fun -&gt; fun -&gt; BuiltinMeaning val cost
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#inline"
+	><span class="hs-identifier hs-var"
+	  >inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun -&gt; fun -&gt; BuiltinMeaning val cost
+BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart uni fun)
+forall val.
+HasMeaningIn uni val =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart uni fun)
+forall (uni :: * -&gt; *) fun val.
+(ToBuiltinMeaning uni fun, HasMeaningIn uni val) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart uni fun)
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toBuiltinMeaning"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621682149472"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-463"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#toBuiltinsRuntime"
+	><span class="hs-pragma hs-type"
+	  >toBuiltinsRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-464"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

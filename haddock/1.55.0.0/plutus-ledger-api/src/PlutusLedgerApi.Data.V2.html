@@ -1,0 +1,4074 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The interface to Plutus V2 for the ledger.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Data.V2</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Scripts</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier"
+	  >Common.SerialisedScript</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#ScriptForEvaluation"
+	><span class="hs-identifier"
+	  >Common.ScriptForEvaluation</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#serialisedScript"
+	><span class="hs-identifier"
+	  >Common.serialisedScript</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#deserialisedScript"
+	><span class="hs-identifier"
+	  >Common.deserialisedScript</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#serialiseCompiledCode"
+	><span class="hs-identifier"
+	  >Common.serialiseCompiledCode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC"
+	><span class="hs-identifier"
+	  >Common.serialiseUPLC</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V2.html#deserialiseScript"
+	><span class="hs-identifier"
+	  >deserialiseScript</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#uncheckedDeserialiseUPLC"
+	><span class="hs-identifier"
+	  >Common.uncheckedDeserialiseUPLC</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Running scripts</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V2.html#evaluateScriptRestricting"
+	><span class="hs-identifier"
+	  >evaluateScriptRestricting</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V2.html#evaluateScriptCounting"
+	><span class="hs-identifier"
+	  >evaluateScriptCounting</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ** Protocol version</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier"
+	  >Common.MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ** Verbose mode and log output</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#VerboseMode"
+	><span class="hs-identifier"
+	  >Common.VerboseMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#LogOutput"
+	><span class="hs-identifier"
+	  >Common.LogOutput</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Costing-related types</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier"
+	  >Common.ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier"
+	  >V1.ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier"
+	  >V1.ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html#SatInt"
+	><span class="hs-identifier"
+	  >V1.SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html#unSatInt"
+	><span class="hs-identifier"
+	  >unSatInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier"
+	  >V1.fromSatInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ** Cost model</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#EvaluationContext"
+	><span class="hs-identifier"
+	  >Common.EvaluationContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.EvaluationContext.html#mkEvaluationContext"
+	><span class="hs-identifier"
+	  >EvaluationContext.mkEvaluationContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.ParamName.html#ParamName"
+	><span class="hs-identifier"
+	  >ParamName.ParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	><span class="hs-identifier"
+	  >Common.CostModelApplyError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	><span class="hs-identifier"
+	  >Common.CostModelParams</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#assertWellFormedCostModelParams"
+	><span class="hs-identifier"
+	  >Common.assertWellFormedCostModelParams</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Context types</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#ScriptContext"
+	><span class="hs-identifier"
+	  >Contexts.ScriptContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#ScriptContext"
+	><span class="hs-identifier"
+	  >Contexts.ScriptContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#scriptContextTxInfo"
+	><span class="hs-identifier"
+	  >Contexts.scriptContextTxInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#scriptContextPurpose"
+	><span class="hs-identifier"
+	  >Contexts.scriptContextPurpose</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Contexts.html#ScriptPurpose"
+	><span class="hs-identifier"
+	  >Contexts.ScriptPurpose</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Contexts.html#Minting"
+	><span class="hs-identifier"
+	  >Contexts.Minting</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Contexts.html#Spending"
+	><span class="hs-identifier"
+	  >Contexts.Spending</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Contexts.html#Rewarding"
+	><span class="hs-identifier"
+	  >Contexts.Rewarding</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Contexts.html#Certifying"
+	><span class="hs-identifier"
+	  >Contexts.Certifying</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ** Supporting types used in the context types</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Builtins</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	><span class="hs-identifier"
+	  >Common.BuiltinByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.HasBuiltin.html#toBuiltin"
+	><span class="hs-identifier"
+	  >Common.toBuiltin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.HasBuiltin.html#fromBuiltin"
+	><span class="hs-identifier"
+	  >Common.fromBuiltin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.HasOpaque.html#toOpaque"
+	><span class="hs-identifier"
+	  >Common.toOpaque</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.HasOpaque.html#fromOpaque"
+	><span class="hs-identifier"
+	  >Common.fromOpaque</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Bytes</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Bytes.html#LedgerBytes"
+	><span class="hs-identifier"
+	  >V1.LedgerBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Bytes.html#fromBytes"
+	><span class="hs-identifier"
+	  >V1.fromBytes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Certificates</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCert"
+	><span class="hs-identifier"
+	  >V1.DCert</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCertDelegRegKey"
+	><span class="hs-identifier"
+	  >V1.DCertDelegRegKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCertDelegDeRegKey"
+	><span class="hs-identifier"
+	  >V1.DCertDelegDeRegKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCertDelegDelegate"
+	><span class="hs-identifier"
+	  >V1.DCertDelegDelegate</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCertPoolRegister"
+	><span class="hs-identifier"
+	  >V1.DCertPoolRegister</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCertPoolRetire"
+	><span class="hs-identifier"
+	  >V1.DCertPoolRetire</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCertGenesis"
+	><span class="hs-identifier"
+	  >V1.DCertGenesis</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.DCert.html#DCertMir"
+	><span class="hs-identifier"
+	  >V1.DCertMir</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Credentials</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#StakingCredential"
+	><span class="hs-identifier"
+	  >V1.StakingCredential</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#StakingHash"
+	><span class="hs-identifier"
+	  >V1.StakingHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#StakingPtr"
+	><span class="hs-identifier"
+	  >V1.StakingPtr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#Credential"
+	><span class="hs-identifier"
+	  >V1.Credential</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#PubKeyCredential"
+	><span class="hs-identifier"
+	  >V1.PubKeyCredential</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Credential.html#ScriptCredential"
+	><span class="hs-identifier"
+	  >V1.ScriptCredential</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#Value"
+	><span class="hs-identifier"
+	  >V1.Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#CurrencySymbol"
+	><span class="hs-identifier"
+	  >V1.CurrencySymbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#TokenName"
+	><span class="hs-identifier"
+	  >V1.TokenName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#singleton"
+	><span class="hs-identifier"
+	  >V1.singleton</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#unionWith"
+	><span class="hs-identifier"
+	  >V1.unionWith</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#adaSymbol"
+	><span class="hs-identifier"
+	  >V1.adaSymbol</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#adaToken"
+	><span class="hs-identifier"
+	  >V1.adaToken</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Value.html#Lovelace"
+	><span class="hs-identifier"
+	  >V1.Lovelace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Time</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier"
+	  >V1.POSIXTime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier"
+	  >V1.POSIXTimeRange</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Types for representing transactions</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier"
+	  >V1.Address</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#Address"
+	><span class="hs-identifier"
+	  >V1.Address</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#addressCredential"
+	><span class="hs-identifier"
+	  >V1.addressCredential</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Address.html#addressStakingCredential"
+	><span class="hs-identifier"
+	  >V1.addressStakingCredential</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier"
+	  >V1.PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Tx.html#TxId"
+	><span class="hs-identifier"
+	  >Tx.TxId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#TxInfo"
+	><span class="hs-identifier"
+	  >Contexts.TxInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#TxInfo"
+	><span class="hs-identifier"
+	  >Contexts.TxInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoInputs"
+	><span class="hs-identifier"
+	  >Contexts.txInfoInputs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoReferenceInputs"
+	><span class="hs-identifier"
+	  >Contexts.txInfoReferenceInputs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoOutputs"
+	><span class="hs-identifier"
+	  >Contexts.txInfoOutputs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoFee"
+	><span class="hs-identifier"
+	  >Contexts.txInfoFee</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoMint"
+	><span class="hs-identifier"
+	  >Contexts.txInfoMint</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoDCert"
+	><span class="hs-identifier"
+	  >Contexts.txInfoDCert</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoWdrl"
+	><span class="hs-identifier"
+	  >Contexts.txInfoWdrl</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoValidRange"
+	><span class="hs-identifier"
+	  >Contexts.txInfoValidRange</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoSignatories"
+	><span class="hs-identifier"
+	  >Contexts.txInfoSignatories</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoRedeemers"
+	><span class="hs-identifier"
+	  >Contexts.txInfoRedeemers</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoData"
+	><span class="hs-identifier"
+	  >Contexts.txInfoData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInfoId"
+	><span class="hs-identifier"
+	  >Contexts.txInfoId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#TxOut"
+	><span class="hs-identifier"
+	  >Tx.TxOut</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#TxOut"
+	><span class="hs-identifier"
+	  >Tx.TxOut</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#txOutAddress"
+	><span class="hs-identifier"
+	  >Tx.txOutAddress</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#txOutValue"
+	><span class="hs-identifier"
+	  >Tx.txOutValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#txOutDatum"
+	><span class="hs-identifier"
+	  >Tx.txOutDatum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#txOutReferenceScript"
+	><span class="hs-identifier"
+	  >Tx.txOutReferenceScript</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Tx.html#TxOutRef"
+	><span class="hs-identifier"
+	  >Tx.TxOutRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Tx.html#TxOutRef"
+	><span class="hs-identifier"
+	  >Tx.TxOutRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Tx.html#txOutRefId"
+	><span class="hs-identifier"
+	  >Tx.txOutRefId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Tx.html#txOutRefIdx"
+	><span class="hs-identifier"
+	  >Tx.txOutRefIdx</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#TxInInfo"
+	><span class="hs-identifier"
+	  >Contexts.TxInInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#TxInInfo"
+	><span class="hs-identifier"
+	  >Contexts.TxInInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInInfoOutRef"
+	><span class="hs-identifier"
+	  >Contexts.txInInfoOutRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html#txInInfoResolved"
+	><span class="hs-identifier"
+	  >Contexts.txInInfoResolved</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#OutputDatum"
+	><span class="hs-identifier"
+	  >Tx.OutputDatum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#NoOutputDatum"
+	><span class="hs-identifier"
+	  >Tx.NoOutputDatum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#OutputDatum"
+	><span class="hs-identifier"
+	  >Tx.OutputDatum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html#OutputDatumHash"
+	><span class="hs-identifier"
+	  >Tx.OutputDatumHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Intervals</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#Interval"
+	><span class="hs-identifier"
+	  >V1.Interval</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#Interval"
+	><span class="hs-identifier"
+	  >V1.Interval</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#ivFrom"
+	><span class="hs-identifier"
+	  >V1.ivFrom</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#ivTo"
+	><span class="hs-identifier"
+	  >V1.ivTo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#Extended"
+	><span class="hs-identifier"
+	  >V1.Extended</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#NegInf"
+	><span class="hs-identifier"
+	  >V1.NegInf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#PosInf"
+	><span class="hs-identifier"
+	  >V1.PosInf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#Finite"
+	><span class="hs-identifier"
+	  >V1.Finite</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#Closure"
+	><span class="hs-identifier"
+	  >V1.Closure</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#UpperBound"
+	><span class="hs-identifier"
+	  >V1.UpperBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#UpperBound"
+	><span class="hs-identifier"
+	  >V1.UpperBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#LowerBound"
+	><span class="hs-identifier"
+	  >V1.LowerBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#LowerBound"
+	><span class="hs-identifier"
+	  >V1.LowerBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#always"
+	><span class="hs-identifier"
+	  >V1.always</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#from"
+	><span class="hs-identifier"
+	  >V1.from</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#to"
+	><span class="hs-identifier"
+	  >V1.to</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#lowerBound"
+	><span class="hs-identifier"
+	  >V1.lowerBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#upperBound"
+	><span class="hs-identifier"
+	  >V1.upperBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#strictLowerBound"
+	><span class="hs-identifier"
+	  >V1.strictLowerBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#strictUpperBound"
+	><span class="hs-identifier"
+	  >V1.strictUpperBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Association maps</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#Map"
+	><span class="hs-identifier"
+	  >Map</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#unsafeFromDataList"
+	><span class="hs-identifier"
+	  >unsafeFromDataList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#unsafeFromBuiltinList"
+	><span class="hs-identifier"
+	  >unsafeFromBuiltinList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#unsafeFromSOPList"
+	><span class="hs-identifier"
+	  >unsafeFromSOPList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#safeFromSOPList"
+	><span class="hs-identifier"
+	  >safeFromSOPList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#toSOPList"
+	><span class="hs-identifier"
+	  >toSOPList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#toBuiltinList"
+	><span class="hs-identifier"
+	  >toBuiltinList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- *** Newtypes and hash types</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier"
+	  >V1.ScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier"
+	  >V1.Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#RedeemerHash"
+	><span class="hs-identifier"
+	  >V1.RedeemerHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier"
+	  >V1.Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#DatumHash"
+	><span class="hs-identifier"
+	  >V1.DatumHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Data</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	><span class="hs-identifier"
+	  >Common.Data</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier"
+	  >Common.BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	><span class="hs-identifier"
+	  >Common.ToData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	><span class="hs-identifier"
+	  >Common.FromData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	><span class="hs-identifier"
+	  >Common.UnsafeFromData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#toData"
+	><span class="hs-identifier"
+	  >Common.toData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#fromData"
+	><span class="hs-identifier"
+	  >Common.fromData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#unsafeFromData"
+	><span class="hs-identifier"
+	  >Common.unsafeFromData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#dataToBuiltinData"
+	><span class="hs-identifier"
+	  >Common.dataToBuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#builtinDataToData"
+	><span class="hs-identifier"
+	  >Common.builtinDataToData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Errors</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	><span class="hs-identifier"
+	  >Common.MonadError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#EvaluationError"
+	><span class="hs-identifier"
+	  >Common.EvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#ScriptDecodeError"
+	><span class="hs-identifier"
+	  >Common.ScriptDecodeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Common</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V1.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Data.V1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>V1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Contexts.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V2.Data.Contexts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Contexts</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.Data.Tx.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V2.Data.Tx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.EvaluationContext.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V2.EvaluationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>EvaluationContext</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V2.ParamName.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V2.ParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ParamName</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Data.AssocMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#Map"
+	><span class="hs-identifier"
+	  >Map</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#safeFromSOPList"
+	><span class="hs-identifier"
+	  >safeFromSOPList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#toBuiltinList"
+	><span class="hs-identifier"
+	  >toBuiltinList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#toSOPList"
+	><span class="hs-identifier"
+	  >toSOPList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >                               </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#unsafeFromBuiltinList"
+	><span class="hs-identifier"
+	  >unsafeFromBuiltinList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#unsafeFromDataList"
+	><span class="hs-identifier"
+	  >unsafeFromDataList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Data.AssocMap.html#unsafeFromSOPList"
+	><span class="hs-identifier"
+	  >unsafeFromSOPList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| An alias to the Plutus ledger language this module exposes at runtime.
+ MAYBE: Use CPP '__FILE__' + some TH to automate this.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V2.html#thisLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >thisLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >Common.PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span id="thisLedgerLanguage"
+      ><span class="annot"
+	><span class="annottext"
+	  >thisLedgerLanguage :: PlutusLedgerLanguage
+</span
+	  ><a href="PlutusLedgerApi.Data.V2.html#thisLedgerLanguage"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >thisLedgerLanguage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >Common.PlutusV2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
+ready to be evaluated on-chain.
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V2.html#deserialiseScript"
+	><span class="hs-identifier hs-type"
+	  >deserialiseScript</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681246187"
+      ><span class="annot"
+	><a href="#local-6989586621681246187"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	><span class="hs-identifier hs-type"
+	  >Common.MonadError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#ScriptDecodeError"
+	><span class="hs-identifier hs-type"
+	  >Common.ScriptDecodeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681246187"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >Common.MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ which major protocol version the script was submitted in.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript"
+	><span class="hs-identifier hs-type"
+	  >Common.SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ the script to deserialise.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681246187"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#ScriptForEvaluation"
+	><span class="hs-identifier hs-type"
+	  >Common.ScriptForEvaluation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span id="deserialiseScript"
+      ><span class="annot"
+	><span class="annottext"
+	  >deserialiseScript :: forall (m :: * -&gt; *).
+MonadError ScriptDecodeError m =&gt;
+MajorProtocolVersion -&gt; SerialisedScript -&gt; m ScriptForEvaluation
+</span
+	  ><a href="PlutusLedgerApi.Data.V2.html#deserialiseScript"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >deserialiseScript</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; SerialisedScript
+-&gt; m ScriptForEvaluation
+forall (m :: * -&gt; *).
+MonadError ScriptDecodeError m =&gt;
+PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; SerialisedScript
+-&gt; m ScriptForEvaluation
+</span
+	><a href="PlutusLedgerApi.Common.SerialisedScript.html#deserialiseScript"
+	><span class="hs-identifier hs-var"
+	  >Common.deserialiseScript</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Data.V2.html#thisLedgerLanguage"
+	><span class="hs-identifier hs-var"
+	  >thisLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Evaluates a script, returning the minimum budget that the script would need
+to evaluate successfully. This will take as long as the script takes, if you need to
+limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
+also returns the used budget.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V2.html#evaluateScriptCounting"
+	><span class="hs-identifier hs-type"
+	  >evaluateScriptCounting</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >Common.MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Which major protocol version to run the operation in</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#VerboseMode"
+	><span class="hs-identifier hs-type"
+	  >Common.VerboseMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Whether to produce log output</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#EvaluationContext"
+	><span class="hs-identifier hs-type"
+	  >Common.EvaluationContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Includes the cost model to use for tallying up the execution costs</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#ScriptForEvaluation"
+	><span class="hs-identifier hs-type"
+	  >Common.ScriptForEvaluation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The script to evaluate</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	><span class="hs-identifier hs-type"
+	  >Common.Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The arguments to the script</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#LogOutput"
+	><span class="hs-identifier hs-type"
+	  >Common.LogOutput</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#EvaluationError"
+	><span class="hs-identifier hs-type"
+	  >Common.EvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >Common.ExBudget</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span id="evaluateScriptCounting"
+      ><span class="annot"
+	><span class="annottext"
+	  >evaluateScriptCounting :: MajorProtocolVersion
+-&gt; VerboseMode
+-&gt; EvaluationContext
+-&gt; ScriptForEvaluation
+-&gt; [Data]
+-&gt; (LogOutput, Either EvaluationError ExBudget)
+</span
+	  ><a href="PlutusLedgerApi.Data.V2.html#evaluateScriptCounting"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evaluateScriptCounting</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; VerboseMode
+-&gt; EvaluationContext
+-&gt; ScriptForEvaluation
+-&gt; [Data]
+-&gt; (LogOutput, Either EvaluationError ExBudget)
+</span
+	><a href="PlutusLedgerApi.Common.Eval.html#evaluateScriptCounting"
+	><span class="hs-identifier hs-var"
+	  >Common.evaluateScriptCounting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Data.V2.html#thisLedgerLanguage"
+	><span class="hs-identifier hs-var"
+	  >thisLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Evaluates a script, with a cost model and a budget that restricts how many
+resources it can use according to the cost model. Also returns the budget that
+was actually used.
+
+Can be used to calculate budgets for scripts, but even in this case you must give
+a limit to guard against scripts that run for a long time or loop.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Data.V2.html#evaluateScriptRestricting"
+	><span class="hs-identifier hs-type"
+	  >evaluateScriptRestricting</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >Common.MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Which major protocol version to run the operation in</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#VerboseMode"
+	><span class="hs-identifier hs-type"
+	  >Common.VerboseMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Whether to produce log output</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#EvaluationContext"
+	><span class="hs-identifier hs-type"
+	  >Common.EvaluationContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Includes the cost model to use for tallying up the execution costs</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >Common.ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The resource budget which must not be exceeded during evaluation</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#ScriptForEvaluation"
+	><span class="hs-identifier hs-type"
+	  >Common.ScriptForEvaluation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The script to evaluate</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Data.html#Data"
+	><span class="hs-identifier hs-type"
+	  >Common.Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The arguments to the script</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#LogOutput"
+	><span class="hs-identifier hs-type"
+	  >Common.LogOutput</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Eval.html#EvaluationError"
+	><span class="hs-identifier hs-type"
+	  >Common.EvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >Common.ExBudget</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-263"
+      ></span
+      ><span id="evaluateScriptRestricting"
+      ><span class="annot"
+	><span class="annottext"
+	  >evaluateScriptRestricting :: MajorProtocolVersion
+-&gt; VerboseMode
+-&gt; EvaluationContext
+-&gt; ExBudget
+-&gt; ScriptForEvaluation
+-&gt; [Data]
+-&gt; (LogOutput, Either EvaluationError ExBudget)
+</span
+	  ><a href="PlutusLedgerApi.Data.V2.html#evaluateScriptRestricting"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evaluateScriptRestricting</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; VerboseMode
+-&gt; EvaluationContext
+-&gt; ExBudget
+-&gt; ScriptForEvaluation
+-&gt; [Data]
+-&gt; (LogOutput, Either EvaluationError ExBudget)
+</span
+	><a href="PlutusLedgerApi.Common.Eval.html#evaluateScriptRestricting"
+	><span class="hs-identifier hs-var"
+	  >Common.evaluateScriptRestricting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Data.V2.html#thisLedgerLanguage"
+	><span class="hs-identifier hs-var"
+	  >thisLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-264"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

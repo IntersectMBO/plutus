@@ -1,0 +1,4036 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#noEmitter"
+	><span class="hs-identifier"
+	  >noEmitter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logEmitter"
+	><span class="hs-identifier"
+	  >logEmitter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithTimeEmitter"
+	><span class="hs-identifier"
+	  >logWithTimeEmitter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithBudgetEmitter"
+	><span class="hs-identifier"
+	  >logWithBudgetEmitter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithCallTraceEmitter"
+	><span class="hs-identifier"
+	  >logWithCallTraceEmitter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.ST.Unsafe.html"
+	><span class="hs-identifier"
+	  >Control.Monad.ST.Unsafe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#unsafeIOToST"
+	><span class="hs-identifier"
+	  >unsafeIOToST</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Builder.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Builder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BSL</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Csv</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>CSV</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Csv.Builder</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>CSV</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.html"
+	><span class="hs-identifier"
+	  >Data.DList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>DList</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Fixed.html"
+	><span class="hs-identifier"
+	  >Data.Fixed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html"
+	><span class="hs-identifier"
+	  >Data.Functor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html"
+	><span class="hs-identifier"
+	  >Data.SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.STRef.html"
+	><span class="hs-identifier"
+	  >Data.STRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.STRef.html#modifySTRef"
+	><span class="hs-identifier"
+	  >modifySTRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#newSTRef"
+	><span class="hs-identifier"
+	  >newSTRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#readSTRef"
+	><span class="hs-identifier"
+	  >readSTRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Encoding.html"
+	><span class="hs-identifier"
+	  >Data.Text.Encoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/time-1.12.2/docs/src/Data.Time.Clock.html"
+	><span class="hs-identifier"
+	  >Data.Time.Clock</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/time-1.12.2/docs/src/Data.Time.Clock.POSIX.html"
+	><span class="hs-identifier"
+	  >Data.Time.Clock.POSIX</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExMemory</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | No emitter.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="local-6989586621682041238"
+      ><span id="local-6989586621682041239"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#noEmitter"
+	    ><span class="hs-identifier hs-type"
+	      >noEmitter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	    ><span class="hs-identifier hs-type"
+	      >EmitterMode</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041238"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041239"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="noEmitter"
+      ><span class="annot"
+	><span class="annottext"
+	  >noEmitter :: forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#noEmitter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >noEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall (uni :: * -&gt; *) fun.
+(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	><span class="hs-identifier hs-var"
+	  >EmitterMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+ -&gt; EmitterMode uni fun)
+-&gt; (forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s ExBudget
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a. a -&gt; ST s a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+forall (uni :: * -&gt; *) fun s.
+CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekEmitterInfo"
+	><span class="hs-identifier hs-var"
+	  >CekEmitterInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; CekM uni fun s ()
+forall a. a -&gt; CekM uni fun s a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; ST s [Text]
+forall a. a -&gt; ST s a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Emits log only.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span id="local-6989586621682041361"
+      ><span id="local-6989586621682041362"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logEmitter"
+	    ><span class="hs-identifier hs-type"
+	      >logEmitter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	    ><span class="hs-identifier hs-type"
+	      >EmitterMode</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041361"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041362"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="logEmitter"
+      ><span class="annot"
+	><span class="annottext"
+	  >logEmitter :: forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logEmitter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >logEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall (uni :: * -&gt; *) fun.
+(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	><span class="hs-identifier hs-var"
+	  >EmitterMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+ -&gt; EmitterMode uni fun)
+-&gt; (forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s ExBudget
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682041368"
+      ><span class="annot"
+	><span class="annottext"
+	  >STRef s (DList Text)
+</span
+	  ><a href="#local-6989586621682041368"
+	  ><span class="hs-identifier hs-var"
+	    >logsRef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; ST s (STRef s (DList Text))
+forall a s. a -&gt; ST s (STRef s a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#newSTRef"
+	><span class="hs-identifier hs-var"
+	  >newSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+forall a. DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >DList.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041370"
+      ><span class="annot"
+	><span class="annottext"
+	  >emitter :: DList Text -&gt; CekM uni fun s ()
+</span
+	  ><a href="#local-6989586621682041370"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041371"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621682041371"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s () -&gt; CekM uni fun s ()
+forall (uni :: * -&gt; *) fun s a. ST s a -&gt; CekM uni fun s a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekM"
+	><span class="hs-identifier hs-var"
+	  >CekM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ST s () -&gt; CekM uni fun s ()) -&gt; ST s () -&gt; CekM uni fun s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; (DList Text -&gt; DList Text) -&gt; ST s ()
+forall s a. STRef s a -&gt; (a -&gt; a) -&gt; ST s ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.STRef.html#modifySTRef"
+	><span class="hs-identifier hs-var"
+	  >modifySTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041368"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; DList Text -&gt; DList Text
+forall a. DList a -&gt; DList a -&gt; DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#append"
+	><span class="hs-operator hs-var"
+	  >`DList.append`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041371"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a. a -&gt; ST s a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+forall (uni :: * -&gt; *) fun s.
+CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekEmitterInfo"
+	><span class="hs-identifier hs-var"
+	  >CekEmitterInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s
+forall {uni :: * -&gt; *} {fun}. DList Text -&gt; CekM uni fun s ()
+</span
+	><a href="#local-6989586621682041370"
+	><span class="hs-identifier hs-var"
+	  >emitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; [Text]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >DList.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DList Text -&gt; [Text]) -&gt; ST s (DList Text) -&gt; ST s [Text]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; ST s (DList Text)
+forall s a. STRef s a -&gt; ST s a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#readSTRef"
+	><span class="hs-identifier hs-var"
+	  >readSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041368"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-comment"
+      >-- A wrapper around encoding a record. `cassava` insists on including a trailing newline, which is</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- annoying since we're recording the output line-by-line.</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621682041292"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#encodeRecord"
+	  ><span class="hs-identifier hs-type"
+	    >encodeRecord</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >CSV.ToRecord</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682041292"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682041292"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >T.Text</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="encodeRecord"
+      ><span class="annot"
+	><span class="annottext"
+	  >encodeRecord :: forall a. ToRecord a =&gt; a -&gt; Text
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#encodeRecord"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encodeRecord</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041379"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682041379"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#stripEnd"
+	><span class="hs-identifier hs-var"
+	  >T.stripEnd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Text) -&gt; Text -&gt; Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Encoding.html#decodeUtf8"
+	><span class="hs-identifier hs-var"
+	  >T.decodeUtf8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Text) -&gt; ByteString -&gt; Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Internal.html#toStrict"
+	><span class="hs-identifier hs-var"
+	  >BSL.toStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; ByteString) -&gt; ByteString -&gt; ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Builder -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Builder.html#toLazyByteString"
+	><span class="hs-identifier hs-var"
+	  >BS.toLazyByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Builder -&gt; ByteString) -&gt; Builder -&gt; ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Builder
+forall a. ToRecord a =&gt; a -&gt; Builder
+</span
+	><span class="hs-identifier hs-var"
+	>CSV.encodeRecord</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682041379"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Emits log with timestamp.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="local-6989586621682041385"
+      ><span id="local-6989586621682041386"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithTimeEmitter"
+	    ><span class="hs-identifier hs-type"
+	      >logWithTimeEmitter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	    ><span class="hs-identifier hs-type"
+	      >EmitterMode</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041385"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041386"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="logWithTimeEmitter"
+      ><span class="annot"
+	><span class="annottext"
+	  >logWithTimeEmitter :: forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithTimeEmitter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >logWithTimeEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall (uni :: * -&gt; *) fun.
+(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	><span class="hs-identifier hs-var"
+	  >EmitterMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+ -&gt; EmitterMode uni fun)
+-&gt; (forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s ExBudget
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682041392"
+      ><span class="annot"
+	><span class="annottext"
+	  >STRef s (DList Text)
+</span
+	  ><a href="#local-6989586621682041392"
+	  ><span class="hs-identifier hs-var"
+	    >logsRef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; ST s (STRef s (DList Text))
+forall a s. a -&gt; ST s (STRef s a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#newSTRef"
+	><span class="hs-identifier hs-var"
+	  >newSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+forall a. DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >DList.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041395"
+      ><span class="annot"
+	><span class="annottext"
+	  >emitter :: DList a -&gt; CekM uni fun s ()
+</span
+	  ><a href="#local-6989586621682041395"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041396"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList a
+</span
+	  ><a href="#local-6989586621682041396"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s () -&gt; CekM uni fun s ()
+forall (uni :: * -&gt; *) fun s a. ST s a -&gt; CekM uni fun s a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekM"
+	><span class="hs-identifier hs-var"
+	  >CekM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ST s () -&gt; CekM uni fun s ()) -&gt; ST s () -&gt; CekM uni fun s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621682041397"
+      ><span class="annot"
+	><span class="annottext"
+	  >UTCTime
+</span
+	  ><a href="#local-6989586621682041397"
+	  ><span class="hs-identifier hs-var"
+	    >time</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO UTCTime -&gt; ST s UTCTime
+forall a s. IO a -&gt; ST s a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#unsafeIOToST"
+	><span class="hs-identifier hs-var"
+	  >unsafeIOToST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO UTCTime
+</span
+	><a href="https://hackage.haskell.org/package/time-1.12.2/docs/src/Data.Time.Clock.POSIX.html#getCurrentTime"
+	><span class="hs-identifier hs-var"
+	  >getCurrentTime</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041399"
+      ><span class="annot"
+	><span class="annottext"
+	  >secs :: Integer
+</span
+	  ><a href="#local-6989586621682041399"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >secs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Fixed.html#MkFixed"
+	><span class="hs-identifier hs-type"
+	  >MkFixed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041401"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621682041401"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NominalDiffTime -&gt; Fixed E12
+</span
+	><a href="https://hackage.haskell.org/package/time-1.12.2/docs/src/Data.Time.Clock.Internal.NominalDiffTime.html#nominalDiffTimeToSeconds"
+	><span class="hs-identifier hs-var"
+	  >nominalDiffTimeToSeconds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NominalDiffTime -&gt; Fixed E12) -&gt; NominalDiffTime -&gt; Fixed E12
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UTCTime -&gt; NominalDiffTime
+</span
+	><a href="https://hackage.haskell.org/package/time-1.12.2/docs/src/Data.Time.Clock.POSIX.html#utcTimeToPOSIXSeconds"
+	><span class="hs-identifier hs-var"
+	  >utcTimeToPOSIXSeconds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UTCTime
+</span
+	><a href="#local-6989586621682041397"
+	><span class="hs-identifier hs-var"
+	  >time</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621682041401"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041411"
+      ><span class="annot"
+	><span class="annottext"
+	  >withTime :: DList Text
+</span
+	  ><a href="#local-6989586621682041411"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withTime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList a
+</span
+	><a href="#local-6989586621682041396"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList a -&gt; (a -&gt; Text) -&gt; DList Text
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%26%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&amp;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682041413"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682041413"
+	  ><span class="hs-identifier hs-var"
+	    >str</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a, Integer) -&gt; Text
+forall a. ToRecord a =&gt; a -&gt; Text
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#encodeRecord"
+	><span class="hs-identifier hs-var"
+	  >encodeRecord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682041413"
+	><span class="hs-identifier hs-var"
+	  >str</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621682041399"
+	><span class="hs-identifier hs-var"
+	  >secs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; (DList Text -&gt; DList Text) -&gt; ST s ()
+forall s a. STRef s a -&gt; (a -&gt; a) -&gt; ST s ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.STRef.html#modifySTRef"
+	><span class="hs-identifier hs-var"
+	  >modifySTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041392"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; DList Text -&gt; DList Text
+forall a. DList a -&gt; DList a -&gt; DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#append"
+	><span class="hs-operator hs-var"
+	  >`DList.append`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041411"
+	><span class="hs-identifier hs-var"
+	  >withTime</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a. a -&gt; ST s a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+forall (uni :: * -&gt; *) fun s.
+CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekEmitterInfo"
+	><span class="hs-identifier hs-var"
+	  >CekEmitterInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s
+forall {a} {uni :: * -&gt; *} {fun}.
+ToField a =&gt;
+DList a -&gt; CekM uni fun s ()
+</span
+	><a href="#local-6989586621682041395"
+	><span class="hs-identifier hs-var"
+	  >emitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; [Text]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >DList.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DList Text -&gt; [Text]) -&gt; ST s (DList Text) -&gt; ST s [Text]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; ST s (DList Text)
+forall s a. STRef s a -&gt; ST s a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#readSTRef"
+	><span class="hs-identifier hs-var"
+	  >readSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041392"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>CSV.ToField</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier hs-type"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682041419"
+      ><span class="annot"
+	><span class="annottext"
+	  >toField :: ExCPU -&gt; ByteString
+</span
+	  ><a href="#local-6989586621682041419"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toField</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier hs-type"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041422"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621682041422"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; ByteString
+forall a. ToField a =&gt; a -&gt; ByteString
+</span
+	><span class="hs-identifier hs-var"
+	>CSV.toField</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; ByteString) -&gt; Int -&gt; ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unSatInt"
+	><span class="hs-identifier hs-var"
+	  >unSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621682041422"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>CSV.ToField</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier hs-type"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682041427"
+      ><span class="annot"
+	><span class="annottext"
+	  >toField :: ExMemory -&gt; ByteString
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >toField</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier hs-type"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041429"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621682041429"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; ByteString
+forall a. ToField a =&gt; a -&gt; ByteString
+</span
+	><span class="hs-identifier hs-var"
+	>CSV.toField</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; ByteString) -&gt; Int -&gt; ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unSatInt"
+	><span class="hs-identifier hs-var"
+	  >unSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621682041429"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Emits log with the budget.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="local-6989586621682041430"
+      ><span id="local-6989586621682041431"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithBudgetEmitter"
+	    ><span class="hs-identifier hs-type"
+	      >logWithBudgetEmitter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	    ><span class="hs-identifier hs-type"
+	      >EmitterMode</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041430"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041431"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="logWithBudgetEmitter"
+      ><span class="annot"
+	><span class="annottext"
+	  >logWithBudgetEmitter :: forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithBudgetEmitter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >logWithBudgetEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall (uni :: * -&gt; *) fun.
+(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	><span class="hs-identifier hs-var"
+	  >EmitterMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+ -&gt; EmitterMode uni fun)
+-&gt; (forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682041436"
+      ><span class="annot"
+	><span class="annottext"
+	  >ST s ExBudget
+</span
+	  ><a href="#local-6989586621682041436"
+	  ><span class="hs-identifier hs-var"
+	    >getBudget</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682041437"
+      ><span class="annot"
+	><span class="annottext"
+	  >STRef s (DList Text)
+</span
+	  ><a href="#local-6989586621682041437"
+	  ><span class="hs-identifier hs-var"
+	    >logsRef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; ST s (STRef s (DList Text))
+forall a s. a -&gt; ST s (STRef s a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#newSTRef"
+	><span class="hs-identifier hs-var"
+	  >newSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+forall a. DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >DList.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041440"
+      ><span class="annot"
+	><span class="annottext"
+	  >emitter :: DList a -&gt; CekM uni fun s ()
+</span
+	  ><a href="#local-6989586621682041440"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041441"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList a
+</span
+	  ><a href="#local-6989586621682041441"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s () -&gt; CekM uni fun s ()
+forall (uni :: * -&gt; *) fun s a. ST s a -&gt; CekM uni fun s a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekM"
+	><span class="hs-identifier hs-var"
+	  >CekM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ST s () -&gt; CekM uni fun s ()) -&gt; ST s () -&gt; CekM uni fun s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041443"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExCPU
+</span
+	  ><a href="#local-6989586621682041443"
+	  ><span class="hs-identifier hs-var"
+	    >exCpu</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041444"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExMemory
+</span
+	  ><a href="#local-6989586621682041444"
+	  ><span class="hs-identifier hs-var"
+	    >exMemory</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s ExBudget
+</span
+	><a href="#local-6989586621682041436"
+	><span class="hs-identifier hs-var"
+	  >getBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041451"
+      ><span class="annot"
+	><span class="annottext"
+	  >withBudget :: DList Text
+</span
+	  ><a href="#local-6989586621682041451"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withBudget</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList a
+</span
+	><a href="#local-6989586621682041441"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList a -&gt; (a -&gt; Text) -&gt; DList Text
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%26%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&amp;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682041452"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682041452"
+	  ><span class="hs-identifier hs-var"
+	    >str</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a, ExCPU, ExMemory) -&gt; Text
+forall a. ToRecord a =&gt; a -&gt; Text
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#encodeRecord"
+	><span class="hs-identifier hs-var"
+	  >encodeRecord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682041452"
+	><span class="hs-identifier hs-var"
+	  >str</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU
+</span
+	><a href="#local-6989586621682041443"
+	><span class="hs-identifier hs-var"
+	  >exCpu</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory
+</span
+	><a href="#local-6989586621682041444"
+	><span class="hs-identifier hs-var"
+	  >exMemory</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; (DList Text -&gt; DList Text) -&gt; ST s ()
+forall s a. STRef s a -&gt; (a -&gt; a) -&gt; ST s ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.STRef.html#modifySTRef"
+	><span class="hs-identifier hs-var"
+	  >modifySTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041437"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; DList Text -&gt; DList Text
+forall a. DList a -&gt; DList a -&gt; DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#append"
+	><span class="hs-operator hs-var"
+	  >`DList.append`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041451"
+	><span class="hs-identifier hs-var"
+	  >withBudget</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a. a -&gt; ST s a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+forall (uni :: * -&gt; *) fun s.
+CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekEmitterInfo"
+	><span class="hs-identifier hs-var"
+	  >CekEmitterInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s
+forall {a} {uni :: * -&gt; *} {fun}.
+ToField a =&gt;
+DList a -&gt; CekM uni fun s ()
+</span
+	><a href="#local-6989586621682041440"
+	><span class="hs-identifier hs-var"
+	  >emitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; [Text]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >DList.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DList Text -&gt; [Text]) -&gt; ST s (DList Text) -&gt; ST s [Text]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; ST s (DList Text)
+forall s a. STRef s a -&gt; ST s a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#readSTRef"
+	><span class="hs-identifier hs-var"
+	  >readSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041437"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Emits log and, when script evaluation fails, call trace.
+
+This requires script to be compiled with `PlutusTx.Plugin:profile-all` turned on because this relies
+on compiler-generated trace calls that notifies entrance and exit of a function call. These traces
+that mark entrance and exit are ordinary traces like &quot;-&gt; rob:Example.hs:3:1-3:15&quot; and &quot;&lt;-
+bob:Example.hs:1:1-1:13&quot; with &quot;-&gt;&quot; and &quot;&lt;-&quot; prefixies, where &quot;bob&quot; and &quot;rob&quot; is the name
+of the function with source span. If regular script with no entrance/exit marker is given, this
+emitter will behave identically to 'logEmitter'.
+
+When script evaluation fails, this emitter will give call trace of the functions that led to the
+evaluation failure.  This is useful for pin-pointing specific area of the codebase that caused
+failure when debugging a script. When script evaluation passes, every trace message generated by
+`profile-all` flag will be removed, and this emitter will behave identically to 'logEmitter'.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="local-6989586621682041453"
+      ><span id="local-6989586621682041454"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithCallTraceEmitter"
+	    ><span class="hs-identifier hs-type"
+	      >logWithCallTraceEmitter</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	    ><span class="hs-identifier hs-type"
+	      >EmitterMode</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041453"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682041454"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="logWithCallTraceEmitter"
+      ><span class="annot"
+	><span class="annottext"
+	  >logWithCallTraceEmitter :: forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logWithCallTraceEmitter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >logWithCallTraceEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall (uni :: * -&gt; *) fun.
+(forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#EmitterMode"
+	><span class="hs-identifier hs-var"
+	  >EmitterMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+ -&gt; EmitterMode uni fun)
+-&gt; (forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; EmitterMode uni fun
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s ExBudget
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682041458"
+      ><span class="annot"
+	><span class="annottext"
+	  >STRef s (DList Text)
+</span
+	  ><a href="#local-6989586621682041458"
+	  ><span class="hs-identifier hs-var"
+	    >logsRef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; ST s (STRef s (DList Text))
+forall a s. a -&gt; ST s (STRef s a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#newSTRef"
+	><span class="hs-identifier hs-var"
+	  >newSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+forall a. DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >DList.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682041459"
+      ><span class="annot"
+	><span class="annottext"
+	  >addTrace :: DList Text -&gt; DList Text -&gt; DList Text
+</span
+	  ><a href="#local-6989586621682041459"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#Nil"
+	><span class="hs-identifier hs-var"
+	  >DList.Nil</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041461"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621682041461"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041461"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621682041459"
+	><span class="hs-identifier hs-var"
+	  >addTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041462"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621682041462"
+	  ><span class="hs-identifier hs-var"
+	    >newLogs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#Nil"
+	><span class="hs-identifier hs-var"
+	  >DList.Nil</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041462"
+	><span class="hs-identifier hs-var"
+	  >newLogs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621682041459"
+	><span class="hs-identifier hs-var"
+	  >addTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041463"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621682041463"
+	  ><span class="hs-identifier hs-var"
+	    >newLogs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041464"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621682041464"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; DList Text
+forall a. [a] -&gt; DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >DList.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Text] -&gt; DList Text) -&gt; [Text] -&gt; DList Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; [Text] -&gt; [Text]
+</span
+	><a href="#local-6989586621682041466"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; [Text]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >DList.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041463"
+	><span class="hs-identifier hs-var"
+	  >newLogs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; [Text]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >DList.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041464"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621682041466"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: [Text] -&gt; [Text] -&gt; [Text]
+</span
+	  ><a href="#local-6989586621682041466"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041481"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621682041481"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041481"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621682041466"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041482"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621682041482"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041482"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621682041466"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682041483"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621682041483"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041484"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621682041484"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621682041485"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621682041485"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- See Note [Profiling Marker]</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; [Text]
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#words"
+	><span class="hs-identifier hs-var"
+	  >T.words</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; Text
+forall a. HasCallStack =&gt; [a] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#last"
+	><span class="hs-identifier hs-var"
+	  >last</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041485"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; [Text]
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#words"
+	><span class="hs-identifier hs-var"
+	  >T.words</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621682041483"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;-&gt;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041488"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621682041488"
+	  ><span class="hs-identifier hs-var"
+	    >enterRest</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;&lt;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041489"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621682041489"
+	  ><span class="hs-identifier hs-var"
+	    >exitRest</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041488"
+	><span class="hs-identifier hs-var"
+	  >enterRest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; [Text] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041489"
+	><span class="hs-identifier hs-var"
+	  >exitRest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; [Text] -&gt; [Text]
+</span
+	><a href="#local-6989586621682041466"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041484"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; [Text]
+forall a. HasCallStack =&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#init"
+	><span class="hs-identifier hs-var"
+	  >init</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041485"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Text], [Text])
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                                                           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; [Text] -&gt; [Text]
+</span
+	><a href="#local-6989586621682041466"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041484"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621682041485"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; [Text] -&gt; [Text]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621682041483"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682041491"
+      ><span class="annot"
+	><span class="annottext"
+	  >emitter :: DList Text -&gt; CekM uni fun s ()
+</span
+	  ><a href="#local-6989586621682041491"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682041492"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621682041492"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s () -&gt; CekM uni fun s ()
+forall (uni :: * -&gt; *) fun s a. ST s a -&gt; CekM uni fun s a
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekM"
+	><span class="hs-identifier hs-var"
+	  >CekM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ST s () -&gt; CekM uni fun s ()) -&gt; ST s () -&gt; CekM uni fun s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; (DList Text -&gt; DList Text) -&gt; ST s ()
+forall s a. STRef s a -&gt; (a -&gt; a) -&gt; ST s ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.STRef.html#modifySTRef"
+	><span class="hs-identifier hs-var"
+	  >modifySTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041458"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; DList Text -&gt; DList Text
+</span
+	><a href="#local-6989586621682041459"
+	><span class="hs-identifier hs-var"
+	  >addTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621682041492"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a. a -&gt; ST s a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s))
+-&gt; CekEmitterInfo uni fun s -&gt; ST s (CekEmitterInfo uni fun s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+forall (uni :: * -&gt; *) fun s.
+CekEmitter uni fun s -&gt; ST s [Text] -&gt; CekEmitterInfo uni fun s
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekEmitterInfo"
+	><span class="hs-identifier hs-var"
+	  >CekEmitterInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEmitter uni fun s
+forall {uni :: * -&gt; *} {fun}. DList Text -&gt; CekM uni fun s ()
+</span
+	><a href="#local-6989586621682041491"
+	><span class="hs-identifier hs-var"
+	  >emitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; [Text]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >DList.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DList Text -&gt; [Text]) -&gt; ST s (DList Text) -&gt; ST s [Text]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text) -&gt; ST s (DList Text)
+forall s a. STRef s a -&gt; ST s a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.STRef.html#readSTRef"
+	><span class="hs-identifier hs-var"
+	  >readSTRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STRef s (DList Text)
+</span
+	><a href="#local-6989586621682041458"
+	><span class="hs-identifier hs-var"
+	  >logsRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

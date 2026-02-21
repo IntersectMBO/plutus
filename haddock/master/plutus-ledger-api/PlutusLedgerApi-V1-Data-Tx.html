@@ -1,0 +1,4342 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.V1.Data.Tx</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.58.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.V1.Data.Tx.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.V1.Data.Tx</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Transactions</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Transaction outputs</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:TxId"
+	      >TxId</a
+	      > = <a href="#v:TxId"
+	      >TxId</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:getTxId"
+		  >getTxId</a
+		  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+		  >BuiltinByteString</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptTag"
+	      >ScriptTag</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Spend"
+		  >Spend</a
+		  ></li
+		><li
+		>| <a href="#v:Mint"
+		  >Mint</a
+		  ></li
+		><li
+		>| <a href="#v:Cert"
+		  >Cert</a
+		  ></li
+		><li
+		>| <a href="#v:Reward"
+		  >Reward</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:RedeemerPtr"
+	      >RedeemerPtr</a
+	      > = <a href="#v:RedeemerPtr"
+	      >RedeemerPtr</a
+	      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+	      >ScriptTag</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Redeemers"
+	      >Redeemers</a
+	      > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+	      >RedeemerPtr</a
+	      > <a href="PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	      >Redeemer</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TxOut"
+	      >TxOut</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:TxOut"
+	      >TxOut</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Address.html#t:Address" title="PlutusLedgerApi.V1.Data.Address"
+	      >Address</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	      >Value</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	      >DatumHash</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutAddress"
+	      >txOutAddress</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Data-Address.html#t:Address" title="PlutusLedgerApi.V1.Data.Address"
+	      >Address</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutValue"
+	      >txOutValue</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	      >Value</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutDatumHash"
+	      >txOutDatumHash</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	      >DatumHash</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TxOutRef"
+	      >TxOutRef</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:TxOutRef"
+	      >TxOutRef</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxId</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOutRef</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutRefId"
+	      >txOutRefId</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOutRef</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutRefIdx"
+	      >txOutRefIdx</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOutRef</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isPubKeyOut"
+	      >isPubKeyOut</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isPayToScriptOut"
+	      >isPayToScriptOut</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:outAddress"
+	      >outAddress</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > <a href="PlutusLedgerApi-V1-Data-Address.html#t:Address" title="PlutusLedgerApi.V1.Data.Address"
+	      >Address</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:outValue"
+	      >outValue</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	      >Value</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutPubKey"
+	      >txOutPubKey</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	      >PubKeyHash</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutDatum"
+	      >txOutDatum</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	      >DatumHash</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pubKeyHashTxOut"
+	      >pubKeyHashTxOut</a
+	      > &#8759; <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	      >Value</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	      >PubKeyHash</a
+	      > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	      >TxOut</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >Transactions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:TxId" class="def"
+	    >TxId</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#TxId" class="link"
+	    >Source</a
+	    > <a href="#t:TxId" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A transaction ID, i.e. the hash of a transaction. Hashed with BLAKE2b-256. 32 byte.</p
+	    ><p
+	    >This is a simple type without any validation, <strong
+	      >use with caution</strong
+	      >.
+You may want to add checks for its invariants. See the
+ <a href="https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf"
+	      >Shelley ledger specification</a
+	      >. -- editorconfig-checker-disable-file </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TxId" class="def"
+		  >TxId</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:getTxId" class="def"
+			  >getTxId</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+			  >BuiltinByteString</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TxId"
+	    >Instances</h4
+	    ><details id="i:TxId" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:IsString:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:IsString" title="Data.String"
+		      >IsString</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >from hex encoding</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:IsString:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromString"
+			  >fromString</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromString" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Generic:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Generic:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > x &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-74" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >using hex encoding</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:NFData:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:NFData:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Eq:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Eq:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Ord:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Ord:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Eq:7"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Eq-Class.html#t:Eq" title="PlutusTx.Eq.Class"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-70" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Eq:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:FromData:8"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+		      >FromData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:FromData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:ToData:9"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+		      >ToData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:ToData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:UnsafeFromData:10"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:UnsafeFromData" title="PlutusLedgerApi.Common"
+		      >UnsafeFromData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:UnsafeFromData:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Ord:11"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-70" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Ord:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Pretty:12"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >using hex encoding</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Pretty:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Lift:13"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-81" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Lift:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Typeable:14"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-81" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Typeable:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxId</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxId:Rep:15"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxId</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:TxId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxId:Rep:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+			>TxId</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;TxId&quot; &quot;PlutusLedgerApi.V1.Data.Tx&quot; &quot;plutus-ledger-api-1.58.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TxId&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;getTxId&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+			>BuiltinByteString</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptTag" class="def"
+	    >ScriptTag</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#ScriptTag" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptTag" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A tag indicating the type of script that we are pointing to.</p
+	    ><p
+	    >See also <code
+	      ><a href="PlutusLedgerApi-V1.html#v:ScriptPurpose" title="PlutusLedgerApi.V1"
+		>ScriptPurpose</a
+		></code
+	      > </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Spend" class="def"
+		  >Spend</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Mint" class="def"
+		  >Mint</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Cert" class="def"
+		  >Cert</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Reward" class="def"
+		  >Reward</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptTag"
+	    >Instances</h4
+	    ><details id="i:ScriptTag" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptTag:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		      >ScriptTag</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-88" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptTag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptTag:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > x &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptTag:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		      >ScriptTag</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-88" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptTag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptTag:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptTag:NFData:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		      >ScriptTag</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptTag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptTag:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptTag:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		      >ScriptTag</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-88" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptTag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptTag:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptTag:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		      >ScriptTag</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-88" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptTag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptTag:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			  >ScriptTag</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptTag:Rep:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		      >ScriptTag</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-88" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptTag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptTag:Rep:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			>ScriptTag</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ScriptTag&quot; &quot;PlutusLedgerApi.V1.Data.Tx&quot; &quot;plutus-ledger-api-1.58.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Spend&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Mint&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Cert&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Reward&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:RedeemerPtr" class="def"
+	    >RedeemerPtr</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#RedeemerPtr" class="link"
+	    >Source</a
+	    > <a href="#t:RedeemerPtr" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A redeemer pointer is a pair of a script type tag (<code
+	      ><a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		>ScriptTag</a
+		></code
+	      >) <code
+	      >t</code
+	      > and an index <code
+	      >i</code
+	      >,
+picking out the i-th script of type <code
+	      >t</code
+	      > in the transaction. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:RedeemerPtr" class="def"
+		  >RedeemerPtr</a
+		  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+		  >ScriptTag</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:RedeemerPtr"
+	    >Instances</h4
+	    ><details id="i:RedeemerPtr" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RedeemerPtr:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+		      >RedeemerPtr</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:RedeemerPtr" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RedeemerPtr:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > x &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RedeemerPtr:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+		      >RedeemerPtr</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:RedeemerPtr" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RedeemerPtr:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RedeemerPtr:NFData:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+		      >RedeemerPtr</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:RedeemerPtr" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RedeemerPtr:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RedeemerPtr:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+		      >RedeemerPtr</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:RedeemerPtr" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RedeemerPtr:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RedeemerPtr:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+		      >RedeemerPtr</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:RedeemerPtr" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RedeemerPtr:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			  >RedeemerPtr</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RedeemerPtr:Rep:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+		      >RedeemerPtr</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:RedeemerPtr" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RedeemerPtr:Rep:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+			>RedeemerPtr</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;RedeemerPtr&quot; &quot;PlutusLedgerApi.V1.Data.Tx&quot; &quot;plutus-ledger-api-1.58.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;RedeemerPtr&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-V1-Data-Tx.html#t:ScriptTag" title="PlutusLedgerApi.V1.Data.Tx"
+			>ScriptTag</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Redeemers" class="def"
+	    >Redeemers</a
+	    > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+	    >RedeemerPtr</a
+	    > <a href="PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	    >Redeemer</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#Redeemers" class="link"
+	    >Source</a
+	    > <a href="#t:Redeemers" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Redeemers is a <code
+	      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+		>Map</a
+		></code
+	      > of redeemer pointer (<code
+	      ><a href="PlutusLedgerApi-V1-Data-Tx.html#t:RedeemerPtr" title="PlutusLedgerApi.V1.Data.Tx"
+		>RedeemerPtr</a
+		></code
+	      >) and its <code
+	      ><a href="PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+		>Redeemer</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Transaction outputs</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TxOut" class="def"
+	    >TxOut</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#TxOut" class="link"
+	    >Source</a
+	    > <a href="#t:TxOut" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A transaction output, consisting of a target address (<code
+	      ><a href="PlutusLedgerApi-V1-Data-Address.html#t:Address" title="PlutusLedgerApi.V1.Data.Address"
+		>Address</a
+		></code
+	      >), a value (<code
+	      ><a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		>Value</a
+		></code
+	      >),
+and optionally a datum hash (<code
+	      ><a href="PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+		>DatumHash</a
+		></code
+	      >). </p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TxOut"
+	    >Instances</h4
+	    ><details id="i:TxOut" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > x &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Eq:4"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Eq-Class.html#t:Eq" title="PlutusTx.Eq.Class"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-139" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:FromData:5"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+		      >FromData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:FromData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:ToData:6"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+		      >ToData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:ToData:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:UnsafeFromData:7"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:UnsafeFromData" title="PlutusLedgerApi.Common"
+		      >UnsafeFromData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:UnsafeFromData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Pretty:8"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-135" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Pretty:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Lift:9"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-178" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Lift:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Typeable:10"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-178" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Typeable:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOut</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOut:Rep:11"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOut</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:TxOut" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOut:Rep:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+			>TxOut</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;TxOut&quot; &quot;PlutusLedgerApi.V1.Data.Tx&quot; &quot;plutus-ledger-api-1.58.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TxOut_6989586621680120860&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			>BuiltinData</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TxOut" class="def"
+	    >TxOut</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Address.html#t:Address" title="PlutusLedgerApi.V1.Data.Address"
+	    >Address</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	    >Value</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	    >DatumHash</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#TxOut" class="link"
+	    >Source</a
+	    > <a href="#v:TxOut" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutAddress" class="def"
+	    >txOutAddress</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Data-Address.html#t:Address" title="PlutusLedgerApi.V1.Data.Address"
+	    >Address</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#txOutAddress" class="link"
+	    >Source</a
+	    > <a href="#v:txOutAddress" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutValue" class="def"
+	    >txOutValue</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	    >Value</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#txOutValue" class="link"
+	    >Source</a
+	    > <a href="#v:txOutValue" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutDatumHash" class="def"
+	    >txOutDatumHash</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	    >DatumHash</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#txOutDatumHash" class="link"
+	    >Source</a
+	    > <a href="#v:txOutDatumHash" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TxOutRef" class="def"
+	    >TxOutRef</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#TxOutRef" class="link"
+	    >Source</a
+	    > <a href="#t:TxOutRef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A reference to a transaction output. This is a
+pair of a transaction ID (<code
+	      ><a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+		>TxId</a
+		></code
+	      >), and an index indicating which of the outputs
+of that transaction we are referring to. </p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TxOutRef"
+	    >Instances</h4
+	    ><details id="i:TxOutRef" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > x &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:NFData:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Eq:6"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Eq-Class.html#t:Eq" title="PlutusTx.Eq.Class"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-120" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:FromData:7"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+		      >FromData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:FromData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:ToData:8"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+		      >ToData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:ToData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:UnsafeFromData:9"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common.html#t:UnsafeFromData" title="PlutusLedgerApi.Common"
+		      >UnsafeFromData</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:UnsafeFromData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Pretty:10"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-117" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Pretty:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Lift:11"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-180" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Lift:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Typeable:12"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-180" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Typeable:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			  >TxOutRef</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutRef:Rep:13"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+		      >TxOutRef</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutRef" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutRef:Rep:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-Data-Tx.html"
+			>PlutusLedgerApi.V1.Data.Tx</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+			>TxOutRef</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;TxOutRef&quot; &quot;PlutusLedgerApi.V1.Data.Tx&quot; &quot;plutus-ledger-api-1.58.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TxOutRef_6989586621680120168&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			>BuiltinData</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:TxOutRef" class="def"
+	    >TxOutRef</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxId</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOutRef</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#TxOutRef" class="link"
+	    >Source</a
+	    > <a href="#v:TxOutRef" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutRefId" class="def"
+	    >txOutRefId</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOutRef</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxId" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxId</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#txOutRefId" class="link"
+	    >Source</a
+	    > <a href="#v:txOutRefId" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutRefIdx" class="def"
+	    >txOutRefIdx</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOutRef</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#txOutRefIdx" class="link"
+	    >Source</a
+	    > <a href="#v:txOutRefIdx" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isPubKeyOut" class="def"
+	    >isPubKeyOut</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#isPubKeyOut" class="link"
+	    >Source</a
+	    > <a href="#v:isPubKeyOut" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Whether the output is a pay-to-pubkey output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isPayToScriptOut" class="def"
+	    >isPayToScriptOut</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#isPayToScriptOut" class="link"
+	    >Source</a
+	    > <a href="#v:isPayToScriptOut" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Whether the output is a pay-to-script output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:outAddress" class="def"
+	    >outAddress</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > <a href="PlutusLedgerApi-V1-Data-Address.html#t:Address" title="PlutusLedgerApi.V1.Data.Address"
+	    >Address</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#outAddress" class="link"
+	    >Source</a
+	    > <a href="#v:outAddress" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The address of a transaction output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:outValue" class="def"
+	    >outValue</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	    >Value</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#outValue" class="link"
+	    >Source</a
+	    > <a href="#v:outValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The value of a transaction output.
+| TODO: Compute address again </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutPubKey" class="def"
+	    >txOutPubKey</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	    >PubKeyHash</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#txOutPubKey" class="link"
+	    >Source</a
+	    > <a href="#v:txOutPubKey" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The public key attached to a <code
+	      ><a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		>TxOut</a
+		></code
+	      >, if there is one.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutDatum" class="def"
+	    >txOutDatum</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	    >DatumHash</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#txOutDatum" class="link"
+	    >Source</a
+	    > <a href="#v:txOutDatum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The datum attached to a <code
+	      ><a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+		>TxOut</a
+		></code
+	      >, if there is one.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pubKeyHashTxOut" class="def"
+	    >pubKeyHashTxOut</a
+	    > &#8759; <a href="PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	    >Value</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	    >PubKeyHash</a
+	    > &#8594; <a href="PlutusLedgerApi-V1-Data-Tx.html#t:TxOut" title="PlutusLedgerApi.V1.Data.Tx"
+	    >TxOut</a
+	    > <a href="src/PlutusLedgerApi.V1.Data.Tx.html#pubKeyHashTxOut" class="link"
+	    >Source</a
+	    > <a href="#v:pubKeyHashTxOut" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create a transaction output locked by a public key.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

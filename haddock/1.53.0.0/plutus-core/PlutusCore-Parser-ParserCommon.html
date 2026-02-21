@@ -1,0 +1,1083 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Parser.ParserCommon</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Parser.ParserCommon.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Parser.ParserCommon</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Common functions for parsers of UPLC, PLC, and PIR.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ParserState"
+	      >ParserState</a
+	      > = <a href="#v:ParserState"
+	      >ParserState</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:identifiers"
+		  >identifiers</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+		  >Map</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		  >Unique</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Parser"
+	      >Parser</a
+	      > = <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Internal.html#t:ParsecT" title="Text.Megaparsec.Internal"
+	      >ParsecT</a
+	      > <a href="PlutusCore-Error.html#t:ParserError" title="PlutusCore.Error"
+	      >ParserError</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+	      >StateT</a
+	      > <a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+	      >ParserState</a
+	      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	      >ReaderT</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      >) <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:initial"
+	      >initial</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+	      >ParserState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getVersion"
+	      >getVersion</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:withVersion"
+	      >withVersion</a
+	      > &#8759; <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:whenVersion"
+	      >whenVersion</a
+	      > &#8759; (<a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > () &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:parse"
+	      >parse</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	      >ParserErrorBundle</a
+	      > m, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:toErrorB"
+	      >toErrorB</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Error.html#t:ParseErrorBundle" title="Text.Megaparsec.Error"
+	      >ParseErrorBundle</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > <a href="PlutusCore-Error.html#t:ParserError" title="PlutusCore.Error"
+	      >ParserError</a
+	      >) a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	      >ParserErrorBundle</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:parseGen"
+	      >parseGen</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	      >ParserErrorBundle</a
+	      > m, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:whitespace"
+	      >whitespace</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:leadingWhitespace"
+	      >leadingWhitespace</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:trailingWhitespace"
+	      >trailingWhitespace</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:reachOffsetNoLine-39-"
+	      >reachOffsetNoLine'</a
+	      > &#8759; &#8704; s. <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Stream" title="Text.Megaparsec.Stream"
+	      >Stream</a
+	      > s &#8658; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; s &#8594; (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Tokens" title="Text.Megaparsec.Stream"
+	      >Tokens</a
+	      > s, s)) &#8594; (&#8704; b. (b &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+	      >Token</a
+	      > s &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Tokens" title="Text.Megaparsec.Stream"
+	      >Tokens</a
+	      > s &#8594; b) &#8594; (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+	      >Token</a
+	      > s, <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+	      >Token</a
+	      > s) &#8594; (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+	      >Token</a
+	      > s &#8594; <a href="PlutusCore-Annotation.html#t:Pos" title="PlutusCore.Annotation"
+	      >Pos</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-State.html#t:PosState" title="Text.Megaparsec.State"
+	      >PosState</a
+	      > s &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-State.html#t:PosState" title="Text.Megaparsec.State"
+	      >PosState</a
+	      > s</li
+	    ><li class="src short"
+	    ><a href="#v:getSourcePos-39-"
+	      >getSourcePos'</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec.html#t:MonadParsec" title="Text.Megaparsec"
+	      >MonadParsec</a
+	      > e <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > m &#8658; m <a href="PlutusCore-Annotation.html#t:SourcePos" title="PlutusCore.Annotation"
+	      >SourcePos</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withSpan-39-"
+	      >withSpan'</a
+	      > &#8759; (<a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:withSpan"
+	      >withSpan</a
+	      > &#8759; (<a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:lexeme"
+	      >lexeme</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:symbol"
+	      >symbol</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:inParens"
+	      >inParens</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:inBrackets"
+	      >inBrackets</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:inBraces"
+	      >inBraces</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:toSrcSpan"
+	      >toSrcSpan</a
+	      > &#8759; <a href="PlutusCore-Annotation.html#t:SourcePos" title="PlutusCore.Annotation"
+	      >SourcePos</a
+	      > &#8594; <a href="PlutusCore-Annotation.html#t:SourcePos" title="PlutusCore.Annotation"
+	      >SourcePos</a
+	      > &#8594; <a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:version"
+	      >version</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:name"
+	      >name</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ParserState" class="def"
+	    >ParserState</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#ParserState" class="link"
+	    >Source</a
+	    > <a href="#t:ParserState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ParserState" class="def"
+		  >ParserState</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:identifiers" class="def"
+			  >identifiers</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+			  >Map</a
+			  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > <a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+			  >Unique</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ParserState"
+	    >Instances</h4
+	    ><details id="i:ParserState" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParserState:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+		      >ParserState</a
+		      ></span
+		    > <a href="src/PlutusCore.Parser.ParserCommon.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:ParserState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParserState:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Parser-ParserCommon.html"
+			>PlutusCore.Parser.ParserCommon</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+			  >ParserState</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+			  >ParserState</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+			  >ParserState</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Parser" class="def"
+	    >Parser</a
+	    > = <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Internal.html#t:ParsecT" title="Text.Megaparsec.Internal"
+	    >ParsecT</a
+	    > <a href="PlutusCore-Error.html#t:ParserError" title="PlutusCore.Error"
+	    >ParserError</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+	    >StateT</a
+	    > <a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+	    >ParserState</a
+	    > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	    >ReaderT</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    >) <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    >)) <a href="src/PlutusCore.Parser.ParserCommon.html#Parser" class="link"
+	    >Source</a
+	    > <a href="#t:Parser" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:initial" class="def"
+	    >initial</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:ParserState" title="PlutusCore.Parser.ParserCommon"
+	    >ParserState</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#initial" class="link"
+	    >Source</a
+	    > <a href="#v:initial" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getVersion" class="def"
+	    >getVersion</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    >) <a href="src/PlutusCore.Parser.ParserCommon.html#getVersion" class="link"
+	    >Source</a
+	    > <a href="#v:getVersion" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the version of the program being parsed, if we know it.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withVersion" class="def"
+	    >withVersion</a
+	    > &#8759; <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#withVersion" class="link"
+	    >Source</a
+	    > <a href="#v:withVersion" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the version of the program being parsed.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:whenVersion" class="def"
+	    >whenVersion</a
+	    > &#8759; (<a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > () &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > () <a href="src/PlutusCore.Parser.ParserCommon.html#whenVersion" class="link"
+	    >Source</a
+	    > <a href="#v:whenVersion" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run an action conditionally based on a predicate on the version.
+If we don't know the version then the predicate is assumed to be
+false, i.e. we act if we _know_ the predicate is satisfied.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parse" class="def"
+	    >parse</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	    >ParserErrorBundle</a
+	    > m, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; m a <a href="src/PlutusCore.Parser.ParserCommon.html#parse" class="link"
+	    >Source</a
+	    > <a href="#v:parse" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toErrorB" class="def"
+	    >toErrorB</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Error.html#t:ParseErrorBundle" title="Text.Megaparsec.Error"
+	    >ParseErrorBundle</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="PlutusCore-Error.html#t:ParserError" title="PlutusCore.Error"
+	    >ParserError</a
+	    >) a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	    >ParserErrorBundle</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#toErrorB" class="link"
+	    >Source</a
+	    > <a href="#v:toErrorB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parseGen" class="def"
+	    >parseGen</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	    >ParserErrorBundle</a
+	    > m, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; m a <a href="src/PlutusCore.Parser.ParserCommon.html#parseGen" class="link"
+	    >Source</a
+	    > <a href="#v:parseGen" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generic parser function in which the file path is just &quot;test&quot;.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:whitespace" class="def"
+	    >whitespace</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > () <a href="src/PlutusCore.Parser.ParserCommon.html#whitespace" class="link"
+	    >Source</a
+	    > <a href="#v:whitespace" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Space consumer.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:leadingWhitespace" class="def"
+	    >leadingWhitespace</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#leadingWhitespace" class="link"
+	    >Source</a
+	    > <a href="#v:leadingWhitespace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:trailingWhitespace" class="def"
+	    >trailingWhitespace</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#trailingWhitespace" class="link"
+	    >Source</a
+	    > <a href="#v:trailingWhitespace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reachOffsetNoLine-39-" class="def"
+	    >reachOffsetNoLine'</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#reachOffsetNoLine%27" class="link"
+	    >Source</a
+	    > <a href="#v:reachOffsetNoLine-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; s. <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Stream" title="Text.Megaparsec.Stream"
+		  >Stream</a
+		  > s</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > &#8594; s &#8594; (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Tokens" title="Text.Megaparsec.Stream"
+		  >Tokens</a
+		  > s, s))</td
+		><td class="doc"
+		><p
+		  >How to split input stream at given offset</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (&#8704; b. (b &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+		  >Token</a
+		  > s &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Tokens" title="Text.Megaparsec.Stream"
+		  >Tokens</a
+		  > s &#8594; b)</td
+		><td class="doc"
+		><p
+		  >How to fold over input stream</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+		  >Token</a
+		  > s, <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+		  >Token</a
+		  > s)</td
+		><td class="doc"
+		><p
+		  >Newline token and tab token</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Token" title="Text.Megaparsec.Stream"
+		  >Token</a
+		  > s &#8594; <a href="PlutusCore-Annotation.html#t:Pos" title="PlutusCore.Annotation"
+		  >Pos</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >Offset to reach
+ | Increment in column position for a token</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-State.html#t:PosState" title="Text.Megaparsec.State"
+		  >PosState</a
+		  > s</td
+		><td class="doc"
+		><p
+		  >Initial <code
+		    ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-State.html#t:PosState" title="Text.Megaparsec.State"
+		      >PosState</a
+		      ></code
+		    > to use</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-State.html#t:PosState" title="Text.Megaparsec.State"
+		  >PosState</a
+		  > s</td
+		><td class="doc"
+		><p
+		  >Updated <code
+		    ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-State.html#t:PosState" title="Text.Megaparsec.State"
+		      >PosState</a
+		      ></code
+		    ></p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getSourcePos-39-" class="def"
+	    >getSourcePos'</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec.html#t:MonadParsec" title="Text.Megaparsec"
+	    >MonadParsec</a
+	    > e <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > m &#8658; m <a href="PlutusCore-Annotation.html#t:SourcePos" title="PlutusCore.Annotation"
+	    >SourcePos</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#getSourcePos%27" class="link"
+	    >Source</a
+	    > <a href="#v:getSourcePos-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withSpan-39-" class="def"
+	    >withSpan'</a
+	    > &#8759; (<a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#withSpan%27" class="link"
+	    >Source</a
+	    > <a href="#v:withSpan-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns a parser for <code
+	      >a</code
+	      > by calling the supplied function on the starting
+and ending positions of <code
+	      >a</code
+	      >.</p
+	    ><p
+	    >The supplied function should usually return a parser that does <em
+	      >not</em
+	      > consume trailing
+whitespaces. Otherwise, the end position will be the first character after the
+trailing whitespaces.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withSpan" class="def"
+	    >withSpan</a
+	    > &#8759; (<a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a) &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#withSpan" class="link"
+	    >Source</a
+	    > <a href="#v:withSpan" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusCore-Parser-ParserCommon.html#v:withSpan-39-" title="PlutusCore.Parser.ParserCommon"
+		>withSpan'</a
+		></code
+	      >, but the result parser consumes whitespaces.</p
+	    ><pre
+	    >withSpan = (&lt;* whitespace) . withSpan'</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lexeme" class="def"
+	    >lexeme</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#lexeme" class="link"
+	    >Source</a
+	    > <a href="#v:lexeme" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:symbol" class="def"
+	    >symbol</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#symbol" class="link"
+	    >Source</a
+	    > <a href="#v:symbol" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inParens" class="def"
+	    >inParens</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#inParens" class="link"
+	    >Source</a
+	    > <a href="#v:inParens" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inBrackets" class="def"
+	    >inBrackets</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#inBrackets" class="link"
+	    >Source</a
+	    > <a href="#v:inBrackets" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inBraces" class="def"
+	    >inBraces</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a <a href="src/PlutusCore.Parser.ParserCommon.html#inBraces" class="link"
+	    >Source</a
+	    > <a href="#v:inBraces" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toSrcSpan" class="def"
+	    >toSrcSpan</a
+	    > &#8759; <a href="PlutusCore-Annotation.html#t:SourcePos" title="PlutusCore.Annotation"
+	    >SourcePos</a
+	    > &#8594; <a href="PlutusCore-Annotation.html#t:SourcePos" title="PlutusCore.Annotation"
+	    >SourcePos</a
+	    > &#8594; <a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#toSrcSpan" class="link"
+	    >Source</a
+	    > <a href="#v:toSrcSpan" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:version" class="def"
+	    >version</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#version" class="link"
+	    >Source</a
+	    > <a href="#v:version" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:name" class="def"
+	    >name</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="src/PlutusCore.Parser.ParserCommon.html#name" class="link"
+	    >Source</a
+	    > <a href="#v:name" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parses a <code
+	      ><a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		>Name</a
+		></code
+	      >. Does not consume leading or trailing whitespaces.</p
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:MonadQuote:MonadQuote:1"
+		  ></span
+		  > (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Stream.html#t:Stream" title="Text.Megaparsec.Stream"
+		  >Stream</a
+		  > s, <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		  >MonadQuote</a
+		  > m) &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		  >MonadQuote</a
+		  > (<a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Internal.html#t:ParsecT" title="Text.Megaparsec.Internal"
+		  >ParsecT</a
+		  > e s m)</span
+		> <a href="src/PlutusCore.Parser.ParserCommon.html#line-42" class="link"
+		>Source</a
+		> <a href="#v:-36-fMonadQuoteParsecT" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:MonadQuote:MonadQuote:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:liftQuote"
+		      >liftQuote</a
+		      > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+		      >Quote</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/Text-Megaparsec-Internal.html#t:ParsecT" title="Text.Megaparsec.Internal"
+		      >ParsecT</a
+		      > e s m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+		      >Source</a
+		      > <a href="#v:liftQuote" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

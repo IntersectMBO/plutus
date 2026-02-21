@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    2 </span>{-# LANGUAGE KindSignatures #-}
+<span class="lineno">    3 </span>{-# OPTIONS_GHC -Wall #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module FFI.Untyped where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusCore.Default
+<span class="lineno">    8 </span>import UntypedPlutusCore
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Data.Text as T hiding (map)
+<span class="lineno">   11 </span>import GHC.Exts (IsList (..))
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>-- Untyped (Raw) syntax
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>data UTerm
+<span class="lineno">   16 </span>  = UVar Integer
+<span class="lineno">   17 </span>  | ULambda UTerm
+<span class="lineno">   18 </span>  | UApp UTerm UTerm
+<span class="lineno">   19 </span>  | UCon (Some (ValueOf DefaultUni))
+<span class="lineno">   20 </span>  | UError
+<span class="lineno">   21 </span>  | UBuiltin DefaultFun
+<span class="lineno">   22 </span>  | UDelay UTerm
+<span class="lineno">   23 </span>  | UForce UTerm
+<span class="lineno">   24 </span>  | UConstr Integer [UTerm]
+<span class="lineno">   25 </span>  | UCase UTerm [UTerm]
+<span class="lineno">   26 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>unIndex :: Index -&gt; Integer
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">unIndex (Index n) = toInteger n</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>convP :: Program NamedDeBruijn DefaultUni DefaultFun a -&gt; UTerm
+<span class="lineno">   32 </span><span class="decl"><span class="istickedoff">convP (Program _ _ t) = conv t</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>conv :: Term NamedDeBruijn DefaultUni DefaultFun a -&gt; UTerm
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">conv (Var _ x) = UVar (unIndex (ndbnIndex x) - 1)</span>
+<span class="lineno">   36 </span><span class="spaces"></span><span class="istickedoff">conv (LamAbs _ _ t) = ULambda (conv t)</span>
+<span class="lineno">   37 </span><span class="spaces"></span><span class="istickedoff">conv (Apply _ t u) = UApp (conv t) (conv u)</span>
+<span class="lineno">   38 </span><span class="spaces"></span><span class="istickedoff">conv (Builtin _ b) = UBuiltin b</span>
+<span class="lineno">   39 </span><span class="spaces"></span><span class="istickedoff">conv (Constant _ c) = UCon c</span>
+<span class="lineno">   40 </span><span class="spaces"></span><span class="istickedoff">conv (Error _) = UError</span>
+<span class="lineno">   41 </span><span class="spaces"></span><span class="istickedoff">conv (Delay _ t) = UDelay (conv t)</span>
+<span class="lineno">   42 </span><span class="spaces"></span><span class="istickedoff">conv (Force _ t) = UForce (conv t)</span>
+<span class="lineno">   43 </span><span class="spaces"></span><span class="istickedoff">conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))</span>
+<span class="lineno">   44 </span><span class="spaces"></span><span class="istickedoff">conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>tmname :: Int -&gt; String
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">tmname i = 'x' : show i</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>uconv :: Int -&gt; UTerm -&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">uconv i (UVar x) =</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">Var</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">()</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">( NamedDeBruijn</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="istickedoff">(T.pack (tmname (i - 1 - fromInteger x)))</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff">-- PLC's debruijn starts counting from 1, while in the metatheory it starts from 0.</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">(Index (fromInteger x + 1))</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">)</span>
+<span class="lineno">   58 </span><span class="spaces"></span><span class="istickedoff">uconv i (ULambda t) =</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">LamAbs</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">()</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">(NamedDeBruijn (T.pack (tmname i)) deBruijnInitIndex)</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">(uconv (i + 1) t)</span>
+<span class="lineno">   63 </span><span class="spaces"></span><span class="istickedoff">uconv i (UApp t u) = Apply () (uconv i t) (uconv i u)</span>
+<span class="lineno">   64 </span><span class="spaces"></span><span class="istickedoff">uconv _ (UCon c) = Constant () c</span>
+<span class="lineno">   65 </span><span class="spaces"></span><span class="istickedoff">uconv _ UError = Error ()</span>
+<span class="lineno">   66 </span><span class="spaces"></span><span class="istickedoff">uconv _ (UBuiltin b) = Builtin () b</span>
+<span class="lineno">   67 </span><span class="spaces"></span><span class="istickedoff">uconv i (UDelay t) = Delay () (uconv i t)</span>
+<span class="lineno">   68 </span><span class="spaces"></span><span class="istickedoff">uconv i (UForce t) = Force () (uconv i t)</span>
+<span class="lineno">   69 </span><span class="spaces"></span><span class="istickedoff">uconv i (UConstr j xs) = Constr () (fromInteger j) (fmap (uconv i) xs)</span>
+<span class="lineno">   70 </span><span class="spaces"></span><span class="istickedoff">uconv i (UCase t xs) = Case () (uconv i t) (fromList (fmap <span class="nottickedoff">(uconv i)</span> xs))</span></span>
+
+</pre>
+</body>
+</html>

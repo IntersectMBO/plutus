@@ -1,0 +1,4236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Kind/type inference/checking.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.TypeCheck</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#ToKind"
+	><span class="hs-identifier"
+	  >ToKind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#MonadKindCheck"
+	><span class="hs-identifier"
+	  >MonadKindCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#MonadTypeCheck"
+	><span class="hs-identifier"
+	  >MonadTypeCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#TypeErrorPlc"
+	><span class="hs-identifier"
+	  >TypeErrorPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#Typecheckable"
+	><span class="hs-identifier"
+	  >Typecheckable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Configuration.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#BuiltinTypes"
+	><span class="hs-identifier"
+	  >BuiltinTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#KindCheckConfig"
+	><span class="hs-identifier"
+	  >KindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+	><span class="hs-identifier"
+	  >TypeCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#tccBuiltinTypes"
+	><span class="hs-identifier"
+	  >tccBuiltinTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#defKindCheckConfig"
+	><span class="hs-identifier"
+	  >defKindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#builtinMeaningsToTypes"
+	><span class="hs-identifier"
+	  >builtinMeaningsToTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#getDefTypeCheckConfig"
+	><span class="hs-identifier"
+	  >getDefTypeCheckConfig</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Kind/type inference/checking.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#inferKind"
+	><span class="hs-identifier"
+	  >inferKind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#checkKind"
+	><span class="hs-identifier"
+	  >checkKind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#inferType"
+	><span class="hs-identifier"
+	  >inferType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#checkType"
+	><span class="hs-identifier"
+	  >checkType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#inferTypeOfProgram"
+	><span class="hs-identifier"
+	  >inferTypeOfProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#checkTypeOfProgram"
+	><span class="hs-identifier"
+	  >checkTypeOfProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Normalize.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Normalize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Rename</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusCore.TypeCheck.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >-- | The constraint for built-in types\/functions are kind\/type-checkable.</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- We keep this separate from 'MonadKindCheck'\/'MonadTypeCheck', because those mainly constrain the</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-comment"
+      >-- monad and 'Typecheckable' constraints only the builtins. In particular useful when the monad gets</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-comment"
+      >-- instantiated and builtins don't. Another reason is that 'Typecheckable' is not required during</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-comment"
+      >-- type checking, since it's only needed for computing 'BuiltinTypes', which is passed as a regular</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >-- argument to the worker of the type checker.</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Typecheckable"
+      ><span class="annot"
+	><a href="PlutusCore.TypeCheck.html#Typecheckable"
+	  ><span class="hs-identifier hs-var"
+	    >Typecheckable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935085"
+      ><span class="annot"
+	><a href="#local-6989586621681935085"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935086"
+      ><span class="annot"
+	><a href="#local-6989586621681935086"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#ToKind"
+	><span class="hs-identifier hs-type"
+	  >ToKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681935085"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.Core.html#HasUniApply"
+	><span class="hs-identifier hs-type"
+	  >HasUniApply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681935085"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >ToBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681935085"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681935086"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Case.html#AnnotateCaseBuiltin"
+	><span class="hs-identifier hs-type"
+	  >AnnotateCaseBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681935085"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The default kind checking config.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.html#defKindCheckConfig"
+	><span class="hs-identifier hs-type"
+	  >defKindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.TypeCheck.Internal.html#KindCheckConfig"
+	><span class="hs-identifier hs-type"
+	  >KindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="defKindCheckConfig"
+      ><span class="annot"
+	><span class="annottext"
+	  >defKindCheckConfig :: KindCheckConfig
+</span
+	  ><a href="PlutusCore.TypeCheck.html#defKindCheckConfig"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defKindCheckConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HandleNameMismatches -&gt; KindCheckConfig
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#KindCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >KindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HandleNameMismatches
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#DetectNameMismatches"
+	><span class="hs-identifier hs-var"
+	  >DetectNameMismatches</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-comment"
+      >-- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- corresponding 'Type' for each built-in function.</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="local-6989586621681934875"
+      ><span id="local-6989586621681934876"
+	><span id="local-6989586621681934877"
+	  ><span id="local-6989586621681934878"
+	    ><span id="local-6989586621681934880"
+	      ><span class="annot"
+		><a href="PlutusCore.TypeCheck.html#builtinMeaningsToTypes"
+		  ><span class="hs-identifier hs-type"
+		    >builtinMeaningsToTypes</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-58"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#MonadKindCheck"
+		  ><span class="hs-identifier hs-type"
+		    >MonadKindCheck</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#TypeError"
+		  ><span class="hs-identifier hs-type"
+		    >TypeError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934875"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934876"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934877"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934878"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934875"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934876"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934877"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934878"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934880"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.html#Typecheckable"
+		  ><span class="hs-identifier hs-type"
+		    >Typecheckable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934876"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934877"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-59"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinSemanticsVariant</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934877"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-60"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934878"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-61"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934880"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#BuiltinTypes"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinTypes</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934876"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934877"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="builtinMeaningsToTypes"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinMeaningsToTypes :: forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(MonadKindCheck (TypeError term uni fun ann) term uni fun ann m,
+ Typecheckable uni fun) =&gt;
+BuiltinSemanticsVariant fun -&gt; ann -&gt; m (BuiltinTypes uni fun)
+</span
+	  ><a href="PlutusCore.TypeCheck.html#builtinMeaningsToTypes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinMeaningsToTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935136"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621681935136"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935137"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681935137"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>QuoteT m (BuiltinTypes uni fun) -&gt; m (BuiltinTypes uni fun)
+forall (m :: * -&gt; *) a. Monad m =&gt; QuoteT m a -&gt; m a
+</span
+	><a href="PlutusCore.Quote.html#runQuoteT"
+	><span class="hs-identifier hs-var"
+	  >runQuoteT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(QuoteT m (BuiltinTypes uni fun) -&gt; m (BuiltinTypes uni fun))
+-&gt; ((fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+    -&gt; QuoteT m (BuiltinTypes uni fun))
+-&gt; (fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+-&gt; m (BuiltinTypes uni fun)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Array fun (Dupable (Normalized (Type TyName uni ())))
+ -&gt; BuiltinTypes uni fun)
+-&gt; QuoteT m (Array fun (Dupable (Normalized (Type TyName uni ()))))
+-&gt; QuoteT m (BuiltinTypes uni fun)
+forall a b. (a -&gt; b) -&gt; QuoteT m a -&gt; QuoteT m b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Array fun (Dupable (Normalized (Type TyName uni ())))
+-&gt; BuiltinTypes uni fun
+forall (uni :: * -&gt; *) fun.
+Array fun (Dupable (Normalized (Type TyName uni ())))
+-&gt; BuiltinTypes uni fun
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#BuiltinTypes"
+	><span class="hs-identifier hs-var"
+	  >BuiltinTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(QuoteT m (Array fun (Dupable (Normalized (Type TyName uni ()))))
+ -&gt; QuoteT m (BuiltinTypes uni fun))
+-&gt; ((fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+    -&gt; QuoteT
+         m (Array fun (Dupable (Normalized (Type TyName uni ())))))
+-&gt; (fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+-&gt; QuoteT m (BuiltinTypes uni fun)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Array fun (QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+-&gt; QuoteT m (Array fun (Dupable (Normalized (Type TyName uni ()))))
+forall (t :: * -&gt; *) (m :: * -&gt; *) a.
+(Traversable t, Monad m) =&gt;
+t (m a) -&gt; m (t a)
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+Array fun (m a) -&gt; m (Array fun a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#sequence"
+	><span class="hs-identifier hs-var"
+	  >sequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Array fun (QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+ -&gt; QuoteT
+      m (Array fun (Dupable (Normalized (Type TyName uni ())))))
+-&gt; ((fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+    -&gt; Array
+         fun (QuoteT m (Dupable (Normalized (Type TyName uni ())))))
+-&gt; (fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+-&gt; QuoteT m (Array fun (Dupable (Normalized (Type TyName uni ()))))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+-&gt; Array fun (QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+forall i a. (Bounded i, Enum i, Ix i) =&gt; (i -&gt; a) -&gt; Array i a
+</span
+	><a href="PlutusPrelude.html#tabulateArray"
+	><span class="hs-identifier hs-var"
+	  >tabulateArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+ -&gt; m (BuiltinTypes uni fun))
+-&gt; (fun -&gt; QuoteT m (Dupable (Normalized (Type TyName uni ()))))
+-&gt; m (BuiltinTypes uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681935142"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621681935142"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681935143"
+      ><span class="annot"
+	><span class="annottext"
+	  >ty :: Type TyName uni ()
+</span
+	  ><a href="#local-6989586621681935143"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun -&gt; fun -&gt; Type TyName uni ()
+forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+BuiltinSemanticsVariant fun -&gt; fun -&gt; Type TyName uni ()
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#typeOfBuiltinFunction"
+	><span class="hs-identifier hs-var"
+	  >typeOfBuiltinFunction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621681935136"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621681935142"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig -&gt; Type TyName uni ann -&gt; QuoteT m (Kind ())
+forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadKindCheck (TypeError term uni fun ann) term uni fun ann m =&gt;
+KindCheckConfig -&gt; Type TyName uni ann -&gt; m (Kind ())
+</span
+	><a href="PlutusCore.TypeCheck.html#inferKind"
+	><span class="hs-identifier hs-var"
+	  >inferKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig
+</span
+	><a href="PlutusCore.TypeCheck.html#defKindCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >defKindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName uni ann -&gt; QuoteT m (Kind ()))
+-&gt; Type TyName uni ann -&gt; QuoteT m (Kind ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681935137"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; Type TyName uni () -&gt; Type TyName uni ann
+forall a b. a -&gt; Type TyName uni b -&gt; Type TyName uni a
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ()
+</span
+	><a href="#local-6989586621681935143"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+-&gt; Dupable (Normalized (Type TyName uni ()))
+forall a. a -&gt; Dupable a
+</span
+	><a href="PlutusCore.Rename.html#dupable"
+	><span class="hs-identifier hs-var"
+	  >dupable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Normalized (Type TyName uni ())
+ -&gt; Dupable (Normalized (Type TyName uni ())))
+-&gt; QuoteT m (Normalized (Type TyName uni ()))
+-&gt; QuoteT m (Dupable (Normalized (Type TyName uni ())))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni () -&gt; QuoteT m (Normalized (Type TyName uni ()))
+forall tyname (uni :: * -&gt; *) (m :: * -&gt; *) ann.
+(HasUnique tyname TypeUnique, MonadNormalizeType uni m) =&gt;
+Type tyname uni ann -&gt; m (Normalized (Type tyname uni ann))
+</span
+	><a href="PlutusCore.Normalize.html#normalizeType"
+	><span class="hs-identifier hs-var"
+	  >normalizeType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ()
+</span
+	><a href="#local-6989586621681935143"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the default type checking config.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621681934958"
+      ><span id="local-6989586621681934959"
+	><span id="local-6989586621681934960"
+	  ><span id="local-6989586621681934961"
+	    ><span id="local-6989586621681934962"
+	      ><span class="annot"
+		><a href="PlutusCore.TypeCheck.html#getDefTypeCheckConfig"
+		  ><span class="hs-identifier hs-type"
+		    >getDefTypeCheckConfig</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-70"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#MonadKindCheck"
+		  ><span class="hs-identifier hs-type"
+		    >MonadKindCheck</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#TypeError"
+		  ><span class="hs-identifier hs-type"
+		    >TypeError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934958"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934959"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934960"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934961"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934958"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934959"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934960"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934961"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934962"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.html#Typecheckable"
+		  ><span class="hs-identifier hs-type"
+		    >Typecheckable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934959"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934960"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-71"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934961"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934962"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+		  ><span class="hs-identifier hs-type"
+		    >TypeCheckConfig</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934959"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934960"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="getDefTypeCheckConfig"
+      ><span class="annot"
+	><span class="annottext"
+	  >getDefTypeCheckConfig :: forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(MonadKindCheck (TypeError term uni fun ann) term uni fun ann m,
+ Typecheckable uni fun) =&gt;
+ann -&gt; m (TypeCheckConfig uni fun)
+</span
+	  ><a href="PlutusCore.TypeCheck.html#getDefTypeCheckConfig"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getDefTypeCheckConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935164"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681935164"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig -&gt; BuiltinTypes uni fun -&gt; TypeCheckConfig uni fun
+forall (uni :: * -&gt; *) fun.
+KindCheckConfig -&gt; BuiltinTypes uni fun -&gt; TypeCheckConfig uni fun
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >TypeCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig
+</span
+	><a href="PlutusCore.TypeCheck.html#defKindCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >defKindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinTypes uni fun -&gt; TypeCheckConfig uni fun)
+-&gt; m (BuiltinTypes uni fun) -&gt; m (TypeCheckConfig uni fun)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun -&gt; ann -&gt; m (BuiltinTypes uni fun)
+forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(MonadKindCheck (TypeError term uni fun ann) term uni fun ann m,
+ Typecheckable uni fun) =&gt;
+BuiltinSemanticsVariant fun -&gt; ann -&gt; m (BuiltinTypes uni fun)
+</span
+	><a href="PlutusCore.TypeCheck.html#builtinMeaningsToTypes"
+	><span class="hs-identifier hs-var"
+	  >builtinMeaningsToTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681935164"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Infer the kind of a type.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="local-6989586621681934942"
+      ><span id="local-6989586621681934943"
+	><span id="local-6989586621681934944"
+	  ><span id="local-6989586621681934945"
+	    ><span id="local-6989586621681934946"
+	      ><span class="annot"
+		><a href="PlutusCore.TypeCheck.html#inferKind"
+		  ><span class="hs-identifier hs-type"
+		    >inferKind</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-77"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#MonadKindCheck"
+		  ><span class="hs-identifier hs-type"
+		    >MonadKindCheck</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#TypeError"
+		  ><span class="hs-identifier hs-type"
+		    >TypeError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934942"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934944"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934945"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934942"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934944"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934945"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934946"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-78"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#KindCheckConfig"
+		  ><span class="hs-identifier hs-type"
+		    >KindCheckConfig</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Type"
+		  ><span class="hs-identifier hs-type"
+		    >Type</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934945"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934946"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Kind"
+		  ><span class="hs-identifier hs-type"
+		    >Kind</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span id="inferKind"
+      ><span class="annot"
+	><span class="annottext"
+	  >inferKind :: forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadKindCheck (TypeError term uni fun ann) term uni fun ann m =&gt;
+KindCheckConfig -&gt; Type TyName uni ann -&gt; m (Kind ())
+</span
+	  ><a href="PlutusCore.TypeCheck.html#inferKind"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inferKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935174"
+      ><span class="annot"
+	><span class="annottext"
+	  >KindCheckConfig
+</span
+	  ><a href="#local-6989586621681935174"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig
+-&gt; TypeCheckT uni fun KindCheckConfig m (Kind ()) -&gt; m (Kind ())
+forall cfg (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+cfg -&gt; TypeCheckT uni fun cfg m a -&gt; m a
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#runTypeCheckM"
+	><span class="hs-identifier hs-var"
+	  >runTypeCheckM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig
+</span
+	><a href="#local-6989586621681935174"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeCheckT uni fun KindCheckConfig m (Kind ()) -&gt; m (Kind ()))
+-&gt; (Type TyName uni ann
+    -&gt; TypeCheckT uni fun KindCheckConfig m (Kind ()))
+-&gt; Type TyName uni ann
+-&gt; m (Kind ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ann
+-&gt; TypeCheckT uni fun KindCheckConfig m (Kind ())
+forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *) cfg.
+(MonadKindCheck (TypeError term uni fun ann) term uni fun ann m,
+ HasKindCheckConfig cfg) =&gt;
+Type TyName uni ann -&gt; TypeCheckT uni fun cfg m (Kind ())
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#inferKindM"
+	><span class="hs-identifier hs-var"
+	  >inferKindM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-comment"
+      >-- | Check a type against a kind.</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-comment"
+      >-- Infers the kind of the type and checks that it's equal to the given kind</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-comment"
+      >-- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="local-6989586621681934991"
+      ><span id="local-6989586621681934992"
+	><span id="local-6989586621681934993"
+	  ><span id="local-6989586621681934994"
+	    ><span id="local-6989586621681934995"
+	      ><span class="annot"
+		><a href="PlutusCore.TypeCheck.html#checkKind"
+		  ><span class="hs-identifier hs-type"
+		    >checkKind</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-85"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#MonadKindCheck"
+		  ><span class="hs-identifier hs-type"
+		    >MonadKindCheck</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Error.html#TypeError"
+		  ><span class="hs-identifier hs-type"
+		    >TypeError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934991"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934992"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934993"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934994"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934991"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934992"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934993"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934994"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934995"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-86"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.TypeCheck.Internal.html#KindCheckConfig"
+		  ><span class="hs-identifier hs-type"
+		    >KindCheckConfig</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934994"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Type"
+		  ><span class="hs-identifier hs-type"
+		    >Type</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934992"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934994"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Kind"
+		  ><span class="hs-identifier hs-type"
+		    >Kind</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681934995"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="checkKind"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkKind :: forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadKindCheck (TypeError term uni fun ann) term uni fun ann m =&gt;
+KindCheckConfig -&gt; ann -&gt; Type TyName uni ann -&gt; Kind () -&gt; m ()
+</span
+	  ><a href="PlutusCore.TypeCheck.html#checkKind"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935183"
+      ><span class="annot"
+	><span class="annottext"
+	  >KindCheckConfig
+</span
+	  ><a href="#local-6989586621681935183"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935184"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681935184"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935185"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni ann
+</span
+	  ><a href="#local-6989586621681935185"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig -&gt; TypeCheckT uni fun KindCheckConfig m () -&gt; m ()
+forall cfg (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+cfg -&gt; TypeCheckT uni fun cfg m a -&gt; m a
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#runTypeCheckM"
+	><span class="hs-identifier hs-var"
+	  >runTypeCheckM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig
+</span
+	><a href="#local-6989586621681935183"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeCheckT uni fun KindCheckConfig m () -&gt; m ())
+-&gt; (Kind () -&gt; TypeCheckT uni fun KindCheckConfig m ())
+-&gt; Kind ()
+-&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type TyName uni ann
+-&gt; Kind ()
+-&gt; TypeCheckT uni fun KindCheckConfig m ()
+forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *) cfg.
+(MonadKindCheck (TypeError term uni fun ann) term uni fun ann m,
+ HasKindCheckConfig cfg) =&gt;
+ann
+-&gt; Type TyName uni ann -&gt; Kind () -&gt; TypeCheckT uni fun cfg m ()
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#checkKindM"
+	><span class="hs-identifier hs-var"
+	  >checkKindM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681935184"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ann
+</span
+	><a href="#local-6989586621681935185"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Infer the type of a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="local-6989586621681935007"
+      ><span id="local-6989586621681935008"
+	><span id="local-6989586621681935009"
+	  ><span id="local-6989586621681935010"
+	    ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.html#inferType"
+		><span class="hs-identifier hs-type"
+		  >inferType</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-91"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#MonadTypeCheckPlc"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935007"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935008"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935009"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935010"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-92"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+		><span class="hs-identifier hs-type"
+		  >TypeCheckConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935007"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935008"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-93"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935007"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935008"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935009"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-94"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935010"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935007"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span id="inferType"
+      ><span class="annot"
+	><span class="annottext"
+	  >inferType :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	  ><a href="PlutusCore.TypeCheck.html#inferType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inferType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935205"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCheckConfig uni fun
+</span
+	  ><a href="#local-6989586621681935205"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+forall a (m :: * -&gt; *). (Rename a, MonadQuote m) =&gt; a -&gt; m a
+forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.html#rename"
+	><span class="hs-identifier hs-var"
+	  >rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann))
+-&gt; (Term TyName Name uni fun ann
+    -&gt; m (Normalized (Type TyName uni ())))
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+-&gt; TypeCheckT
+     uni
+     fun
+     (TypeCheckConfig uni fun)
+     m
+     (Normalized (Type TyName uni ()))
+-&gt; m (Normalized (Type TyName uni ()))
+forall cfg (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+cfg -&gt; TypeCheckT uni fun cfg m a -&gt; m a
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#runTypeCheckM"
+	><span class="hs-identifier hs-var"
+	  >runTypeCheckM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+</span
+	><a href="#local-6989586621681935205"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeCheckT
+   uni
+   fun
+   (TypeCheckConfig uni fun)
+   m
+   (Normalized (Type TyName uni ()))
+ -&gt; m (Normalized (Type TyName uni ())))
+-&gt; (Term TyName Name uni fun ann
+    -&gt; TypeCheckT
+         uni
+         fun
+         (TypeCheckConfig uni fun)
+         m
+         (Normalized (Type TyName uni ())))
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+-&gt; TypeCheckT
+     uni
+     fun
+     (TypeCheckConfig uni fun)
+     m
+     (Normalized (Type TyName uni ()))
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *) cfg.
+(MonadTypeCheckPlc uni fun ann m,
+ HasTypeCheckConfig cfg uni fun) =&gt;
+Term TyName Name uni fun ann
+-&gt; TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#inferTypeM"
+	><span class="hs-identifier hs-var"
+	  >inferTypeM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-comment"
+      >-- | Check a term against a type.</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-comment"
+      >-- Infers the type of the term and checks that it's equal to the given type</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-comment"
+      >-- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="local-6989586621681935042"
+      ><span id="local-6989586621681935043"
+	><span id="local-6989586621681935044"
+	  ><span id="local-6989586621681935045"
+	    ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.html#checkType"
+		><span class="hs-identifier hs-type"
+		  >checkType</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-101"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#MonadTypeCheckPlc"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935042"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935043"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935044"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935045"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-102"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+		><span class="hs-identifier hs-type"
+		  >TypeCheckConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935042"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935043"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-103"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935044"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-104"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935042"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935043"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935044"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-105"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935042"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-106"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935045"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span id="checkType"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkType :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+</span
+	  ><a href="PlutusCore.TypeCheck.html#checkType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935224"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCheckConfig uni fun
+</span
+	  ><a href="#local-6989586621681935224"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935225"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681935225"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935226"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621681935226"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935227"
+      ><span class="annot"
+	><span class="annottext"
+	  >Normalized (Type TyName uni ())
+</span
+	  ><a href="#local-6989586621681935227"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681935228"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621681935228"
+	  ><span class="hs-identifier hs-var"
+	    >termRen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+forall a (m :: * -&gt; *). (Rename a, MonadQuote m) =&gt; a -&gt; m a
+forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.html#rename"
+	><span class="hs-identifier hs-var"
+	  >rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621681935226"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+-&gt; TypeCheckT uni fun (TypeCheckConfig uni fun) m () -&gt; m ()
+forall cfg (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+cfg -&gt; TypeCheckT uni fun cfg m a -&gt; m a
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#runTypeCheckM"
+	><span class="hs-identifier hs-var"
+	  >runTypeCheckM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+</span
+	><a href="#local-6989586621681935224"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeCheckT uni fun (TypeCheckConfig uni fun) m () -&gt; m ())
+-&gt; TypeCheckT uni fun (TypeCheckConfig uni fun) m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; TypeCheckT uni fun (TypeCheckConfig uni fun) m ()
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *) cfg.
+(MonadTypeCheckPlc uni fun ann m,
+ HasTypeCheckConfig cfg uni fun) =&gt;
+ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; TypeCheckT uni fun cfg m ()
+</span
+	><a href="PlutusCore.TypeCheck.Internal.html#checkTypeM"
+	><span class="hs-identifier hs-var"
+	  >checkTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681935225"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621681935228"
+	><span class="hs-identifier hs-var"
+	  >termRen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621681935227"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Infer the type of a program.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="local-6989586621681935055"
+      ><span id="local-6989586621681935056"
+	><span id="local-6989586621681935057"
+	  ><span id="local-6989586621681935058"
+	    ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.html#inferTypeOfProgram"
+		><span class="hs-identifier hs-type"
+		  >inferTypeOfProgram</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-113"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#MonadTypeCheckPlc"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935055"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935056"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935057"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935058"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-114"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+		><span class="hs-identifier hs-type"
+		  >TypeCheckConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935055"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935056"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-115"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Program"
+		><span class="hs-identifier hs-type"
+		  >Program</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935055"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935056"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935057"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-116"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935058"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935055"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="inferTypeOfProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >inferTypeOfProgram :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; Program TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	  ><a href="PlutusCore.TypeCheck.html#inferTypeOfProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inferTypeOfProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935232"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCheckConfig uni fun
+</span
+	  ><a href="#local-6989586621681935232"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935234"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621681935234"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	><a href="PlutusCore.TypeCheck.html#inferType"
+	><span class="hs-identifier hs-var"
+	  >inferType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+</span
+	><a href="#local-6989586621681935232"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621681935234"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >-- | Check a program against a type.</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- Infers the type of the program and checks that it's equal to the given type</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >-- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span id="local-6989586621681935065"
+      ><span id="local-6989586621681935066"
+	><span id="local-6989586621681935067"
+	  ><span id="local-6989586621681935068"
+	    ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.html#checkTypeOfProgram"
+		><span class="hs-identifier hs-type"
+		  >checkTypeOfProgram</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-123"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#MonadTypeCheckPlc"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935065"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935066"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935067"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935068"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-124"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+		><span class="hs-identifier hs-type"
+		  >TypeCheckConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935065"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935066"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-125"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935067"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-126"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Program"
+		><span class="hs-identifier hs-type"
+		  >Program</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935065"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935066"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935067"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-127"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935065"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-128"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681935068"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span id="checkTypeOfProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkTypeOfProgram :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; ann
+-&gt; Program TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+</span
+	  ><a href="PlutusCore.TypeCheck.html#checkTypeOfProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkTypeOfProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935237"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCheckConfig uni fun
+</span
+	  ><a href="#local-6989586621681935237"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935238"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681935238"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681935239"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621681935239"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+-&gt; ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+</span
+	><a href="PlutusCore.TypeCheck.html#checkType"
+	><span class="hs-identifier hs-var"
+	  >checkType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+</span
+	><a href="#local-6989586621681935237"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681935238"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621681935239"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

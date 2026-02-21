@@ -1,0 +1,1169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Instances.Text</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Instances.Text.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Instances.Text</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Flat instances for the text library</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:UTF8Text"
+	      >UTF8Text</a
+	      > = <a href="#v:UTF8Text"
+	      >UTF8Text</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unUTF8"
+		  >unUTF8</a
+		  > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:UTF16Text"
+	      >UTF16Text</a
+	      > = <a href="#v:UTF16Text"
+	      >UTF16Text</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unUTF16"
+		  >unUTF16</a
+		  > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:UTF8Text" class="def"
+	    >UTF8Text</a
+	    > <a href="src/PlutusCore.Flat.Instances.Text.html#UTF8Text" class="link"
+	    >Source</a
+	    > <a href="#t:UTF8Text" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The desired text encoding can be explicitly specified using the wrappers UTF8Text and UTF16Text.</p
+	    ><p
+	    >The default encoding is UTF8:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst (UTF8Text $ T.pack &quot;&#26085;&#26085;&#26085;&quot;) == tst (T.pack &quot;&#26085;&#26085;&#26085;&quot;)
+</code
+		></strong
+	      >True
+</pre
+	    ><p
+	    >A wrapper to encode/decode Text as UTF8</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UTF8Text" class="def"
+		  >UTF8Text</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unUTF8" class="def"
+			  >unUTF8</a
+			  > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UTF8Text"
+	    >Instances</h4
+	    ><details id="i:UTF8Text" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF8Text:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF8Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:UTF8Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF8Text:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF8Text:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF8Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:UTF8Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF8Text:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF8Text:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF8Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:UTF8Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF8Text:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF8Text:Flat:4"
+		      ></span
+		      > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF8Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:UTF8Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF8Text:Flat:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF8Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF8Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:UTF16Text" class="def"
+	    >UTF16Text</a
+	    > <a href="src/PlutusCore.Flat.Instances.Text.html#UTF16Text" class="link"
+	    >Source</a
+	    > <a href="#t:UTF16Text" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tt (UTF16Text $ T.pack &quot;aaa&quot;)
+</code
+		></strong
+	      >(True,[1,6,97,0,97,0,97,0,0])
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tt (UTF16Text $ T.pack &quot;&#66376;&#66376;&#66376;&quot;)
+</code
+		></strong
+	      >(True,[1,12,0,216,72,223,0,216,72,223,0,216,72,223,0])
+</pre
+	    ><p
+	    >A wrapper to encode/decode Text as UTF16</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UTF16Text" class="def"
+		  >UTF16Text</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unUTF16" class="def"
+			  >unUTF16</a
+			  > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UTF16Text"
+	    >Instances</h4
+	    ><details id="i:UTF16Text" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF16Text:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF16Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:UTF16Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF16Text:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF16Text:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF16Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:UTF16Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF16Text:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF16Text:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF16Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:UTF16Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF16Text:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UTF16Text:Flat:4"
+		      ></span
+		      > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+		      >UTF16Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Instances.Text.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:UTF16Text" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UTF16Text:Flat:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Text.html"
+			>PlutusCore.Flat.Instances.Text</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Text.html#t:UTF16Text" title="PlutusCore.Flat.Instances.Text"
+			  >UTF16Text</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Flat:Flat:1"
+		  ></span
+		  > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		  >Flat</a
+		  > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></span
+		> <a href="src/PlutusCore.Flat.Instances.Text.html#line-48" class="link"
+		>Source</a
+		> <a href="#v:-36-fFlatText0" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><p
+		>Text (and Data.Text.Lazy) is encoded as a byte aligned array of bytes corresponding to its UTF8 encoding.</p
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tt $ T.pack &quot;&quot;
+</code
+		    ></strong
+		  >(True,[1,0])
+</pre
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tt $ T.pack &quot;aaa&quot;
+</code
+		    ></strong
+		  >(True,[1,3,97,97,97,0])
+</pre
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tt $ T.pack &quot;&#162;&#162;&#162;&quot;
+</code
+		    ></strong
+		  >(True,[1,6,194,162,194,162,194,162,0])
+</pre
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tt $ T.pack &quot;&#26085;&#26085;&#26085;&quot;
+</code
+		    ></strong
+		  >(True,[1,9,230,151,165,230,151,165,230,151,165,0])
+</pre
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tt $ T.pack &quot;&#66376;&#66376;&#66376;&quot;
+</code
+		    ></strong
+		  >(True,[1,12,240,144,141,136,240,144,141,136,240,144,141,136,0])
+</pre
+		><p
+		>Strict and Lazy Text have the same encoding:</p
+		><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >tst (T.pack &quot;abc&quot;) == tst (TL.pack &quot;abc&quot;)
+</code
+		    ></strong
+		  >True
+</pre
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Flat:Flat:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:encode"
+		      >encode</a
+		      > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		      >Text</a
+		      > &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+		      >Encoding</a
+		      > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+		      >Source</a
+		      > <a href="#v:encode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:decode"
+		      >decode</a
+		      > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+		      >Get</a
+		      > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		      >Text</a
+		      > <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+		      >Source</a
+		      > <a href="#v:decode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:size"
+		      >size</a
+		      > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		      >Text</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+		      >Source</a
+		      > <a href="#v:size" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Flat:Flat:2"
+		  ></span
+		  > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		  >Flat</a
+		  > <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text-Lazy.html#t:Text" title="Data.Text.Lazy"
+		  >Text</a
+		  ></span
+		> <a href="src/PlutusCore.Flat.Instances.Text.html#line-53" class="link"
+		>Source</a
+		> <a href="#v:-36-fFlatText" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Flat:Flat:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:encode"
+		      >encode</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text-Lazy.html#t:Text" title="Data.Text.Lazy"
+		      >Text</a
+		      > &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+		      >Encoding</a
+		      > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+		      >Source</a
+		      > <a href="#v:encode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:decode"
+		      >decode</a
+		      > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+		      >Get</a
+		      > <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text-Lazy.html#t:Text" title="Data.Text.Lazy"
+		      >Text</a
+		      > <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+		      >Source</a
+		      > <a href="#v:decode" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:size"
+		      >size</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text-Lazy.html#t:Text" title="Data.Text.Lazy"
+		      >Text</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		      >NumBits</a
+		      > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+		      >Source</a
+		      > <a href="#v:size" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Data.Aeson.Flatten</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Data.Aeson.Flatten.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Data.Aeson.Flatten</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:flattenObject"
+	      >flattenObject</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; Object &#8594; Object</li
+	    ><li class="src short"
+	    ><a href="#v:unflattenObject"
+	      >unflattenObject</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; Object &#8594; Object</li
+	    ><li class="src short"
+	    ><a href="#v:mergeObject"
+	      >mergeObject</a
+	      > &#8759; Object &#8594; Object &#8594; Object</li
+	    ><li class="src short"
+	    ><a href="#v:mergeValue"
+	      >mergeValue</a
+	      > &#8759; Value &#8594; Value &#8594; Value</li
+	    ><li class="src short"
+	    ><a href="#v:objToHm"
+	      >objToHm</a
+	      > &#8759; Object &#8594; <a href="https://hackage.haskell.org/package/unordered-containers-0.2.21/docs/Data-HashMap-Strict.html#t:HashMap" title="Data.HashMap.Strict"
+	      >HashMap</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > Value</li
+	    ><li class="src short"
+	    ><a href="#v:hmToObj"
+	      >hmToObj</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/unordered-containers-0.2.21/docs/Data-HashMap-Strict.html#t:HashMap" title="Data.HashMap.Strict"
+	      >HashMap</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > Value &#8594; Object</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:flattenObject" class="def"
+	    >flattenObject</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; Object &#8594; Object <a href="src/Data.Aeson.Flatten.html#flattenObject" class="link"
+	    >Source</a
+	    > <a href="#v:flattenObject" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Turn a nested object into a &quot;flat&quot; object where the keys represent paths into the original
+object. The keys in the result will be the keys in the original path, separated by <code
+	      >sep</code
+	      >.
+The inverse of <code
+	      ><a href="Data-Aeson-Flatten.html#v:unflattenObject" title="Data.Aeson.Flatten"
+		>unflattenObject</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unflattenObject" class="def"
+	    >unflattenObject</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; Object &#8594; Object <a href="src/Data.Aeson.Flatten.html#unflattenObject" class="link"
+	    >Source</a
+	    > <a href="#v:unflattenObject" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Turn a &quot;flat&quot; object whose keys represent paths into an unflattened object.
+The keys in the result will be the resulting path, separated by <code
+	      >sep</code
+	      >.
+The inverse of <code
+	      ><a href="Data-Aeson-Flatten.html#v:flattenObject" title="Data.Aeson.Flatten"
+		>flattenObject</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mergeObject" class="def"
+	    >mergeObject</a
+	    > &#8759; Object &#8594; Object &#8594; Object <a href="src/Data.Aeson.Flatten.html#mergeObject" class="link"
+	    >Source</a
+	    > <a href="#v:mergeObject" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Merge two objects, merging the values where both sides have an entry for a key rather than
+taking the first. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mergeValue" class="def"
+	    >mergeValue</a
+	    > &#8759; Value &#8594; Value &#8594; Value <a href="src/Data.Aeson.Flatten.html#mergeValue" class="link"
+	    >Source</a
+	    > <a href="#v:mergeValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Merge two values, merging the objects using <code
+	      ><a href="Data-Aeson-Flatten.html#v:mergeObject" title="Data.Aeson.Flatten"
+		>mergeObject</a
+		></code
+	      >. Can't merge anything else.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:objToHm" class="def"
+	    >objToHm</a
+	    > &#8759; Object &#8594; <a href="https://hackage.haskell.org/package/unordered-containers-0.2.21/docs/Data-HashMap-Strict.html#t:HashMap" title="Data.HashMap.Strict"
+	    >HashMap</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > Value <a href="src/Data.Aeson.Flatten.html#objToHm" class="link"
+	    >Source</a
+	    > <a href="#v:objToHm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert an object to a hashmap. Compatibility shim for pre-/post-aeson-2.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:hmToObj" class="def"
+	    >hmToObj</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/unordered-containers-0.2.21/docs/Data-HashMap-Strict.html#t:HashMap" title="Data.HashMap.Strict"
+	    >HashMap</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > Value &#8594; Object <a href="src/Data.Aeson.Flatten.html#hmToObj" class="link"
+	    >Source</a
+	    > <a href="#v:hmToObj" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a hashmap to an object. Compatibility shim for pre-/post-aeson-2.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

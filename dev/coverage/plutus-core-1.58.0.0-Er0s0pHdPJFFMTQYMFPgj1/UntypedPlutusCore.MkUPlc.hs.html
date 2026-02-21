@@ -1,0 +1,43 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>module UntypedPlutusCore.MkUPlc (UVarDecl (..), uvarDeclName, uvarDeclAnn, mkVar, mkIterLamAbs, Def (..), UTermDef) where
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>import PlutusCore.MkPlc (Def (..))
+<span class="lineno">    5 </span>import UntypedPlutusCore.Core.Type
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>-- | A term definition as a variable.
+<span class="lineno">    8 </span>type UTermDef name uni fun ann = Def (UVarDecl name ann) (Term name uni fun ann)
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>-- | Make a 'Var' referencing the given 'VarDecl'.
+<span class="lineno">   11 </span>mkVar :: ann -&gt; UVarDecl name ann -&gt; Term name uni fun ann
+<span class="lineno">   12 </span><span class="decl"><span class="nottickedoff">mkVar ann = Var ann . _uvarDeclName</span></span>
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>-- | Lambda abstract a list of names.
+<span class="lineno">   15 </span>mkIterLamAbs
+<span class="lineno">   16 </span>  :: [UVarDecl name ann]
+<span class="lineno">   17 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   18 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   19 </span><span class="decl"><span class="istickedoff">mkIterLamAbs args body =</span>
+<span class="lineno">   20 </span><span class="spaces">  </span><span class="istickedoff">foldr (\(UVarDecl ann name) acc -&gt; LamAbs ann name acc) body args</span></span>
+
+</pre>
+</body>
+</html>

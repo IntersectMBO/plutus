@@ -1,0 +1,206 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>module MAlonzo.Code.Evaluator.Base where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   17 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   18 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   19 </span>import qualified MAlonzo.RTE
+<span class="lineno">   20 </span>import qualified Data.Text
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Agda.Builtin.String
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Check
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Data.String.Base
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Raw
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.RawU
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.Scoped
+<span class="lineno">   27 </span>import qualified MAlonzo.Code.Scoped.Extrication
+<span class="lineno">   28 </span>import qualified MAlonzo.Code.Utils
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>import PlutusCore.Pretty
+<span class="lineno">   31 </span>import qualified Data.Text as T
+<span class="lineno">   32 </span>import PlutusCore.Error
+<span class="lineno">   33 </span>import qualified FFI.Untyped as U
+<span class="lineno">   34 </span>import Raw
+<span class="lineno">   35 </span>-- Evaluator.Base.ParseError
+<span class="lineno">   36 </span>type T_ParseError_4 = PlutusCore.Error.ParserErrorBundle
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">d_ParseError_4</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">= error</span>
+<span class="lineno">   39 </span><span class="spaces">      </span><span class="nottickedoff">&quot;MAlonzo Runtime Error: postulate evaluated: Evaluator.Base.ParseError&quot;</span></span>
+<span class="lineno">   40 </span>-- Evaluator.Base.prettyPrintTm
+<span class="lineno">   41 </span>d_prettyPrintTm_6 ::
+<span class="lineno">   42 </span>  MAlonzo.Code.Raw.T_RawTm_32 -&gt;
+<span class="lineno">   43 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">d_prettyPrintTm_6 = display @T.Text . unconv 0</span></span>
+<span class="lineno">   45 </span>-- Evaluator.Base.prettyPrintTy
+<span class="lineno">   46 </span>d_prettyPrintTy_8 ::
+<span class="lineno">   47 </span>  MAlonzo.Code.Raw.T_RawTy_2 -&gt;
+<span class="lineno">   48 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">d_prettyPrintTy_8 = display @T.Text . unconvT 0</span></span>
+<span class="lineno">   50 </span>-- Evaluator.Base.prettyPrintUTm
+<span class="lineno">   51 </span>d_prettyPrintUTm_10 ::
+<span class="lineno">   52 </span>  MAlonzo.Code.RawU.T_Untyped_208 -&gt;
+<span class="lineno">   53 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">d_prettyPrintUTm_10 = display @T.Text . U.uconv 0</span></span>
+<span class="lineno">   55 </span>-- Evaluator.Base.ERROR
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">d_ERROR_12 = ()</span></span>
+<span class="lineno">   57 </span>type T_ERROR_12 = ERROR
+<span class="lineno">   58 </span>pattern C_typeError_14 a0 = <span class="istickedoff"><span class="nottickedoff">TypeError a0</span></span>
+<span class="lineno">   59 </span>pattern C_parseError_16 a0 = <span class="istickedoff"><span class="nottickedoff">ParseError a0</span></span>
+<span class="lineno">   60 </span>pattern C_scopeError_18 a0 = <span class="istickedoff"><span class="nottickedoff">ScopeError a0</span></span>
+<span class="lineno">   61 </span>pattern C_runtimeError_20 a0 = <span class="istickedoff">RuntimeError a0</span>
+<span class="lineno">   62 </span>pattern C_jsonError_22 a0 = <span class="nottickedoff">JsonError a0</span>
+<span class="lineno">   63 </span>check_typeError_14 ::
+<span class="lineno">   64 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; T_ERROR_12
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">check_typeError_14 = TypeError</span></span>
+<span class="lineno">   66 </span>check_parseError_16 :: T_ParseError_4 -&gt; T_ERROR_12
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">check_parseError_16 = ParseError</span></span>
+<span class="lineno">   68 </span>check_scopeError_18 ::
+<span class="lineno">   69 </span>  MAlonzo.Code.Scoped.T_ScopeError_576 -&gt; T_ERROR_12
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">check_scopeError_18 = ScopeError</span></span>
+<span class="lineno">   71 </span>check_runtimeError_20 ::
+<span class="lineno">   72 </span>  MAlonzo.Code.Utils.T_RuntimeError_378 -&gt; T_ERROR_12
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">check_runtimeError_20 = RuntimeError</span></span>
+<span class="lineno">   74 </span>check_jsonError_22 ::
+<span class="lineno">   75 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; T_ERROR_12
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">check_jsonError_22 = JsonError</span></span>
+<span class="lineno">   77 </span>cover_ERROR_12 :: ERROR -&gt; ()
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">cover_ERROR_12 x</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">TypeError _ -&gt; ()</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="nottickedoff">ParseError _ -&gt; ()</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="nottickedoff">ScopeError _ -&gt; ()</span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="nottickedoff">RuntimeError _ -&gt; ()</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">JsonError _ -&gt; ()</span></span>
+<span class="lineno">   85 </span>-- Evaluator.Base.uglyTypeError
+<span class="lineno">   86 </span>d_uglyTypeError_24 ::
+<span class="lineno">   87 </span>  MAlonzo.Code.Check.T_TypeError_12 -&gt;
+<span class="lineno">   88 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">d_uglyTypeError_24 v0</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_kindMismatch_18 v1 v2</span>
+<span class="lineno">   92 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;kindMismatch&quot; :: Data.Text.Text)</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_notFunKind_26 v1</span>
+<span class="lineno">   94 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;NotFunKind&quot; :: Data.Text.Text)</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_notPat_32 v1</span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;notPat&quot; :: Data.Text.Text)</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_UnknownType_34</span>
+<span class="lineno">   98 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;UnknownType&quot; :: Data.Text.Text)</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_notPi_44 v1 v2</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;notPi&quot; :: Data.Text.Text)</span>
+<span class="lineno">  101 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_notMu_56 v1 v2</span>
+<span class="lineno">  102 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;notMu&quot; :: Data.Text.Text)</span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_notFunType_66 v1 v2</span>
+<span class="lineno">  104 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;notFunType&quot; :: Data.Text.Text)</span>
+<span class="lineno">  105 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_notSOP_76 v1 v2</span>
+<span class="lineno">  106 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  107 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d__'43''43'__20</span>
+<span class="lineno">  108 </span><span class="spaces">             </span><span class="nottickedoff">(&quot;notSOP&quot; :: Data.Text.Text)</span>
+<span class="lineno">  109 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  110 </span><span class="spaces">                </span><span class="nottickedoff">d_prettyPrintTy_8</span>
+<span class="lineno">  111 </span><span class="spaces">                </span><span class="nottickedoff">(MAlonzo.Code.Scoped.d_extricateScopeTy_780</span>
+<span class="lineno">  112 </span><span class="spaces">                   </span><span class="nottickedoff">(coe MAlonzo.Code.Scoped.Extrication.d_len'8902'_4 (coe v1))</span>
+<span class="lineno">  113 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  114 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26 (coe v1)</span>
+<span class="lineno">  115 </span><span class="spaces">                      </span><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684) (coe v2))))</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_IndexOutOfBounds_82 v1 v2</span>
+<span class="lineno">  117 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;IndexOutOfBounds&quot; :: Data.Text.Text)</span>
+<span class="lineno">  118 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_TooManyConstrArgs_84</span>
+<span class="lineno">  119 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;TooManyConstrArgs&quot; :: Data.Text.Text)</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_TooFewConstrArgs_86</span>
+<span class="lineno">  121 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;TooFewConstrArgs&quot; :: Data.Text.Text)</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_TooFewCases_88</span>
+<span class="lineno">  123 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;TooFewCases&quot; :: Data.Text.Text)</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_TooManyCases_90</span>
+<span class="lineno">  125 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;TooManyCases&quot; :: Data.Text.Text)</span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_typeMismatch_100 v1 v2 v3 v4</span>
+<span class="lineno">  127 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  128 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d__'43''43'__20</span>
+<span class="lineno">  129 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  130 </span><span class="spaces">                </span><span class="nottickedoff">d_prettyPrintTy_8</span>
+<span class="lineno">  131 </span><span class="spaces">                </span><span class="nottickedoff">(MAlonzo.Code.Scoped.d_extricateScopeTy_780</span>
+<span class="lineno">  132 </span><span class="spaces">                   </span><span class="nottickedoff">(coe MAlonzo.Code.Scoped.Extrication.d_len'8902'_4 (coe v1))</span>
+<span class="lineno">  133 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  134 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26 (coe v1)</span>
+<span class="lineno">  135 </span><span class="spaces">                      </span><span class="nottickedoff">(coe v2) (coe v3))))</span>
+<span class="lineno">  136 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  137 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d__'43''43'__20</span>
+<span class="lineno">  138 </span><span class="spaces">                </span><span class="nottickedoff">(&quot; doesn't match &quot; :: Data.Text.Text)</span>
+<span class="lineno">  139 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  140 </span><span class="spaces">                   </span><span class="nottickedoff">d_prettyPrintTy_8</span>
+<span class="lineno">  141 </span><span class="spaces">                   </span><span class="nottickedoff">(MAlonzo.Code.Scoped.d_extricateScopeTy_780</span>
+<span class="lineno">  142 </span><span class="spaces">                      </span><span class="nottickedoff">(coe MAlonzo.Code.Scoped.Extrication.d_len'8902'_4 (coe v1))</span>
+<span class="lineno">  143 </span><span class="spaces">                      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  144 </span><span class="spaces">                         </span><span class="nottickedoff">MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26 (coe v1)</span>
+<span class="lineno">  145 </span><span class="spaces">                         </span><span class="nottickedoff">(coe v2) (coe v4)))))</span>
+<span class="lineno">  146 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_builtinError_102</span>
+<span class="lineno">  147 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (&quot;builtinError&quot; :: Data.Text.Text)</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Check.C_Unimplemented_104 v1</span>
+<span class="lineno">  149 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  150 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d__'43''43'__20</span>
+<span class="lineno">  151 </span><span class="spaces">             </span><span class="nottickedoff">(&quot;Feature &quot; :: Data.Text.Text)</span>
+<span class="lineno">  152 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  153 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d__'43''43'__20 v1</span>
+<span class="lineno">  154 </span><span class="spaces">                </span><span class="nottickedoff">(&quot; not implemented&quot; :: Data.Text.Text))</span>
+<span class="lineno">  155 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  156 </span>-- Evaluator.Base.reportError
+<span class="lineno">  157 </span>d_reportError_66 ::
+<span class="lineno">  158 </span>  T_ERROR_12 -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  159 </span><span class="decl"><span class="istickedoff">d_reportError_66 v0</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="istickedoff">= case coe v0 of</span>
+<span class="lineno">  161 </span><span class="spaces">      </span><span class="istickedoff">C_typeError_14 v1</span>
+<span class="lineno">  162 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  163 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d__'43''43'__20</span></span>
+<span class="lineno">  164 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(&quot;typeError: &quot; :: Data.Text.Text) v1</span></span>
+<span class="lineno">  165 </span><span class="spaces">      </span><span class="istickedoff">C_parseError_16 v1 -&gt; <span class="nottickedoff">coe (&quot;parseError&quot; :: Data.Text.Text)</span></span>
+<span class="lineno">  166 </span><span class="spaces">      </span><span class="istickedoff">C_scopeError_18 v1 -&gt; <span class="nottickedoff">coe (&quot;scopeError&quot; :: Data.Text.Text)</span></span>
+<span class="lineno">  167 </span><span class="spaces">      </span><span class="istickedoff">C_runtimeError_20 v1</span>
+<span class="lineno">  168 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  169 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Utils.C_gasError_380</span>
+<span class="lineno">  170 </span><span class="spaces">               </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe (&quot;gasError&quot; :: Data.Text.Text)</span></span>
+<span class="lineno">  171 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Utils.C_userError_382</span>
+<span class="lineno">  172 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe (&quot;userError&quot; :: Data.Text.Text)</span>
+<span class="lineno">  173 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Utils.C_runtimeTypeError_384</span>
+<span class="lineno">  174 </span><span class="spaces">               </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe (&quot;runtimeTypeError&quot; :: Data.Text.Text)</span></span>
+<span class="lineno">  175 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  176 </span><span class="spaces">      </span><span class="istickedoff">C_jsonError_22 v1</span>
+<span class="lineno">  177 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  178 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Data.String.Base.d__'43''43'__20</span></span>
+<span class="lineno">  179 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(&quot;jsonError: &quot; :: Data.Text.Text) v1</span></span>
+<span class="lineno">  180 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  181 </span>-- Evaluator.Base.maxsteps
+<span class="lineno">  182 </span>d_maxsteps_72 :: Integer
+<span class="lineno">  183 </span><span class="decl"><span class="istickedoff">d_maxsteps_72 = coe (10000000000 :: Integer)</span></span>
+
+</pre>
+</body>
+</html>

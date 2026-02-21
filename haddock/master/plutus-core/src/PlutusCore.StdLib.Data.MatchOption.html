@@ -1,0 +1,283 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span id="local-6989586621682065673"
+      ><span id="local-6989586621682065674"
+	></span
+	></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.StdLib.Data.MatchOption</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.StdLib.Data.MatchOption.html#MatchOption"
+	><span class="hs-identifier"
+	  >MatchOption</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Allows one to choose which way of doing pattern matching on built-in types to use: currently
+only 'ChooseList'-like builtins are supported. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="MatchOption"
+      ><span class="annot"
+	><a href="PlutusCore.StdLib.Data.MatchOption.html#MatchOption"
+	  ><span class="hs-identifier hs-var"
+	    >MatchOption</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="UseChoose"
+      ><span class="annot"
+	><a href="PlutusCore.StdLib.Data.MatchOption.html#UseChoose"
+	  ><span class="hs-identifier hs-var"
+	    >UseChoose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682065677"
+      ><span id="local-6989586621682065679"
+	><span id="local-6989586621682065683"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; MatchOption -&gt; ShowS
+[MatchOption] -&gt; ShowS
+MatchOption -&gt; String
+(Int -&gt; MatchOption -&gt; ShowS)
+-&gt; (MatchOption -&gt; String)
+-&gt; ([MatchOption] -&gt; ShowS)
+-&gt; Show MatchOption
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; MatchOption -&gt; ShowS
+showsPrec :: Int -&gt; MatchOption -&gt; ShowS
+$cshow :: MatchOption -&gt; String
+show :: MatchOption -&gt; String
+$cshowList :: [MatchOption] -&gt; ShowS
+showList :: [MatchOption] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682065687"
+      ><span id="local-6989586621682065689"
+	><span class="annot"
+	  ><span class="annottext"
+	    >MatchOption -&gt; MatchOption -&gt; Bool
+(MatchOption -&gt; MatchOption -&gt; Bool)
+-&gt; (MatchOption -&gt; MatchOption -&gt; Bool) -&gt; Eq MatchOption
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: MatchOption -&gt; MatchOption -&gt; Bool
+== :: MatchOption -&gt; MatchOption -&gt; Bool
+$c/= :: MatchOption -&gt; MatchOption -&gt; Bool
+/= :: MatchOption -&gt; MatchOption -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682065694"
+      ><span id="local-6989586621682065696"
+	><span class="annot"
+	  ><span class="annottext"
+	    >MatchOption
+MatchOption -&gt; MatchOption -&gt; Bounded MatchOption
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: MatchOption
+minBound :: MatchOption
+$cmaxBound :: MatchOption
+maxBound :: MatchOption
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682065700"
+      ><span id="local-6989586621682065708"
+	><span id="local-6989586621682065714"
+	  ><span id="local-6989586621682065724"
+	    ><span id="local-6989586621682065726"
+	      ><span id="local-6989586621682065730"
+		><span id="local-6989586621682065734"
+		  ><span id="local-6989586621682065738"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; MatchOption
+MatchOption -&gt; Int
+MatchOption -&gt; [MatchOption]
+MatchOption -&gt; MatchOption
+MatchOption -&gt; MatchOption -&gt; [MatchOption]
+MatchOption -&gt; MatchOption -&gt; MatchOption -&gt; [MatchOption]
+(MatchOption -&gt; MatchOption)
+-&gt; (MatchOption -&gt; MatchOption)
+-&gt; (Int -&gt; MatchOption)
+-&gt; (MatchOption -&gt; Int)
+-&gt; (MatchOption -&gt; [MatchOption])
+-&gt; (MatchOption -&gt; MatchOption -&gt; [MatchOption])
+-&gt; (MatchOption -&gt; MatchOption -&gt; [MatchOption])
+-&gt; (MatchOption -&gt; MatchOption -&gt; MatchOption -&gt; [MatchOption])
+-&gt; Enum MatchOption
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: MatchOption -&gt; MatchOption
+succ :: MatchOption -&gt; MatchOption
+$cpred :: MatchOption -&gt; MatchOption
+pred :: MatchOption -&gt; MatchOption
+$ctoEnum :: Int -&gt; MatchOption
+toEnum :: Int -&gt; MatchOption
+$cfromEnum :: MatchOption -&gt; Int
+fromEnum :: MatchOption -&gt; Int
+$cenumFrom :: MatchOption -&gt; [MatchOption]
+enumFrom :: MatchOption -&gt; [MatchOption]
+$cenumFromThen :: MatchOption -&gt; MatchOption -&gt; [MatchOption]
+enumFromThen :: MatchOption -&gt; MatchOption -&gt; [MatchOption]
+$cenumFromTo :: MatchOption -&gt; MatchOption -&gt; [MatchOption]
+enumFromTo :: MatchOption -&gt; MatchOption -&gt; [MatchOption]
+$cenumFromThenTo :: MatchOption -&gt; MatchOption -&gt; MatchOption -&gt; [MatchOption]
+enumFromThenTo :: MatchOption -&gt; MatchOption -&gt; MatchOption -&gt; [MatchOption]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Contexts</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Contexts.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Contexts</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:AppCtx"
+	      >AppCtx</a
+	      > name uni fun a<ul class="subs"
+	      ><li
+		>= <a href="#v:AppCtxTerm"
+		  >AppCtxTerm</a
+		  > a (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun a) (<a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+		  >AppCtx</a
+		  > name uni fun a)</li
+		><li
+		>| <a href="#v:AppCtxType"
+		  >AppCtxType</a
+		  > a (<a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+		  >AppCtx</a
+		  > name uni fun a)</li
+		><li
+		>| <a href="#v:AppCtxEnd"
+		  >AppCtxEnd</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:splitAppCtx"
+	      >splitAppCtx</a
+	      > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > nam uni fun a &#8594; (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > nam uni fun a, <a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+	      >AppCtx</a
+	      > nam uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:fillAppCtx"
+	      >fillAppCtx</a
+	      > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann &#8594; <a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+	      >AppCtx</a
+	      > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:AppCtx" class="def"
+	    >AppCtx</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Contexts.html#AppCtx" class="link"
+	    >Source</a
+	    > <a href="#t:AppCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A context for an iterated term/type application.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AppCtxTerm" class="def"
+		  >AppCtxTerm</a
+		  > a (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun a) (<a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+		  >AppCtx</a
+		  > name uni fun a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:AppCtxType" class="def"
+		  >AppCtxType</a
+		  > a (<a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+		  >AppCtx</a
+		  > name uni fun a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:AppCtxEnd" class="def"
+		  >AppCtxEnd</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:splitAppCtx" class="def"
+	    >splitAppCtx</a
+	    > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > nam uni fun a &#8594; (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > nam uni fun a, <a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+	    >AppCtx</a
+	    > nam uni fun a) <a href="src/UntypedPlutusCore.Contexts.html#splitAppCtx" class="link"
+	    >Source</a
+	    > <a href="#v:splitAppCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Takes a term and views it as a head plus an <code
+	      ><a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+		>AppCtx</a
+		></code
+	      >, e.g.
+<code
+	      >
+  [{ f t } u v]
+  --&gt;
+  (f, [{ _ t } u v])
+  ==
+  f (AppCtxType t (AppCtxTerm u (AppCtxTerm v AppCtxEnd)))
+</code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fillAppCtx" class="def"
+	    >fillAppCtx</a
+	    > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann &#8594; <a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+	    >AppCtx</a
+	    > name uni fun ann &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann <a href="src/UntypedPlutusCore.Contexts.html#fillAppCtx" class="link"
+	    >Source</a
+	    > <a href="#v:fillAppCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Fills in the hole in an <code
+	      ><a href="UntypedPlutusCore-Contexts.html#t:AppCtx" title="UntypedPlutusCore.Contexts"
+		>AppCtx</a
+		></code
+	      >, the inverse of <code
+	      ><a href="UntypedPlutusCore-Contexts.html#v:splitAppCtx" title="UntypedPlutusCore.Contexts"
+		>splitAppCtx</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

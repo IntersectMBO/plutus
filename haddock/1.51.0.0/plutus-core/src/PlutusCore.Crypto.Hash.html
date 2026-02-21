@@ -1,0 +1,959 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Hash functions for lazy [[Data.ByteString.ByteString]]s</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Crypto.Hash</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#sha2_256"
+	><span class="hs-identifier"
+	  >sha2_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#sha3_256"
+	><span class="hs-identifier"
+	  >sha3_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#blake2b_224"
+	><span class="hs-identifier"
+	  >blake2b_224</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#blake2b_256"
+	><span class="hs-identifier"
+	  >blake2b_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#keccak_256"
+	><span class="hs-identifier"
+	  >keccak_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#ripemd_160"
+	><span class="hs-identifier"
+	  >ripemd_160</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Blake2b.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.Hash.Blake2b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Class.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.Hash.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Keccak256.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.Hash.Keccak256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.RIPEMD160.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.Hash.RIPEMD160</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.SHA256.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.Hash.SHA256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.SHA3_256.html"
+	><span class="hs-identifier"
+	  >Cardano.Crypto.Hash.SHA3_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Hash a `ByteString` using the SHA-256 hash function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#sha2_256"
+	><span class="hs-identifier hs-type"
+	  >sha2_256</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="sha2_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >sha2_256 :: ByteString -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Crypto.Hash.html#sha2_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sha2_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy SHA256 -&gt; ByteString -&gt; ByteString
+forall h (proxy :: * -&gt; *).
+HashAlgorithm h =&gt;
+proxy h -&gt; ByteString -&gt; ByteString
+forall (proxy :: * -&gt; *). proxy SHA256 -&gt; ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Class.html#digest"
+	><span class="hs-identifier hs-var"
+	  >digest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.SHA256.html#SHA256"
+	><span class="hs-identifier hs-type"
+	  >SHA256</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Hash a `ByteString` using the SHA3-256 hash function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#sha3_256"
+	><span class="hs-identifier hs-type"
+	  >sha3_256</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="sha3_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >sha3_256 :: ByteString -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Crypto.Hash.html#sha3_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sha3_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy SHA3_256 -&gt; ByteString -&gt; ByteString
+forall h (proxy :: * -&gt; *).
+HashAlgorithm h =&gt;
+proxy h -&gt; ByteString -&gt; ByteString
+forall (proxy :: * -&gt; *).
+proxy SHA3_256 -&gt; ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Class.html#digest"
+	><span class="hs-identifier hs-var"
+	  >digest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.SHA3_256.html#SHA3_256"
+	><span class="hs-identifier hs-type"
+	  >SHA3_256</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Hash a `ByteString` using the Blake2b-224 hash function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#blake2b_224"
+	><span class="hs-identifier hs-type"
+	  >blake2b_224</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="blake2b_224"
+      ><span class="annot"
+	><span class="annottext"
+	  >blake2b_224 :: ByteString -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Crypto.Hash.html#blake2b_224"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >blake2b_224</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Blake2b_224 -&gt; ByteString -&gt; ByteString
+forall h (proxy :: * -&gt; *).
+HashAlgorithm h =&gt;
+proxy h -&gt; ByteString -&gt; ByteString
+forall (proxy :: * -&gt; *).
+proxy Blake2b_224 -&gt; ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Class.html#digest"
+	><span class="hs-identifier hs-var"
+	  >digest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Blake2b.html#Blake2b_224"
+	><span class="hs-identifier hs-type"
+	  >Blake2b_224</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Hash a `ByteString` using the Blake2b-256 hash function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#blake2b_256"
+	><span class="hs-identifier hs-type"
+	  >blake2b_256</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="blake2b_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >blake2b_256 :: ByteString -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Crypto.Hash.html#blake2b_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >blake2b_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Blake2b_256 -&gt; ByteString -&gt; ByteString
+forall h (proxy :: * -&gt; *).
+HashAlgorithm h =&gt;
+proxy h -&gt; ByteString -&gt; ByteString
+forall (proxy :: * -&gt; *).
+proxy Blake2b_256 -&gt; ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Class.html#digest"
+	><span class="hs-identifier hs-var"
+	  >digest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Blake2b.html#Blake2b_256"
+	><span class="hs-identifier hs-type"
+	  >Blake2b_256</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Hash a `ByteString` using the Keccak-256 hash function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#keccak_256"
+	><span class="hs-identifier hs-type"
+	  >keccak_256</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="keccak_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >keccak_256 :: ByteString -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Crypto.Hash.html#keccak_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >keccak_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy Keccak256 -&gt; ByteString -&gt; ByteString
+forall h (proxy :: * -&gt; *).
+HashAlgorithm h =&gt;
+proxy h -&gt; ByteString -&gt; ByteString
+forall (proxy :: * -&gt; *).
+proxy Keccak256 -&gt; ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Class.html#digest"
+	><span class="hs-identifier hs-var"
+	  >digest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Keccak256.html#Keccak256"
+	><span class="hs-identifier hs-type"
+	  >Keccak256</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Hash a `ByteString` using the RIPEMD-160 hash function.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.Hash.html#ripemd_160"
+	><span class="hs-identifier hs-type"
+	  >ripemd_160</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="ripemd_160"
+      ><span class="annot"
+	><span class="annottext"
+	  >ripemd_160 :: ByteString -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Crypto.Hash.html#ripemd_160"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ripemd_160</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy RIPEMD160 -&gt; ByteString -&gt; ByteString
+forall h (proxy :: * -&gt; *).
+HashAlgorithm h =&gt;
+proxy h -&gt; ByteString -&gt; ByteString
+forall (proxy :: * -&gt; *).
+proxy RIPEMD160 -&gt; ByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.Class.html#digest"
+	><span class="hs-identifier hs-var"
+	  >digest</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.2.0/docs/src/Cardano.Crypto.Hash.RIPEMD160.html#RIPEMD160"
+	><span class="hs-identifier hs-type"
+	  >RIPEMD160</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

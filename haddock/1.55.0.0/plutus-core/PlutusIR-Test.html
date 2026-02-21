@@ -1,0 +1,1216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Test</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Test.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Test</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:ppCatch"
+	      >ppCatch</a
+	      > &#8759; (a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann) &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:asIfThrown"
+	      >asIfThrown</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+	      >Exception</a
+	      > e &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:Except" title="Control.Monad.Except"
+	      >Except</a
+	      > e a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:compileWithOpts"
+	      >compileWithOpts</a
+	      > &#8759; (<a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+	      >AnnInline</a
+	      > a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > a, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun)) &#8658; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a &#8594; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	      >CompilationCtx</a
+	      > uni fun a) &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:Except" title="Control.Monad.Except"
+	      >Except</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a))</li
+	    ><li class="src short"
+	    ><a href="#v:pTermAsProg"
+	      >pTermAsProg</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:withGoldenFileM"
+	      >withGoldenFileM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; (<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      >) &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPir"
+	      >goldenPir</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > b &#8658; (a &#8594; b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirM"
+	      >goldenPirM</a
+	      > &#8759; &#8704; a b. <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > b &#8658; (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirUnique"
+	      >goldenPirUnique</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > b &#8658; (a &#8594; b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirMUnique"
+	      >goldenPirMUnique</a
+	      > &#8759; &#8704; a b. <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > b &#8658; (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirDoc"
+	      >goldenPirDoc</a
+	      > &#8759; (a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirDocM"
+	      >goldenPirDocM</a
+	      > &#8759; &#8704; a ann. (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann)) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPlcFromPir"
+	      >goldenPlcFromPir</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	      >ToTPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPlcFromPirScott"
+	      >goldenPlcFromPirScott</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	      >Typeable</a
+	      > a, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+	      >AnnInline</a
+	      > a, prog <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a) &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > prog &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenNamedUPlcFromPir"
+	      >goldenNamedUPlcFromPir</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenEvalPir"
+	      >goldenEvalPir</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenTypeFromPir"
+	      >goldenTypeFromPir</a
+	      > &#8759; &#8704; a. (<a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	      >Typeable</a
+	      > a) &#8658; a &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:initialSrcSpan"
+	      >initialSrcSpan</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:topSrcSpan"
+	      >topSrcSpan</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:rethrow"
+	      >rethrow</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:prettyPlcClassicSimple"
+	      >prettyPlcClassicSimple</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a &#8658; a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ppCatch" class="def"
+	    >ppCatch</a
+	    > &#8759; (a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann) &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusIR.Test.html#ppCatch" class="link"
+	    >Source</a
+	    > <a href="#v:ppCatch" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asIfThrown" class="def"
+	    >asIfThrown</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+	    >Exception</a
+	    > e &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:Except" title="Control.Monad.Except"
+	    >Except</a
+	    > e a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a <a href="src/PlutusIR.Test.html#asIfThrown" class="link"
+	    >Source</a
+	    > <a href="#v:asIfThrown" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Adapt an computation that keeps its errors in an <code
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:Except" title="Control.Monad.Except"
+		>Except</a
+		></code
+	      > into one that looks as if
+it caught them in <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		>IO</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileWithOpts" class="def"
+	    >compileWithOpts</a
+	    > &#8759; (<a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+	    >AnnInline</a
+	    > a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > a, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun)) &#8658; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a &#8594; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationCtx" title="PlutusIR.Compiler.Types"
+	    >CompilationCtx</a
+	    > uni fun a) &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:Except" title="Control.Monad.Except"
+	    >Except</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) <a href="src/PlutusIR.Test.html#compileWithOpts" class="link"
+	    >Source</a
+	    > <a href="#v:compileWithOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pTermAsProg" class="def"
+	    >pTermAsProg</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >) <a href="src/PlutusIR.Test.html#pTermAsProg" class="link"
+	    >Source</a
+	    > <a href="#v:pTermAsProg" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withGoldenFileM" class="def"
+	    >withGoldenFileM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; (<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    >) &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#withGoldenFileM" class="link"
+	    >Source</a
+	    > <a href="#v:withGoldenFileM" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPir" class="def"
+	    >goldenPir</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > b &#8658; (a &#8594; b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPir" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirM" class="def"
+	    >goldenPirM</a
+	    > &#8759; &#8704; a b. <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > b &#8658; (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPirM" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirM" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirUnique" class="def"
+	    >goldenPirUnique</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > b &#8658; (a &#8594; b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPirUnique" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirUnique" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirMUnique" class="def"
+	    >goldenPirMUnique</a
+	    > &#8759; &#8704; a b. <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > b &#8658; (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > b) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPirMUnique" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirMUnique" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirDoc" class="def"
+	    >goldenPirDoc</a
+	    > &#8759; (a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPirDoc" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirDoc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirDocM" class="def"
+	    >goldenPirDocM</a
+	    > &#8759; &#8704; a ann. (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann)) &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPirDocM" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirDocM" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPlcFromPir" class="def"
+	    >goldenPlcFromPir</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	    >ToTPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPlcFromPir" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPlcFromPir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPlcFromPirScott" class="def"
+	    >goldenPlcFromPirScott</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	    >Typeable</a
+	    > a, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+	    >AnnInline</a
+	    > a, prog <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a) &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > prog &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenPlcFromPirScott" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPlcFromPirScott" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenNamedUPlcFromPir" class="def"
+	    >goldenNamedUPlcFromPir</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenNamedUPlcFromPir" class="link"
+	    >Source</a
+	    > <a href="#v:goldenNamedUPlcFromPir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenEvalPir" class="def"
+	    >goldenEvalPir</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenEvalPir" class="link"
+	    >Source</a
+	    > <a href="#v:goldenEvalPir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenTypeFromPir" class="def"
+	    >goldenTypeFromPir</a
+	    > &#8759; &#8704; a. (<a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	    >Typeable</a
+	    > a) &#8658; a &#8594; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusIR.Test.html#goldenTypeFromPir" class="link"
+	    >Source</a
+	    > <a href="#v:goldenTypeFromPir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:initialSrcSpan" class="def"
+	    >initialSrcSpan</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/PlutusCore.Test.html#initialSrcSpan" class="link"
+	    >Source</a
+	    > <a href="#v:initialSrcSpan" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A made-up <code
+	      ><a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		>SrcSpan</a
+		></code
+	      > for testing.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:topSrcSpan" class="def"
+	    >topSrcSpan</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/PlutusCore.Test.html#topSrcSpan" class="link"
+	    >Source</a
+	    > <a href="#v:topSrcSpan" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rethrow" class="def"
+	    >rethrow</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a <a href="src/PlutusCore.Test.html#rethrow" class="link"
+	    >Source</a
+	    > <a href="#v:rethrow" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyPlcClassicSimple" class="def"
+	    >prettyPlcClassicSimple</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a &#8658; a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:prettyPlcClassicSimple" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print a PLC value without unique indices using the classic view.</p
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:AnnInline:AnnInline:1"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		  >AnnInline</a
+		  > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		  >SrcSpan</a
+		  ></span
+		> <a href="src/PlutusIR.Test.html#line-92" class="link"
+		>Source</a
+		> <a href="#v:-36-fAnnInlineSrcSpan" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:AnnInline:AnnInline:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:annAlwaysInline"
+		      >annAlwaysInline</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:annAlwaysInline" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:annSafeToInline"
+		      >annSafeToInline</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:annSafeToInline" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:annMayInline"
+		      >annMayInline</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:annMayInline" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:AnnInline:AnnInline:2"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		  >AnnInline</a
+		  > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpans" title="PlutusCore.Annotation"
+		  >SrcSpans</a
+		  ></span
+		> <a href="src/PlutusIR.Test.html#line-97" class="link"
+		>Source</a
+		> <a href="#v:-36-fAnnInlineSrcSpans" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:AnnInline:AnnInline:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:annAlwaysInline"
+		      >annAlwaysInline</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpans" title="PlutusCore.Annotation"
+		      >SrcSpans</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:annAlwaysInline" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:annSafeToInline"
+		      >annSafeToInline</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpans" title="PlutusCore.Annotation"
+		      >SrcSpans</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:annSafeToInline" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:annMayInline"
+		      >annMayInline</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpans" title="PlutusCore.Annotation"
+		      >SrcSpans</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:annMayInline" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToTPlc:ToTPlc:3"
+		  ></span
+		  > (<a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		  >GEq</a
+		  > uni, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		  >Typecheckable</a
+		  > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		  >CaseBuiltin</a
+		  > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		  >PrettyUni</a
+		  > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		  >Pretty</a
+		  > fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		  >Pretty</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		  >Typeable</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		  >Ord</a
+		  > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		  >AnnInline</a
+		  > a, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		  >CostingPart</a
+		  > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+		  >RewriteRules</a
+		  > uni fun)) &#8658; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+		  >ToTPlc</a
+		  > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		  >Program</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun a) uni fun</span
+		> <a href="src/PlutusIR.Test.html#line-55" class="link"
+		>Source</a
+		> <a href="#v:-36-fToTPlcProgramunifun" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToTPlc:ToTPlc:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toTPlc"
+		      >toTPlc</a
+		      > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		      >ExceptT</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+		      >SomeException</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		      >IO</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#v:Program0" title="PlutusCore.Core.Type"
+		      >Program0</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun ()) <a href="src/PlutusCore.Test.html#toTPlc" class="link"
+		      >Source</a
+		      > <a href="#v:toTPlc" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToUPlc:ToUPlc:4"
+		  ></span
+		  > (<a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		  >GEq</a
+		  > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+		  >Everywhere</a
+		  > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		  >Eq</a
+		  >, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		  >Typecheckable</a
+		  > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		  >CaseBuiltin</a
+		  > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		  >PrettyUni</a
+		  > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		  >Pretty</a
+		  > fun, <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		  >Hashable</a
+		  > fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		  >Pretty</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		  >Typeable</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		  >Ord</a
+		  > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		  >AnnInline</a
+		  > a, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		  >CostingPart</a
+		  > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+		  >RewriteRules</a
+		  > uni fun)) &#8658; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+		  >ToUPlc</a
+		  > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		  >Program</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun a) uni fun</span
+		> <a href="src/PlutusIR.Test.html#line-73" class="link"
+		>Source</a
+		> <a href="#v:-36-fToUPlcProgramunifun" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToUPlc:ToUPlc:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toUPlc"
+		      >toUPlc</a
+		      > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		      >ExceptT</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+		      >SomeException</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		      >IO</a
+		      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#v:Program0" title="UntypedPlutusCore.Core.Type"
+		      >Program0</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun ()) <a href="src/PlutusCore.Test.html#toUPlc" class="link"
+		      >Source</a
+		      > <a href="#v:toUPlc" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

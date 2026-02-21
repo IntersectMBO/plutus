@@ -1,0 +1,2424 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Lift</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Lift.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Lift</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:safeLiftWith"
+	      >safeLiftWith</a
+	      > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > () &#8594; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+	      >CompilationOpts</a
+	      > ()) &#8594; (<a href="../plutus-core/PlutusCore-Compiler-Opts.html#t:CompilationOpts" title="PlutusCore.Compiler.Opts"
+	      >CompilationOpts</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ()) &#8594; <a href="../plutus-core/PlutusCore-Compiler-Opts.html#t:CompilationOpts" title="PlutusCore.Compiler.Opts"
+	      >CompilationOpts</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) &#8594; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:safeLift"
+	      >safeLift</a
+	      > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:safeLiftUnopt"
+	      >safeLiftUnopt</a
+	      > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:safeLiftProgram"
+	      >safeLiftProgram</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:safeLiftProgramUnopt"
+	      >safeLiftProgramUnopt</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:safeLiftCode"
+	      >safeLiftCode</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; m (<a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:safeLiftCodeUnopt"
+	      >safeLiftCodeUnopt</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; m (<a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:lift"
+	      >lift</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:liftUnopt"
+	      >liftUnopt</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:liftProgram"
+	      >liftProgram</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:liftProgramUnopt"
+	      >liftProgramUnopt</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:liftProgramDef"
+	      >liftProgramDef</a
+	      > &#8759; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > a &#8658; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:liftProgramDefUnopt"
+	      >liftProgramDefUnopt</a
+	      > &#8759; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > a &#8658; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:liftCode"
+	      >liftCode</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:liftCodeUnopt"
+	      >liftCodeUnopt</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      > &#8594; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:liftCodeDef"
+	      >liftCodeDef</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:liftCodeDefUnopt"
+	      >liftCodeDefUnopt</a
+	      > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	      >Lift</a
+	      > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:typeCheckAgainst"
+	      >typeCheckAgainst</a
+	      > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+	      >Typeable</a
+	      > uni a, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun)) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	      >Proxy</a
+	      > a &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:typeCode"
+	      >typeCode</a
+	      > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+	      >Typeable</a
+	      > uni a, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >Everywhere</a
+	      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      >, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	      >Default</a
+	      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	      >Hashable</a
+	      > fun) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	      >Proxy</a
+	      > a &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; m (<a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:makeTypeable"
+	      >makeTypeable</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:makeLift"
+	      >makeLift</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:LiftError"
+	      >LiftError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:UnsupportedLiftKind"
+		  >UnsupportedLiftKind</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Kind" title="Language.Haskell.TH.Syntax"
+		  >Kind</a
+		  ></li
+		><li
+		>| <a href="#v:UnsupportedLiftType"
+		  >UnsupportedLiftType</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+		  >Type</a
+		  ></li
+		><li
+		>| <a href="#v:UserLiftError"
+		  >UserLiftError</a
+		  > !<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		>| <a href="#v:LiftMissingDataCons"
+		  >LiftMissingDataCons</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		  >Name</a
+		  ></li
+		><li
+		>| <a href="#v:LiftMissingVar"
+		  >LiftMissingVar</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		  >Name</a
+		  ></li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeLiftWith" class="def"
+	    >safeLiftWith</a
+	    > <a href="src/PlutusTx.Lift.html#safeLiftWith" class="link"
+	    >Source</a
+	    > <a href="#v:safeLiftWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		  >Lift</a
+		  > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		  >GEq</a
+		  > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+		  >Everywhere</a
+		  > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		  >Eq</a
+		  >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		  >MonadError</a
+		  > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+		  >Error</a
+		  > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		  >MonadQuote</a
+		  > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		  >Typecheckable</a
+		  > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		  >CaseBuiltin</a
+		  > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		  >PrettyUni</a
+		  > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		  >Pretty</a
+		  > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		  >CostingPart</a
+		  > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		  >Default</a
+		  > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+		  >RewriteRules</a
+		  > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		  >Hashable</a
+		  > fun)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; (<a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+		  >CompilationOpts</a
+		  > () &#8594; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:CompilationOpts" title="PlutusIR.Compiler.Types"
+		  >CompilationOpts</a
+		  > ())</td
+		><td class="doc"
+		><p
+		  >Modifier of PIR compilation options</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="../plutus-core/PlutusCore-Compiler-Opts.html#t:CompilationOpts" title="PlutusCore.Compiler.Opts"
+		  >CompilationOpts</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > ()) &#8594; <a href="../plutus-core/PlutusCore-Compiler-Opts.html#t:CompilationOpts" title="PlutusCore.Compiler.Opts"
+		  >CompilationOpts</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > ()))</td
+		><td class="doc"
+		><p
+		  >Modifier of UPLC compilation options</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+		  >Version</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		  >NamedDeBruijn</a
+		  > uni fun ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core term corresponding to the given value. Allows configuring
+PIR and UPLC optimization options.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeLift" class="def"
+	    >safeLift</a
+	    > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#safeLift" class="link"
+	    >Source</a
+	    > <a href="#v:safeLift" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core term corresponding to the given value, applying default PIR/UPLC
+optimizations.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeLiftUnopt" class="def"
+	    >safeLiftUnopt</a
+	    > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#safeLiftUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:safeLiftUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:safeLift" title="PlutusTx.Lift"
+		>safeLift</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeLiftProgram" class="def"
+	    >safeLiftProgram</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#safeLiftProgram" class="link"
+	    >Source</a
+	    > <a href="#v:safeLiftProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core program corresponding to the given value, applying default PIR/UPLC
+optimizations.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeLiftProgramUnopt" class="def"
+	    >safeLiftProgramUnopt</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#safeLiftProgramUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:safeLiftProgramUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:safeLiftProgram" title="PlutusTx.Lift"
+		>safeLiftProgram</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeLiftCode" class="def"
+	    >safeLiftCode</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; m (<a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a) <a href="src/PlutusTx.Lift.html#safeLiftCode" class="link"
+	    >Source</a
+	    > <a href="#v:safeLiftCode" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeLiftCodeUnopt" class="def"
+	    >safeLiftCodeUnopt</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; m (<a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a) <a href="src/PlutusTx.Lift.html#safeLiftCodeUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:safeLiftCodeUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:safeLiftCode" title="PlutusTx.Lift"
+		>safeLiftCode</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lift" class="def"
+	    >lift</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#lift" class="link"
+	    >Source</a
+	    > <a href="#v:lift" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core term corresponding to the given value, throwing any errors that
+occur as exceptions and ignoring fresh names. The default PIR/UPLC optimizations
+are applied.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftUnopt" class="def"
+	    >liftUnopt</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#liftUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:liftUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:lift" title="PlutusTx.Lift"
+		>lift</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftProgram" class="def"
+	    >liftProgram</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#liftProgram" class="link"
+	    >Source</a
+	    > <a href="#v:liftProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftProgramUnopt" class="def"
+	    >liftProgramUnopt</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > uni fun ()) <a href="src/PlutusTx.Lift.html#liftProgramUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:liftProgramUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:liftProgram" title="PlutusTx.Lift"
+		>liftProgram</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftProgramDef" class="def"
+	    >liftProgramDef</a
+	    > &#8759; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a &#8658; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusTx.Lift.html#liftProgramDef" class="link"
+	    >Source</a
+	    > <a href="#v:liftProgramDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core program in the default universe with the default version, corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftProgramDefUnopt" class="def"
+	    >liftProgramDefUnopt</a
+	    > &#8759; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a &#8658; a &#8594; (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (), <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusTx.Lift.html#liftProgramDefUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:liftProgramDefUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:liftProgramDef" title="PlutusTx.Lift"
+		>liftProgramDef</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftCode" class="def"
+	    >liftCode</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a <a href="src/PlutusTx.Lift.html#liftCode" class="link"
+	    >Source</a
+	    > <a href="#v:liftCode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core program corresponding to the given value as a <code
+	      ><a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+		>CompiledCodeIn</a
+		></code
+	      >, throwing any errors that occur as exceptions and ignoring fresh names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftCodeUnopt" class="def"
+	    >liftCodeUnopt</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > &#8594; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a <a href="src/PlutusTx.Lift.html#liftCodeUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:liftCodeUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:liftCode" title="PlutusTx.Lift"
+		>liftCode</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftCodeDef" class="def"
+	    >liftCodeDef</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a <a href="src/PlutusTx.Lift.html#liftCodeDef" class="link"
+	    >Source</a
+	    > <a href="#v:liftCodeDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a Plutus Core program with the default version, corresponding to the given value as a <code
+	      ><a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+		>CompiledCodeIn</a
+		></code
+	      >, throwing any errors that occur as exceptions and ignoring fresh names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftCodeDefUnopt" class="def"
+	    >liftCodeDefUnopt</a
+	    > &#8759; (<a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+	    >Lift</a
+	    > uni a, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; a &#8594; <a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a <a href="src/PlutusTx.Lift.html#liftCodeDefUnopt" class="link"
+	    >Source</a
+	    > <a href="#v:liftCodeDefUnopt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Lift.html#v:liftCodeDef" title="PlutusTx.Lift"
+		>liftCodeDef</a
+		></code
+	      > but does not apply PIR/UPLC optimizations. Use this option
+where lifting speed is more important than optimal code.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeCheckAgainst" class="def"
+	    >typeCheckAgainst</a
+	    > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+	    >Typeable</a
+	    > uni a, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun)) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	    >Proxy</a
+	    > a &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; m () <a href="src/PlutusTx.Lift.html#typeCheckAgainst" class="link"
+	    >Source</a
+	    > <a href="#v:typeCheckAgainst" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check that PLC term has the given type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeCode" class="def"
+	    >typeCode</a
+	    > &#8759; &#8704; a uni fun m. (<a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+	    >Typeable</a
+	    > uni a, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > ())) m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >Everywhere</a
+	    > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+	    >Default</a
+	    > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > uni fun), <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+	    >Hashable</a
+	    > fun) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+	    >Proxy</a
+	    > a &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; m (<a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a) <a href="src/PlutusTx.Lift.html#typeCode" class="link"
+	    >Source</a
+	    > <a href="#v:typeCode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Try to interpret a PLC program as a <code
+	      ><a href="PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+		>CompiledCodeIn</a
+		></code
+	      > of the given type. Returns successfully iff the program has the right type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeTypeable" class="def"
+	    >makeTypeable</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.Lift.TH.html#makeTypeable" class="link"
+	    >Source</a
+	    > <a href="#v:makeTypeable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeLift" class="def"
+	    >makeLift</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.Lift.TH.html#makeLift" class="link"
+	    >Source</a
+	    > <a href="#v:makeLift" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:LiftError" class="def"
+	    >LiftError</a
+	    > <a href="src/PlutusTx.Lift.TH.html#LiftError" class="link"
+	    >Source</a
+	    > <a href="#t:LiftError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UnsupportedLiftKind" class="def"
+		  >UnsupportedLiftKind</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Kind" title="Language.Haskell.TH.Syntax"
+		  >Kind</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnsupportedLiftType" class="def"
+		  >UnsupportedLiftType</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+		  >Type</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UserLiftError" class="def"
+		  >UserLiftError</a
+		  > !<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LiftMissingDataCons" class="def"
+		  >LiftMissingDataCons</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		  >Name</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LiftMissingVar" class="def"
+		  >LiftMissingVar</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		  >Name</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:LiftError"
+	    >Instances</h4
+	    ><details id="i:LiftError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LiftError:Exception:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+		      >Exception</a
+		      > <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+		      >LiftError</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.TH.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:LiftError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LiftError:Exception:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-TH.html"
+			>PlutusTx.Lift.TH</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LiftError:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+		      >LiftError</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.TH.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:LiftError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LiftError:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-TH.html"
+			>PlutusTx.Lift.TH</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:LiftError:Pretty:3"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+		      >LiftError</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.TH.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:LiftError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:LiftError:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-TH.html"
+			>PlutusTx.Lift.TH</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Lift.html#t:LiftError" title="PlutusTx.Lift"
+			  >LiftError</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

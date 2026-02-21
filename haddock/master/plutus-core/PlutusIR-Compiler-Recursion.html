@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Compiler.Recursion</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Compiler.Recursion.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Compiler.Recursion</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Functions for compiling PIR recursive let-bound functions into PLC.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:compileRecTerms"
+	      >compileRecTerms</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	      >Compiling</a
+	      > m uni fun a &#8658; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:TermDef" title="PlutusIR.Compiler.Types"
+	      >TermDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	      >DefT</a
+	      > <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+	      >SharedName</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a) m (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:mkFixpoint"
+	      >mkFixpoint</a
+	      > &#8759; &#8704; m uni fun a. <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	      >Compiling</a
+	      > m uni fun a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Compiler-Types.html#t:TermDef" title="PlutusIR.Compiler.Types"
+	      >TermDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	      >DefT</a
+	      > <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+	      >SharedName</a
+	      > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a) m (<a href="../plutus-core/PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	      >Tuple</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun) uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a))</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileRecTerms" class="def"
+	    >compileRecTerms</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun a &#8658; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:TermDef" title="PlutusIR.Compiler.Types"
+	    >TermDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	    >DefT</a
+	    > <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+	    >SharedName</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) m (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a) <a href="src/PlutusIR.Compiler.Recursion.html#compileRecTerms" class="link"
+	    >Source</a
+	    > <a href="#v:compileRecTerms" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compile a mutually recursive list of var decls bound in a body.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkFixpoint" class="def"
+	    >mkFixpoint</a
+	    > &#8759; &#8704; m uni fun a. <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Compiler-Types.html#t:TermDef" title="PlutusIR.Compiler.Types"
+	    >TermDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	    >DefT</a
+	    > <a href="PlutusIR-Compiler-Types.html#t:SharedName" title="PlutusIR.Compiler.Types"
+	    >SharedName</a
+	    > uni fun (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) m (<a href="../plutus-core/PlutusCore-StdLib-Meta-Data-Tuple.html#t:Tuple" title="PlutusCore.StdLib.Meta.Data.Tuple"
+	    >Tuple</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun) uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) <a href="src/PlutusIR.Compiler.Recursion.html#mkFixpoint" class="link"
+	    >Source</a
+	    > <a href="#v:mkFixpoint" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

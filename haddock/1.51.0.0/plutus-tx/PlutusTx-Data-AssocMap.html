@@ -1,0 +1,1549 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Data.AssocMap</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Data.AssocMap.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Data.AssocMap</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Map"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:lookup"
+	      >lookup</a
+	      > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a) &#8658; k &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:member"
+	      >member</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > k &#8658; k &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:insert"
+	      >insert</a
+	      > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a) &#8658; k &#8594; a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:delete"
+	      >delete</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > k &#8658; k &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:singleton"
+	      >singleton</a
+	      > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a) &#8658; k &#8594; a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:empty"
+	      >empty</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:null"
+	      >null</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toSOPList"
+	      >toSOPList</a
+	      > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a) &#8658; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; [(k, a)]</li
+	    ><li class="src short"
+	    ><a href="#v:toBuiltinList"
+	      >toBuiltinList</a
+	      > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	      >BuiltinList</a
+	      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+	      >BuiltinPair</a
+	      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:safeFromSOPList"
+	      >safeFromSOPList</a
+	      > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a) &#8658; [(k, a)] &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:unsafeFromSOPList"
+	      >unsafeFromSOPList</a
+	      > &#8759; (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a) &#8658; [(k, a)] &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:unsafeFromDataList"
+	      >unsafeFromDataList</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > (a, k) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:unsafeFromBuiltinList"
+	      >unsafeFromBuiltinList</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	      >BuiltinList</a
+	      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+	      >BuiltinPair</a
+	      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:noDuplicateKeys"
+	      >noDuplicateKeys</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:all"
+	      >all</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:any"
+	      >any</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:union"
+	      >union</a
+	      > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > b, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b) &#8658; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k b &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	      >These</a
+	      > a b)</li
+	    ><li class="src short"
+	    ><a href="#v:unionWith"
+	      >unionWith</a
+	      > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a) &#8658; (a &#8594; a &#8594; a) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:keys"
+	      >keys</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > k</li
+	    ><li class="src short"
+	    ><a href="#v:elems"
+	      >elems</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:map"
+	      >map</a
+	      > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b) &#8658; (a &#8594; b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k b</li
+	    ><li class="src short"
+	    ><a href="#v:mapThese"
+	      >mapThese</a
+	      > &#8759; &#8704; v k a b. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > v) &#8658; (v &#8594; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	      >These</a
+	      > a b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k v &#8594; (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a, <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k b)</li
+	    ><li class="src short"
+	    ><a href="#v:foldr"
+	      >foldr</a
+	      > &#8759; &#8704; a b k. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:filter"
+	      >filter</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:mapWithKey"
+	      >mapWithKey</a
+	      > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b) &#8658; (k &#8594; a &#8594; b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k b</li
+	    ><li class="src short"
+	    ><a href="#v:mapMaybe"
+	      >mapMaybe</a
+	      > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b) &#8658; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k b</li
+	    ><li class="src short"
+	    ><a href="#v:mapMaybeWithKey"
+	      >mapMaybeWithKey</a
+	      > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b) &#8658; (k &#8594; a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	      >Map</a
+	      > k b</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Map" class="def"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#Map" class="link"
+	    >Source</a
+	    > <a href="#t:Map" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A map associating keys and values backed by <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >.</p
+	    ><p
+	    >This implementation has the following characteristics:</p
+	    ><ul
+	    ><li
+	      >The <code
+		><a href="PlutusTx-IsData-Class.html#v:toBuiltinData" title="PlutusTx.IsData.Class"
+		  >toBuiltinData</a
+		  ></code
+		> and <code
+		><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+		  >unsafeFromBuiltinData</a
+		  ></code
+		> operations are no-op.</li
+	      ><li
+	      >Other operations are slower than <code
+		>PlutusTx.AssocMap.Map</code
+		>, although equality
+    checks on keys can be faster due to <code
+		><a href="PlutusTx-Builtins.html#v:equalsData" title="PlutusTx.Builtins"
+		  >equalsData</a
+		  ></code
+		>.</li
+	      ><li
+	      >Many operations involve converting the keys and/or values to/from <code
+		><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  ></code
+		>.</li
+	      ></ul
+	    ><p
+	    >Therefore this implementation is likely a better choice than <a href="PlutusTx-AssocMap-Map.html"
+	      >PlutusTx.AssocMap.Map</a
+	      >
+if it is part of a data type defined using <code
+	      >asData</code
+	      >, and the key and value types
+have efficient <code
+	      ><a href="PlutusTx-IsData-Class.html#v:toBuiltinData" title="PlutusTx.IsData.Class"
+		>toBuiltinData</a
+		></code
+	      > and <code
+	      ><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+		>unsafeFromBuiltinData</a
+		></code
+	      > operations (e.g., they
+are primitive types or types defined using <code
+	      >asData</code
+	      >).</p
+	    ><p
+	    >A <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > is considered well-defined if it has no duplicate keys. Most operations
+preserve the definedness of the resulting <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > unless otherwise noted.
+It is important to observe that, in comparison to standard map implementations,
+this implementation provides slow lookup and update operations because it is based
+on a list representation.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Map"
+	    >Instances</h4
+	    ><details id="i:Map" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Lift:1"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-632" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Lift:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:FromData:3"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-80" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:FromData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:ToData:4"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:ToData:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:UnsafeFromData:5"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:UnsafeFromData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Pretty:6"
+		      ></span
+		      > (<a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > k, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Pretty:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Typeable:7"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      ></span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-632" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Typeable:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookup" class="def"
+	    >lookup</a
+	    > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a) &#8658; k &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.Data.AssocMap.html#lookup" class="link"
+	    >Source</a
+	    > <a href="#v:lookup" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Look up the value corresponding to the key.
+If the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > is not well-defined, the result is the value associated with
+the left-most occurrence of the key in the list.
+This operation is O(n).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:member" class="def"
+	    >member</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > k &#8658; k &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.AssocMap.html#member" class="link"
+	    >Source</a
+	    > <a href="#v:member" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if the key is in the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:insert" class="def"
+	    >insert</a
+	    > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a) &#8658; k &#8594; a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#insert" class="link"
+	    >Source</a
+	    > <a href="#v:insert" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert a key-value pair into the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      >. If the key is already present,
+the value is updated.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:delete" class="def"
+	    >delete</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > k &#8658; k &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#delete" class="link"
+	    >Source</a
+	    > <a href="#v:delete" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Delete a key value pair from the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      >.
+If the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > is not well-defined, it deletes the pair associated with the
+left-most occurrence of the key in the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:singleton" class="def"
+	    >singleton</a
+	    > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a) &#8658; k &#8594; a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#singleton" class="link"
+	    >Source</a
+	    > <a href="#v:singleton" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create an <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > with a single key-value pair.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:empty" class="def"
+	    >empty</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#empty" class="link"
+	    >Source</a
+	    > <a href="#v:empty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An empty <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:null" class="def"
+	    >null</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.AssocMap.html#null" class="link"
+	    >Source</a
+	    > <a href="#v:null" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > is empty.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toSOPList" class="def"
+	    >toSOPList</a
+	    > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a) &#8658; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; [(k, a)] <a href="src/PlutusTx.Data.AssocMap.html#toSOPList" class="link"
+	    >Source</a
+	    > <a href="#v:toSOPList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > to a list of key-value pairs. This operation is O(n).
+See <code
+	      ><a href="PlutusTx-Data-AssocMap.html#v:toBuiltinList" title="PlutusTx.Data.AssocMap"
+		>toBuiltinList</a
+		></code
+	      > for a more efficient alternative.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toBuiltinList" class="def"
+	    >toBuiltinList</a
+	    > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	    >BuiltinList</a
+	    > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+	    >BuiltinPair</a
+	    > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	    >BuiltinData</a
+	    > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	    >BuiltinData</a
+	    >) <a href="src/PlutusTx.Data.AssocMap.html#toBuiltinList" class="link"
+	    >Source</a
+	    > <a href="#v:toBuiltinList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > to a <code
+	      ><a href="P.html#v:BuiltinList" title="P"
+		>BuiltinList</a
+		></code
+	      > of key-value pairs. This operation is O(1).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeFromSOPList" class="def"
+	    >safeFromSOPList</a
+	    > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a) &#8658; [(k, a)] &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#safeFromSOPList" class="link"
+	    >Source</a
+	    > <a href="#v:safeFromSOPList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create an <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > from a sums of products list of key-value pairs.
+In case of duplicates, this function will keep only one entry (the one that precedes).
+In other words, this function de-duplicates the input list.
+Warning: this function is very slow. If you know that the input list does not contain
+duplicate keys, use one of the unsafe functions instead.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeFromSOPList" class="def"
+	    >unsafeFromSOPList</a
+	    > &#8759; (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a) &#8658; [(k, a)] &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#unsafeFromSOPList" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeFromSOPList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unsafely create an <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > from a sums of products list of pairs.
+This should _only_ be applied to lists which have been checked to not
+contain duplicate keys, otherwise the resulting <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > will contain
+conflicting entries (two entries sharing the same key), and therefore be ill-defined.
+Warning: this requires traversing the list and encoding the keys and values, so it
+should be avoided in favor of <code
+	      ><a href="PlutusTx-Data-AssocMap.html#v:unsafeFromBuiltinList" title="PlutusTx.Data.AssocMap"
+		>unsafeFromBuiltinList</a
+		></code
+	      > if the input is already in
+<code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      > form.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeFromDataList" class="def"
+	    >unsafeFromDataList</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > (a, k) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#unsafeFromDataList" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeFromDataList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unsafely create an <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > from a <code
+	      ><a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		>List</a
+		></code
+	      > of key-value pairs.
+This function is unsafe because it assumes that the elements of the list can be safely
+decoded from their <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      > representation. It also does not deduplicate the keys.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeFromBuiltinList" class="def"
+	    >unsafeFromBuiltinList</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	    >BuiltinList</a
+	    > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+	    >BuiltinPair</a
+	    > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	    >BuiltinData</a
+	    > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	    >BuiltinData</a
+	    >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#unsafeFromBuiltinList" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeFromBuiltinList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unsafely create an <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > from a <code
+	      ><a href="P.html#v:BuiltinList" title="P"
+		>BuiltinList</a
+		></code
+	      > of key-value pairs. This operation
+is O(1).
+This function is unsafe because it assumes that the elements of the list can be safely
+decoded from their <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      > representation. It also does not deduplicate the keys.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:noDuplicateKeys" class="def"
+	    >noDuplicateKeys</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.AssocMap.html#noDuplicateKeys" class="link"
+	    >Source</a
+	    > <a href="#v:noDuplicateKeys" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > is well-defined. Warning: this operation is O(n^2).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:all" class="def"
+	    >all</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.AssocMap.html#all" class="link"
+	    >Source</a
+	    > <a href="#v:all" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:any" class="def"
+	    >any</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.AssocMap.html#any" class="link"
+	    >Source</a
+	    > <a href="#v:any" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if any value in the <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      > satisfies the predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:union" class="def"
+	    >union</a
+	    > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > b, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b) &#8658; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k b &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	    >These</a
+	    > a b) <a href="src/PlutusTx.Data.AssocMap.html#union" class="link"
+	    >Source</a
+	    > <a href="#v:union" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Combine two <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      >s into one. It saves both values if the key is present in both maps.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unionWith" class="def"
+	    >unionWith</a
+	    > &#8759; &#8704; k a. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a) &#8658; (a &#8594; a &#8594; a) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#unionWith" class="link"
+	    >Source</a
+	    > <a href="#v:unionWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Combine two <code
+	      ><a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		>Map</a
+		></code
+	      >s with the given combination function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:keys" class="def"
+	    >keys</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > k <a href="src/PlutusTx.Data.AssocMap.html#keys" class="link"
+	    >Source</a
+	    > <a href="#v:keys" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elems" class="def"
+	    >elems</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.AssocMap.html#elems" class="link"
+	    >Source</a
+	    > <a href="#v:elems" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:map" class="def"
+	    >map</a
+	    > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b) &#8658; (a &#8594; b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k b <a href="src/PlutusTx.Data.AssocMap.html#map" class="link"
+	    >Source</a
+	    > <a href="#v:map" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapThese" class="def"
+	    >mapThese</a
+	    > &#8759; &#8704; v k a b. (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > v) &#8658; (v &#8594; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	    >These</a
+	    > a b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k v &#8594; (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a, <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k b) <a href="src/PlutusTx.Data.AssocMap.html#mapThese" class="link"
+	    >Source</a
+	    > <a href="#v:mapThese" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldr" class="def"
+	    >foldr</a
+	    > &#8759; &#8704; a b k. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; b <a href="src/PlutusTx.Data.AssocMap.html#foldr" class="link"
+	    >Source</a
+	    > <a href="#v:foldr" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:filter" class="def"
+	    >filter</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.Data.AssocMap.html#filter" class="link"
+	    >Source</a
+	    > <a href="#v:filter" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapWithKey" class="def"
+	    >mapWithKey</a
+	    > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b) &#8658; (k &#8594; a &#8594; b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k b <a href="src/PlutusTx.Data.AssocMap.html#mapWithKey" class="link"
+	    >Source</a
+	    > <a href="#v:mapWithKey" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapMaybe" class="def"
+	    >mapMaybe</a
+	    > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b) &#8658; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k b <a href="src/PlutusTx.Data.AssocMap.html#mapMaybe" class="link"
+	    >Source</a
+	    > <a href="#v:mapMaybe" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapMaybeWithKey" class="def"
+	    >mapMaybeWithKey</a
+	    > &#8759; &#8704; k a b. (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b) &#8658; (k &#8594; a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > b) &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+	    >Map</a
+	    > k b <a href="src/PlutusTx.Data.AssocMap.html#mapMaybeWithKey" class="link"
+	    >Source</a
+	    > <a href="#v:mapMaybeWithKey" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

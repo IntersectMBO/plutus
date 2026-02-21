@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Transform.CaseOfCase</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Transform.CaseOfCase.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Transform.CaseOfCase</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Perform the case-of-case transformation. This pushes
+case expressions into the case branches of other case
+expressions, which can often yield optimization opportunities.</p
+	  ><p
+	  >Example:
+@
+    case (case s of { C1 a -&gt; x; C2 b -&gt; y; }) of
+      D1 -&gt; w
+      D2 -&gt; z</p
+	  ><ul
+	  ><li
+	    >-&gt;</li
+	    ></ul
+	  ><p
+	  >case s of
+      C1 a -&gt; case x of { D1 -&gt; w; D2 -&gt; z; }
+      C2 b -&gt; case y of { D1 -&gt; w; D2 -&gt; z; }
+@</p
+	  ><p
+	  >We also transform</p
+	  ><pre
+	  >    case ((force ifThenElse) b (constr t) (constr f)) alts
+</pre
+	  ><p
+	  >into</p
+	  ><pre
+	  >    force (force ifThenElse b (delay (case (constr t) alts)) (delay (case (constr f) alts)))
+</pre
+	  ><p
+	  >This is always an improvement.</p
+	  ></div
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseOfCase" class="def"
+	    >caseOfCase</a
+	    > &#8759; (fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    >) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun a m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a) <a href="src/UntypedPlutusCore.Transform.CaseOfCase.html#caseOfCase" class="link"
+	    >Source</a
+	    > <a href="#v:caseOfCase" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

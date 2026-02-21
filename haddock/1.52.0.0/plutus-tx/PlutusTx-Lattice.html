@@ -1,0 +1,1231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Lattice</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Lattice.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Lattice</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:JoinSemiLattice"
+	      >JoinSemiLattice</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:-92--47-"
+		  >(\/)</a
+		  > &#8759; a &#8594; a &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:MeetSemiLattice"
+	      >MeetSemiLattice</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:-47--92-"
+		  >(/\)</a
+		  > &#8759; a &#8594; a &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Lattice"
+	      >Lattice</a
+	      > a = (<a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+	      >JoinSemiLattice</a
+	      > a, <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+	      >MeetSemiLattice</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+	      >JoinSemiLattice</a
+	      > a &#8658; <a href="#t:BoundedJoinSemiLattice"
+	      >BoundedJoinSemiLattice</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:bottom"
+		  >bottom</a
+		  > &#8759; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+	      >MeetSemiLattice</a
+	      > a &#8658; <a href="#t:BoundedMeetSemiLattice"
+	      >BoundedMeetSemiLattice</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:top"
+		  >top</a
+		  > &#8759; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:BoundedLattice"
+	      >BoundedLattice</a
+	      > a = (<a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+	      >BoundedJoinSemiLattice</a
+	      > a, <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+	      >BoundedMeetSemiLattice</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Join"
+	      >Join</a
+	      > a = <a href="#v:Join"
+	      >Join</a
+	      > a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Meet"
+	      >Meet</a
+	      > a = <a href="#v:Meet"
+	      >Meet</a
+	      > a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:JoinSemiLattice" class="def"
+	    >JoinSemiLattice</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Lattice.html#JoinSemiLattice" class="link"
+	    >Source</a
+	    > <a href="#t:JoinSemiLattice" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A join semi-lattice, i.e. a partially ordered set equipped with a
+binary operation <code
+	      ><a href="PlutusTx-Lattice.html#v:-92--47-" title="PlutusTx.Lattice"
+		>(\/)</a
+		></code
+	      >.</p
+	    ><p
+	    >Note that the mathematical definition would require an ordering constraint -
+we omit that so we can define instances for e.g. <code
+	      >(-&gt;)</code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:-92--47-" class="def"
+	      >(\/)</a
+	      > &#8759; a &#8594; a &#8594; a <a href="src/PlutusTx.Lattice.html#%5C%2F" class="link"
+	      >Source</a
+	      > <a href="#v:-92--47-" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:JoinSemiLattice"
+	    >Instances</h4
+	    ><details id="i:JoinSemiLattice" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:JoinSemiLattice:JoinSemiLattice:1"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Lattice.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:JoinSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:JoinSemiLattice:JoinSemiLattice:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-92--47-"
+			  >(\/)</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Lattice.html#%5C%2F" class="link"
+			  >Source</a
+			  > <a href="#v:-92--47-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:JoinSemiLattice:JoinSemiLattice:2"
+		      ></span
+		      > (<a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > a, <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > b) &#8658; <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-83" class="link"
+		    >Source</a
+		    > <a href="#t:JoinSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:JoinSemiLattice:JoinSemiLattice:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-92--47-"
+			  >(\/)</a
+			  > &#8759; (a, b) &#8594; (a, b) &#8594; (a, b) <a href="src/PlutusTx.Lattice.html#%5C%2F" class="link"
+			  >Source</a
+			  > <a href="#v:-92--47-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:JoinSemiLattice:JoinSemiLattice:3"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > b &#8658; <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > (a &#8594; b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:JoinSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:JoinSemiLattice:JoinSemiLattice:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-92--47-"
+			  >(\/)</a
+			  > &#8759; (a &#8594; b) &#8594; (a &#8594; b) &#8594; a &#8594; b <a href="src/PlutusTx.Lattice.html#%5C%2F" class="link"
+			  >Source</a
+			  > <a href="#v:-92--47-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:MeetSemiLattice" class="def"
+	    >MeetSemiLattice</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Lattice.html#MeetSemiLattice" class="link"
+	    >Source</a
+	    > <a href="#t:MeetSemiLattice" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A meet semi-lattice, i.e. a partially ordered set equipped with a
+binary operation <code
+	      ><a href="PlutusTx-Lattice.html#v:-47--92-" title="PlutusTx.Lattice"
+		>(/\)</a
+		></code
+	      >.</p
+	    ><p
+	    >Note that the mathematical definition would require an ordering constraint -
+we omit that so we can define instances for e.g. <code
+	      >(-&gt;)</code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:-47--92-" class="def"
+	      >(/\)</a
+	      > &#8759; a &#8594; a &#8594; a <a href="src/PlutusTx.Lattice.html#%2F%5C" class="link"
+	      >Source</a
+	      > <a href="#v:-47--92-" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MeetSemiLattice"
+	    >Instances</h4
+	    ><details id="i:MeetSemiLattice" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MeetSemiLattice:MeetSemiLattice:1"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Lattice.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:MeetSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MeetSemiLattice:MeetSemiLattice:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-47--92-"
+			  >(/\)</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Lattice.html#%2F%5C" class="link"
+			  >Source</a
+			  > <a href="#v:-47--92-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MeetSemiLattice:MeetSemiLattice:2"
+		      ></span
+		      > (<a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > a, <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > b) &#8658; <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-91" class="link"
+		    >Source</a
+		    > <a href="#t:MeetSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MeetSemiLattice:MeetSemiLattice:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-47--92-"
+			  >(/\)</a
+			  > &#8759; (a, b) &#8594; (a, b) &#8594; (a, b) <a href="src/PlutusTx.Lattice.html#%2F%5C" class="link"
+			  >Source</a
+			  > <a href="#v:-47--92-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MeetSemiLattice:MeetSemiLattice:3"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > b &#8658; <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > (a &#8594; b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:MeetSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MeetSemiLattice:MeetSemiLattice:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-47--92-"
+			  >(/\)</a
+			  > &#8759; (a &#8594; b) &#8594; (a &#8594; b) &#8594; a &#8594; b <a href="src/PlutusTx.Lattice.html#%2F%5C" class="link"
+			  >Source</a
+			  > <a href="#v:-47--92-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Lattice" class="def"
+	    >Lattice</a
+	    > a = (<a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+	    >JoinSemiLattice</a
+	    > a, <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+	    >MeetSemiLattice</a
+	    > a) <a href="src/PlutusTx.Lattice.html#Lattice" class="link"
+	    >Source</a
+	    > <a href="#t:Lattice" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A lattice.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+	    >JoinSemiLattice</a
+	    > a &#8658; <a id="t:BoundedJoinSemiLattice" class="def"
+	    >BoundedJoinSemiLattice</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Lattice.html#BoundedJoinSemiLattice" class="link"
+	    >Source</a
+	    > <a href="#t:BoundedJoinSemiLattice" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A bounded join semi-lattice, i.e. a join semi-lattice augmented with
+a distinguished element <code
+	      ><a href="PlutusTx-Lattice.html#v:bottom" title="PlutusTx.Lattice"
+		>bottom</a
+		></code
+	      > which is the unit of <code
+	      ><a href="PlutusTx-Lattice.html#v:-92--47-" title="PlutusTx.Lattice"
+		>(\/)</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:bottom" class="def"
+	      >bottom</a
+	      > &#8759; a <a href="src/PlutusTx.Lattice.html#bottom" class="link"
+	      >Source</a
+	      > <a href="#v:bottom" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BoundedJoinSemiLattice"
+	    >Instances</h4
+	    ><details id="i:BoundedJoinSemiLattice" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:BoundedJoinSemiLattice:BoundedJoinSemiLattice:1"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedJoinSemiLattice</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Lattice.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:BoundedJoinSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:BoundedJoinSemiLattice:BoundedJoinSemiLattice:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bottom"
+			  >bottom</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Lattice.html#bottom" class="link"
+			  >Source</a
+			  > <a href="#v:bottom" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:BoundedJoinSemiLattice:BoundedJoinSemiLattice:2"
+		      ></span
+		      > (<a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedJoinSemiLattice</a
+		      > a, <a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedJoinSemiLattice</a
+		      > b) &#8658; <a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedJoinSemiLattice</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-87" class="link"
+		    >Source</a
+		    > <a href="#t:BoundedJoinSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:BoundedJoinSemiLattice:BoundedJoinSemiLattice:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bottom"
+			  >bottom</a
+			  > &#8759; (a, b) <a href="src/PlutusTx.Lattice.html#bottom" class="link"
+			  >Source</a
+			  > <a href="#v:bottom" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:BoundedJoinSemiLattice:BoundedJoinSemiLattice:3"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedJoinSemiLattice</a
+		      > b &#8658; <a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedJoinSemiLattice</a
+		      > (a &#8594; b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:BoundedJoinSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:BoundedJoinSemiLattice:BoundedJoinSemiLattice:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bottom"
+			  >bottom</a
+			  > &#8759; a &#8594; b <a href="src/PlutusTx.Lattice.html#bottom" class="link"
+			  >Source</a
+			  > <a href="#v:bottom" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+	    >MeetSemiLattice</a
+	    > a &#8658; <a id="t:BoundedMeetSemiLattice" class="def"
+	    >BoundedMeetSemiLattice</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Lattice.html#BoundedMeetSemiLattice" class="link"
+	    >Source</a
+	    > <a href="#t:BoundedMeetSemiLattice" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A bounded meet semi-lattice, i.e. a meet semi-lattice augmented with
+a distinguished element <code
+	      ><a href="PlutusTx-Lattice.html#v:top" title="PlutusTx.Lattice"
+		>top</a
+		></code
+	      > which is the unit of <code
+	      ><a href="PlutusTx-Lattice.html#v:-47--92-" title="PlutusTx.Lattice"
+		>(/\)</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:top" class="def"
+	      >top</a
+	      > &#8759; a <a href="src/PlutusTx.Lattice.html#top" class="link"
+	      >Source</a
+	      > <a href="#v:top" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BoundedMeetSemiLattice"
+	    >Instances</h4
+	    ><details id="i:BoundedMeetSemiLattice" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:BoundedMeetSemiLattice:BoundedMeetSemiLattice:1"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedMeetSemiLattice</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Lattice.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:BoundedMeetSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:BoundedMeetSemiLattice:BoundedMeetSemiLattice:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:top"
+			  >top</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Lattice.html#top" class="link"
+			  >Source</a
+			  > <a href="#v:top" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:BoundedMeetSemiLattice:BoundedMeetSemiLattice:2"
+		      ></span
+		      > (<a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedMeetSemiLattice</a
+		      > a, <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedMeetSemiLattice</a
+		      > b) &#8658; <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedMeetSemiLattice</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:BoundedMeetSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:BoundedMeetSemiLattice:BoundedMeetSemiLattice:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:top"
+			  >top</a
+			  > &#8759; (a, b) <a href="src/PlutusTx.Lattice.html#top" class="link"
+			  >Source</a
+			  > <a href="#v:top" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:BoundedMeetSemiLattice:BoundedMeetSemiLattice:3"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedMeetSemiLattice</a
+		      > b &#8658; <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedMeetSemiLattice</a
+		      > (a &#8594; b)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:BoundedMeetSemiLattice" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:BoundedMeetSemiLattice:BoundedMeetSemiLattice:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:top"
+			  >top</a
+			  > &#8759; a &#8594; b <a href="src/PlutusTx.Lattice.html#top" class="link"
+			  >Source</a
+			  > <a href="#v:top" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:BoundedLattice" class="def"
+	    >BoundedLattice</a
+	    > a = (<a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+	    >BoundedJoinSemiLattice</a
+	    > a, <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+	    >BoundedMeetSemiLattice</a
+	    > a) <a href="src/PlutusTx.Lattice.html#BoundedLattice" class="link"
+	    >Source</a
+	    > <a href="#t:BoundedLattice" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A bounded lattice.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Join" class="def"
+	    >Join</a
+	    > a <a href="src/PlutusTx.Lattice.html#Join" class="link"
+	    >Source</a
+	    > <a href="#t:Join" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A wrapper witnessing that a join semi-lattice is a monoid with <code
+	      ><a href="PlutusTx-Lattice.html#v:-92--47-" title="PlutusTx.Lattice"
+		>(\/)</a
+		></code
+	      > and <code
+	      ><a href="PlutusTx-Lattice.html#v:bottom" title="PlutusTx.Lattice"
+		>bottom</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Join" class="def"
+		  >Join</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Join"
+	    >Instances</h4
+	    ><details id="i:Join" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Join:Monoid:1"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedJoinSemiLattice</a
+		      > a &#8658; <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+		      >Join</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:Join" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Join:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+			  >Join</a
+			  > a <a href="src/PlutusTx.Monoid.html#mempty" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Join:Semigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+		      >Join</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:Join" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Join:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+			  >Join</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+			  >Join</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+			  >Join</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Meet" class="def"
+	    >Meet</a
+	    > a <a href="src/PlutusTx.Lattice.html#Meet" class="link"
+	    >Source</a
+	    > <a href="#t:Meet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A wrapper witnessing that a meet semi-lattice is a monoid with <code
+	      ><a href="PlutusTx-Lattice.html#v:-47--92-" title="PlutusTx.Lattice"
+		>(/\)</a
+		></code
+	      > and <code
+	      ><a href="PlutusTx-Lattice.html#v:top" title="PlutusTx.Lattice"
+		>top</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Meet" class="def"
+		  >Meet</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Meet"
+	    >Instances</h4
+	    ><details id="i:Meet" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Meet:Monoid:1"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+		      >BoundedMeetSemiLattice</a
+		      > a &#8658; <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+		      >Meet</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-62" class="link"
+		    >Source</a
+		    > <a href="#t:Meet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Meet:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+			  >Meet</a
+			  > a <a href="src/PlutusTx.Monoid.html#mempty" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Meet:Semigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+		      >Meet</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:Meet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Meet:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+			  >Meet</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+			  >Meet</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+			  >Meet</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

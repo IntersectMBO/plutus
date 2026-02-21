@@ -1,0 +1,3819 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Implements a PIR-to-PIR transformation that makes all recursive term definitions
+compilable to PLC. See Note [Thunking recursions] for details. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Transform.ThunkRecursions</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursions"
+	><span class="hs-identifier"
+	  >thunkRecursions</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursionsPass"
+	><span class="hs-identifier"
+	  >thunkRecursionsPass</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Builtins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.VarInfo.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.VarInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.MkPir.html"
+	><span class="hs-identifier"
+	  >PlutusIR.MkPir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.MkPir.html#mkLet"
+	><span class="hs-identifier"
+	  >mkLet</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkVar"
+	><span class="hs-identifier"
+	  >mkVar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Purity.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Purity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Strict</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html"
+	><span class="hs-identifier"
+	  >Data.List.NonEmpty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>NE</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Pass.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Pass</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.html"
+	><span class="hs-identifier"
+	  >PlutusIR.TypeCheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Thunking recursions]
+Our fixpoint combinators in Plutus Core know how to handle mutually recursive values
+of *function type*. That is, we can define `map : List Int -&gt; List Int` but *not*
+`map : forall a . List a -&gt; List a`, because the latter has a universally
+qualified type, instead of a function type (although it is a function underneath).
+
+We could solve this problem for universally quantified values by lifting the forall
+out of the recursion. This is a bit like performing the following transformation:
+
+    map : forall a b . (a -&gt; b) -&gt; List a -&gt; List b
+    map f xs = case xs of
+        [] -&gt; []
+        x:xs -&gt; f x : map f xs
+
+vs
+
+    -- non-recursive
+    map : forall a b . (a -&gt; b) -&gt; List a -&gt; List a
+    map = map'
+        where
+            -- recursive, but *monomorphic* in the 'a' and 'b' we instantiate to, so of
+            -- simple function type
+            map' : (a -&gt; b) -&gt; List a -&gt; List b
+            map' f xs = case xs of
+                [] -&gt; []
+                x:xs -&gt; f x : map' f xs
+
+However, this has two drawbacks:
+- It only works for polymorphic functions. There are other kinds of non-function
+  values which we might want to define recursively.
+- It doesn't work if we use polymorphic recursion, because the function we are
+  defining is monomorphic, so the recursive call must be at the same type.
+
+The latter is quite annoying, because in practice all interesting functions over
+irregular datatypes will use polymorphic recursion, and we've gone to some lengths
+to allow ourselves to define irregular datatypes.
+
+The alternative solution is: given a proposed recursive definition of a value of
+non-function type, we simply *make* it into a value of function type, by adding
+a unit argument and forcing it at all the uses in the body.
+
+So we do something like this:
+
+    -- non-recursive, acts as an &quot;adaptor&quot; for other consumers of the original function
+    map : forall a b . (a -&gt; b) -&gt; List a -&gt; List b
+    map = map' () @a
+        where
+            -- recursive, but thunked, so of simple function type
+            map' : () -&gt; forall a' b' . (a' -&gt; b') -&gt; List a' -&gt; List b'
+            map' _ f xs = case xs of
+                [] -&gt; []
+                x:xs -&gt; f x : (map' () @b) f xs
+
+This has the advantage of always working, but it's annoying because we have to go
+in and edit the body of the function definition.
+
+Fortunately, we can implement this quite simply by using another feature of PIR: non-strict
+let bindings. Non-strict let bindings are exactly delayed like this, so we can simply toggle
+any recursive, non-function bindings to become non-strict bindings.
+
+We *do* still need a strict adapter binding, so that any effects of the RHS of the binding
+will still get triggered, e.g.
+
+    let rec x = error
+            y = x
+    in x
+
+becomes
+
+    let rec x = \() -&gt; error
+            y = x ()
+    in let x = x () -- error gets triggered here
+    in x
+
+To do this without having to do lots of substitutions, we use the same identifier for the
+recursive binding and the adapter binding, so this pass destroys global uniqueness.
+
+To make sure the effects order does not change, we must also apply this
+transformation to all sibling bindings which are effectful, although they aren't problematic.
+We place all strict adapters (for both problematic and non problematic bindings)
+in their original ordering to preserve the order of effects.
+
+We could, while keeping the thunkification in place, skip the strictification for those
+problematic, pure-strict bindings. These would essentially safely alter their original strictness.
+We opt not to, because it is not clear if it would be a benefit (this pass is not supposed to do
+any kind of strictness analysis).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span id="local-6989586621679483752"
+      ><span id="local-6989586621679483753"
+	><span id="local-6989586621679483754"
+	  ><span class="annot"
+	    ><a href="PlutusIR.Transform.ThunkRecursions.html#isTyFun"
+	      ><span class="hs-identifier hs-type"
+		>isTyFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	      ><span class="hs-identifier hs-type"
+		>Type</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679483752"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679483753"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679483754"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	      ><span class="hs-identifier hs-type"
+		>Bool</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="isTyFun"
+      ><span class="annot"
+	><span class="annottext"
+	  >isTyFun :: forall tyname (uni :: * -&gt; *) a. Type tyname uni a -&gt; Bool
+</span
+	  ><a href="PlutusIR.Transform.ThunkRecursions.html#isTyFun"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isTyFun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyFun"
+	><span class="hs-identifier hs-type"
+	  >TyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="local-6989586621679483759"
+      ><span id="local-6989586621679483760"
+	><span id="local-6989586621679483761"
+	  ><span id="local-6989586621679483762"
+	    ><span id="local-6989586621679483763"
+	      ><span class="annot"
+		><a href="PlutusIR.Transform.ThunkRecursions.html#nonStrictifyB"
+		  ><span class="hs-identifier hs-type"
+		    >nonStrictifyB</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Binding"
+		  ><span class="hs-identifier hs-type"
+		    >Binding</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483759"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483760"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483761"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483762"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483763"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Binding"
+		  ><span class="hs-identifier hs-type"
+		    >Binding</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483759"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483760"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483761"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483762"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483763"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="nonStrictifyB"
+      ><span class="annot"
+	><span class="annottext"
+	  >nonStrictifyB :: forall tyname name (uni :: * -&gt; *) fun a.
+Binding tyname name uni fun a -&gt; Binding tyname name uni fun a
+</span
+	  ><a href="PlutusIR.Transform.ThunkRecursions.html#nonStrictifyB"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >nonStrictifyB</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-type"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483900"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679483900"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483901"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl tyname name uni a
+</span
+	  ><a href="#local-6989586621679483901"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483902"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483902"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Strictness
+-&gt; VarDecl tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Binding tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; Strictness
+-&gt; VarDecl tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Binding tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-var"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679483900"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="PlutusIR.Core.Type.html#NonStrict"
+	><span class="hs-identifier hs-var"
+	  >NonStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a
+</span
+	><a href="#local-6989586621679483901"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483902"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679483904"
+      ><span class="annot"
+	><span class="annottext"
+	  >Binding tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483904"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a
+</span
+	><a href="#local-6989586621679483904"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >-- Out of a binding `(vardecl x = rhs)`, make a &quot;strictifier&quot; binding: `(strict vardecl x = x)`</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span id="local-6989586621679483905"
+      ><span id="local-6989586621679483906"
+	><span id="local-6989586621679483907"
+	  ><span id="local-6989586621679483908"
+	    ><span id="local-6989586621679483909"
+	      ><span class="annot"
+		><a href="PlutusIR.Transform.ThunkRecursions.html#mkStrictifierB"
+		  ><span class="hs-identifier hs-type"
+		    >mkStrictifierB</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Binding"
+		  ><span class="hs-identifier hs-type"
+		    >Binding</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483905"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483906"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483907"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483908"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483909"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Binding"
+		  ><span class="hs-identifier hs-type"
+		    >Binding</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483905"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483906"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483907"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483908"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483909"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="mkStrictifierB"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkStrictifierB :: forall tyname name (uni :: * -&gt; *) fun a.
+Binding tyname name uni fun a -&gt; Binding tyname name uni fun a
+</span
+	  ><a href="PlutusIR.Transform.ThunkRecursions.html#mkStrictifierB"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkStrictifierB</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-type"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483913"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679483913"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483914"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl tyname name uni a
+</span
+	  ><a href="#local-6989586621679483914"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Strictness
+-&gt; VarDecl tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Binding tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; Strictness
+-&gt; VarDecl tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Binding tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-var"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679483913"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="PlutusIR.Core.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a
+</span
+	><a href="#local-6989586621679483914"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a -&gt; Term tyname name uni fun a
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun ann.
+TermLike term tyname name uni fun =&gt;
+VarDecl tyname name uni ann -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkVar"
+	><span class="hs-identifier hs-var"
+	  >mkVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a
+</span
+	><a href="#local-6989586621679483914"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679483916"
+      ><span class="annot"
+	><span class="annottext"
+	  >Binding tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483916"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a
+</span
+	><a href="#local-6989586621679483916"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursionsStep"
+	><span class="hs-identifier hs-type"
+	  >thunkRecursionsStep</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679483801"
+      ><span class="annot"
+	><a href="#local-6989586621679483801"
+	  ><span class="hs-identifier hs-type"
+	    >tyname</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483797"
+      ><span class="annot"
+	><a href="#local-6989586621679483797"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483794"
+      ><span class="annot"
+	><a href="#local-6989586621679483794"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483795"
+      ><span class="annot"
+	><a href="#local-6989586621679483795"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483802"
+      ><span class="annot"
+	><a href="#local-6989586621679483802"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >ToBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483794"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483795"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier hs-type"
+	  >PLC.HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483797"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier hs-type"
+	  >PLC.TermUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483794"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483795"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.VarInfo.html#VarsInfo"
+	><span class="hs-identifier hs-type"
+	  >VarsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483801"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483797"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483794"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483802"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483801"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483797"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483794"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483795"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483802"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483801"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483797"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483794"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483795"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483802"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span id="thunkRecursionsStep"
+      ><span class="annot"
+	><span class="annottext"
+	  >thunkRecursionsStep :: forall tyname name (uni :: * -&gt; *) fun a.
+(ToBuiltinMeaning uni fun, HasUnique name TermUnique) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	  ><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursionsStep"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >thunkRecursionsStep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483924"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679483924"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483925"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarsInfo tyname name uni a
+</span
+	  ><a href="#local-6989586621679483925"
+	  ><span class="hs-identifier hs-var"
+	    >vinfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- only apply the transformation if there is at least 1 problematic binding in a letrec group</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Let"
+	><span class="hs-identifier hs-type"
+	  >Let</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483927"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679483927"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><a href="PlutusIR.Core.Type.html#Rec"
+	><span class="hs-identifier hs-var"
+	  >Rec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483929"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty (Binding tyname name uni fun a)
+</span
+	  ><a href="#local-6989586621679483929"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483930"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483930"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Binding tyname name uni fun a -&gt; Bool)
+-&gt; NonEmpty (Binding tyname name uni fun a) -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#any"
+	><span class="hs-identifier hs-var"
+	  >any</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a -&gt; Bool
+forall tyname name (uni :: * -&gt; *) fun a.
+Binding tyname name uni fun a -&gt; Bool
+</span
+	><a href="PlutusIR.Transform.ThunkRecursions.html#isProblematic"
+	><span class="hs-identifier hs-var"
+	  >isProblematic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (Binding tyname name uni fun a)
+</span
+	><a href="#local-6989586621679483929"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- See Note [Thunking recursions]</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679483933"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Binding tyname name uni fun a]
+</span
+	  ><a href="#local-6989586621679483933"
+	  ><span class="hs-identifier hs-var"
+	    >toNonStrictify</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679483934"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Binding tyname name uni fun a]
+</span
+	  ><a href="#local-6989586621679483934"
+	  ><span class="hs-identifier hs-var"
+	    >rest</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Binding tyname name uni fun a -&gt; Bool)
+-&gt; NonEmpty (Binding tyname name uni fun a)
+-&gt; ([Binding tyname name uni fun a],
+    [Binding tyname name uni fun a])
+forall a. (a -&gt; Bool) -&gt; NonEmpty a -&gt; ([a], [a])
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html#partition"
+	><span class="hs-identifier hs-var"
+	  >NE.partition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a -&gt; Bool
+</span
+	><a href="#local-6989586621679483936"
+	><span class="hs-identifier hs-var"
+	  >needsNonStrictify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (Binding tyname name uni fun a)
+</span
+	><a href="#local-6989586621679483929"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- MAYBE: use some prism/traversal to keep the original arrangement of the let group</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- this is not a semantic problem, but just a stylistic/debugging issue where the original</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- let-group will have reordered the (lazified) bindings</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679483939"
+      ><span class="annot"
+	><span class="annottext"
+	  >editedLet :: Term tyname name uni fun a -&gt; Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483939"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >editedLet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Recursivity
+-&gt; [Binding tyname name uni fun a]
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+forall a tyname name (uni :: * -&gt; *) fun.
+a
+-&gt; Recursivity
+-&gt; [Binding tyname name uni fun a]
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.MkPir.html#mkLet"
+	><span class="hs-identifier hs-var"
+	  >mkLet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679483927"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><a href="PlutusIR.Core.Type.html#Rec"
+	><span class="hs-identifier hs-var"
+	  >Rec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Binding tyname name uni fun a]
+ -&gt; Term tyname name uni fun a -&gt; Term tyname name uni fun a)
+-&gt; [Binding tyname name uni fun a]
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Binding tyname name uni fun a -&gt; Binding tyname name uni fun a)
+-&gt; [Binding tyname name uni fun a]
+-&gt; [Binding tyname name uni fun a]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a -&gt; Binding tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+Binding tyname name uni fun a -&gt; Binding tyname name uni fun a
+</span
+	><a href="PlutusIR.Transform.ThunkRecursions.html#nonStrictifyB"
+	><span class="hs-identifier hs-var"
+	  >nonStrictifyB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Binding tyname name uni fun a]
+</span
+	><a href="#local-6989586621679483933"
+	><span class="hs-identifier hs-var"
+	  >toNonStrictify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Binding tyname name uni fun a]
+-&gt; [Binding tyname name uni fun a]
+-&gt; [Binding tyname name uni fun a]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Binding tyname name uni fun a]
+</span
+	><a href="#local-6989586621679483934"
+	><span class="hs-identifier hs-var"
+	  >rest</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- We insert strictifiers for all previously thunkified</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679483941"
+      ><span class="annot"
+	><span class="annottext"
+	  >strictifiers :: [Binding tyname name uni fun a]
+</span
+	  ><a href="#local-6989586621679483941"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >strictifiers</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a -&gt; Binding tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+Binding tyname name uni fun a -&gt; Binding tyname name uni fun a
+</span
+	><a href="PlutusIR.Transform.ThunkRecursions.html#mkStrictifierB"
+	><span class="hs-identifier hs-var"
+	  >mkStrictifierB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Binding tyname name uni fun a -&gt; Binding tyname name uni fun a)
+-&gt; [Binding tyname name uni fun a]
+-&gt; [Binding tyname name uni fun a]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Binding tyname name uni fun a]
+</span
+	><a href="#local-6989586621679483933"
+	><span class="hs-identifier hs-var"
+	  >toNonStrictify</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679483943"
+      ><span class="annot"
+	><span class="annottext"
+	  >extraLet :: Term tyname name uni fun a -&gt; Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483943"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >extraLet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Recursivity
+-&gt; [Binding tyname name uni fun a]
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+forall a tyname name (uni :: * -&gt; *) fun.
+a
+-&gt; Recursivity
+-&gt; [Binding tyname name uni fun a]
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.MkPir.html#mkLet"
+	><span class="hs-identifier hs-var"
+	  >mkLet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679483927"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><a href="PlutusIR.Core.Type.html#NonRec"
+	><span class="hs-identifier hs-var"
+	  >NonRec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Binding tyname name uni fun a]
+</span
+	><a href="#local-6989586621679483941"
+	><span class="hs-identifier hs-var"
+	  >strictifiers</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483939"
+	><span class="hs-identifier hs-var"
+	  >editedLet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun a -&gt; Term tyname name uni fun a)
+-&gt; Term tyname name uni fun a -&gt; Term tyname name uni fun a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483943"
+	><span class="hs-identifier hs-var"
+	  >extraLet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483930"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679483945"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483945"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483945"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483946"
+	><span class="hs-identifier hs-type"
+	  >isStrictEffectful</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Binding"
+	><span class="hs-identifier hs-type"
+	  >Binding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483801"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483797"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483794"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483795"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483802"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679483946"
+      ><span class="annot"
+	><span class="annottext"
+	  >isStrictEffectful :: Binding tyname name uni fun a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679483946"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isStrictEffectful</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-type"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="PlutusIR.Core.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483947"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483947"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool) -&gt; Bool -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a -&gt; Term tyname name uni fun a -&gt; Bool
+forall (uni :: * -&gt; *) fun name tyname a.
+(ToBuiltinMeaning uni fun, HasUnique name TermUnique) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a -&gt; Term tyname name uni fun a -&gt; Bool
+</span
+	><a href="PlutusIR.Purity.html#isPure"
+	><span class="hs-identifier hs-var"
+	  >isPure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679483924"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname name uni a
+</span
+	><a href="#local-6989586621679483925"
+	><span class="hs-identifier hs-var"
+	  >vinfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483947"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483936"
+	><span class="hs-identifier hs-type"
+	  >needsNonStrictify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Binding"
+	><span class="hs-identifier hs-type"
+	  >Binding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483801"
+	><span class="hs-identifier hs-type"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483797"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483794"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483795"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679483802"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679483936"
+      ><span class="annot"
+	><span class="annottext"
+	  >needsNonStrictify :: Binding tyname name uni fun a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679483936"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >needsNonStrictify</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483950"
+      ><span class="annot"
+	><span class="annottext"
+	  >Binding tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483950"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a -&gt; Bool
+forall tyname name (uni :: * -&gt; *) fun a.
+Binding tyname name uni fun a -&gt; Bool
+</span
+	><a href="PlutusIR.Transform.ThunkRecursions.html#isProblematic"
+	><span class="hs-identifier hs-var"
+	  >isProblematic</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a
+</span
+	><a href="#local-6989586621679483950"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a -&gt; Bool
+</span
+	><a href="#local-6989586621679483946"
+	><span class="hs-identifier hs-var"
+	  >isStrictEffectful</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a
+</span
+	><a href="#local-6989586621679483950"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The problematic bindings are those that are strict and their type is not a TyFun</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span id="local-6989586621679483812"
+      ><span id="local-6989586621679483813"
+	><span id="local-6989586621679483814"
+	  ><span id="local-6989586621679483815"
+	    ><span id="local-6989586621679483816"
+	      ><span class="annot"
+		><a href="PlutusIR.Transform.ThunkRecursions.html#isProblematic"
+		  ><span class="hs-identifier hs-type"
+		    >isProblematic</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Binding"
+		  ><span class="hs-identifier hs-type"
+		    >Binding</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483812"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483813"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483814"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483815"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483816"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+		  ><span class="hs-identifier hs-type"
+		    >Bool</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span id="isProblematic"
+      ><span class="annot"
+	><span class="annottext"
+	  >isProblematic :: forall tyname name (uni :: * -&gt; *) fun a.
+Binding tyname name uni fun a -&gt; Bool
+</span
+	  ><a href="PlutusIR.Transform.ThunkRecursions.html#isProblematic"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isProblematic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-type"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="PlutusIR.Core.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-type"
+	  >VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483953"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni a
+</span
+	  ><a href="#local-6989586621679483953"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool) -&gt; Bool -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a -&gt; Bool
+forall tyname (uni :: * -&gt; *) a. Type tyname uni a -&gt; Bool
+</span
+	><a href="PlutusIR.Transform.ThunkRecursions.html#isTyFun"
+	><span class="hs-identifier hs-var"
+	  >isTyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni a
+</span
+	><a href="#local-6989586621679483953"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Thunk recursions to turn recusive values of non-function type into recursive values of function type,
+so we can compile them.
+
+Note: this pass breaks global uniqueness! -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span id="local-6989586621679483843"
+      ><span id="local-6989586621679483844"
+	><span id="local-6989586621679483845"
+	  ><span id="local-6989586621679483846"
+	    ><span id="local-6989586621679483848"
+	      ><span class="annot"
+		><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursions"
+		  ><span class="hs-identifier hs-type"
+		    >thunkRecursions</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-169"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		  ><span class="hs-identifier hs-type"
+		    >ToBuiltinMeaning</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483843"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483844"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483845"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483846"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-170"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinsInfo</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483843"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483844"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-171"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483846"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483845"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483843"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483844"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483848"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-172"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483846"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483845"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483843"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483844"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679483848"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span id="thunkRecursions"
+      ><span class="annot"
+	><span class="annottext"
+	  >thunkRecursions :: forall (uni :: * -&gt; *) fun name tyname a.
+(ToBuiltinMeaning uni fun, HasUnique name TermUnique,
+ HasUnique tyname TypeUnique) =&gt;
+BuiltinsInfo uni fun
+-&gt; Term tyname name uni fun a -&gt; Term tyname name uni fun a
+</span
+	  ><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursions"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >thunkRecursions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483963"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679483963"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483964"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621679483964"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term tyname name uni fun a)
+  (Term tyname name uni fun a)
+  (Term tyname name uni fun a)
+  (Term tyname name uni fun a)
+-&gt; (Term tyname name uni fun a -&gt; Term tyname name uni fun a)
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+forall a b. ASetter a b a b -&gt; (b -&gt; b) -&gt; a -&gt; b
+</span
+	><span class="hs-identifier hs-var"
+	>transformOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term tyname name uni fun a)
+  (Term tyname name uni fun a)
+  (Term tyname name uni fun a)
+  (Term tyname name uni fun a)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+(ToBuiltinMeaning uni fun, HasUnique name TermUnique) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursionsStep"
+	><span class="hs-identifier hs-var"
+	  >thunkRecursionsStep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679483963"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; VarsInfo tyname name uni a
+forall name tyname (uni :: * -&gt; *) fun a.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+Term tyname name uni fun a -&gt; VarsInfo tyname name uni a
+</span
+	><a href="PlutusIR.Analysis.VarInfo.html#termVarInfo"
+	><span class="hs-identifier hs-var"
+	  >termVarInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483964"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621679483964"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span id="local-6989586621679483869"
+      ><span id="local-6989586621679483870"
+	><span id="local-6989586621679483873"
+	  ><span id="local-6989586621679483877"
+	    ><span class="annot"
+	      ><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursionsPass"
+		><span class="hs-identifier hs-type"
+		  >thunkRecursionsPass</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-176"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#Typecheckable"
+		><span class="hs-identifier hs-type"
+		  >PLC.Typecheckable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483869"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483870"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+		><span class="hs-identifier hs-type"
+		  >PLC.GEq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483869"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Applicative"
+		><span class="hs-identifier hs-type"
+		  >Applicative</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483873"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-177"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+		><span class="hs-identifier hs-type"
+		  >TC.PirTCConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483869"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483870"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-178"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+		><span class="hs-identifier hs-type"
+		  >BuiltinsInfo</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483869"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483870"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-179"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Pass.html#Pass"
+		><span class="hs-identifier hs-type"
+		  >Pass</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483873"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483869"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483870"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679483877"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span id="thunkRecursionsPass"
+      ><span class="annot"
+	><span class="annottext"
+	  >thunkRecursionsPass :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(Typecheckable uni fun, GEq uni, Applicative m) =&gt;
+PirTCConfig uni fun
+-&gt; BuiltinsInfo uni fun -&gt; Pass m TyName Name uni fun a
+</span
+	  ><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursionsPass"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >thunkRecursionsPass</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483980"
+      ><span class="annot"
+	><span class="annottext"
+	  >PirTCConfig uni fun
+</span
+	  ><a href="#local-6989586621679483980"
+	  ><span class="hs-identifier hs-var"
+	    >tcconfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679483981"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679483981"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; PirTCConfig uni fun
+-&gt; (Term TyName Name uni fun a -&gt; Term TyName Name uni fun a)
+-&gt; Pass m TyName Name uni fun a
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(Typecheckable uni fun, GEq uni, Applicative m) =&gt;
+String
+-&gt; PirTCConfig uni fun
+-&gt; (Term TyName Name uni fun a -&gt; Term TyName Name uni fun a)
+-&gt; Pass m TyName Name uni fun a
+</span
+	><a href="PlutusIR.Pass.html#simplePass"
+	><span class="hs-identifier hs-var"
+	  >simplePass</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;thunk recursions&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+</span
+	><a href="#local-6989586621679483980"
+	><span class="hs-identifier hs-var"
+	  >tcconfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; Term TyName Name uni fun a -&gt; Term TyName Name uni fun a
+forall (uni :: * -&gt; *) fun name tyname a.
+(ToBuiltinMeaning uni fun, HasUnique name TermUnique,
+ HasUnique tyname TypeUnique) =&gt;
+BuiltinsInfo uni fun
+-&gt; Term tyname name uni fun a -&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Transform.ThunkRecursions.html#thunkRecursions"
+	><span class="hs-identifier hs-var"
+	  >thunkRecursions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679483981"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

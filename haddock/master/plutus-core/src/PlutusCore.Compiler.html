@@ -1,0 +1,2086 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Compiler</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Opts</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Compiler.html#compileTerm"
+	><span class="hs-identifier"
+	  >compileTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Compiler.html#compileProgram"
+	><span class="hs-identifier"
+	  >compileProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Compiler.html#compileProgramWithTrace"
+	><span class="hs-identifier"
+	  >compileProgramWithTrace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Compiler.Erase.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Compiler.Erase</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Compiler.Opts.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Compiler.Opts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Opts</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Compiler.Types.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Compiler.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Rename</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Simplify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>view</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	><span class="hs-identifier"
+	  >MonadReader</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compile a PLC term to UPLC, and optimize it.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="local-6989586621682214665"
+      ><span id="local-6989586621682214666"
+	><span id="local-6989586621682214667"
+	  ><span id="local-6989586621682214668"
+	    ><span id="local-6989586621682214669"
+	      ><span id="local-6989586621682214673"
+		><span class="annot"
+		  ><a href="PlutusCore.Compiler.html#compileTerm"
+		    ><span class="hs-identifier hs-type"
+		      >compileTerm</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-22"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Compiler.Types.html#Compiling"
+		    ><span class="hs-identifier hs-type"
+		      >Compiling</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214665"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214666"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214667"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214668"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214669"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-23"
+		  ></span
+		  ><span
+		  >     </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		    ><span class="hs-identifier hs-type"
+		      >MonadReader</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Compiler.Opts.html#CompilationOpts"
+		    ><span class="hs-identifier hs-type"
+		      >CompilationOpts</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214668"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214667"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214669"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214665"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-24"
+		  ></span
+		  ><span
+		  >     </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-25"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214673"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214668"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214666"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214667"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214669"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-26"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214665"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >UPLC.Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214668"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214666"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214667"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214669"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="compileTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >compileTerm :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun name a tyname.
+(Compiling m uni fun name a,
+ MonadReader (CompilationOpts name fun a) m) =&gt;
+Term tyname name uni fun a -&gt; m (Term name uni fun a)
+</span
+	  ><a href="PlutusCore.Compiler.html#compileTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compileTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682214800"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621682214800"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682214801"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifyOpts name a
+</span
+	  ><a href="#local-6989586621682214801"
+	  ><span class="hs-identifier hs-var"
+	    >simplOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (SimplifyOpts name a)
+  (CompilationOpts name fun a)
+  (SimplifyOpts name a)
+-&gt; m (SimplifyOpts name a)
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (SimplifyOpts name a)
+  (CompilationOpts name fun a)
+  (SimplifyOpts name a)
+forall name1 fun a1 name2 a2 (f :: * -&gt; *).
+Functor f =&gt;
+(SimplifyOpts name1 a1 -&gt; f (SimplifyOpts name2 a2))
+-&gt; CompilationOpts name1 fun a1 -&gt; f (CompilationOpts name2 fun a2)
+</span
+	><a href="PlutusCore.Compiler.Opts.html#coSimplifyOpts"
+	><span class="hs-identifier hs-var"
+	  >coSimplifyOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682214803"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621682214803"
+	  ><span class="hs-identifier hs-var"
+	    >builtinSemanticsVariant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (BuiltinSemanticsVariant fun)
+  (CompilationOpts name fun a)
+  (BuiltinSemanticsVariant fun)
+-&gt; m (BuiltinSemanticsVariant fun)
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (BuiltinSemanticsVariant fun)
+  (CompilationOpts name fun a)
+  (BuiltinSemanticsVariant fun)
+forall name fun1 a fun2 (f :: * -&gt; *).
+Functor f =&gt;
+(BuiltinSemanticsVariant fun1 -&gt; f (BuiltinSemanticsVariant fun2))
+-&gt; CompilationOpts name fun1 a -&gt; f (CompilationOpts name fun2 a)
+</span
+	><a href="PlutusCore.Compiler.Opts.html#coBuiltinSemanticsVariant"
+	><span class="hs-identifier hs-var"
+	  >coBuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682214807"
+      ><span class="annot"
+	><span class="annottext"
+	  >erased :: Term name uni fun a
+</span
+	  ><a href="#local-6989586621682214807"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >erased</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; Term name uni fun a
+forall name tyname (uni :: * -&gt; *) fun ann.
+HasUnique name TermUnique =&gt;
+Term tyname name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="PlutusCore.Compiler.Erase.html#eraseTerm"
+	><span class="hs-identifier hs-var"
+	  >eraseTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621682214800"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682214809"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun a
+</span
+	  ><a href="#local-6989586621682214809"
+	  ><span class="hs-identifier hs-var"
+	    >renamed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a -&gt; m (Term name uni fun a)
+forall a (m :: * -&gt; *). (Rename a, MonadQuote m) =&gt; a -&gt; m a
+forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Term name uni fun a -&gt; m (Term name uni fun a)
+</span
+	><a href="PlutusCore.Rename.html#rename"
+	><span class="hs-identifier hs-var"
+	  >rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+</span
+	><a href="#local-6989586621682214807"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifyOpts name a
+-&gt; BuiltinSemanticsVariant fun
+-&gt; Term name uni fun a
+-&gt; m (Term name uni fun a)
+forall name (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+Compiling m uni fun name a =&gt;
+SimplifyOpts name a
+-&gt; BuiltinSemanticsVariant fun
+-&gt; Term name uni fun a
+-&gt; m (Term name uni fun a)
+</span
+	><a href="UntypedPlutusCore.Simplify.html#simplifyTerm"
+	><span class="hs-identifier hs-var"
+	  >UPLC.simplifyTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifyOpts name a
+</span
+	><a href="#local-6989586621682214801"
+	><span class="hs-identifier hs-var"
+	  >simplOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621682214803"
+	><span class="hs-identifier hs-var"
+	  >builtinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+</span
+	><a href="#local-6989586621682214809"
+	><span class="hs-identifier hs-var"
+	  >renamed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compile a PLC program to UPLC, and optimize it.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621682214735"
+      ><span id="local-6989586621682214736"
+	><span id="local-6989586621682214737"
+	  ><span id="local-6989586621682214738"
+	    ><span id="local-6989586621682214739"
+	      ><span id="local-6989586621682214740"
+		><span class="annot"
+		  ><a href="PlutusCore.Compiler.html#compileProgram"
+		    ><span class="hs-identifier hs-type"
+		      >compileProgram</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-36"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Compiler.Types.html#Compiling"
+		    ><span class="hs-identifier hs-type"
+		      >Compiling</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214735"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214736"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214737"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214738"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214739"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-37"
+		  ></span
+		  ><span
+		  >     </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		    ><span class="hs-identifier hs-type"
+		      >MonadReader</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Compiler.Opts.html#CompilationOpts"
+		    ><span class="hs-identifier hs-type"
+		      >CompilationOpts</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214738"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214737"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214739"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214735"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-38"
+		  ></span
+		  ><span
+		  >     </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-39"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214740"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214738"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214736"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214737"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214739"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-40"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214735"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >UPLC.Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214738"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214736"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214737"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214739"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="compileProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >compileProgram :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun name a tyname.
+(Compiling m uni fun name a,
+ MonadReader (CompilationOpts name fun a) m) =&gt;
+Program tyname name uni fun a -&gt; m (Program name uni fun a)
+</span
+	  ><a href="PlutusCore.Compiler.html#compileProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compileProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682214824"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682214824"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682214825"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621682214825"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682214826"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621682214826"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Version -&gt; Term name uni fun a -&gt; Program name uni fun a
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682214824"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621682214825"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term name uni fun a -&gt; Program name uni fun a)
+-&gt; m (Term name uni fun a) -&gt; m (Program name uni fun a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; m (Term name uni fun a)
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun name a tyname.
+(Compiling m uni fun name a,
+ MonadReader (CompilationOpts name fun a) m) =&gt;
+Term tyname name uni fun a -&gt; m (Term name uni fun a)
+</span
+	><a href="PlutusCore.Compiler.html#compileTerm"
+	><span class="hs-identifier hs-var"
+	  >compileTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621682214826"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Compile a PLC program to UPLC, and optimize it. This includes
+the compilation trace in the result. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621682214759"
+      ><span id="local-6989586621682214760"
+	><span id="local-6989586621682214761"
+	  ><span id="local-6989586621682214762"
+	    ><span id="local-6989586621682214763"
+	      ><span id="local-6989586621682214764"
+		><span class="annot"
+		  ><a href="PlutusCore.Compiler.html#compileProgramWithTrace"
+		    ><span class="hs-identifier hs-type"
+		      >compileProgramWithTrace</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-46"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Compiler.Types.html#Compiling"
+		    ><span class="hs-identifier hs-type"
+		      >Compiling</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214759"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214760"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214761"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214762"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214763"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-47"
+		  ></span
+		  ><span
+		  >     </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		    ><span class="hs-identifier hs-type"
+		      >MonadReader</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Compiler.Opts.html#CompilationOpts"
+		    ><span class="hs-identifier hs-type"
+		      >CompilationOpts</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214762"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214761"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214763"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214759"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-48"
+		  ></span
+		  ><span
+		  >     </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-49"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214764"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214762"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214760"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214761"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214763"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-50"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214759"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >UPLC.Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214762"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214760"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214761"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214763"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+		    ><span class="hs-identifier hs-type"
+		      >UPLC.SimplifierTrace</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214762"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214760"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214761"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682214763"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="compileProgramWithTrace"
+      ><span class="annot"
+	><span class="annottext"
+	  >compileProgramWithTrace :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun name a tyname.
+(Compiling m uni fun name a,
+ MonadReader (CompilationOpts name fun a) m) =&gt;
+Program tyname name uni fun a
+-&gt; m (Program name uni fun a, SimplifierTrace name uni fun a)
+</span
+	  ><a href="PlutusCore.Compiler.html#compileProgramWithTrace"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compileProgramWithTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682214848"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682214848"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682214849"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621682214849"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682214850"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun a
+</span
+	  ><a href="#local-6989586621682214850"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682214851"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifyOpts name a
+</span
+	  ><a href="#local-6989586621682214851"
+	  ><span class="hs-identifier hs-var"
+	    >simplOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (SimplifyOpts name a)
+  (CompilationOpts name fun a)
+  (SimplifyOpts name a)
+-&gt; m (SimplifyOpts name a)
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (SimplifyOpts name a)
+  (CompilationOpts name fun a)
+  (SimplifyOpts name a)
+forall name1 fun a1 name2 a2 (f :: * -&gt; *).
+Functor f =&gt;
+(SimplifyOpts name1 a1 -&gt; f (SimplifyOpts name2 a2))
+-&gt; CompilationOpts name1 fun a1 -&gt; f (CompilationOpts name2 fun a2)
+</span
+	><a href="PlutusCore.Compiler.Opts.html#coSimplifyOpts"
+	><span class="hs-identifier hs-var"
+	  >coSimplifyOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682214852"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621682214852"
+	  ><span class="hs-identifier hs-var"
+	    >builtinSemanticsVariant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (BuiltinSemanticsVariant fun)
+  (CompilationOpts name fun a)
+  (BuiltinSemanticsVariant fun)
+-&gt; m (BuiltinSemanticsVariant fun)
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (BuiltinSemanticsVariant fun)
+  (CompilationOpts name fun a)
+  (BuiltinSemanticsVariant fun)
+forall name fun1 a fun2 (f :: * -&gt; *).
+Functor f =&gt;
+(BuiltinSemanticsVariant fun1 -&gt; f (BuiltinSemanticsVariant fun2))
+-&gt; CompilationOpts name fun1 a -&gt; f (CompilationOpts name fun2 a)
+</span
+	><a href="PlutusCore.Compiler.Opts.html#coBuiltinSemanticsVariant"
+	><span class="hs-identifier hs-var"
+	  >coBuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682214855"
+      ><span class="annot"
+	><span class="annottext"
+	  >erased :: Term name uni fun a
+</span
+	  ><a href="#local-6989586621682214855"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >erased</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a -&gt; Term name uni fun a
+forall name tyname (uni :: * -&gt; *) fun ann.
+HasUnique name TermUnique =&gt;
+Term tyname name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="PlutusCore.Compiler.Erase.html#eraseTerm"
+	><span class="hs-identifier hs-var"
+	  >eraseTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun a
+</span
+	><a href="#local-6989586621682214850"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682214856"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program name uni fun a
+</span
+	  ><a href="#local-6989586621682214856"
+	  ><span class="hs-identifier hs-var"
+	    >renamedProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Version -&gt; Term name uni fun a -&gt; Program name uni fun a
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682214848"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621682214849"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term name uni fun a -&gt; Program name uni fun a)
+-&gt; m (Term name uni fun a) -&gt; m (Program name uni fun a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a -&gt; m (Term name uni fun a)
+forall a (m :: * -&gt; *). (Rename a, MonadQuote m) =&gt; a -&gt; m a
+forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Term name uni fun a -&gt; m (Term name uni fun a)
+</span
+	><a href="PlutusCore.Rename.html#rename"
+	><span class="hs-identifier hs-var"
+	  >rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+</span
+	><a href="#local-6989586621682214855"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifyOpts name a
+-&gt; BuiltinSemanticsVariant fun
+-&gt; Program name uni fun a
+-&gt; m (Program name uni fun a, SimplifierTrace name uni fun a)
+forall name (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+Compiling m uni fun name a =&gt;
+SimplifyOpts name a
+-&gt; BuiltinSemanticsVariant fun
+-&gt; Program name uni fun a
+-&gt; m (Program name uni fun a, SimplifierTrace name uni fun a)
+</span
+	><a href="UntypedPlutusCore.Simplify.html#simplifyProgramWithTrace"
+	><span class="hs-identifier hs-var"
+	  >UPLC.simplifyProgramWithTrace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifyOpts name a
+</span
+	><a href="#local-6989586621682214851"
+	><span class="hs-identifier hs-var"
+	  >simplOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621682214852"
+	><span class="hs-identifier hs-var"
+	  >builtinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program name uni fun a
+</span
+	><a href="#local-6989586621682214856"
+	><span class="hs-identifier hs-var"
+	  >renamedProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

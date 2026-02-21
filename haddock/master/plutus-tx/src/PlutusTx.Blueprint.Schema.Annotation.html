@@ -1,0 +1,4560 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span id="local-6989586621680062276"
+      ><span id="local-6989586621680062277"
+	><span id="local-6989586621680062278"
+	  ><span id="local-6989586621680062279"
+	    ><span id="local-6989586621680062280"
+	      ><span id="local-6989586621680062281"
+		><span id="local-6989586621680062282"
+		  ><span id="local-6989586621680062283"
+		    ><span id="local-6989586621680062284"
+		      ><span id="local-6989586621680062285"
+			><span id="local-6989586621680062286"
+			  ><span id="local-6989586621680062287"
+			    ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE BlockArguments #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveDataTypeable #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoStrict #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Schema.Annotation</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	><span class="hs-identifier"
+	  >SchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#annotationsToSchemaInfo"
+	><span class="hs-identifier"
+	  >annotationsToSchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaAnn"
+	><span class="hs-identifier"
+	  >SchemaAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-identifier"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-identifier"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaComment"
+	><span class="hs-identifier"
+	  >SchemaComment</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.html"
+	><span class="hs-identifier"
+	  >Control.Monad.State</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#execStateT"
+	><span class="hs-identifier"
+	  >execStateT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#get"
+	><span class="hs-identifier"
+	  >get</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#lift"
+	><span class="hs-identifier"
+	  >lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#put"
+	><span class="hs-identifier"
+	  >put</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html"
+	><span class="hs-identifier"
+	  >Data.Data</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+	><span class="hs-identifier"
+	  >Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#max"
+	><span class="hs-identifier"
+	  >max</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#maximum"
+	><span class="hs-identifier"
+	  >maximum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#min"
+	><span class="hs-identifier"
+	  >min</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#minimum"
+	><span class="hs-identifier"
+	  >minimum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Additional information optionally attached to any datatype schema definition.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="SchemaInfo"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkSchemaInfo"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaInfo"
+	  ><span class="hs-identifier hs-var"
+	    >MkSchemaInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="title"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfo -&gt; Maybe SchemaInfoError
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#title"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >title</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="description"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfo -&gt; Maybe SchemaInfoError
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#description"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >description</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="comment"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfo -&gt; Maybe SchemaInfoError
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#comment"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >comment</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680062335"
+      ><span id="local-6989586621680062342"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SchemaInfo -&gt; SchemaInfo -&gt; Bool
+(SchemaInfo -&gt; SchemaInfo -&gt; Bool)
+-&gt; (SchemaInfo -&gt; SchemaInfo -&gt; Bool) -&gt; Eq SchemaInfo
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+== :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+$c/= :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+/= :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062352"
+      ><span id="local-6989586621680062359"
+	><span id="local-6989586621680062365"
+	  ><span id="local-6989586621680062369"
+	    ><span id="local-6989586621680062372"
+	      ><span id="local-6989586621680062375"
+		><span id="local-6989586621680062378"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq SchemaInfo
+Eq SchemaInfo =&gt;
+(SchemaInfo -&gt; SchemaInfo -&gt; Ordering)
+-&gt; (SchemaInfo -&gt; SchemaInfo -&gt; Bool)
+-&gt; (SchemaInfo -&gt; SchemaInfo -&gt; Bool)
+-&gt; (SchemaInfo -&gt; SchemaInfo -&gt; Bool)
+-&gt; (SchemaInfo -&gt; SchemaInfo -&gt; Bool)
+-&gt; (SchemaInfo -&gt; SchemaInfo -&gt; SchemaInfo)
+-&gt; (SchemaInfo -&gt; SchemaInfo -&gt; SchemaInfo)
+-&gt; Ord SchemaInfo
+SchemaInfo -&gt; SchemaInfo -&gt; Bool
+SchemaInfo -&gt; SchemaInfo -&gt; Ordering
+SchemaInfo -&gt; SchemaInfo -&gt; SchemaInfo
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: SchemaInfo -&gt; SchemaInfo -&gt; Ordering
+compare :: SchemaInfo -&gt; SchemaInfo -&gt; Ordering
+$c&lt; :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+&lt; :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+$c&lt;= :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+&lt;= :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+$c&gt; :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+&gt; :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+$c&gt;= :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+&gt;= :: SchemaInfo -&gt; SchemaInfo -&gt; Bool
+$cmax :: SchemaInfo -&gt; SchemaInfo -&gt; SchemaInfo
+max :: SchemaInfo -&gt; SchemaInfo -&gt; SchemaInfo
+$cmin :: SchemaInfo -&gt; SchemaInfo -&gt; SchemaInfo
+min :: SchemaInfo -&gt; SchemaInfo -&gt; SchemaInfo
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062386"
+      ><span id="local-6989586621680062394"
+	><span id="local-6989586621680062398"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SchemaInfo -&gt; ShowS
+[SchemaInfo] -&gt; ShowS
+SchemaInfo -&gt; SchemaInfoError
+(Int -&gt; SchemaInfo -&gt; ShowS)
+-&gt; (SchemaInfo -&gt; SchemaInfoError)
+-&gt; ([SchemaInfo] -&gt; ShowS)
+-&gt; Show SchemaInfo
+forall a.
+(Int -&gt; a -&gt; ShowS)
+-&gt; (a -&gt; SchemaInfoError) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SchemaInfo -&gt; ShowS
+showsPrec :: Int -&gt; SchemaInfo -&gt; ShowS
+$cshow :: SchemaInfo -&gt; SchemaInfoError
+show :: SchemaInfo -&gt; SchemaInfoError
+$cshowList :: [SchemaInfo] -&gt; ShowS
+showList :: [SchemaInfo] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062402"
+      ><span id="local-6989586621680062404"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. SchemaInfo -&gt; Rep SchemaInfo x)
+-&gt; (forall x. Rep SchemaInfo x -&gt; SchemaInfo) -&gt; Generic SchemaInfo
+forall x. Rep SchemaInfo x -&gt; SchemaInfo
+forall x. SchemaInfo -&gt; Rep SchemaInfo x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. SchemaInfo -&gt; Rep SchemaInfo x
+from :: forall x. SchemaInfo -&gt; Rep SchemaInfo x
+$cto :: forall x. Rep SchemaInfo x -&gt; SchemaInfo
+to :: forall x. Rep SchemaInfo x -&gt; SchemaInfo
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062410"
+      ><span id="local-6989586621680062417"
+	><span id="local-6989586621680062423"
+	  ><span id="local-6989586621680062425"
+	    ><span id="local-6989586621680062427"
+	      ><span id="local-6989586621680062433"
+		><span id="local-6989586621680062438"
+		  ><span id="local-6989586621680062441"
+		    ><span id="local-6989586621680062444"
+		      ><span id="local-6989586621680062447"
+			><span id="local-6989586621680062450"
+			  ><span id="local-6989586621680062453"
+			    ><span id="local-6989586621680062458"
+			      ><span id="local-6989586621680062463"
+				><span class="annot"
+				  ><span class="annottext"
+				    >Typeable SchemaInfo
+Typeable SchemaInfo =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; SchemaInfo -&gt; c SchemaInfo)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaInfo)
+-&gt; (SchemaInfo -&gt; Constr)
+-&gt; (SchemaInfo -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaInfo))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c SchemaInfo))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; SchemaInfo -&gt; SchemaInfo)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo)
+-&gt; Data SchemaInfo
+SchemaInfo -&gt; Constr
+SchemaInfo -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b) -&gt; SchemaInfo -&gt; SchemaInfo
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaInfo
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaInfo -&gt; c SchemaInfo
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaInfo)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c SchemaInfo)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaInfo -&gt; c SchemaInfo
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaInfo -&gt; c SchemaInfo
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaInfo
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaInfo
+$ctoConstr :: SchemaInfo -&gt; Constr
+toConstr :: SchemaInfo -&gt; Constr
+$cdataTypeOf :: SchemaInfo -&gt; DataType
+dataTypeOf :: SchemaInfo -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaInfo)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaInfo)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c SchemaInfo)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c SchemaInfo)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaInfo -&gt; SchemaInfo
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaInfo -&gt; SchemaInfo
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaInfo -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; [u]
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; u
+gmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaInfo -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaInfo -&gt; m SchemaInfo
+</span
+				    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+				    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				      >Data</span
+				      ></a
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062473"
+      ><span id="local-6989586621680062485"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; SchemaInfo -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    SchemaInfo -&gt; Code m SchemaInfo)
+-&gt; Lift SchemaInfo
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; SchemaInfo -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; SchemaInfo -&gt; Code m SchemaInfo
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaInfo -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaInfo -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SchemaInfo -&gt; Code m SchemaInfo
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SchemaInfo -&gt; Code m SchemaInfo
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-type"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	><span class="hs-identifier hs-type"
+	  >SchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="emptySchemaInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >emptySchemaInfo :: SchemaInfo
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emptySchemaInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe SchemaInfoError
+-&gt; Maybe SchemaInfoError -&gt; Maybe SchemaInfoError -&gt; SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >MkSchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe SchemaInfoError
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe SchemaInfoError
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe SchemaInfoError
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="SchemaInfoError"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfoError"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaInfoError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#annotationsToSchemaInfo"
+	><span class="hs-identifier hs-type"
+	  >annotationsToSchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaAnn"
+	><span class="hs-identifier hs-type"
+	  >SchemaAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfoError"
+	><span class="hs-identifier hs-type"
+	  >SchemaInfoError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	><span class="hs-identifier hs-type"
+	  >SchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="annotationsToSchemaInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >annotationsToSchemaInfo :: [SchemaAnn] -&gt; Either SchemaInfoError SchemaInfo
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#annotationsToSchemaInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >annotationsToSchemaInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT SchemaInfo (Either SchemaInfoError) [()]
+-&gt; SchemaInfo -&gt; Either SchemaInfoError SchemaInfo
+forall (m :: * -&gt; *) s a. Monad m =&gt; StateT s m a -&gt; s -&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#execStateT"
+	><span class="hs-operator hs-var"
+	  >`execStateT`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT SchemaInfo (Either SchemaInfoError) [()]
+ -&gt; Either SchemaInfoError SchemaInfo)
+-&gt; ([SchemaAnn] -&gt; StateT SchemaInfo (Either SchemaInfoError) [()])
+-&gt; [SchemaAnn]
+-&gt; Either SchemaInfoError SchemaInfo
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SchemaAnn -&gt; StateT SchemaInfo (Either SchemaInfoError) ())
+-&gt; [SchemaAnn] -&gt; StateT SchemaInfo (Either SchemaInfoError) [()]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaAnnTitle"
+	><span class="hs-identifier hs-type"
+	  >MkSchemaAnnTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-identifier hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062505"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfoError
+</span
+	  ><a href="#local-6989586621680062505"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT SchemaInfo (Either SchemaInfoError) SchemaInfo
+forall s (m :: * -&gt; *). MonadState s m =&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#get"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT SchemaInfo (Either SchemaInfoError) SchemaInfo
+-&gt; (SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ())
+-&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall a b.
+StateT SchemaInfo (Either SchemaInfoError) a
+-&gt; (a -&gt; StateT SchemaInfo (Either SchemaInfoError) b)
+-&gt; StateT SchemaInfo (Either SchemaInfoError) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621680062506"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfo
+</span
+	  ><a href="#local-6989586621680062506"
+	  ><span class="hs-identifier hs-var"
+	    >info</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Maybe SchemaInfoError
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="#local-6989586621680062506"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe SchemaInfoError
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; s -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#put"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ())
+-&gt; SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="#local-6989586621680062506"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680062505"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062507"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfoError
+</span
+	  ><a href="#local-6989586621680062507"
+	  ><span class="hs-identifier hs-var"
+	    >t'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+-&gt; SchemaInfoError
+-&gt; SchemaInfoError
+-&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall {t :: (* -&gt; *) -&gt; * -&gt; *} {a} {a} {a}.
+(MonadTrans t, Show a, Show a) =&gt;
+SchemaInfoError -&gt; a -&gt; a -&gt; t (Either SchemaInfoError) a
+</span
+	><a href="#local-6989586621680062508"
+	><span class="hs-identifier hs-var"
+	  >failOverride</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><span class="hs-string"
+	>&quot;SchemaTitle&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><a href="#local-6989586621680062507"
+	><span class="hs-identifier hs-var"
+	  >t'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><a href="#local-6989586621680062505"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaAnnDescription"
+	><span class="hs-identifier hs-type"
+	  >MkSchemaAnnDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-identifier hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062511"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfoError
+</span
+	  ><a href="#local-6989586621680062511"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT SchemaInfo (Either SchemaInfoError) SchemaInfo
+forall s (m :: * -&gt; *). MonadState s m =&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#get"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT SchemaInfo (Either SchemaInfoError) SchemaInfo
+-&gt; (SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ())
+-&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall a b.
+StateT SchemaInfo (Either SchemaInfoError) a
+-&gt; (a -&gt; StateT SchemaInfo (Either SchemaInfoError) b)
+-&gt; StateT SchemaInfo (Either SchemaInfoError) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621680062512"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfo
+</span
+	  ><a href="#local-6989586621680062512"
+	  ><span class="hs-identifier hs-var"
+	    >info</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Maybe SchemaInfoError
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#description"
+	><span class="hs-identifier hs-var"
+	  >description</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="#local-6989586621680062512"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe SchemaInfoError
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; s -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#put"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ())
+-&gt; SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="#local-6989586621680062512"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#description"
+	><span class="hs-identifier hs-var"
+	  >description</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680062511"
+	><span class="hs-identifier hs-type"
+	  >d</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062513"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfoError
+</span
+	  ><a href="#local-6989586621680062513"
+	  ><span class="hs-identifier hs-var"
+	    >d'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+-&gt; SchemaInfoError
+-&gt; SchemaInfoError
+-&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall {t :: (* -&gt; *) -&gt; * -&gt; *} {a} {a} {a}.
+(MonadTrans t, Show a, Show a) =&gt;
+SchemaInfoError -&gt; a -&gt; a -&gt; t (Either SchemaInfoError) a
+</span
+	><a href="#local-6989586621680062508"
+	><span class="hs-identifier hs-var"
+	  >failOverride</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><span class="hs-string"
+	>&quot;SchemaDescription&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><a href="#local-6989586621680062513"
+	><span class="hs-identifier hs-var"
+	  >d'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><a href="#local-6989586621680062511"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaAnnComment"
+	><span class="hs-identifier hs-type"
+	  >MkSchemaAnnComment</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaComment"
+	><span class="hs-identifier hs-type"
+	  >SchemaComment</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062516"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfoError
+</span
+	  ><a href="#local-6989586621680062516"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT SchemaInfo (Either SchemaInfoError) SchemaInfo
+forall s (m :: * -&gt; *). MonadState s m =&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#get"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT SchemaInfo (Either SchemaInfoError) SchemaInfo
+-&gt; (SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ())
+-&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall a b.
+StateT SchemaInfo (Either SchemaInfoError) a
+-&gt; (a -&gt; StateT SchemaInfo (Either SchemaInfoError) b)
+-&gt; StateT SchemaInfo (Either SchemaInfoError) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621680062517"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfo
+</span
+	  ><a href="#local-6989586621680062517"
+	  ><span class="hs-identifier hs-var"
+	    >info</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Maybe SchemaInfoError
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#comment"
+	><span class="hs-identifier hs-var"
+	  >comment</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="#local-6989586621680062517"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe SchemaInfoError
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; s -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#put"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ())
+-&gt; SchemaInfo -&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="#local-6989586621680062517"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#comment"
+	><span class="hs-identifier hs-var"
+	  >comment</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680062516"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062518"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfoError
+</span
+	  ><a href="#local-6989586621680062518"
+	  ><span class="hs-identifier hs-var"
+	    >c'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+-&gt; SchemaInfoError
+-&gt; SchemaInfoError
+-&gt; StateT SchemaInfo (Either SchemaInfoError) ()
+forall {t :: (* -&gt; *) -&gt; * -&gt; *} {a} {a} {a}.
+(MonadTrans t, Show a, Show a) =&gt;
+SchemaInfoError -&gt; a -&gt; a -&gt; t (Either SchemaInfoError) a
+</span
+	><a href="#local-6989586621680062508"
+	><span class="hs-identifier hs-var"
+	  >failOverride</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><span class="hs-string"
+	>&quot;SchemaComment&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><a href="#local-6989586621680062518"
+	><span class="hs-identifier hs-var"
+	  >c'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><a href="#local-6989586621680062516"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621680062508"
+      ><span class="annot"
+	><span class="annottext"
+	  >failOverride :: SchemaInfoError -&gt; a -&gt; a -&gt; t (Either SchemaInfoError) a
+</span
+	  ><a href="#local-6989586621680062508"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >failOverride</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062535"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfoError
+</span
+	  ><a href="#local-6989586621680062535"
+	  ><span class="hs-keyword hs-var"
+	    >label</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062536"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680062536"
+	  ><span class="hs-identifier hs-var"
+	    >old</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680062537"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680062537"
+	  ><span class="hs-identifier hs-var"
+	    >new</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either SchemaInfoError a -&gt; t (Either SchemaInfoError) a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; t m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#lift"
+	><span class="hs-identifier hs-var"
+	  >lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either SchemaInfoError a -&gt; t (Either SchemaInfoError) a)
+-&gt; (SchemaInfoError -&gt; Either SchemaInfoError a)
+-&gt; SchemaInfoError
+-&gt; t (Either SchemaInfoError) a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError -&gt; Either SchemaInfoError a
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SchemaInfoError -&gt; t (Either SchemaInfoError) a)
+-&gt; SchemaInfoError -&gt; t (Either SchemaInfoError) a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[SchemaInfoError] -&gt; SchemaInfoError
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#concat"
+	><span class="hs-identifier hs-var"
+	  >concat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><a href="#local-6989586621680062535"
+	><span class="hs-keyword hs-var"
+	  >label</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><span class="hs-string"
+	>&quot; annotation error: &quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; SchemaInfoError
+forall a. Show a =&gt; a -&gt; SchemaInfoError
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680062536"
+	><span class="hs-identifier hs-var"
+	  >old</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfoError
+</span
+	><span class="hs-string"
+	>&quot; is overridden with &quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; SchemaInfoError
+forall a. Show a =&gt; a -&gt; SchemaInfoError
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680062537"
+	><span class="hs-identifier hs-var"
+	  >new</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Annotation that can be attached to a schema definition.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="SchemaAnn"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaAnn"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaAnn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkSchemaAnnTitle"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaAnnTitle"
+	  ><span class="hs-identifier hs-var"
+	    >MkSchemaAnnTitle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-identifier hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="MkSchemaAnnDescription"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaAnnDescription"
+	  ><span class="hs-identifier hs-var"
+	    >MkSchemaAnnDescription</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-identifier hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="MkSchemaAnnComment"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#MkSchemaAnnComment"
+	  ><span class="hs-identifier hs-var"
+	    >MkSchemaAnnComment</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaComment"
+	><span class="hs-identifier hs-type"
+	  >SchemaComment</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680062541"
+      ><span id="local-6989586621680062549"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SchemaAnn -&gt; SchemaAnn -&gt; Bool
+(SchemaAnn -&gt; SchemaAnn -&gt; Bool)
+-&gt; (SchemaAnn -&gt; SchemaAnn -&gt; Bool) -&gt; Eq SchemaAnn
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+== :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+$c/= :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+/= :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062555"
+      ><span id="local-6989586621680062563"
+	><span id="local-6989586621680062568"
+	  ><span id="local-6989586621680062572"
+	    ><span id="local-6989586621680062575"
+	      ><span id="local-6989586621680062578"
+		><span id="local-6989586621680062581"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq SchemaAnn
+Eq SchemaAnn =&gt;
+(SchemaAnn -&gt; SchemaAnn -&gt; Ordering)
+-&gt; (SchemaAnn -&gt; SchemaAnn -&gt; Bool)
+-&gt; (SchemaAnn -&gt; SchemaAnn -&gt; Bool)
+-&gt; (SchemaAnn -&gt; SchemaAnn -&gt; Bool)
+-&gt; (SchemaAnn -&gt; SchemaAnn -&gt; Bool)
+-&gt; (SchemaAnn -&gt; SchemaAnn -&gt; SchemaAnn)
+-&gt; (SchemaAnn -&gt; SchemaAnn -&gt; SchemaAnn)
+-&gt; Ord SchemaAnn
+SchemaAnn -&gt; SchemaAnn -&gt; Bool
+SchemaAnn -&gt; SchemaAnn -&gt; Ordering
+SchemaAnn -&gt; SchemaAnn -&gt; SchemaAnn
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: SchemaAnn -&gt; SchemaAnn -&gt; Ordering
+compare :: SchemaAnn -&gt; SchemaAnn -&gt; Ordering
+$c&lt; :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+&lt; :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+$c&lt;= :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+&lt;= :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+$c&gt; :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+&gt; :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+$c&gt;= :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+&gt;= :: SchemaAnn -&gt; SchemaAnn -&gt; Bool
+$cmax :: SchemaAnn -&gt; SchemaAnn -&gt; SchemaAnn
+max :: SchemaAnn -&gt; SchemaAnn -&gt; SchemaAnn
+$cmin :: SchemaAnn -&gt; SchemaAnn -&gt; SchemaAnn
+min :: SchemaAnn -&gt; SchemaAnn -&gt; SchemaAnn
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062584"
+      ><span id="local-6989586621680062595"
+	><span id="local-6989586621680062599"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SchemaAnn -&gt; ShowS
+[SchemaAnn] -&gt; ShowS
+SchemaAnn -&gt; SchemaInfoError
+(Int -&gt; SchemaAnn -&gt; ShowS)
+-&gt; (SchemaAnn -&gt; SchemaInfoError)
+-&gt; ([SchemaAnn] -&gt; ShowS)
+-&gt; Show SchemaAnn
+forall a.
+(Int -&gt; a -&gt; ShowS)
+-&gt; (a -&gt; SchemaInfoError) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SchemaAnn -&gt; ShowS
+showsPrec :: Int -&gt; SchemaAnn -&gt; ShowS
+$cshow :: SchemaAnn -&gt; SchemaInfoError
+show :: SchemaAnn -&gt; SchemaInfoError
+$cshowList :: [SchemaAnn] -&gt; ShowS
+showList :: [SchemaAnn] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062602"
+      ><span id="local-6989586621680062604"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. SchemaAnn -&gt; Rep SchemaAnn x)
+-&gt; (forall x. Rep SchemaAnn x -&gt; SchemaAnn) -&gt; Generic SchemaAnn
+forall x. Rep SchemaAnn x -&gt; SchemaAnn
+forall x. SchemaAnn -&gt; Rep SchemaAnn x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. SchemaAnn -&gt; Rep SchemaAnn x
+from :: forall x. SchemaAnn -&gt; Rep SchemaAnn x
+$cto :: forall x. Rep SchemaAnn x -&gt; SchemaAnn
+to :: forall x. Rep SchemaAnn x -&gt; SchemaAnn
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062609"
+      ><span id="local-6989586621680062617"
+	><span id="local-6989586621680062622"
+	  ><span id="local-6989586621680062624"
+	    ><span id="local-6989586621680062626"
+	      ><span id="local-6989586621680062632"
+		><span id="local-6989586621680062637"
+		  ><span id="local-6989586621680062640"
+		    ><span id="local-6989586621680062643"
+		      ><span id="local-6989586621680062646"
+			><span id="local-6989586621680062649"
+			  ><span id="local-6989586621680062652"
+			    ><span id="local-6989586621680062657"
+			      ><span id="local-6989586621680062662"
+				><span class="annot"
+				  ><span class="annottext"
+				    >Typeable SchemaAnn
+Typeable SchemaAnn =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; SchemaAnn -&gt; c SchemaAnn)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaAnn)
+-&gt; (SchemaAnn -&gt; Constr)
+-&gt; (SchemaAnn -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaAnn))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c SchemaAnn))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; SchemaAnn -&gt; SchemaAnn)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn)
+-&gt; Data SchemaAnn
+SchemaAnn -&gt; Constr
+SchemaAnn -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b) -&gt; SchemaAnn -&gt; SchemaAnn
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaAnn
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaAnn -&gt; c SchemaAnn
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaAnn)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c SchemaAnn)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaAnn -&gt; c SchemaAnn
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaAnn -&gt; c SchemaAnn
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaAnn
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaAnn
+$ctoConstr :: SchemaAnn -&gt; Constr
+toConstr :: SchemaAnn -&gt; Constr
+$cdataTypeOf :: SchemaAnn -&gt; DataType
+dataTypeOf :: SchemaAnn -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaAnn)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaAnn)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c SchemaAnn)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c SchemaAnn)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaAnn -&gt; SchemaAnn
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaAnn -&gt; SchemaAnn
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaAnn -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; [u]
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; u
+gmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaAnn -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaAnn -&gt; m SchemaAnn
+</span
+				    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+				    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				      >Data</span
+				      ></a
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062667"
+      ><span id="local-6989586621680062682"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; Code m SchemaAnn)
+-&gt; Lift SchemaAnn
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; Code m SchemaAnn
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; Code m SchemaAnn
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SchemaAnn -&gt; Code m SchemaAnn
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| An annotation for the &quot;title&quot; schema attribute.
+
+This annotation could be attached to a type or constructor:
+@
+{\-# ANN type MyFoo (SchemaTitle &quot;My Foo Title&quot;) #-\}
+{\-# ANN MkMyFoo (SchemaTitle &quot;Title&quot;) #-\}
+newtype MyFoo = MkMyFoo Int
+@ -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="SchemaTitle"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaTitle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SchemaTitle"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaTitle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="schemaTitleToString"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaTitle -&gt; SchemaInfoError
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#schemaTitleToString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >schemaTitleToString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680062696"
+      ><span id="local-6989586621680062701"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SchemaTitle -&gt; SchemaTitle -&gt; Bool
+(SchemaTitle -&gt; SchemaTitle -&gt; Bool)
+-&gt; (SchemaTitle -&gt; SchemaTitle -&gt; Bool) -&gt; Eq SchemaTitle
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+== :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+$c/= :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+/= :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062708"
+      ><span id="local-6989586621680062713"
+	><span id="local-6989586621680062718"
+	  ><span id="local-6989586621680062723"
+	    ><span id="local-6989586621680062728"
+	      ><span id="local-6989586621680062733"
+		><span id="local-6989586621680062738"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq SchemaTitle
+Eq SchemaTitle =&gt;
+(SchemaTitle -&gt; SchemaTitle -&gt; Ordering)
+-&gt; (SchemaTitle -&gt; SchemaTitle -&gt; Bool)
+-&gt; (SchemaTitle -&gt; SchemaTitle -&gt; Bool)
+-&gt; (SchemaTitle -&gt; SchemaTitle -&gt; Bool)
+-&gt; (SchemaTitle -&gt; SchemaTitle -&gt; Bool)
+-&gt; (SchemaTitle -&gt; SchemaTitle -&gt; SchemaTitle)
+-&gt; (SchemaTitle -&gt; SchemaTitle -&gt; SchemaTitle)
+-&gt; Ord SchemaTitle
+SchemaTitle -&gt; SchemaTitle -&gt; Bool
+SchemaTitle -&gt; SchemaTitle -&gt; Ordering
+SchemaTitle -&gt; SchemaTitle -&gt; SchemaTitle
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: SchemaTitle -&gt; SchemaTitle -&gt; Ordering
+compare :: SchemaTitle -&gt; SchemaTitle -&gt; Ordering
+$c&lt; :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+&lt; :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+$c&lt;= :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+&lt;= :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+$c&gt; :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+&gt; :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+$c&gt;= :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+&gt;= :: SchemaTitle -&gt; SchemaTitle -&gt; Bool
+$cmax :: SchemaTitle -&gt; SchemaTitle -&gt; SchemaTitle
+max :: SchemaTitle -&gt; SchemaTitle -&gt; SchemaTitle
+$cmin :: SchemaTitle -&gt; SchemaTitle -&gt; SchemaTitle
+min :: SchemaTitle -&gt; SchemaTitle -&gt; SchemaTitle
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062743"
+      ><span id="local-6989586621680062747"
+	><span id="local-6989586621680062751"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SchemaTitle -&gt; ShowS
+[SchemaTitle] -&gt; ShowS
+SchemaTitle -&gt; SchemaInfoError
+(Int -&gt; SchemaTitle -&gt; ShowS)
+-&gt; (SchemaTitle -&gt; SchemaInfoError)
+-&gt; ([SchemaTitle] -&gt; ShowS)
+-&gt; Show SchemaTitle
+forall a.
+(Int -&gt; a -&gt; ShowS)
+-&gt; (a -&gt; SchemaInfoError) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SchemaTitle -&gt; ShowS
+showsPrec :: Int -&gt; SchemaTitle -&gt; ShowS
+$cshow :: SchemaTitle -&gt; SchemaInfoError
+show :: SchemaTitle -&gt; SchemaInfoError
+$cshowList :: [SchemaTitle] -&gt; ShowS
+showList :: [SchemaTitle] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062755"
+      ><span id="local-6989586621680062761"
+	><span id="local-6989586621680062766"
+	  ><span id="local-6989586621680062771"
+	    ><span id="local-6989586621680062776"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[SchemaTitle] -&gt; Encoding
+[SchemaTitle] -&gt; Value
+SchemaTitle -&gt; Bool
+SchemaTitle -&gt; Encoding
+SchemaTitle -&gt; Value
+(SchemaTitle -&gt; Value)
+-&gt; (SchemaTitle -&gt; Encoding)
+-&gt; ([SchemaTitle] -&gt; Value)
+-&gt; ([SchemaTitle] -&gt; Encoding)
+-&gt; (SchemaTitle -&gt; Bool)
+-&gt; ToJSON SchemaTitle
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: SchemaTitle -&gt; Value
+toJSON :: SchemaTitle -&gt; Value
+$ctoEncoding :: SchemaTitle -&gt; Encoding
+toEncoding :: SchemaTitle -&gt; Encoding
+$ctoJSONList :: [SchemaTitle] -&gt; Value
+toJSONList :: [SchemaTitle] -&gt; Value
+$ctoEncodingList :: [SchemaTitle] -&gt; Encoding
+toEncodingList :: [SchemaTitle] -&gt; Encoding
+$comitField :: SchemaTitle -&gt; Bool
+omitField :: SchemaTitle -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680062786"
+      ><span id="local-6989586621680062790"
+	><span id="local-6989586621680062794"
+	  ><span id="local-6989586621680062796"
+	    ><span id="local-6989586621680062798"
+	      ><span id="local-6989586621680062803"
+		><span id="local-6989586621680062808"
+		  ><span id="local-6989586621680062811"
+		    ><span id="local-6989586621680062814"
+		      ><span id="local-6989586621680062817"
+			><span id="local-6989586621680062820"
+			  ><span id="local-6989586621680062823"
+			    ><span id="local-6989586621680062828"
+			      ><span id="local-6989586621680062833"
+				><span class="annot"
+				  ><span class="annottext"
+				    >Typeable SchemaTitle
+Typeable SchemaTitle =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; SchemaTitle -&gt; c SchemaTitle)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaTitle)
+-&gt; (SchemaTitle -&gt; Constr)
+-&gt; (SchemaTitle -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaTitle))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c SchemaTitle))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; SchemaTitle -&gt; SchemaTitle)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle)
+-&gt; Data SchemaTitle
+SchemaTitle -&gt; Constr
+SchemaTitle -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b) -&gt; SchemaTitle -&gt; SchemaTitle
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaTitle
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaTitle -&gt; c SchemaTitle
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaTitle)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaTitle)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaTitle -&gt; c SchemaTitle
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaTitle -&gt; c SchemaTitle
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaTitle
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaTitle
+$ctoConstr :: SchemaTitle -&gt; Constr
+toConstr :: SchemaTitle -&gt; Constr
+$cdataTypeOf :: SchemaTitle -&gt; DataType
+dataTypeOf :: SchemaTitle -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaTitle)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaTitle)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaTitle)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaTitle)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaTitle -&gt; SchemaTitle
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaTitle -&gt; SchemaTitle
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaTitle -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; [u]
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; u
+gmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaTitle -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaTitle -&gt; m SchemaTitle
+</span
+				    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+				    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				      >Data</span
+				      ></a
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062838"
+      ><span id="local-6989586621680062845"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; SchemaTitle -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    SchemaTitle -&gt; Code m SchemaTitle)
+-&gt; Lift SchemaTitle
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; SchemaTitle -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; SchemaTitle -&gt; Code m SchemaTitle
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaTitle -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaTitle -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SchemaTitle -&gt; Code m SchemaTitle
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SchemaTitle -&gt; Code m SchemaTitle
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| An annotation for the &quot;description&quot; schema attribute.
+
+This annotation could be attached to a type or constructor:
+@
+{\-# ANN type MyFoo (SchemaDescription &quot;My Foo Description&quot;) #-\}
+{\-# ANN MkMyFoo (SchemaDescription &quot;Description&quot;) #-\}
+newtype MyFoo = MkMyFoo Int
+@ -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="SchemaDescription"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaDescription</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SchemaDescription"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaDescription</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="schemaDescriptionToString"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaDescription -&gt; SchemaInfoError
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#schemaDescriptionToString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >schemaDescriptionToString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680062853"
+      ><span id="local-6989586621680062858"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SchemaDescription -&gt; SchemaDescription -&gt; Bool
+(SchemaDescription -&gt; SchemaDescription -&gt; Bool)
+-&gt; (SchemaDescription -&gt; SchemaDescription -&gt; Bool)
+-&gt; Eq SchemaDescription
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+== :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+$c/= :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+/= :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062865"
+      ><span id="local-6989586621680062870"
+	><span id="local-6989586621680062875"
+	  ><span id="local-6989586621680062880"
+	    ><span id="local-6989586621680062885"
+	      ><span id="local-6989586621680062890"
+		><span id="local-6989586621680062895"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq SchemaDescription
+Eq SchemaDescription =&gt;
+(SchemaDescription -&gt; SchemaDescription -&gt; Ordering)
+-&gt; (SchemaDescription -&gt; SchemaDescription -&gt; Bool)
+-&gt; (SchemaDescription -&gt; SchemaDescription -&gt; Bool)
+-&gt; (SchemaDescription -&gt; SchemaDescription -&gt; Bool)
+-&gt; (SchemaDescription -&gt; SchemaDescription -&gt; Bool)
+-&gt; (SchemaDescription -&gt; SchemaDescription -&gt; SchemaDescription)
+-&gt; (SchemaDescription -&gt; SchemaDescription -&gt; SchemaDescription)
+-&gt; Ord SchemaDescription
+SchemaDescription -&gt; SchemaDescription -&gt; Bool
+SchemaDescription -&gt; SchemaDescription -&gt; Ordering
+SchemaDescription -&gt; SchemaDescription -&gt; SchemaDescription
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: SchemaDescription -&gt; SchemaDescription -&gt; Ordering
+compare :: SchemaDescription -&gt; SchemaDescription -&gt; Ordering
+$c&lt; :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+&lt; :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+$c&lt;= :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+&lt;= :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+$c&gt; :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+&gt; :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+$c&gt;= :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+&gt;= :: SchemaDescription -&gt; SchemaDescription -&gt; Bool
+$cmax :: SchemaDescription -&gt; SchemaDescription -&gt; SchemaDescription
+max :: SchemaDescription -&gt; SchemaDescription -&gt; SchemaDescription
+$cmin :: SchemaDescription -&gt; SchemaDescription -&gt; SchemaDescription
+min :: SchemaDescription -&gt; SchemaDescription -&gt; SchemaDescription
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062900"
+      ><span id="local-6989586621680062904"
+	><span id="local-6989586621680062908"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SchemaDescription -&gt; ShowS
+[SchemaDescription] -&gt; ShowS
+SchemaDescription -&gt; SchemaInfoError
+(Int -&gt; SchemaDescription -&gt; ShowS)
+-&gt; (SchemaDescription -&gt; SchemaInfoError)
+-&gt; ([SchemaDescription] -&gt; ShowS)
+-&gt; Show SchemaDescription
+forall a.
+(Int -&gt; a -&gt; ShowS)
+-&gt; (a -&gt; SchemaInfoError) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SchemaDescription -&gt; ShowS
+showsPrec :: Int -&gt; SchemaDescription -&gt; ShowS
+$cshow :: SchemaDescription -&gt; SchemaInfoError
+show :: SchemaDescription -&gt; SchemaInfoError
+$cshowList :: [SchemaDescription] -&gt; ShowS
+showList :: [SchemaDescription] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062912"
+      ><span id="local-6989586621680062917"
+	><span id="local-6989586621680062922"
+	  ><span id="local-6989586621680062927"
+	    ><span id="local-6989586621680062932"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[SchemaDescription] -&gt; Encoding
+[SchemaDescription] -&gt; Value
+SchemaDescription -&gt; Bool
+SchemaDescription -&gt; Encoding
+SchemaDescription -&gt; Value
+(SchemaDescription -&gt; Value)
+-&gt; (SchemaDescription -&gt; Encoding)
+-&gt; ([SchemaDescription] -&gt; Value)
+-&gt; ([SchemaDescription] -&gt; Encoding)
+-&gt; (SchemaDescription -&gt; Bool)
+-&gt; ToJSON SchemaDescription
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: SchemaDescription -&gt; Value
+toJSON :: SchemaDescription -&gt; Value
+$ctoEncoding :: SchemaDescription -&gt; Encoding
+toEncoding :: SchemaDescription -&gt; Encoding
+$ctoJSONList :: [SchemaDescription] -&gt; Value
+toJSONList :: [SchemaDescription] -&gt; Value
+$ctoEncodingList :: [SchemaDescription] -&gt; Encoding
+toEncodingList :: [SchemaDescription] -&gt; Encoding
+$comitField :: SchemaDescription -&gt; Bool
+omitField :: SchemaDescription -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680062940"
+      ><span id="local-6989586621680062944"
+	><span id="local-6989586621680062948"
+	  ><span id="local-6989586621680062950"
+	    ><span id="local-6989586621680062952"
+	      ><span id="local-6989586621680062957"
+		><span id="local-6989586621680062962"
+		  ><span id="local-6989586621680062965"
+		    ><span id="local-6989586621680062968"
+		      ><span id="local-6989586621680062971"
+			><span id="local-6989586621680062974"
+			  ><span id="local-6989586621680062977"
+			    ><span id="local-6989586621680062982"
+			      ><span id="local-6989586621680062987"
+				><span class="annot"
+				  ><span class="annottext"
+				    >Typeable SchemaDescription
+Typeable SchemaDescription =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g)
+ -&gt; SchemaDescription
+ -&gt; c SchemaDescription)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaDescription)
+-&gt; (SchemaDescription -&gt; Constr)
+-&gt; (SchemaDescription -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaDescription))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c SchemaDescription))
+-&gt; ((forall b. Data b =&gt; b -&gt; b)
+    -&gt; SchemaDescription -&gt; SchemaDescription)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r)
+-&gt; (forall u.
+    (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d)
+    -&gt; SchemaDescription -&gt; m SchemaDescription)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d)
+    -&gt; SchemaDescription -&gt; m SchemaDescription)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d)
+    -&gt; SchemaDescription -&gt; m SchemaDescription)
+-&gt; Data SchemaDescription
+SchemaDescription -&gt; Constr
+SchemaDescription -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b)
+-&gt; SchemaDescription -&gt; SchemaDescription
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u.
+Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaDescription
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaDescription -&gt; c SchemaDescription
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaDescription)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaDescription)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaDescription -&gt; c SchemaDescription
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaDescription -&gt; c SchemaDescription
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaDescription
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaDescription
+$ctoConstr :: SchemaDescription -&gt; Constr
+toConstr :: SchemaDescription -&gt; Constr
+$cdataTypeOf :: SchemaDescription -&gt; DataType
+dataTypeOf :: SchemaDescription -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaDescription)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaDescription)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaDescription)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaDescription)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b)
+-&gt; SchemaDescription -&gt; SchemaDescription
+gmapT :: (forall b. Data b =&gt; b -&gt; b)
+-&gt; SchemaDescription -&gt; SchemaDescription
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaDescription -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; [u]
+$cgmapQi :: forall u.
+Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; u
+gmapQi :: forall u.
+Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaDescription -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; SchemaDescription -&gt; m SchemaDescription
+</span
+				    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+				    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				      >Data</span
+				      ></a
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680062992"
+      ><span id="local-6989586621680062999"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; SchemaDescription -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    SchemaDescription -&gt; Code m SchemaDescription)
+-&gt; Lift SchemaDescription
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; SchemaDescription -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+SchemaDescription -&gt; Code m SchemaDescription
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaDescription -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaDescription -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+SchemaDescription -&gt; Code m SchemaDescription
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+SchemaDescription -&gt; Code m SchemaDescription
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| An annotation for the &quot;$comment&quot; schema attribute.
+
+This annotation could be attached to a type or constructor:
+@
+{\-# ANN type MyFoo (SchemaComment &quot;My Foo Comment&quot;) #-\}
+{\-# ANN MkMyFoo (SchemaComment &quot;Comment&quot;) #-\}
+newtype MyFoo = MkMyFoo Int
+@ -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="SchemaComment"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaComment"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaComment</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SchemaComment"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#SchemaComment"
+	  ><span class="hs-identifier hs-var"
+	    >SchemaComment</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="schemaCommentToString"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaComment -&gt; SchemaInfoError
+</span
+	  ><a href="PlutusTx.Blueprint.Schema.Annotation.html#schemaCommentToString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >schemaCommentToString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680063007"
+      ><span id="local-6989586621680063012"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SchemaComment -&gt; SchemaComment -&gt; Bool
+(SchemaComment -&gt; SchemaComment -&gt; Bool)
+-&gt; (SchemaComment -&gt; SchemaComment -&gt; Bool) -&gt; Eq SchemaComment
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SchemaComment -&gt; SchemaComment -&gt; Bool
+== :: SchemaComment -&gt; SchemaComment -&gt; Bool
+$c/= :: SchemaComment -&gt; SchemaComment -&gt; Bool
+/= :: SchemaComment -&gt; SchemaComment -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680063019"
+      ><span id="local-6989586621680063024"
+	><span id="local-6989586621680063029"
+	  ><span id="local-6989586621680063034"
+	    ><span id="local-6989586621680063039"
+	      ><span id="local-6989586621680063044"
+		><span id="local-6989586621680063049"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq SchemaComment
+Eq SchemaComment =&gt;
+(SchemaComment -&gt; SchemaComment -&gt; Ordering)
+-&gt; (SchemaComment -&gt; SchemaComment -&gt; Bool)
+-&gt; (SchemaComment -&gt; SchemaComment -&gt; Bool)
+-&gt; (SchemaComment -&gt; SchemaComment -&gt; Bool)
+-&gt; (SchemaComment -&gt; SchemaComment -&gt; Bool)
+-&gt; (SchemaComment -&gt; SchemaComment -&gt; SchemaComment)
+-&gt; (SchemaComment -&gt; SchemaComment -&gt; SchemaComment)
+-&gt; Ord SchemaComment
+SchemaComment -&gt; SchemaComment -&gt; Bool
+SchemaComment -&gt; SchemaComment -&gt; Ordering
+SchemaComment -&gt; SchemaComment -&gt; SchemaComment
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: SchemaComment -&gt; SchemaComment -&gt; Ordering
+compare :: SchemaComment -&gt; SchemaComment -&gt; Ordering
+$c&lt; :: SchemaComment -&gt; SchemaComment -&gt; Bool
+&lt; :: SchemaComment -&gt; SchemaComment -&gt; Bool
+$c&lt;= :: SchemaComment -&gt; SchemaComment -&gt; Bool
+&lt;= :: SchemaComment -&gt; SchemaComment -&gt; Bool
+$c&gt; :: SchemaComment -&gt; SchemaComment -&gt; Bool
+&gt; :: SchemaComment -&gt; SchemaComment -&gt; Bool
+$c&gt;= :: SchemaComment -&gt; SchemaComment -&gt; Bool
+&gt;= :: SchemaComment -&gt; SchemaComment -&gt; Bool
+$cmax :: SchemaComment -&gt; SchemaComment -&gt; SchemaComment
+max :: SchemaComment -&gt; SchemaComment -&gt; SchemaComment
+$cmin :: SchemaComment -&gt; SchemaComment -&gt; SchemaComment
+min :: SchemaComment -&gt; SchemaComment -&gt; SchemaComment
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680063054"
+      ><span id="local-6989586621680063058"
+	><span id="local-6989586621680063062"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SchemaComment -&gt; ShowS
+[SchemaComment] -&gt; ShowS
+SchemaComment -&gt; SchemaInfoError
+(Int -&gt; SchemaComment -&gt; ShowS)
+-&gt; (SchemaComment -&gt; SchemaInfoError)
+-&gt; ([SchemaComment] -&gt; ShowS)
+-&gt; Show SchemaComment
+forall a.
+(Int -&gt; a -&gt; ShowS)
+-&gt; (a -&gt; SchemaInfoError) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SchemaComment -&gt; ShowS
+showsPrec :: Int -&gt; SchemaComment -&gt; ShowS
+$cshow :: SchemaComment -&gt; SchemaInfoError
+show :: SchemaComment -&gt; SchemaInfoError
+$cshowList :: [SchemaComment] -&gt; ShowS
+showList :: [SchemaComment] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680063066"
+      ><span id="local-6989586621680063071"
+	><span id="local-6989586621680063076"
+	  ><span id="local-6989586621680063081"
+	    ><span id="local-6989586621680063086"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[SchemaComment] -&gt; Encoding
+[SchemaComment] -&gt; Value
+SchemaComment -&gt; Bool
+SchemaComment -&gt; Encoding
+SchemaComment -&gt; Value
+(SchemaComment -&gt; Value)
+-&gt; (SchemaComment -&gt; Encoding)
+-&gt; ([SchemaComment] -&gt; Value)
+-&gt; ([SchemaComment] -&gt; Encoding)
+-&gt; (SchemaComment -&gt; Bool)
+-&gt; ToJSON SchemaComment
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: SchemaComment -&gt; Value
+toJSON :: SchemaComment -&gt; Value
+$ctoEncoding :: SchemaComment -&gt; Encoding
+toEncoding :: SchemaComment -&gt; Encoding
+$ctoJSONList :: [SchemaComment] -&gt; Value
+toJSONList :: [SchemaComment] -&gt; Value
+$ctoEncodingList :: [SchemaComment] -&gt; Encoding
+toEncodingList :: [SchemaComment] -&gt; Encoding
+$comitField :: SchemaComment -&gt; Bool
+omitField :: SchemaComment -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680063094"
+      ><span id="local-6989586621680063098"
+	><span id="local-6989586621680063102"
+	  ><span id="local-6989586621680063104"
+	    ><span id="local-6989586621680063106"
+	      ><span id="local-6989586621680063111"
+		><span id="local-6989586621680063116"
+		  ><span id="local-6989586621680063119"
+		    ><span id="local-6989586621680063122"
+		      ><span id="local-6989586621680063125"
+			><span id="local-6989586621680063128"
+			  ><span id="local-6989586621680063131"
+			    ><span id="local-6989586621680063136"
+			      ><span id="local-6989586621680063141"
+				><span class="annot"
+				  ><span class="annottext"
+				    >Typeable SchemaComment
+Typeable SchemaComment =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; SchemaComment -&gt; c SchemaComment)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaComment)
+-&gt; (SchemaComment -&gt; Constr)
+-&gt; (SchemaComment -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaComment))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c SchemaComment))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; SchemaComment -&gt; SchemaComment)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment)
+-&gt; Data SchemaComment
+SchemaComment -&gt; Constr
+SchemaComment -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b) -&gt; SchemaComment -&gt; SchemaComment
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaComment
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaComment -&gt; c SchemaComment
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaComment)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaComment)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaComment -&gt; c SchemaComment
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; SchemaComment -&gt; c SchemaComment
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaComment
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c SchemaComment
+$ctoConstr :: SchemaComment -&gt; Constr
+toConstr :: SchemaComment -&gt; Constr
+$cdataTypeOf :: SchemaComment -&gt; DataType
+dataTypeOf :: SchemaComment -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaComment)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c SchemaComment)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaComment)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c SchemaComment)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaComment -&gt; SchemaComment
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; SchemaComment -&gt; SchemaComment
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; SchemaComment -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; [u]
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; u
+gmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; SchemaComment -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; SchemaComment -&gt; m SchemaComment
+</span
+				    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+				    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				      >Data</span
+				      ></a
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680063146"
+      ><span id="local-6989586621680063153"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; SchemaComment -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *).
+    Quote m =&gt;
+    SchemaComment -&gt; Code m SchemaComment)
+-&gt; Lift SchemaComment
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; SchemaComment -&gt; m Exp
+forall (m :: * -&gt; *).
+Quote m =&gt;
+SchemaComment -&gt; Code m SchemaComment
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaComment -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; SchemaComment -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+SchemaComment -&gt; Code m SchemaComment
+liftTyped :: forall (m :: * -&gt; *).
+Quote m =&gt;
+SchemaComment -&gt; Code m SchemaComment
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

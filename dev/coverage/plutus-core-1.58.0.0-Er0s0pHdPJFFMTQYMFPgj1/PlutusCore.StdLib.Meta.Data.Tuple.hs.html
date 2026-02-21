@@ -1,0 +1,224 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TupleSections #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>-- | @tuple@s of various sizes and related functions.
+<span class="lineno">    6 </span>module PlutusCore.StdLib.Meta.Data.Tuple
+<span class="lineno">    7 </span>  ( Tuple (..)
+<span class="lineno">    8 </span>  , getTupleType
+<span class="lineno">    9 </span>  , tupleTypeTermAt
+<span class="lineno">   10 </span>  , tupleTermAt
+<span class="lineno">   11 </span>  , tupleDefAt
+<span class="lineno">   12 </span>  , bindTuple
+<span class="lineno">   13 </span>  , prodN
+<span class="lineno">   14 </span>  , prodNConstructor
+<span class="lineno">   15 </span>  , prodNAccessor
+<span class="lineno">   16 </span>  , getSpineToTuple
+<span class="lineno">   17 </span>  ) where
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusPrelude (showText)
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import PlutusCore.Core
+<span class="lineno">   22 </span>import PlutusCore.MkPlc
+<span class="lineno">   23 </span>import PlutusCore.Name.Unique
+<span class="lineno">   24 </span>import PlutusCore.Quote
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>import Control.Lens.Indexed (ifor, itraverse)
+<span class="lineno">   27 </span>import Data.Traversable
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- | A Plutus Core (Scott-encoded) tuple.
+<span class="lineno">   30 </span>data Tuple term uni ann
+<span class="lineno">   31 </span>  = Tuple
+<span class="lineno">   32 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_tupleElementTypes</span></span></span> :: [Type TyName uni ann]
+<span class="lineno">   33 </span>  -- ^ The types of elements of a tuple.
+<span class="lineno">   34 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_tupleTerm</span></span></span> :: term ann
+<span class="lineno">   35 </span>  -- ^ A term representation of the tuple.
+<span class="lineno">   36 </span>  }
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>{-| Get the type of a 'Tuple'.
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>&gt; getTupleType _ (Tuple [a1, ... , an] _) = all r. (a1 -&gt; ... -&gt; an -&gt; r) -&gt; r -}
+<span class="lineno">   41 </span>getTupleType :: MonadQuote m =&gt; ann -&gt; Tuple term uni ann -&gt; m (Type TyName uni ann)
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">getTupleType ann (Tuple elTys _) = liftQuote $ do</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">let caseTy = mkIterTyFun <span class="nottickedoff">ann</span> elTys $ TyVar <span class="nottickedoff">ann</span> r</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">pure . TyForall <span class="nottickedoff">ann</span> r (Type <span class="nottickedoff">ann</span>) . TyFun <span class="nottickedoff">ann</span> caseTy $ TyVar <span class="nottickedoff">ann</span> r</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>{-| Convert a Haskell spine of 'Term's to a PLC 'Tuple'.
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>&gt; getSpineToTuple _ [(a1, x1), ... , (an, xn)] =
+<span class="lineno">   50 </span>&gt;     Tuple [a1, ... , an] (/\(r :: *) -&gt; \(f :: a1 -&gt; ... -&gt; an -&gt; r) -&gt; f x1 ... xn) -}
+<span class="lineno">   51 </span>getSpineToTuple
+<span class="lineno">   52 </span>  :: (TermLike term TyName Name uni fun, MonadQuote m)
+<span class="lineno">   53 </span>  =&gt; ann -&gt; [(Type TyName uni ann, term ann)] -&gt; m (Tuple term uni ann)
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">getSpineToTuple ann spine = liftQuote $ do</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">let (as, xs) = unzip spine</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">caseTy = mkIterTyFun <span class="nottickedoff">ann</span> as $ TyVar <span class="nottickedoff">ann</span> r</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="istickedoff">y = mkIterApp (var <span class="nottickedoff">ann</span> f) ((<span class="nottickedoff">ann</span>,) &lt;$&gt; xs)</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">pure . Tuple as . tyAbs <span class="nottickedoff">ann</span> r (Type <span class="nottickedoff">ann</span>) $ lamAbs <span class="nottickedoff">ann</span> f caseTy y</span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>{-| Get the type of the ith element of a 'Tuple' along with the element itself.
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>&gt; tupleTypeTermAt _ i (Tuple [a0, ... , an] term) =
+<span class="lineno">   65 </span>&gt;     (ai, term {ai} (\(x0 : a0) ... (xn : an) -&gt; xi)) -}
+<span class="lineno">   66 </span>tupleTypeTermAt
+<span class="lineno">   67 </span>  :: (TermLike term TyName Name uni fun, MonadQuote m)
+<span class="lineno">   68 </span>  =&gt; ann -&gt; Int -&gt; Tuple term uni ann -&gt; m (Type TyName uni ann, term ann)
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">args &lt;- ifor elTys $ \i ty -&gt; do</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">n &lt;- freshName $ &quot;arg_&quot; &lt;&gt; showText i</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="istickedoff">pure $ VarDecl ann n ty</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">let selectedTy = elTys !! ind</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="istickedoff">selectedArg = mkVar $ args !! ind</span>
+<span class="lineno">   75 </span><span class="spaces">      </span><span class="istickedoff">selector = mkIterLamAbs args selectedArg</span>
+<span class="lineno">   76 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">pure</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="istickedoff">( selectedTy</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">, apply ann (tyInst ann term selectedTy) selector</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="istickedoff">)</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>-- | Get the ith element of a 'Tuple'.
+<span class="lineno">   83 </span>tupleTermAt
+<span class="lineno">   84 </span>  :: (TermLike term TyName Name uni fun, MonadQuote m)
+<span class="lineno">   85 </span>  =&gt; ann -&gt; Int -&gt; Tuple term uni ann -&gt; m (term ann)
+<span class="lineno">   86 </span><span class="decl"><span class="istickedoff">tupleTermAt ann ind tuple = snd &lt;$&gt; tupleTypeTermAt ann ind tuple</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>-- | Get the ith element of a 'Tuple' as a 'TermDef'.
+<span class="lineno">   89 </span>tupleDefAt
+<span class="lineno">   90 </span>  :: (TermLike term TyName Name uni fun, MonadQuote m)
+<span class="lineno">   91 </span>  =&gt; ann
+<span class="lineno">   92 </span>  -&gt; Int
+<span class="lineno">   93 </span>  -&gt; Name
+<span class="lineno">   94 </span>  -&gt; Tuple term uni ann
+<span class="lineno">   95 </span>  -&gt; m (TermDef term TyName Name uni ann)
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">tupleDefAt ann ind name tuple = uncurry (Def . VarDecl <span class="nottickedoff">ann</span> name) &lt;$&gt; tupleTypeTermAt <span class="nottickedoff">ann</span> ind tuple</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>{-| Bind all elements of a 'Tuple' inside a 'Term'.
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>&gt; bindTuple _ [x_1, ... , x_n] (Tuple [a1, ... , an] term) body =
+<span class="lineno">  101 </span>&gt;     (\(tup : all r. (a_1 -&gt; ... -&gt; a_n -&gt; r) -&gt; r) -&gt;
+<span class="lineno">  102 </span>&gt;       let x_1 = _1 tup
+<span class="lineno">  103 </span>&gt;           ...
+<span class="lineno">  104 </span>&gt;           x_n = _n tup
+<span class="lineno">  105 </span>&gt;         in body
+<span class="lineno">  106 </span>&gt;     ) term -}
+<span class="lineno">  107 </span>bindTuple
+<span class="lineno">  108 </span>  :: (TermLike term TyName Name uni fun, MonadQuote m)
+<span class="lineno">  109 </span>  =&gt; ann -&gt; [Name] -&gt; Tuple term uni ann -&gt; term ann -&gt; m (term ann)
+<span class="lineno">  110 </span><span class="decl"><span class="istickedoff">bindTuple ann names (Tuple elTys term) body = liftQuote $ do</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="istickedoff">tup &lt;- freshName &quot;tup&quot;</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="istickedoff">let tupVar = Tuple elTys $ var <span class="nottickedoff">ann</span> tup</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">tupTy &lt;- getTupleType <span class="nottickedoff">ann</span> tupVar</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">tupDefs &lt;- itraverse (\i name -&gt; tupleDefAt <span class="nottickedoff">ann</span> i name tupVar) names</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">pure $ apply <span class="nottickedoff">ann</span> (lamAbs <span class="nottickedoff">ann</span> tup tupTy $ foldr (termLet <span class="nottickedoff">ann</span>) body tupDefs) term</span></span>
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>{-| Given an arity @n@, create the n-ary product type.
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>@\(T_1 :: *) .. (T_n :: *) . all (R :: *) . (T_1 -&gt; .. -&gt; T_n -&gt; R) -&gt; R@ -}
+<span class="lineno">  120 </span>prodN :: Int -&gt; Type TyName uni ()
+<span class="lineno">  121 </span><span class="decl"><span class="istickedoff">prodN arity = runQuote $ do</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff">tyVars &lt;- for [0 .. (arity - 1)] $ \i -&gt; do</span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="istickedoff">tn &lt;- liftQuote $ freshTyName $ &quot;t_&quot; &lt;&gt; showText i</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyVarDecl <span class="nottickedoff">()</span> tn $ Type <span class="nottickedoff">()</span></span>
+<span class="lineno">  125 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="istickedoff">resultType &lt;- liftQuote $ freshTyName &quot;r&quot;</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="istickedoff">let caseType = mkIterTyFun <span class="nottickedoff">()</span> (fmap (mkTyVar <span class="nottickedoff">()</span>) tyVars) (TyVar <span class="nottickedoff">()</span> resultType)</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="istickedoff">pure $</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="istickedoff">-- \T_1 .. T_n</span>
+<span class="lineno">  130 </span><span class="spaces">    </span><span class="istickedoff">mkIterTyLam tyVars $</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">-- all R</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff">TyForall <span class="nottickedoff">()</span> resultType (Type <span class="nottickedoff">()</span>) $</span>
+<span class="lineno">  133 </span><span class="spaces">        </span><span class="istickedoff">-- (T_1 -&gt; .. -&gt; T_n -&gt; r) -&gt; r</span>
+<span class="lineno">  134 </span><span class="spaces">        </span><span class="istickedoff">TyFun <span class="nottickedoff">()</span> caseType (TyVar <span class="nottickedoff">()</span> resultType)</span></span>
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>{-| Given an arity @n@, create the constructor for n-ary products.
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>@
+<span class="lineno">  139 </span>    /\(T_1 :: *) .. (T_n :: *) .
+<span class="lineno">  140 </span>        \(arg_1 : T_1) .. (arg_n : T_n) .
+<span class="lineno">  141 </span>            /\(R :: *).
+<span class="lineno">  142 </span>                \(case : T_1 -&gt; .. -&gt; T_n -&gt; R) -&gt; case arg_1 .. arg_n
+<span class="lineno">  143 </span>@ -}
+<span class="lineno">  144 </span>prodNConstructor :: TermLike term TyName Name uni fun =&gt; Int -&gt; term ()
+<span class="lineno">  145 </span><span class="decl"><span class="istickedoff">prodNConstructor arity = runQuote $ do</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="istickedoff">tyVars &lt;- for [0 .. (arity - 1)] $ \i -&gt; do</span>
+<span class="lineno">  147 </span><span class="spaces">    </span><span class="istickedoff">tn &lt;- liftQuote $ freshTyName $ &quot;t_&quot; &lt;&gt; showText i</span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyVarDecl <span class="nottickedoff">()</span> tn $ Type <span class="nottickedoff">()</span></span>
+<span class="lineno">  149 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  150 </span><span class="spaces">  </span><span class="istickedoff">resultType &lt;- liftQuote $ freshTyName &quot;r&quot;</span>
+<span class="lineno">  151 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  152 </span><span class="spaces">  </span><span class="istickedoff">args &lt;- for [0 .. (arity - 1)] $ \i -&gt; do</span>
+<span class="lineno">  153 </span><span class="spaces">    </span><span class="istickedoff">n &lt;- liftQuote $ freshName $ &quot;arg_&quot; &lt;&gt; showText i</span>
+<span class="lineno">  154 </span><span class="spaces">    </span><span class="istickedoff">pure $ VarDecl <span class="nottickedoff">()</span> n $ mkTyVar <span class="nottickedoff">()</span> $ tyVars !! i</span>
+<span class="lineno">  155 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="istickedoff">caseArg &lt;- liftQuote $ freshName &quot;case&quot;</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="istickedoff">let caseTy = mkIterTyFun <span class="nottickedoff">()</span> (fmap (mkTyVar <span class="nottickedoff">()</span>) tyVars) (TyVar <span class="nottickedoff">()</span> resultType)</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="istickedoff">pure $</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="istickedoff">-- /\T_1 .. T_n</span>
+<span class="lineno">  160 </span><span class="spaces">    </span><span class="istickedoff">mkIterTyAbs tyVars $</span>
+<span class="lineno">  161 </span><span class="spaces">      </span><span class="istickedoff">-- \arg_1 .. arg_n</span>
+<span class="lineno">  162 </span><span class="spaces">      </span><span class="istickedoff">mkIterLamAbs args $</span>
+<span class="lineno">  163 </span><span class="spaces">        </span><span class="istickedoff">-- /\R</span>
+<span class="lineno">  164 </span><span class="spaces">        </span><span class="istickedoff">tyAbs <span class="nottickedoff">()</span> resultType (Type <span class="nottickedoff">()</span>) $</span>
+<span class="lineno">  165 </span><span class="spaces">          </span><span class="istickedoff">-- \case</span>
+<span class="lineno">  166 </span><span class="spaces">          </span><span class="istickedoff">lamAbs <span class="nottickedoff">()</span> caseArg caseTy $</span>
+<span class="lineno">  167 </span><span class="spaces">            </span><span class="istickedoff">-- case arg_1 .. arg_n</span>
+<span class="lineno">  168 </span><span class="spaces">            </span><span class="istickedoff">mkIterAppNoAnn (var <span class="nottickedoff">()</span> caseArg) $</span>
+<span class="lineno">  169 </span><span class="spaces">              </span><span class="istickedoff">fmap mkVar args</span></span>
+<span class="lineno">  170 </span>
+<span class="lineno">  171 </span>{-| Given an arity @n@ and an index @i@, create a function for accessing the i'th component of a n-tuple.
+<span class="lineno">  172 </span>
+<span class="lineno">  173 </span>@
+<span class="lineno">  174 </span>    /\(T_1 :: *) .. (T_n :: *) .
+<span class="lineno">  175 </span>        \(tuple : all (R :: *) . (T_1 -&gt; .. -&gt; T_n -&gt; R) -&gt; R)) .
+<span class="lineno">  176 </span>            tuple {T_i} (\(arg_1 : T_1) .. (arg_n : T_n) . arg_i)
+<span class="lineno">  177 </span>@ -}
+<span class="lineno">  178 </span>prodNAccessor :: TermLike term TyName Name uni fun =&gt; Int -&gt; Int -&gt; term ()
+<span class="lineno">  179 </span><span class="decl"><span class="istickedoff">prodNAccessor arity index = runQuote $ do</span>
+<span class="lineno">  180 </span><span class="spaces">  </span><span class="istickedoff">tyVars &lt;- for [0 .. (arity - 1)] $ \i -&gt; do</span>
+<span class="lineno">  181 </span><span class="spaces">    </span><span class="istickedoff">tn &lt;- liftQuote $ freshTyName $ &quot;t_&quot; &lt;&gt; showText i</span>
+<span class="lineno">  182 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyVarDecl <span class="nottickedoff">()</span> tn $ Type <span class="nottickedoff">()</span></span>
+<span class="lineno">  183 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">let tupleTy = mkIterTyAppNoAnn (prodN arity) (fmap (mkTyVar <span class="nottickedoff">()</span>) tyVars)</span>
+<span class="lineno">  185 </span><span class="spaces">      </span><span class="istickedoff">selectedTy = mkTyVar <span class="nottickedoff">()</span> $ tyVars !! index</span>
+<span class="lineno">  186 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="istickedoff">args &lt;- for [0 .. (arity - 1)] $ \i -&gt; do</span>
+<span class="lineno">  188 </span><span class="spaces">    </span><span class="istickedoff">n &lt;- liftQuote $ freshName $ &quot;arg_&quot; &lt;&gt; showText i</span>
+<span class="lineno">  189 </span><span class="spaces">    </span><span class="istickedoff">pure $ VarDecl <span class="nottickedoff">()</span> n $ mkTyVar <span class="nottickedoff">()</span> $ tyVars !! i</span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="istickedoff">let selectedArg = mkVar $ args !! index</span>
+<span class="lineno">  191 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  192 </span><span class="spaces">  </span><span class="istickedoff">tupleArg &lt;- liftQuote $ freshName &quot;tuple&quot;</span>
+<span class="lineno">  193 </span><span class="spaces">  </span><span class="istickedoff">pure $</span>
+<span class="lineno">  194 </span><span class="spaces">    </span><span class="istickedoff">-- /\T_1 .. T_n</span>
+<span class="lineno">  195 </span><span class="spaces">    </span><span class="istickedoff">mkIterTyAbs tyVars $</span>
+<span class="lineno">  196 </span><span class="spaces">      </span><span class="istickedoff">-- \tuple :: (tupleN T_1 .. T_n)</span>
+<span class="lineno">  197 </span><span class="spaces">      </span><span class="istickedoff">lamAbs <span class="nottickedoff">()</span> tupleArg tupleTy $</span>
+<span class="lineno">  198 </span><span class="spaces">        </span><span class="istickedoff">-- tuple {T_i}</span>
+<span class="lineno">  199 </span><span class="spaces">        </span><span class="istickedoff">apply <span class="nottickedoff">()</span> (tyInst <span class="nottickedoff">()</span> (var <span class="nottickedoff">()</span> tupleArg) selectedTy) $</span>
+<span class="lineno">  200 </span><span class="spaces">          </span><span class="istickedoff">-- \arg_1 .. arg_n . arg_i</span>
+<span class="lineno">  201 </span><span class="spaces">          </span><span class="istickedoff">mkIterLamAbs args selectedArg</span></span>
+
+</pre>
+</body>
+</html>

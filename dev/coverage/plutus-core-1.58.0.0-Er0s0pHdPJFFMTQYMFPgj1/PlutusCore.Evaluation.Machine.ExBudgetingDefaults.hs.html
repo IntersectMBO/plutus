@@ -1,0 +1,453 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+<span class="lineno">    8 </span>  ( defaultBuiltinsRuntimeForSemanticsVariant
+<span class="lineno">    9 </span>  , defaultCekParametersForVariant
+<span class="lineno">   10 </span>  , defaultCostModelParamsForVariant
+<span class="lineno">   11 </span>  , cekCostModelForVariant
+<span class="lineno">   12 </span>  , defaultBuiltinsRuntimeForTesting
+<span class="lineno">   13 </span>  , defaultCekParametersForTesting
+<span class="lineno">   14 </span>  , defaultCekMachineCostsForTesting
+<span class="lineno">   15 </span>  , defaultCostModelParamsForTesting
+<span class="lineno">   16 </span>  , defaultBuiltinCostModelForTesting
+<span class="lineno">   17 </span>  , defaultCekCostModelForTesting
+<span class="lineno">   18 </span>  , defaultCekCostModelForTestingB
+<span class="lineno">   19 </span>  , unitCekMachineCosts
+<span class="lineno">   20 </span>  , unitCekParameters
+<span class="lineno">   21 </span>  )
+<span class="lineno">   22 </span>where
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import PlutusCore.Builtin
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>import PlutusCore.DataFilePaths qualified as DFP
+<span class="lineno">   27 </span>import PlutusCore.Default
+<span class="lineno">   28 </span>import PlutusCore.Evaluation.Machine.BuiltinCostModel
+<span class="lineno">   29 </span>import PlutusCore.Evaluation.Machine.CostModelInterface
+<span class="lineno">   30 </span>import PlutusCore.Evaluation.Machine.MachineParameters
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+<span class="lineno">   33 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>import Data.Aeson.THReader
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- Not using 'noinline' from &quot;GHC.Exts&quot;, because our CI was unable to find it there, somehow.
+<span class="lineno">   38 </span>import GHC.Magic (noinline)
+<span class="lineno">   39 </span>import PlutusPrelude
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>{- Note [Modifying the cost model]
+<span class="lineno">   42 </span>   When the Haskell representation of the cost model is changed, for example by
+<span class="lineno">   43 </span>   adding a new builtin or changing the name of an existing one,
+<span class="lineno">   44 </span>   readJSONFromFile will fail when it tries to read a JSON file generated using
+<span class="lineno">   45 </span>   the previous version.  When this happens, uncomment the three lines below (and
+<span class="lineno">   46 </span>   comment out the three above) then rerun
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>      cabal run plutus-core:generate-cost-model
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>   (You may also need to add 'data-default' to the 'build-depends' for the
+<span class="lineno">   51 </span>   library in plutus-core.cabal). This will generate a new JSON file filled with
+<span class="lineno">   52 </span>   default values.  After that, restore this file to its previous state and then
+<span class="lineno">   53 </span>   run &quot;generate-cost-model&quot; again to fill in the JSON file with the correct
+<span class="lineno">   54 </span>   values (assuming that suitable benchmarking data is in benching.csv and that
+<span class="lineno">   55 </span>   models.R contains R code to generate cost models for any new functions).
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>   Alternatively, modify the appropriate 'builtinCostModelX.json' by hand so
+<span class="lineno">   58 </span>   that it matches the new format.
+<span class="lineno">   59 </span> -}
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- import           Data.Default
+<span class="lineno">   62 </span>-- defaultBuiltinCostModel :: BuiltinCostModel
+<span class="lineno">   63 </span>-- defaultBuiltinCostModel = def
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>-- | The default cost model for built-in functions (variant A)
+<span class="lineno">   66 </span>builtinCostModelVariantA :: BuiltinCostModel
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">builtinCostModelVariantA =</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.builtinCostModelFileA)</span></span>
+<span class="lineno">   69 </span>-- This is a huge record, inlining it is wasteful.
+<span class="lineno">   70 </span>{-# OPAQUE builtinCostModelVariantA #-}
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>{- Note [No inlining for CekMachineCosts]
+<span class="lineno">   73 </span>We don't want this to get inlined, as otherwise the default 'CekMachineCosts'
+<span class="lineno">   74 </span>appears faster than 'CekMachineCosts' that we get in production after applying
+<span class="lineno">   75 </span>the costing parameters provided by the ledger. -}
+<span class="lineno">   76 </span>-- | Default costs for CEK machine instructions (variant A)
+<span class="lineno">   77 </span>cekMachineCostsVariantA :: CekMachineCosts
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">cekMachineCostsVariantA =</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.cekMachineCostsFileA)</span></span>
+<span class="lineno">   80 </span>{-# OPAQUE cekMachineCostsVariantA #-}
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>{-| The default cost model, including both builtin costs and machine step costs.
+<span class="lineno">   83 </span>    Note that this is not necessarily the cost model in use on the chain at any
+<span class="lineno">   84 </span>    given time.  The definitive values used for calculating on-chain costs are
+<span class="lineno">   85 </span>    protocol parameters which are part of the state of the chain; in practice
+<span class="lineno">   86 </span>    these will usually have been obtained from the contents of the JSON files at
+<span class="lineno">   87 </span>    some point in the past, but we do not guarantee this.  During on-chain
+<span class="lineno">   88 </span>    evaluation the ledger passes a cost model to the Plutus Core evaluator using
+<span class="lineno">   89 </span>    the `mkEvaluationContext` functions in PlutusLedgerApi. -}
+<span class="lineno">   90 </span>cekCostModelVariantA :: CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">cekCostModelVariantA = CostModel cekMachineCostsVariantA builtinCostModelVariantA</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>builtinCostModelVariantB :: BuiltinCostModel
+<span class="lineno">   94 </span><span class="decl"><span class="istickedoff">builtinCostModelVariantB =</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.builtinCostModelFileB)</span></span>
+<span class="lineno">   96 </span>{-# OPAQUE builtinCostModelVariantB #-}
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>-- See Note [No inlining for CekMachineCosts]
+<span class="lineno">   99 </span>cekMachineCostsVariantB :: CekMachineCosts
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">cekMachineCostsVariantB =</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.cekMachineCostsFileB)</span></span>
+<span class="lineno">  102 </span>{-# OPAQUE cekMachineCostsVariantB #-}
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>cekCostModelVariantB :: CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">  105 </span><span class="decl"><span class="istickedoff">cekCostModelVariantB = CostModel cekMachineCostsVariantB builtinCostModelVariantB</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>builtinCostModelVariantC :: BuiltinCostModel
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">builtinCostModelVariantC =</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.builtinCostModelFileC)</span></span>
+<span class="lineno">  110 </span>{-# OPAQUE builtinCostModelVariantC #-}
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>-- See Note [No inlining for CekMachineCosts]
+<span class="lineno">  113 </span>cekMachineCostsVariantC :: CekMachineCosts
+<span class="lineno">  114 </span><span class="decl"><span class="istickedoff">cekMachineCostsVariantC =</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.cekMachineCostsFileC)</span></span>
+<span class="lineno">  116 </span>{-# OPAQUE cekMachineCostsVariantC #-}
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>cekCostModelVariantC :: CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">  119 </span><span class="decl"><span class="istickedoff">cekCostModelVariantC = CostModel cekMachineCostsVariantC builtinCostModelVariantC</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>builtinCostModelVariantD :: BuiltinCostModel
+<span class="lineno">  122 </span><span class="decl"><span class="istickedoff">builtinCostModelVariantD =</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.builtinCostModelFileD)</span></span>
+<span class="lineno">  124 </span>{-# OPAQUE builtinCostModelVariantD #-}
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>-- See Note [No inlining for CekMachineCosts]
+<span class="lineno">  127 </span>cekMachineCostsVariantD :: CekMachineCosts
+<span class="lineno">  128 </span><span class="decl"><span class="istickedoff">cekMachineCostsVariantD =</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.cekMachineCostsFileD)</span></span>
+<span class="lineno">  130 </span>{-# OPAQUE cekMachineCostsVariantD #-}
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>cekCostModelVariantD :: CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">  133 </span><span class="decl"><span class="istickedoff">cekCostModelVariantD = CostModel cekMachineCostsVariantD builtinCostModelVariantD</span></span>
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>builtinCostModelVariantE :: BuiltinCostModel
+<span class="lineno">  136 </span><span class="decl"><span class="istickedoff">builtinCostModelVariantE =</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.builtinCostModelFileE)</span></span>
+<span class="lineno">  138 </span>{-# OPAQUE builtinCostModelVariantE #-}
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>-- See Note [No inlining for CekMachineCosts]
+<span class="lineno">  141 </span>cekMachineCostsVariantE :: CekMachineCosts
+<span class="lineno">  142 </span><span class="decl"><span class="istickedoff">cekMachineCostsVariantE =</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">$$(readJSONFromFile DFP.cekMachineCostsFileE)</span></span>
+<span class="lineno">  144 </span>{-# OPAQUE cekMachineCostsVariantE #-}
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>cekCostModelVariantE :: CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">  147 </span><span class="decl"><span class="istickedoff">cekCostModelVariantE = CostModel cekMachineCostsVariantE builtinCostModelVariantE</span></span>
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span>{-| Return the 'CostModel' corresponding to the given semantics variant. The dependency on the
+<span class="lineno">  150 </span>semantics variant is what makes cost models configurable. -}
+<span class="lineno">  151 </span>cekCostModelForVariant :: BuiltinSemanticsVariant DefaultFun -&gt; CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">  152 </span><span class="decl"><span class="istickedoff">cekCostModelForVariant DefaultFunSemanticsVariantA = cekCostModelVariantA</span>
+<span class="lineno">  153 </span><span class="spaces"></span><span class="istickedoff">cekCostModelForVariant DefaultFunSemanticsVariantB = cekCostModelVariantB</span>
+<span class="lineno">  154 </span><span class="spaces"></span><span class="istickedoff">cekCostModelForVariant DefaultFunSemanticsVariantC = cekCostModelVariantC</span>
+<span class="lineno">  155 </span><span class="spaces"></span><span class="istickedoff">cekCostModelForVariant DefaultFunSemanticsVariantD = cekCostModelVariantD</span>
+<span class="lineno">  156 </span><span class="spaces"></span><span class="istickedoff">cekCostModelForVariant DefaultFunSemanticsVariantE = cekCostModelVariantE</span></span>
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span>{-| The default cost model data.  This is exposed to the ledger, so let's not
+<span class="lineno">  159 </span>confuse anybody by mentioning the CEK machine -}
+<span class="lineno">  160 </span>defaultCostModelParamsA :: Maybe CostModelParams
+<span class="lineno">  161 </span><span class="decl"><span class="nottickedoff">defaultCostModelParamsA = extractCostModelParams cekCostModelVariantA</span></span>
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>defaultCostModelParamsB :: Maybe CostModelParams
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff">defaultCostModelParamsB = extractCostModelParams cekCostModelVariantB</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>defaultCostModelParamsC :: Maybe CostModelParams
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">defaultCostModelParamsC = extractCostModelParams cekCostModelVariantC</span></span>
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>defaultCostModelParamsD :: Maybe CostModelParams
+<span class="lineno">  170 </span><span class="decl"><span class="nottickedoff">defaultCostModelParamsD = extractCostModelParams cekCostModelVariantD</span></span>
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>defaultCostModelParamsE :: Maybe CostModelParams
+<span class="lineno">  173 </span><span class="decl"><span class="istickedoff">defaultCostModelParamsE = extractCostModelParams cekCostModelVariantE</span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>defaultCostModelParamsForVariant :: BuiltinSemanticsVariant DefaultFun -&gt; Maybe CostModelParams
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">defaultCostModelParamsForVariant = \case</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantA -&gt; defaultCostModelParamsA</span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantB -&gt; defaultCostModelParamsB</span>
+<span class="lineno">  179 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantC -&gt; defaultCostModelParamsC</span>
+<span class="lineno">  180 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantD -&gt; defaultCostModelParamsD</span>
+<span class="lineno">  181 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantE -&gt; defaultCostModelParamsE</span></span>
+<span class="lineno">  182 </span>
+<span class="lineno">  183 </span>{- Note [No inlining for MachineParameters]
+<span class="lineno">  184 </span>We don't want this to get inlined in order for this definition not to appear
+<span class="lineno">  185 </span>faster than the used in production. Also see Note [noinline for saving on
+<span class="lineno">  186 </span>ticks]. -}
+<span class="lineno">  187 </span>defaultCekParametersA :: Typeable ann =&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  188 </span><span class="decl"><span class="nottickedoff">defaultCekParametersA =</span>
+<span class="lineno">  189 </span><span class="spaces">  </span><span class="nottickedoff">MachineParameters def $</span>
+<span class="lineno">  190 </span><span class="spaces">    </span><span class="nottickedoff">noinline mkMachineVariantParameters DefaultFunSemanticsVariantA cekCostModelVariantA</span></span>
+<span class="lineno">  191 </span>
+<span class="lineno">  192 </span>-- See Note [No inlining for MachineParameters]
+<span class="lineno">  193 </span>defaultCekParametersB :: Typeable ann =&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  194 </span><span class="decl"><span class="nottickedoff">defaultCekParametersB =</span>
+<span class="lineno">  195 </span><span class="spaces">  </span><span class="nottickedoff">MachineParameters def $</span>
+<span class="lineno">  196 </span><span class="spaces">    </span><span class="nottickedoff">noinline mkMachineVariantParameters DefaultFunSemanticsVariantB cekCostModelVariantB</span></span>
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>-- See Note [No inlining for MachineParameters]
+<span class="lineno">  199 </span>defaultCekParametersC :: Typeable ann =&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  200 </span><span class="decl"><span class="nottickedoff">defaultCekParametersC =</span>
+<span class="lineno">  201 </span><span class="spaces">  </span><span class="nottickedoff">MachineParameters def $</span>
+<span class="lineno">  202 </span><span class="spaces">    </span><span class="nottickedoff">noinline mkMachineVariantParameters DefaultFunSemanticsVariantC cekCostModelVariantC</span></span>
+<span class="lineno">  203 </span>
+<span class="lineno">  204 </span>-- See Note [No inlining for MachineParameters]
+<span class="lineno">  205 </span>defaultCekParametersD :: Typeable ann =&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  206 </span><span class="decl"><span class="nottickedoff">defaultCekParametersD =</span>
+<span class="lineno">  207 </span><span class="spaces">  </span><span class="nottickedoff">MachineParameters def $</span>
+<span class="lineno">  208 </span><span class="spaces">    </span><span class="nottickedoff">noinline mkMachineVariantParameters DefaultFunSemanticsVariantD cekCostModelVariantD</span></span>
+<span class="lineno">  209 </span>
+<span class="lineno">  210 </span>-- See Note [No inlining for MachineParameters]
+<span class="lineno">  211 </span>defaultCekParametersE :: Typeable ann =&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  212 </span><span class="decl"><span class="istickedoff">defaultCekParametersE =</span>
+<span class="lineno">  213 </span><span class="spaces">  </span><span class="istickedoff">MachineParameters def $</span>
+<span class="lineno">  214 </span><span class="spaces">    </span><span class="istickedoff">noinline mkMachineVariantParameters DefaultFunSemanticsVariantE cekCostModelVariantE</span></span>
+<span class="lineno">  215 </span>
+<span class="lineno">  216 </span>{- Note [noinline for saving on ticks]
+<span class="lineno">  217 </span>We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
+<span class="lineno">  218 </span>matter. Otherwise compilation for this module is slower and GHC may end up exhausting simplifier
+<span class="lineno">  219 </span>ticks leading to a compilation error.
+<span class="lineno">  220 </span>-}
+<span class="lineno">  221 </span>defaultBuiltinsRuntimeForSemanticsVariant
+<span class="lineno">  222 </span>  :: HasMeaningIn DefaultUni term
+<span class="lineno">  223 </span>  =&gt; BuiltinSemanticsVariant DefaultFun
+<span class="lineno">  224 </span>  -&gt; BuiltinsRuntime DefaultFun term
+<span class="lineno">  225 </span>-- See Note [noinline for saving on ticks].
+<span class="lineno">  226 </span><span class="decl"><span class="istickedoff">defaultBuiltinsRuntimeForSemanticsVariant semvar =</span>
+<span class="lineno">  227 </span><span class="spaces">  </span><span class="istickedoff">noinline toBuiltinsRuntime semvar $ builtinCostModelFor semvar</span>
+<span class="lineno">  228 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  229 </span><span class="spaces">    </span><span class="istickedoff">builtinCostModelFor = \case</span>
+<span class="lineno">  230 </span><span class="spaces">      </span><span class="istickedoff">DefaultFunSemanticsVariantA -&gt; <span class="nottickedoff">builtinCostModelVariantA</span></span>
+<span class="lineno">  231 </span><span class="spaces">      </span><span class="istickedoff">DefaultFunSemanticsVariantB -&gt; <span class="nottickedoff">builtinCostModelVariantB</span></span>
+<span class="lineno">  232 </span><span class="spaces">      </span><span class="istickedoff">DefaultFunSemanticsVariantC -&gt; <span class="nottickedoff">builtinCostModelVariantC</span></span>
+<span class="lineno">  233 </span><span class="spaces">      </span><span class="istickedoff">DefaultFunSemanticsVariantD -&gt; <span class="nottickedoff">builtinCostModelVariantD</span></span>
+<span class="lineno">  234 </span><span class="spaces">      </span><span class="istickedoff">DefaultFunSemanticsVariantE -&gt; builtinCostModelVariantE</span></span>
+<span class="lineno">  235 </span>
+<span class="lineno">  236 </span>defaultCekParametersForVariant
+<span class="lineno">  237 </span>  :: Typeable ann
+<span class="lineno">  238 </span>  =&gt; BuiltinSemanticsVariant DefaultFun
+<span class="lineno">  239 </span>  -&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  240 </span><span class="decl"><span class="nottickedoff">defaultCekParametersForVariant = \case</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantA -&gt; defaultCekParametersA</span>
+<span class="lineno">  242 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantB -&gt; defaultCekParametersB</span>
+<span class="lineno">  243 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantC -&gt; defaultCekParametersC</span>
+<span class="lineno">  244 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantD -&gt; defaultCekParametersD</span>
+<span class="lineno">  245 </span><span class="spaces">  </span><span class="nottickedoff">DefaultFunSemanticsVariantE -&gt; defaultCekParametersE</span></span>
+<span class="lineno">  246 </span>
+<span class="lineno">  247 </span>-- *** THE FOLLOWING SHOULD ONLY BE USED FOR TESTING ***
+<span class="lineno">  248 </span>
+<span class="lineno">  249 </span>{- We export a number of objects which are used in tests in a number of places in
+<span class="lineno">  250 </span>   the codebase. For the time being we'll just use the most recent cost model
+<span class="lineno">  251 </span>   for all of these.  In fact we may want tests for each variant in some cases
+<span class="lineno">  252 </span>   TODO:
+<span class="lineno">  253 </span>      * Maybe export fewer things and extract the required component at the use site.
+<span class="lineno">  254 </span>      * Make the names more sensible: does &quot;default&quot; refer to the variant
+<span class="lineno">  255 </span>        or the set of builtins?
+<span class="lineno">  256 </span>      * Perhaps export functions like `defaultBuiltinCostModelForVariant
+<span class="lineno">  257 </span>        and then apply those to `def` where they're used.
+<span class="lineno">  258 </span>-}
+<span class="lineno">  259 </span>defaultBuiltinsRuntimeForTesting
+<span class="lineno">  260 </span>  :: HasMeaningIn DefaultUni term
+<span class="lineno">  261 </span>  =&gt; BuiltinsRuntime DefaultFun term
+<span class="lineno">  262 </span>-- See Note [noinline for saving on ticks].
+<span class="lineno">  263 </span><span class="decl"><span class="istickedoff">defaultBuiltinsRuntimeForTesting = defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantE</span></span>
+<span class="lineno">  264 </span>
+<span class="lineno">  265 </span>defaultCekParametersForTesting :: Typeable ann =&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  266 </span><span class="decl"><span class="istickedoff">defaultCekParametersForTesting = defaultCekParametersE</span></span>
+<span class="lineno">  267 </span>
+<span class="lineno">  268 </span>defaultCekMachineCostsForTesting :: CekMachineCosts
+<span class="lineno">  269 </span><span class="decl"><span class="istickedoff">defaultCekMachineCostsForTesting = cekMachineCostsVariantE</span></span>
+<span class="lineno">  270 </span>
+<span class="lineno">  271 </span>defaultBuiltinCostModelForTesting :: BuiltinCostModel
+<span class="lineno">  272 </span><span class="decl"><span class="istickedoff">defaultBuiltinCostModelForTesting = builtinCostModelVariantE</span></span>
+<span class="lineno">  273 </span>
+<span class="lineno">  274 </span>defaultCostModelParamsForTesting :: Maybe CostModelParams
+<span class="lineno">  275 </span><span class="decl"><span class="istickedoff">defaultCostModelParamsForTesting = defaultCostModelParamsE</span></span>
+<span class="lineno">  276 </span>
+<span class="lineno">  277 </span>defaultCekCostModelForTesting :: CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">  278 </span><span class="decl"><span class="istickedoff">defaultCekCostModelForTesting = cekCostModelVariantE</span></span>
+<span class="lineno">  279 </span>
+<span class="lineno">  280 </span>defaultCekCostModelForTestingB :: CostModel CekMachineCosts BuiltinCostModel
+<span class="lineno">  281 </span><span class="decl"><span class="istickedoff">defaultCekCostModelForTestingB = cekCostModelVariantB</span></span>
+<span class="lineno">  282 </span>
+<span class="lineno">  283 </span>{- A cost model with unit costs, so we can count how often each builtin is called.
+<span class="lineno">  284 </span>  This currently works for all semantics variants because to date we have only
+<span class="lineno">  285 </span>  ever added new builtins and never removed any. -}
+<span class="lineno">  286 </span>unitCostOneArgument :: CostingFun ModelOneArgument
+<span class="lineno">  287 </span><span class="decl"><span class="nottickedoff">unitCostOneArgument = CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 0)</span></span>
+<span class="lineno">  288 </span>
+<span class="lineno">  289 </span>unitCostTwoArguments :: CostingFun ModelTwoArguments
+<span class="lineno">  290 </span><span class="decl"><span class="nottickedoff">unitCostTwoArguments = CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwoArgumentsConstantCost 0)</span></span>
+<span class="lineno">  291 </span>
+<span class="lineno">  292 </span>unitCostThreeArguments :: CostingFun ModelThreeArguments
+<span class="lineno">  293 </span><span class="decl"><span class="nottickedoff">unitCostThreeArguments = CostingFun (ModelThreeArgumentsConstantCost 1) (ModelThreeArgumentsConstantCost 0)</span></span>
+<span class="lineno">  294 </span>
+<span class="lineno">  295 </span>unitCostFourArguments :: CostingFun ModelFourArguments
+<span class="lineno">  296 </span><span class="decl"><span class="nottickedoff">unitCostFourArguments = CostingFun (ModelFourArgumentsConstantCost 1) (ModelFourArgumentsConstantCost 0)</span></span>
+<span class="lineno">  297 </span>
+<span class="lineno">  298 </span>unitCostSixArguments :: CostingFun ModelSixArguments
+<span class="lineno">  299 </span><span class="decl"><span class="nottickedoff">unitCostSixArguments = CostingFun (ModelSixArgumentsConstantCost 1) (ModelSixArgumentsConstantCost 0)</span></span>
+<span class="lineno">  300 </span>
+<span class="lineno">  301 </span>unitCostBuiltinCostModel :: BuiltinCostModel
+<span class="lineno">  302 </span><span class="decl"><span class="nottickedoff">unitCostBuiltinCostModel =</span>
+<span class="lineno">  303 </span><span class="spaces">  </span><span class="nottickedoff">BuiltinCostModelBase</span>
+<span class="lineno">  304 </span><span class="spaces">    </span><span class="nottickedoff">{ -- Integers</span>
+<span class="lineno">  305 </span><span class="spaces">      </span><span class="nottickedoff">paramAddInteger = unitCostTwoArguments</span>
+<span class="lineno">  306 </span><span class="spaces">    </span><span class="nottickedoff">, paramSubtractInteger = unitCostTwoArguments</span>
+<span class="lineno">  307 </span><span class="spaces">    </span><span class="nottickedoff">, paramMultiplyInteger = unitCostTwoArguments</span>
+<span class="lineno">  308 </span><span class="spaces">    </span><span class="nottickedoff">, paramDivideInteger = unitCostTwoArguments</span>
+<span class="lineno">  309 </span><span class="spaces">    </span><span class="nottickedoff">, paramQuotientInteger = unitCostTwoArguments</span>
+<span class="lineno">  310 </span><span class="spaces">    </span><span class="nottickedoff">, paramRemainderInteger = unitCostTwoArguments</span>
+<span class="lineno">  311 </span><span class="spaces">    </span><span class="nottickedoff">, paramModInteger = unitCostTwoArguments</span>
+<span class="lineno">  312 </span><span class="spaces">    </span><span class="nottickedoff">, paramEqualsInteger = unitCostTwoArguments</span>
+<span class="lineno">  313 </span><span class="spaces">    </span><span class="nottickedoff">, paramLessThanInteger = unitCostTwoArguments</span>
+<span class="lineno">  314 </span><span class="spaces">    </span><span class="nottickedoff">, paramLessThanEqualsInteger = unitCostTwoArguments</span>
+<span class="lineno">  315 </span><span class="spaces">    </span><span class="nottickedoff">, -- Bytestrings</span>
+<span class="lineno">  316 </span><span class="spaces">      </span><span class="nottickedoff">paramAppendByteString = unitCostTwoArguments</span>
+<span class="lineno">  317 </span><span class="spaces">    </span><span class="nottickedoff">, paramConsByteString = unitCostTwoArguments</span>
+<span class="lineno">  318 </span><span class="spaces">    </span><span class="nottickedoff">, paramSliceByteString = unitCostThreeArguments</span>
+<span class="lineno">  319 </span><span class="spaces">    </span><span class="nottickedoff">, paramLengthOfByteString = unitCostOneArgument</span>
+<span class="lineno">  320 </span><span class="spaces">    </span><span class="nottickedoff">, paramIndexByteString = unitCostTwoArguments</span>
+<span class="lineno">  321 </span><span class="spaces">    </span><span class="nottickedoff">, paramEqualsByteString = unitCostTwoArguments</span>
+<span class="lineno">  322 </span><span class="spaces">    </span><span class="nottickedoff">, paramLessThanByteString = unitCostTwoArguments</span>
+<span class="lineno">  323 </span><span class="spaces">    </span><span class="nottickedoff">, paramLessThanEqualsByteString = unitCostTwoArguments</span>
+<span class="lineno">  324 </span><span class="spaces">    </span><span class="nottickedoff">, -- Cryptography and hashes</span>
+<span class="lineno">  325 </span><span class="spaces">      </span><span class="nottickedoff">paramSha2_256 = unitCostOneArgument</span>
+<span class="lineno">  326 </span><span class="spaces">    </span><span class="nottickedoff">, paramSha3_256 = unitCostOneArgument</span>
+<span class="lineno">  327 </span><span class="spaces">    </span><span class="nottickedoff">, paramBlake2b_256 = unitCostOneArgument</span>
+<span class="lineno">  328 </span><span class="spaces">    </span><span class="nottickedoff">, paramVerifyEd25519Signature = unitCostThreeArguments</span>
+<span class="lineno">  329 </span><span class="spaces">    </span><span class="nottickedoff">, paramVerifyEcdsaSecp256k1Signature = unitCostThreeArguments</span>
+<span class="lineno">  330 </span><span class="spaces">    </span><span class="nottickedoff">, paramVerifySchnorrSecp256k1Signature = unitCostThreeArguments</span>
+<span class="lineno">  331 </span><span class="spaces">    </span><span class="nottickedoff">, -- Strings</span>
+<span class="lineno">  332 </span><span class="spaces">      </span><span class="nottickedoff">paramAppendString = unitCostTwoArguments</span>
+<span class="lineno">  333 </span><span class="spaces">    </span><span class="nottickedoff">, paramEqualsString = unitCostTwoArguments</span>
+<span class="lineno">  334 </span><span class="spaces">    </span><span class="nottickedoff">, paramEncodeUtf8 = unitCostOneArgument</span>
+<span class="lineno">  335 </span><span class="spaces">    </span><span class="nottickedoff">, paramDecodeUtf8 = unitCostOneArgument</span>
+<span class="lineno">  336 </span><span class="spaces">    </span><span class="nottickedoff">, -- Bool</span>
+<span class="lineno">  337 </span><span class="spaces">      </span><span class="nottickedoff">paramIfThenElse = unitCostThreeArguments</span>
+<span class="lineno">  338 </span><span class="spaces">    </span><span class="nottickedoff">, -- Unit</span>
+<span class="lineno">  339 </span><span class="spaces">      </span><span class="nottickedoff">paramChooseUnit = unitCostTwoArguments</span>
+<span class="lineno">  340 </span><span class="spaces">    </span><span class="nottickedoff">, -- Tracing</span>
+<span class="lineno">  341 </span><span class="spaces">      </span><span class="nottickedoff">paramTrace = unitCostTwoArguments</span>
+<span class="lineno">  342 </span><span class="spaces">    </span><span class="nottickedoff">, -- Pairs</span>
+<span class="lineno">  343 </span><span class="spaces">      </span><span class="nottickedoff">paramFstPair = unitCostOneArgument</span>
+<span class="lineno">  344 </span><span class="spaces">    </span><span class="nottickedoff">, paramSndPair = unitCostOneArgument</span>
+<span class="lineno">  345 </span><span class="spaces">    </span><span class="nottickedoff">, -- Lists</span>
+<span class="lineno">  346 </span><span class="spaces">      </span><span class="nottickedoff">paramChooseList = unitCostThreeArguments</span>
+<span class="lineno">  347 </span><span class="spaces">    </span><span class="nottickedoff">, paramMkCons = unitCostTwoArguments</span>
+<span class="lineno">  348 </span><span class="spaces">    </span><span class="nottickedoff">, paramHeadList = unitCostOneArgument</span>
+<span class="lineno">  349 </span><span class="spaces">    </span><span class="nottickedoff">, paramTailList = unitCostOneArgument</span>
+<span class="lineno">  350 </span><span class="spaces">    </span><span class="nottickedoff">, paramNullList = unitCostOneArgument</span>
+<span class="lineno">  351 </span><span class="spaces">    </span><span class="nottickedoff">, -- Data</span>
+<span class="lineno">  352 </span><span class="spaces">      </span><span class="nottickedoff">paramChooseData = unitCostSixArguments</span>
+<span class="lineno">  353 </span><span class="spaces">    </span><span class="nottickedoff">, paramConstrData = unitCostTwoArguments</span>
+<span class="lineno">  354 </span><span class="spaces">    </span><span class="nottickedoff">, paramMapData = unitCostOneArgument</span>
+<span class="lineno">  355 </span><span class="spaces">    </span><span class="nottickedoff">, paramListData = unitCostOneArgument</span>
+<span class="lineno">  356 </span><span class="spaces">    </span><span class="nottickedoff">, paramIData = unitCostOneArgument</span>
+<span class="lineno">  357 </span><span class="spaces">    </span><span class="nottickedoff">, paramBData = unitCostOneArgument</span>
+<span class="lineno">  358 </span><span class="spaces">    </span><span class="nottickedoff">, paramUnConstrData = unitCostOneArgument</span>
+<span class="lineno">  359 </span><span class="spaces">    </span><span class="nottickedoff">, paramUnMapData = unitCostOneArgument</span>
+<span class="lineno">  360 </span><span class="spaces">    </span><span class="nottickedoff">, paramUnListData = unitCostOneArgument</span>
+<span class="lineno">  361 </span><span class="spaces">    </span><span class="nottickedoff">, paramUnIData = unitCostOneArgument</span>
+<span class="lineno">  362 </span><span class="spaces">    </span><span class="nottickedoff">, paramUnBData = unitCostOneArgument</span>
+<span class="lineno">  363 </span><span class="spaces">    </span><span class="nottickedoff">, paramEqualsData = unitCostTwoArguments</span>
+<span class="lineno">  364 </span><span class="spaces">    </span><span class="nottickedoff">, -- Misc constructors</span>
+<span class="lineno">  365 </span><span class="spaces">      </span><span class="nottickedoff">paramMkPairData = unitCostTwoArguments</span>
+<span class="lineno">  366 </span><span class="spaces">    </span><span class="nottickedoff">, paramMkNilData = unitCostOneArgument</span>
+<span class="lineno">  367 </span><span class="spaces">    </span><span class="nottickedoff">, paramMkNilPairData = unitCostOneArgument</span>
+<span class="lineno">  368 </span><span class="spaces">    </span><span class="nottickedoff">, paramSerialiseData = unitCostOneArgument</span>
+<span class="lineno">  369 </span><span class="spaces">    </span><span class="nottickedoff">, -- BLS12-381 operations</span>
+<span class="lineno">  370 </span><span class="spaces">      </span><span class="nottickedoff">paramBls12_381_G1_add = unitCostTwoArguments</span>
+<span class="lineno">  371 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G1_neg = unitCostOneArgument</span>
+<span class="lineno">  372 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G1_scalarMul = unitCostTwoArguments</span>
+<span class="lineno">  373 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G1_multiScalarMul = unitCostTwoArguments</span>
+<span class="lineno">  374 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G1_equal = unitCostTwoArguments</span>
+<span class="lineno">  375 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G1_compress = unitCostOneArgument</span>
+<span class="lineno">  376 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G1_uncompress = unitCostOneArgument</span>
+<span class="lineno">  377 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G1_hashToGroup = unitCostTwoArguments</span>
+<span class="lineno">  378 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_add = unitCostTwoArguments</span>
+<span class="lineno">  379 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_neg = unitCostOneArgument</span>
+<span class="lineno">  380 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_scalarMul = unitCostTwoArguments</span>
+<span class="lineno">  381 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_multiScalarMul = unitCostTwoArguments</span>
+<span class="lineno">  382 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_equal = unitCostTwoArguments</span>
+<span class="lineno">  383 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_compress = unitCostOneArgument</span>
+<span class="lineno">  384 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_uncompress = unitCostOneArgument</span>
+<span class="lineno">  385 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_G2_hashToGroup = unitCostTwoArguments</span>
+<span class="lineno">  386 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_millerLoop = unitCostTwoArguments</span>
+<span class="lineno">  387 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_mulMlResult = unitCostTwoArguments</span>
+<span class="lineno">  388 </span><span class="spaces">    </span><span class="nottickedoff">, paramBls12_381_finalVerify = unitCostTwoArguments</span>
+<span class="lineno">  389 </span><span class="spaces">    </span><span class="nottickedoff">, -- Keccak_256, Blake2b_224</span>
+<span class="lineno">  390 </span><span class="spaces">      </span><span class="nottickedoff">paramKeccak_256 = unitCostOneArgument</span>
+<span class="lineno">  391 </span><span class="spaces">    </span><span class="nottickedoff">, paramBlake2b_224 = unitCostOneArgument</span>
+<span class="lineno">  392 </span><span class="spaces">    </span><span class="nottickedoff">, -- Bitwise operations</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="nottickedoff">paramIntegerToByteString = unitCostThreeArguments</span>
+<span class="lineno">  394 </span><span class="spaces">    </span><span class="nottickedoff">, paramByteStringToInteger = unitCostTwoArguments</span>
+<span class="lineno">  395 </span><span class="spaces">    </span><span class="nottickedoff">, paramAndByteString = unitCostThreeArguments</span>
+<span class="lineno">  396 </span><span class="spaces">    </span><span class="nottickedoff">, paramOrByteString = unitCostThreeArguments</span>
+<span class="lineno">  397 </span><span class="spaces">    </span><span class="nottickedoff">, paramXorByteString = unitCostThreeArguments</span>
+<span class="lineno">  398 </span><span class="spaces">    </span><span class="nottickedoff">, paramComplementByteString = unitCostOneArgument</span>
+<span class="lineno">  399 </span><span class="spaces">    </span><span class="nottickedoff">, paramReadBit = unitCostTwoArguments</span>
+<span class="lineno">  400 </span><span class="spaces">    </span><span class="nottickedoff">, paramWriteBits = unitCostThreeArguments</span>
+<span class="lineno">  401 </span><span class="spaces">    </span><span class="nottickedoff">, paramReplicateByte = unitCostTwoArguments</span>
+<span class="lineno">  402 </span><span class="spaces">    </span><span class="nottickedoff">, paramShiftByteString = unitCostTwoArguments</span>
+<span class="lineno">  403 </span><span class="spaces">    </span><span class="nottickedoff">, paramRotateByteString = unitCostTwoArguments</span>
+<span class="lineno">  404 </span><span class="spaces">    </span><span class="nottickedoff">, paramCountSetBits = unitCostOneArgument</span>
+<span class="lineno">  405 </span><span class="spaces">    </span><span class="nottickedoff">, paramFindFirstSetBit = unitCostOneArgument</span>
+<span class="lineno">  406 </span><span class="spaces">    </span><span class="nottickedoff">, -- Ripemd_160</span>
+<span class="lineno">  407 </span><span class="spaces">      </span><span class="nottickedoff">paramRipemd_160 = unitCostOneArgument</span>
+<span class="lineno">  408 </span><span class="spaces">    </span><span class="nottickedoff">, -- Batch 6</span>
+<span class="lineno">  409 </span><span class="spaces">      </span><span class="nottickedoff">paramExpModInteger = unitCostThreeArguments</span>
+<span class="lineno">  410 </span><span class="spaces">    </span><span class="nottickedoff">, paramDropList = unitCostTwoArguments</span>
+<span class="lineno">  411 </span><span class="spaces">    </span><span class="nottickedoff">, -- Arrays</span>
+<span class="lineno">  412 </span><span class="spaces">      </span><span class="nottickedoff">paramLengthOfArray = unitCostOneArgument</span>
+<span class="lineno">  413 </span><span class="spaces">    </span><span class="nottickedoff">, paramListToArray = unitCostOneArgument</span>
+<span class="lineno">  414 </span><span class="spaces">    </span><span class="nottickedoff">, paramIndexArray = unitCostTwoArguments</span>
+<span class="lineno">  415 </span><span class="spaces">    </span><span class="nottickedoff">, -- Builtin values</span>
+<span class="lineno">  416 </span><span class="spaces">      </span><span class="nottickedoff">paramLookupCoin = unitCostThreeArguments</span>
+<span class="lineno">  417 </span><span class="spaces">    </span><span class="nottickedoff">, paramValueContains = unitCostTwoArguments</span>
+<span class="lineno">  418 </span><span class="spaces">    </span><span class="nottickedoff">, paramValueData = unitCostOneArgument</span>
+<span class="lineno">  419 </span><span class="spaces">    </span><span class="nottickedoff">, paramUnValueData = unitCostOneArgument</span>
+<span class="lineno">  420 </span><span class="spaces">    </span><span class="nottickedoff">, paramInsertCoin = unitCostFourArguments</span>
+<span class="lineno">  421 </span><span class="spaces">    </span><span class="nottickedoff">, paramUnionValue = unitCostTwoArguments</span>
+<span class="lineno">  422 </span><span class="spaces">    </span><span class="nottickedoff">, paramScaleValue = unitCostTwoArguments</span>
+<span class="lineno">  423 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">  424 </span>
+<span class="lineno">  425 </span>unitCekParameters :: Typeable ann =&gt; MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+<span class="lineno">  426 </span><span class="decl"><span class="nottickedoff">unitCekParameters =</span>
+<span class="lineno">  427 </span><span class="spaces">  </span><span class="nottickedoff">-- See Note [noinline for saving on ticks].</span>
+<span class="lineno">  428 </span><span class="spaces">  </span><span class="nottickedoff">MachineParameters def $</span>
+<span class="lineno">  429 </span><span class="spaces">    </span><span class="nottickedoff">noinline mkMachineVariantParameters def $</span>
+<span class="lineno">  430 </span><span class="spaces">      </span><span class="nottickedoff">CostModel unitCekMachineCosts unitCostBuiltinCostModel</span></span>
+
+</pre>
+</body>
+</html>

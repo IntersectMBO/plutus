@@ -1,0 +1,344 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Definition.Derive</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.58.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Definition.Derive.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Definition.Derive</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:deriveDefinitions"
+	      >deriveDefinitions</a
+	      > &#8759; &#8704; ts. <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor" title="PlutusTx.Blueprint.Definition.Derive"
+	      >DefinitionsFor</a
+	      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	      >UnrollAll</a
+	      > ts) &#8658; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	      >Definitions</a
+	      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	      >UnrollAll</a
+	      > ts)</li
+	    ><li class="src short"
+	    ><a href="#v:definitionRef"
+	      >definitionRef</a
+	      > &#8759; &#8704; t ts. <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+	      >HasBlueprintDefinition</a
+	      > t &#8658; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+	      >Schema</a
+	      > ts</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:DefinitionsFor"
+	      >DefinitionsFor</a
+	      > ts = <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor-39-" title="PlutusTx.Blueprint.Definition.Derive"
+	      >DefinitionsFor'</a
+	      > ts ts</li
+	    ><li class="src short"
+	    ><a href="#v:definitionsFor"
+	      >definitionsFor</a
+	      > &#8759; &#8704; ts. <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor" title="PlutusTx.Blueprint.Definition.Derive"
+	      >DefinitionsFor</a
+	      > ts &#8658; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	      >Definitions</a
+	      > ts</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:DefinitionsFor-39-"
+	      >DefinitionsFor'</a
+	      > referencedTypes acc <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:definitionsFor-39-"
+		  >definitionsFor'</a
+		  > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+		  >Definitions</a
+		  > referencedTypes</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deriveDefinitions" class="def"
+	    >deriveDefinitions</a
+	    > &#8759; &#8704; ts. <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor" title="PlutusTx.Blueprint.Definition.Derive"
+	    >DefinitionsFor</a
+	    > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	    >UnrollAll</a
+	    > ts) &#8658; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	    >Definitions</a
+	    > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	    >UnrollAll</a
+	    > ts) <a href="src/PlutusTx.Blueprint.Definition.Derive.html#deriveDefinitions" class="link"
+	    >Source</a
+	    > <a href="#v:deriveDefinitions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Derive a <code
+	      ><a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+		>Definitions</a
+		></code
+	      > value for a list of types.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionRef" class="def"
+	    >definitionRef</a
+	    > &#8759; &#8704; t ts. <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+	    >HasBlueprintDefinition</a
+	    > t &#8658; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+	    >Schema</a
+	    > ts <a href="src/PlutusTx.Blueprint.Definition.Derive.html#definitionRef" class="link"
+	    >Source</a
+	    > <a href="#v:definitionRef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Construct a <code
+	      ><a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+		>Schema</a
+		></code
+	      > that is a reference to a schema definition.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:DefinitionsFor" class="def"
+	    >DefinitionsFor</a
+	    > ts = <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor-39-" title="PlutusTx.Blueprint.Definition.Derive"
+	    >DefinitionsFor'</a
+	    > ts ts <a href="src/PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor" class="link"
+	    >Source</a
+	    > <a href="#t:DefinitionsFor" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This class and its two instances are used internally to derive <code
+	      ><a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+		>Definitions</a
+		></code
+	      >
+for a given list of types. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:definitionsFor" class="def"
+	    >definitionsFor</a
+	    > &#8759; &#8704; ts. <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor" title="PlutusTx.Blueprint.Definition.Derive"
+	    >DefinitionsFor</a
+	    > ts &#8658; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	    >Definitions</a
+	    > ts <a href="src/PlutusTx.Blueprint.Definition.Derive.html#definitionsFor" class="link"
+	    >Source</a
+	    > <a href="#v:definitionsFor" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:DefinitionsFor-39-" class="def"
+	    >DefinitionsFor'</a
+	    > referencedTypes acc <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor%27" class="link"
+	    >Source</a
+	    > <a href="#t:DefinitionsFor-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:definitionsFor-39-" class="def"
+	      >definitionsFor'</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	      >Definitions</a
+	      > referencedTypes <a href="src/PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27" class="link"
+	      >Source</a
+	      > <a href="#v:definitionsFor-39-" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DefinitionsFor-39-"
+	    >Instances</h4
+	    ><details id="i:DefinitionsFor-39-" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:DefinitionsFor-39-:DefinitionsFor-39-:1"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor-39-" title="PlutusTx.Blueprint.Definition.Derive"
+		      >DefinitionsFor'</a
+		      > referencedTypes ('[] &#8759; [k])</span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Derive.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionsFor-39-" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:DefinitionsFor-39-:DefinitionsFor-39-:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Derive.html"
+			>PlutusTx.Blueprint.Definition.Derive</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:definitionsFor-39-"
+			  >definitionsFor'</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+			  >Definitions</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27" class="link"
+			  >Source</a
+			  > <a href="#v:definitionsFor-39-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:DefinitionsFor-39-:DefinitionsFor-39-:2"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > t, <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > t referencedTypes, <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor-39-" title="PlutusTx.Blueprint.Definition.Derive"
+		      >DefinitionsFor'</a
+		      > referencedTypes ts) &#8658; <a href="PlutusTx-Blueprint-Definition-Derive.html#t:DefinitionsFor-39-" title="PlutusTx.Blueprint.Definition.Derive"
+		      >DefinitionsFor'</a
+		      > referencedTypes (t ': ts &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >])</span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Derive.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:DefinitionsFor-39-" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:DefinitionsFor-39-:DefinitionsFor-39-:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Derive.html"
+			>PlutusTx.Blueprint.Definition.Derive</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:definitionsFor-39-"
+			  >definitionsFor'</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+			  >Definitions</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27" class="link"
+			  >Source</a
+			  > <a href="#v:definitionsFor-39-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

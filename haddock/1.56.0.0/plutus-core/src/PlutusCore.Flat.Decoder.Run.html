@@ -1,0 +1,2585 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Decoder.Run</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder"
+	><span class="hs-identifier"
+	  >strictDecoder</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Run.html#listTDecoder"
+	><span class="hs-identifier"
+	  >listTDecoder</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Exception.html"
+	><span class="hs-identifier"
+	  >Control.Exception</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.Type.html#Exception"
+	><span class="hs-identifier"
+	  >Exception</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Exception.Base.html#try"
+	><span class="hs-identifier"
+	  >try</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>B</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Foreign.html"
+	><span class="hs-identifier"
+	  >Foreign</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#Ptr"
+	><span class="hs-identifier"
+	  >Ptr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#plusPtr"
+	><span class="hs-identifier"
+	  >plusPtr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ForeignPtr.html#withForeignPtr"
+	><span class="hs-identifier"
+	  >withForeignPtr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/list-t-1.0.5.7/docs/src/ListT.html"
+	><span class="hs-identifier"
+	  >ListT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/list-t-1.0.5.7/docs/src/ListT.html#ListT"
+	><span class="hs-identifier"
+	  >ListT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Prim.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder.Prim</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Prim.html#dBool"
+	><span class="hs-identifier"
+	  >dBool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#DecodeException"
+	><span class="hs-identifier"
+	  >DecodeException</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier"
+	  >Get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#runGet"
+	><span class="hs-identifier"
+	  >runGet</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier"
+	  >S</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier"
+	  >S</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#tooMuchSpace"
+	><span class="hs-identifier"
+	  >tooMuchSpace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/System.IO.Unsafe.html"
+	><span class="hs-identifier"
+	  >System.IO.Unsafe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.Unsafe.html#unsafePerformIO"
+	><span class="hs-identifier"
+	  >unsafePerformIO</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Given a decoder and an input buffer returns either the decoded value or an error (if the input buffer is not fully consumed)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span id="local-6989586621679101651"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder"
+	  ><span class="hs-identifier hs-type"
+	    >strictDecoder</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679101651"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	  ><span class="hs-identifier hs-type"
+	    >B.ByteString</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	  ><span class="hs-identifier hs-type"
+	    >Int</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	  ><span class="hs-identifier hs-type"
+	    >Either</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#DecodeException"
+	  ><span class="hs-identifier hs-type"
+	    >DecodeException</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679101651"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="strictDecoder"
+      ><span class="annot"
+	><span class="annottext"
+	  >strictDecoder :: forall a. Get a -&gt; ByteString -&gt; Int -&gt; Either DecodeException a
+</span
+	  ><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >strictDecoder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101717"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get a
+</span
+	  ><a href="#local-6989586621679101717"
+	  ><span class="hs-identifier hs-var"
+	    >get</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101718"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621679101718"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101719"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679101719"
+	  ><span class="hs-identifier hs-var"
+	    >usedBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+-&gt; ByteString
+-&gt; Int
+-&gt; (GetResult a -&gt; Ptr Word8 -&gt; IO a)
+-&gt; Either DecodeException a
+forall e a1 b a.
+Exception e =&gt;
+Get a1
+-&gt; ByteString
+-&gt; Int
+-&gt; (GetResult a1 -&gt; Ptr b -&gt; IO a)
+-&gt; Either e a
+</span
+	><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder_"
+	><span class="hs-identifier hs-var"
+	  >strictDecoder_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+</span
+	><a href="#local-6989586621679101717"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621679101718"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679101719"
+	><span class="hs-identifier hs-var"
+	  >usedBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((GetResult a -&gt; Ptr Word8 -&gt; IO a) -&gt; Either DecodeException a)
+-&gt; (GetResult a -&gt; Ptr Word8 -&gt; IO a) -&gt; Either DecodeException a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier hs-type"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101722"
+      ><span class="annot"
+	><span class="annottext"
+	  >s' :: S
+</span
+	  ><a href="#local-6989586621679101722"
+	  ><span class="hs-identifier hs-var"
+	    >s'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier hs-type"
+	  >S</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101723"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ptr Word8
+</span
+	  ><a href="#local-6989586621679101723"
+	  ><span class="hs-identifier hs-var"
+	    >ptr'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101724"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679101724"
+	  ><span class="hs-identifier hs-var"
+	    >o'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679101725"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679101725"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679101726"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ptr Word8
+</span
+	  ><a href="#local-6989586621679101726"
+	  ><span class="hs-identifier hs-var"
+	    >endPtr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+</span
+	><a href="#local-6989586621679101723"
+	><span class="hs-identifier hs-var"
+	  >ptr'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; Ptr Word8 -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+</span
+	><a href="#local-6989586621679101726"
+	><span class="hs-identifier hs-var"
+	  >endPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679101724"
+	><span class="hs-identifier hs-var"
+	  >o'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; S -&gt; IO a
+forall a. Ptr Word8 -&gt; S -&gt; IO a
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#tooMuchSpace"
+	><span class="hs-identifier hs-var"
+	  >tooMuchSpace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+</span
+	><a href="#local-6989586621679101726"
+	><span class="hs-identifier hs-var"
+	  >endPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679101722"
+	><span class="hs-identifier hs-var"
+	  >s'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; IO a
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679101725"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="local-6989586621679101659"
+      ><span id="local-6989586621679101660"
+	><span id="local-6989586621679101661"
+	  ><span id="local-6989586621679101662"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder_"
+		><span class="hs-identifier hs-type"
+		  >strictDecoder_</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-27"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.Type.html#Exception"
+		><span class="hs-identifier hs-type"
+		  >Exception</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679101659"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-28"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+		><span class="hs-identifier hs-type"
+		  >Get</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679101660"
+		><span class="hs-identifier hs-type"
+		  >a1</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-29"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+		><span class="hs-identifier hs-type"
+		  >BS.ByteString</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-30"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+		><span class="hs-identifier hs-type"
+		  >Int</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-31"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+		><span class="hs-identifier hs-type"
+		  >GetResult</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679101660"
+		><span class="hs-identifier hs-type"
+		  >a1</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#Ptr"
+		><span class="hs-identifier hs-type"
+		  >Ptr</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679101661"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+		><span class="hs-identifier hs-type"
+		  >IO</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679101662"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-32"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+		><span class="hs-identifier hs-type"
+		  >Either</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679101659"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679101662"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="strictDecoder_"
+      ><span class="annot"
+	><span class="annottext"
+	  >strictDecoder_ :: forall e a1 b a.
+Exception e =&gt;
+Get a1
+-&gt; ByteString
+-&gt; Int
+-&gt; (GetResult a1 -&gt; Ptr b -&gt; IO a)
+-&gt; Either e a
+</span
+	  ><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder_"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >strictDecoder_</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101732"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get a1
+</span
+	  ><a href="#local-6989586621679101732"
+	  ><span class="hs-identifier hs-var"
+	    >get</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#PS"
+	><span class="hs-identifier hs-type"
+	  >BS.PS</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101734"
+      ><span class="annot"
+	><span class="annottext"
+	  >ForeignPtr Word8
+</span
+	  ><a href="#local-6989586621679101734"
+	  ><span class="hs-identifier hs-var"
+	    >base</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101735"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679101735"
+	  ><span class="hs-identifier hs-var"
+	    >off</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101736"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679101736"
+	  ><span class="hs-identifier hs-var"
+	    >len</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679101737"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679101737"
+	  ><span class="hs-identifier hs-var"
+	    >usedBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101738"
+      ><span class="annot"
+	><span class="annottext"
+	  >GetResult a1 -&gt; Ptr b -&gt; IO a
+</span
+	  ><a href="#local-6989586621679101738"
+	  ><span class="hs-identifier hs-var"
+	    >check</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO (Either e a) -&gt; Either e a
+forall a. IO a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.Unsafe.html#unsafePerformIO"
+	><span class="hs-identifier hs-var"
+	  >unsafePerformIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IO (Either e a) -&gt; Either e a)
+-&gt; (IO a -&gt; IO (Either e a)) -&gt; IO a -&gt; Either e a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO a -&gt; IO (Either e a)
+forall e a. Exception e =&gt; IO a -&gt; IO (Either e a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Exception.Base.html#try"
+	><span class="hs-identifier hs-var"
+	  >try</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IO a -&gt; Either e a) -&gt; IO a -&gt; Either e a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ForeignPtr Word8 -&gt; (Ptr Word8 -&gt; IO a) -&gt; IO a
+forall a b. ForeignPtr a -&gt; (Ptr a -&gt; IO b) -&gt; IO b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ForeignPtr.html#withForeignPtr"
+	><span class="hs-identifier hs-var"
+	  >withForeignPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ForeignPtr Word8
+</span
+	><a href="#local-6989586621679101734"
+	><span class="hs-identifier hs-var"
+	  >base</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Ptr Word8 -&gt; IO a) -&gt; IO a) -&gt; (Ptr Word8 -&gt; IO a) -&gt; IO a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679101740"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ptr Word8
+</span
+	  ><a href="#local-6989586621679101740"
+	  ><span class="hs-identifier hs-var"
+	    >base0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679101741"
+      ><span class="annot"
+	><span class="annottext"
+	  >ptr :: Ptr b
+</span
+	  ><a href="#local-6989586621679101741"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ptr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+</span
+	><a href="#local-6989586621679101740"
+	><span class="hs-identifier hs-var"
+	  >base0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; Int -&gt; Ptr b
+forall a b. Ptr a -&gt; Int -&gt; Ptr b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#plusPtr"
+	><span class="hs-operator hs-var"
+	  >`plusPtr`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679101735"
+	><span class="hs-identifier hs-var"
+	  >off</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679101742"
+      ><span class="annot"
+	><span class="annottext"
+	  >endPtr :: Ptr b
+</span
+	  ><a href="#local-6989586621679101742"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >endPtr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Any
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101741"
+	><span class="hs-identifier hs-var"
+	  >ptr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Any -&gt; Int -&gt; Ptr b
+forall a b. Ptr a -&gt; Int -&gt; Ptr b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#plusPtr"
+	><span class="hs-operator hs-var"
+	  >`plusPtr`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679101736"
+	><span class="hs-identifier hs-var"
+	  >len</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679101743"
+      ><span class="annot"
+	><span class="annottext"
+	  >GetResult a1
+</span
+	  ><a href="#local-6989586621679101743"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a1 -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult a1)
+forall a. Get a -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult a)
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#runGet"
+	><span class="hs-identifier hs-var"
+	  >runGet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a1
+</span
+	><a href="#local-6989586621679101732"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101742"
+	><span class="hs-identifier hs-var"
+	  >endPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; Int -&gt; S
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier hs-var"
+	  >S</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101741"
+	><span class="hs-identifier hs-var"
+	  >ptr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679101737"
+	><span class="hs-identifier hs-var"
+	  >usedBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GetResult a1 -&gt; Ptr b -&gt; IO a
+</span
+	><a href="#local-6989586621679101738"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GetResult a1
+</span
+	><a href="#local-6989586621679101743"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr b
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101742"
+	><span class="hs-identifier hs-var"
+	  >endPtr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-pragma"
+      >{-# NOINLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder_"
+	><span class="hs-pragma hs-type"
+	  >strictDecoder_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- strictRawDecoder :: Exception e =&gt; Get t -&gt; B.ByteString -&gt; Either e (t,B.ByteString, NumBits)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-comment"
+      >-- strictRawDecoder get (BS.PS base off len) = unsafePerformIO . try $</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-comment"
+      >--   withForeignPtr base $ \base0 -&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-comment"
+      >--     let ptr = base0 `plusPtr` off</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >--         endPtr = ptr `plusPtr` len</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-comment"
+      >--     in do</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >--       GetResult (S ptr' o') a &lt;- runGet get endPtr (S ptr 0)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >--       return (a, BS.PS base (ptr' `minusPtr` base0) (endPtr `minusPtr` ptr'), o')</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Decode a list of values, one value at a time.
+
+Useful in case that the decoded values takes a lot more memory than the encoded ones.
+
+See &lt;../test/Big.hs&gt; for a test and an example of use.
+
+See also &quot;Flat.AsBin&quot;.
+
+@since 0.5 -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="local-6989586621679101689"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Run.html#listTDecoder"
+	  ><span class="hs-identifier hs-type"
+	    >listTDecoder</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679101689"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	  ><span class="hs-identifier hs-type"
+	    >BS.ByteString</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	  ><span class="hs-identifier hs-type"
+	    >IO</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/list-t-1.0.5.7/docs/src/ListT.html#ListT"
+	  ><span class="hs-identifier hs-type"
+	    >ListT</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	  ><span class="hs-identifier hs-type"
+	    >IO</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679101689"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="listTDecoder"
+      ><span class="annot"
+	><span class="annottext"
+	  >listTDecoder :: forall a. Get a -&gt; ByteString -&gt; IO (ListT IO a)
+</span
+	  ><a href="PlutusCore.Flat.Decoder.Run.html#listTDecoder"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >listTDecoder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101745"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get a
+</span
+	  ><a href="#local-6989586621679101745"
+	  ><span class="hs-identifier hs-var"
+	    >get</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#PS"
+	><span class="hs-identifier hs-type"
+	  >BS.PS</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101746"
+      ><span class="annot"
+	><span class="annottext"
+	  >ForeignPtr Word8
+</span
+	  ><a href="#local-6989586621679101746"
+	  ><span class="hs-identifier hs-var"
+	    >base</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101747"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679101747"
+	  ><span class="hs-identifier hs-var"
+	    >off</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101748"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679101748"
+	  ><span class="hs-identifier hs-var"
+	    >len</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ForeignPtr Word8
+-&gt; (Ptr Word8 -&gt; IO (ListT IO a)) -&gt; IO (ListT IO a)
+forall a b. ForeignPtr a -&gt; (Ptr a -&gt; IO b) -&gt; IO b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ForeignPtr.html#withForeignPtr"
+	><span class="hs-identifier hs-var"
+	  >withForeignPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ForeignPtr Word8
+</span
+	><a href="#local-6989586621679101746"
+	><span class="hs-identifier hs-var"
+	  >base</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Ptr Word8 -&gt; IO (ListT IO a)) -&gt; IO (ListT IO a))
+-&gt; (Ptr Word8 -&gt; IO (ListT IO a)) -&gt; IO (ListT IO a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679101749"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ptr Word8
+</span
+	  ><a href="#local-6989586621679101749"
+	  ><span class="hs-identifier hs-var"
+	    >base0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679101750"
+      ><span class="annot"
+	><span class="annottext"
+	  >ptr :: Ptr b
+</span
+	  ><a href="#local-6989586621679101750"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ptr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+</span
+	><a href="#local-6989586621679101749"
+	><span class="hs-identifier hs-var"
+	  >base0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; Int -&gt; Ptr b
+forall a b. Ptr a -&gt; Int -&gt; Ptr b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#plusPtr"
+	><span class="hs-operator hs-var"
+	  >`plusPtr`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679101747"
+	><span class="hs-identifier hs-var"
+	  >off</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679101751"
+      ><span class="annot"
+	><span class="annottext"
+	  >endPtr :: Ptr b
+</span
+	  ><a href="#local-6989586621679101751"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >endPtr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Any
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101750"
+	><span class="hs-identifier hs-var"
+	  >ptr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Any -&gt; Int -&gt; Ptr b
+forall a b. Ptr a -&gt; Int -&gt; Ptr b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#plusPtr"
+	><span class="hs-operator hs-var"
+	  >`plusPtr`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679101748"
+	><span class="hs-identifier hs-var"
+	  >len</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679101752"
+      ><span class="annot"
+	><span class="annottext"
+	  >s :: S
+</span
+	  ><a href="#local-6989586621679101752"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; Int -&gt; S
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier hs-var"
+	  >S</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101750"
+	><span class="hs-identifier hs-var"
+	  >ptr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679101757"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: S -&gt; IO (Maybe (a, ListT IO a))
+</span
+	  ><a href="#local-6989586621679101757"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101758"
+      ><span class="annot"
+	><span class="annottext"
+	  >S
+</span
+	  ><a href="#local-6989586621679101758"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier hs-type"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101759"
+      ><span class="annot"
+	><span class="annottext"
+	  >S
+</span
+	  ><a href="#local-6989586621679101759"
+	  ><span class="hs-identifier hs-var"
+	    >s'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101760"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679101760"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get Bool -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult Bool)
+forall a. Get a -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult a)
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#runGet"
+	><span class="hs-identifier hs-var"
+	  >runGet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get Bool
+</span
+	><a href="PlutusCore.Flat.Decoder.Prim.html#dBool"
+	><span class="hs-identifier hs-var"
+	  >dBool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101751"
+	><span class="hs-identifier hs-var"
+	  >endPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679101758"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679101760"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier hs-type"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101761"
+      ><span class="annot"
+	><span class="annottext"
+	  >S
+</span
+	  ><a href="#local-6989586621679101761"
+	  ><span class="hs-identifier hs-var"
+	    >s''</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679101762"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679101762"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult a)
+forall a. Get a -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult a)
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#runGet"
+	><span class="hs-identifier hs-var"
+	  >runGet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+</span
+	><a href="#local-6989586621679101745"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+forall {b}. Ptr b
+</span
+	><a href="#local-6989586621679101751"
+	><span class="hs-identifier hs-var"
+	  >endPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679101759"
+	><span class="hs-identifier hs-var"
+	  >s'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (a, ListT IO a) -&gt; IO (Maybe (a, ListT IO a))
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe (a, ListT IO a) -&gt; IO (Maybe (a, ListT IO a)))
+-&gt; Maybe (a, ListT IO a) -&gt; IO (Maybe (a, ListT IO a))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a, ListT IO a) -&gt; Maybe (a, ListT IO a)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679101762"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO (Maybe (a, ListT IO a)) -&gt; ListT IO a
+forall (m :: * -&gt; *) a. m (Maybe (a, ListT m a)) -&gt; ListT m a
+</span
+	><a href="https://hackage.haskell.org/package/list-t-1.0.5.7/docs/src/ListT.html#ListT"
+	><span class="hs-identifier hs-var"
+	  >ListT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IO (Maybe (a, ListT IO a)) -&gt; ListT IO a)
+-&gt; IO (Maybe (a, ListT IO a)) -&gt; ListT IO a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S -&gt; IO (Maybe (a, ListT IO a))
+</span
+	><a href="#local-6989586621679101757"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679101761"
+	><span class="hs-identifier hs-var"
+	  >s''</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (a, ListT IO a) -&gt; IO (Maybe (a, ListT IO a))
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (a, ListT IO a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ListT IO a -&gt; IO (ListT IO a)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ListT IO a -&gt; IO (ListT IO a)) -&gt; ListT IO a -&gt; IO (ListT IO a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO (Maybe (a, ListT IO a)) -&gt; ListT IO a
+forall (m :: * -&gt; *) a. m (Maybe (a, ListT m a)) -&gt; ListT m a
+</span
+	><a href="https://hackage.haskell.org/package/list-t-1.0.5.7/docs/src/ListT.html#ListT"
+	><span class="hs-identifier hs-var"
+	  >ListT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>S -&gt; IO (Maybe (a, ListT IO a))
+</span
+	><a href="#local-6989586621679101757"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679101752"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

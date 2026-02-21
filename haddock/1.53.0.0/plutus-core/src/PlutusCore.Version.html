@@ -1,0 +1,1657 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Version</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier"
+	  >Version</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#versionMajor"
+	><span class="hs-identifier"
+	  >versionMajor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#versionMinor"
+	><span class="hs-identifier"
+	  >versionMinor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#versionPatch"
+	><span class="hs-identifier"
+	  >versionPatch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#firstVersion"
+	><span class="hs-identifier"
+	  >firstVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#latestVersion"
+	><span class="hs-identifier"
+	  >latestVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#knownVersions"
+	><span class="hs-identifier"
+	  >knownVersions</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.html"
+	><span class="hs-identifier"
+	  >Data.Hashable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/th-lift-instances-0.1.20/docs/src/Instances.TH.Lift.html"
+	><span class="hs-identifier"
+	  >Instances.TH.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- |
+The version of Plutus Core used by this program.
+
+The intention is to convey different levels of backwards compatibility for existing scripts:
+- Major version changes are backwards-incompatible
+- Minor version changes are backwards-compatible
+- Patch version changes should be entirely invisible (and we will likely not use this level)
+
+The version used should be changed only when the /language itself/ changes.
+For example, adding a new kind of term to the language would require a minor
+version bump; removing a kind of term would require a major version bump.
+
+Similarly, changing the semantics of the language will require a version bump,
+typically a major one. This is the main reason why the version is actually
+tracked in the AST: we can have two language versions with identical ASTs but
+different semantics, so we need to track the version explicitly.
+
+Compatibility is about compatibility for specific scripts, not about e.g. tools which consume
+scripts. Adding a new kind of term does not change how existing scripts behave, but does
+change what tools would need to do to process scripts.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Version"
+      ><span class="annot"
+	><a href="PlutusCore.Version.html#Version"
+	  ><span class="hs-identifier hs-var"
+	    >Version</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Version"
+      ><span class="annot"
+	><a href="PlutusCore.Version.html#Version"
+	  ><span class="hs-identifier hs-var"
+	    >Version</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_versionMajor"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version -&gt; Natural
+</span
+	  ><a href="PlutusCore.Version.html#_versionMajor"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_versionMajor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_versionMinor"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version -&gt; Natural
+</span
+	  ><a href="PlutusCore.Version.html#_versionMinor"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_versionMinor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_versionPatch"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version -&gt; Natural
+</span
+	  ><a href="PlutusCore.Version.html#_versionPatch"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_versionPatch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681834343"
+      ><span id="local-6989586621681834349"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Version -&gt; Version -&gt; Bool
+(Version -&gt; Version -&gt; Bool)
+-&gt; (Version -&gt; Version -&gt; Bool) -&gt; Eq Version
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Version -&gt; Version -&gt; Bool
+== :: Version -&gt; Version -&gt; Bool
+$c/= :: Version -&gt; Version -&gt; Bool
+/= :: Version -&gt; Version -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834354"
+      ><span id="local-6989586621681834362"
+	><span id="local-6989586621681834366"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Version -&gt; ShowS
+[Version] -&gt; ShowS
+Version -&gt; String
+(Int -&gt; Version -&gt; ShowS)
+-&gt; (Version -&gt; String) -&gt; ([Version] -&gt; ShowS) -&gt; Show Version
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Version -&gt; ShowS
+showsPrec :: Int -&gt; Version -&gt; ShowS
+$cshow :: Version -&gt; String
+show :: Version -&gt; String
+$cshowList :: [Version] -&gt; ShowS
+showList :: [Version] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834370"
+      ><span id="local-6989586621681834372"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Version -&gt; Rep Version x)
+-&gt; (forall x. Rep Version x -&gt; Version) -&gt; Generic Version
+forall x. Rep Version x -&gt; Version
+forall x. Version -&gt; Rep Version x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Version -&gt; Rep Version x
+from :: forall x. Version -&gt; Rep Version x
+$cto :: forall x. Rep Version x -&gt; Version
+to :: forall x. Rep Version x -&gt; Version
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681834376"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version -&gt; ()
+(Version -&gt; ()) -&gt; NFData Version
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Version -&gt; ()
+rnf :: Version -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834398"
+      ><span id="local-6989586621681834405"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Eq Version
+Eq Version =&gt;
+(Int -&gt; Version -&gt; Int) -&gt; (Version -&gt; Int) -&gt; Hashable Version
+Int -&gt; Version -&gt; Int
+Version -&gt; Int
+forall a. Eq a =&gt; (Int -&gt; a -&gt; Int) -&gt; (a -&gt; Int) -&gt; Hashable a
+$chashWithSalt :: Int -&gt; Version -&gt; Int
+hashWithSalt :: Int -&gt; Version -&gt; Int
+$chash :: Version -&gt; Int
+hash :: Version -&gt; Int
+</span
+	    ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="versionMajor"
+      ><span id="versionMinor"
+	><span id="versionPatch"
+	  ><span class="hs-identifier"
+	    >makeLenses</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-identifier"
+	    >Version</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- This is probably what the derived version would do, but better to be explicit since it's</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >-- important</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834445"
+      ><span id="local-6989586621681834448"
+	><span id="local-6989586621681834451"
+	  ><span id="local-6989586621681834454"
+	    ><span id="local-6989586621681834457"
+	      ><span id="local-6989586621681834460"
+		><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Version.html#Version"
+		    ><span class="hs-identifier hs-type"
+		      >Version</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681834470"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: Version -&gt; Version -&gt; Ordering
+</span
+	  ><a href="#local-6989586621681834470"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834472"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834472"
+	  ><span class="hs-identifier hs-var"
+	    >major1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834473"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834473"
+	  ><span class="hs-identifier hs-var"
+	    >minor1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834474"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834474"
+	  ><span class="hs-identifier hs-var"
+	    >patch1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834475"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834475"
+	  ><span class="hs-identifier hs-var"
+	    >major2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834476"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834476"
+	  ><span class="hs-identifier hs-var"
+	    >minor2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834477"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834477"
+	  ><span class="hs-identifier hs-var"
+	    >patch2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Natural -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834472"
+	><span class="hs-identifier hs-var"
+	  >major1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834475"
+	><span class="hs-identifier hs-var"
+	  >major2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering -&gt; Ordering -&gt; Ordering
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Natural -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834473"
+	><span class="hs-identifier hs-var"
+	  >minor1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834476"
+	><span class="hs-identifier hs-var"
+	  >minor2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering -&gt; Ordering -&gt; Ordering
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Natural -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834474"
+	><span class="hs-identifier hs-var"
+	  >patch1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834477"
+	><span class="hs-identifier hs-var"
+	  >patch2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The first version of Plutus Core supported by this library.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#firstVersion"
+	><span class="hs-identifier hs-type"
+	  >firstVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span id="firstVersion"
+      ><span class="annot"
+	><span class="annottext"
+	  >firstVersion :: Version
+</span
+	  ><a href="PlutusCore.Version.html#firstVersion"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >firstVersion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Core version 1.0.0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-type"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="plcVersion100"
+      ><span class="annot"
+	><span class="annottext"
+	  >plcVersion100 :: Version
+</span
+	  ><a href="PlutusCore.Version.html#plcVersion100"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plcVersion100</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Natural -&gt; Natural -&gt; Version
+</span
+	><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-var"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Core version 1.1.0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-type"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="plcVersion110"
+      ><span class="annot"
+	><span class="annottext"
+	  >plcVersion110 :: Version
+</span
+	  ><a href="PlutusCore.Version.html#plcVersion110"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plcVersion110</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Natural -&gt; Natural -&gt; Version
+</span
+	><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-var"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The latest version of Plutus Core supported by this library.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#latestVersion"
+	><span class="hs-identifier hs-type"
+	  >latestVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="latestVersion"
+      ><span class="annot"
+	><span class="annottext"
+	  >latestVersion :: Version
+</span
+	  ><a href="PlutusCore.Version.html#latestVersion"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >latestVersion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- | The set of versions that are &quot;known&quot;, i.e. that have been released</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-comment"
+      >-- and have actual differences associated with them.</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#knownVersions"
+	><span class="hs-identifier hs-type"
+	  >knownVersions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="knownVersions"
+      ><span class="annot"
+	><span class="annottext"
+	  >knownVersions :: Set Version
+</span
+	  ><a href="PlutusCore.Version.html#knownVersions"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >knownVersions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Version] -&gt; Set Version
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834481"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Version.html#Version"
+	  ><span class="hs-identifier hs-type"
+	    >Version</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834497"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. Version -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681834497"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834499"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834499"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834500"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834500"
+	  ><span class="hs-identifier hs-var"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834501"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834501"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Doc ann
+forall ann. Natural -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834499"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;.&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Doc ann
+forall ann. Natural -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834500"
+	><span class="hs-identifier hs-var"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;.&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Doc ann
+forall ann. Natural -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834501"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

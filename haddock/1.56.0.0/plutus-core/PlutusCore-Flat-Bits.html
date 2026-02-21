@@ -1,0 +1,453 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Bits</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Bits.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Bits</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Utilities to represent and display bit sequences</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Bits"
+	      >Bits</a
+	      > = <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Unboxed.html#t:Vector" title="Data.Vector.Unboxed"
+	      >Vector</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toBools"
+	      >toBools</a
+	      > &#8759; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:fromBools"
+	      >fromBools</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >] &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:bits"
+	      >bits</a
+	      > &#8759; &#8704; a. <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a &#8658; a &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:paddedBits"
+	      >paddedBits</a
+	      > &#8759; &#8704; a. <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a &#8658; a &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:asBytes"
+	      >asBytes</a
+	      > &#8759; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	      >Word8</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:asBits"
+	      >asBits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bits.html#t:FiniteBits" title="Data.Bits"
+	      >FiniteBits</a
+	      > a &#8658; a &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:takeBits"
+	      >takeBits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:takeAllBits"
+	      >takeAllBits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	      >Bits</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Bits" class="def"
+	    >Bits</a
+	    > = <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Unboxed.html#t:Vector" title="Data.Vector.Unboxed"
+	    >Vector</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusCore.Flat.Bits.html#Bits" class="link"
+	    >Source</a
+	    > <a href="#t:Bits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A sequence of bits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toBools" class="def"
+	    >toBools</a
+	    > &#8759; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >] <a href="src/PlutusCore.Flat.Bits.html#toBools" class="link"
+	    >Source</a
+	    > <a href="#v:toBools" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromBools" class="def"
+	    >fromBools</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >] &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > <a href="src/PlutusCore.Flat.Bits.html#fromBools" class="link"
+	    >Source</a
+	    > <a href="#v:fromBools" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bits" class="def"
+	    >bits</a
+	    > &#8759; &#8704; a. <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a &#8658; a &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > <a href="src/PlutusCore.Flat.Bits.html#bits" class="link"
+	    >Source</a
+	    > <a href="#v:bits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The sequence of bits corresponding to the serialization of the passed value (without any final byte padding)</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>bits True
+</code
+		></strong
+	      >[True] 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:paddedBits" class="def"
+	    >paddedBits</a
+	    > &#8759; &#8704; a. <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a &#8658; a &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > <a href="src/PlutusCore.Flat.Bits.html#paddedBits" class="link"
+	    >Source</a
+	    > <a href="#v:paddedBits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The sequence of bits corresponding to the byte-padded serialization of the passed value</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>paddedBits True
+</code
+		></strong
+	      >[True,False,False,False,False,False,False,True] 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asBytes" class="def"
+	    >asBytes</a
+	    > &#8759; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	    >Word8</a
+	    >] <a href="src/PlutusCore.Flat.Bits.html#asBytes" class="link"
+	    >Source</a
+	    > <a href="#v:asBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a sequence of bits to the corresponding list of bytes</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>asBytes $ asBits (256+3::Word16)
+</code
+		></strong
+	      >[1,3] 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asBits" class="def"
+	    >asBits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bits.html#t:FiniteBits" title="Data.Bits"
+	    >FiniteBits</a
+	    > a &#8658; a &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > <a href="src/PlutusCore.Flat.Bits.html#asBits" class="link"
+	    >Source</a
+	    > <a href="#v:asBits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert an integral value to its equivalent bit representation</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>asBits (5::Word8)
+</code
+		></strong
+	      >[False,False,False,False,False,True,False,True] 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:takeBits" class="def"
+	    >takeBits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > <a href="src/PlutusCore.Flat.Bits.html#takeBits" class="link"
+	    >Source</a
+	    > <a href="#v:takeBits" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:takeAllBits" class="def"
+	    >takeAllBits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+	    >Bits</a
+	    > <a href="src/PlutusCore.Flat.Bits.html#takeAllBits" class="link"
+	    >Source</a
+	    > <a href="#v:takeAllBits" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Pretty:Pretty:1"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/Text-PrettyPrint-HughesPJClass.html#t:Pretty" title="Text.PrettyPrint.HughesPJClass"
+		  >Pretty</a
+		  > <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+		  >Bits</a
+		  ></span
+		> <a href="src/PlutusCore.Flat.Bits.html#line-100" class="link"
+		>Source</a
+		> <a href="#v:-36-fPrettyVector" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><pre class="screen"
+		><code class="prompt"
+		  >&gt;&gt;&gt; </code
+		  ><strong class="userinput"
+		  ><code
+		    >prettyShow $ asBits (256+3::Word16)
+</code
+		    ></strong
+		  >&quot;00000001 00000011&quot; 
+</pre
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Pretty:Pretty:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:pPrintPrec"
+		      >pPrintPrec</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/Text-PrettyPrint-HughesPJClass.html#t:PrettyLevel" title="Text.PrettyPrint.HughesPJClass"
+		      >PrettyLevel</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+		      >Rational</a
+		      > &#8594; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+		      >Bits</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/Text-PrettyPrint.html#t:Doc" title="Text.PrettyPrint"
+		      >Doc</a
+		      > <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pPrintPrec" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:pPrint"
+		      >pPrint</a
+		      > &#8759; <a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+		      >Bits</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/Text-PrettyPrint.html#t:Doc" title="Text.PrettyPrint"
+		      >Doc</a
+		      > <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pPrint" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:pPrintList"
+		      >pPrintList</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/Text-PrettyPrint-HughesPJClass.html#t:PrettyLevel" title="Text.PrettyPrint.HughesPJClass"
+		      >PrettyLevel</a
+		      > &#8594; [<a href="PlutusCore-Flat-Bits.html#t:Bits" title="PlutusCore.Flat.Bits"
+		      >Bits</a
+		      >] &#8594; <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/Text-PrettyPrint.html#t:Doc" title="Text.PrettyPrint"
+		      >Doc</a
+		      > <a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pPrintList" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

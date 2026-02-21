@@ -1,0 +1,144 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Cost.Size where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.Bool
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Agda.Builtin.Int
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Agda.Builtin.String
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Agda.Builtin.Unit
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.Builtin.Signature
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.Cost.Base
+<span class="lineno">   27 </span>import qualified MAlonzo.Code.RawU
+<span class="lineno">   28 </span>import qualified MAlonzo.Code.Untyped.CEK
+<span class="lineno">   29 </span>import qualified MAlonzo.Code.Utils
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>import PlutusCore.Evaluation.Machine.ExMemoryUsage
+<span class="lineno">   32 </span>import PlutusCore.Evaluation.Machine.CostStream
+<span class="lineno">   33 </span>import Data.SatInt
+<span class="lineno">   34 </span><span class="decl"><span class="istickedoff">size = fromSatInt . sumCostStream . flattenCostRose . memoryUsage</span></span>
+<span class="lineno">   35 </span>-- Cost.Size.integerSize
+<span class="lineno">   36 </span>d_integerSize_4 :: Integer -&gt; Integer
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">d_integerSize_4 = size</span></span>
+<span class="lineno">   38 </span>-- Cost.Size.byteStringSize
+<span class="lineno">   39 </span>d_byteStringSize_6 ::
+<span class="lineno">   40 </span>  MAlonzo.Code.Utils.T_ByteString_386 -&gt; Integer
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">d_byteStringSize_6 = size</span></span>
+<span class="lineno">   42 </span>-- Cost.Size.g1ElementSize
+<span class="lineno">   43 </span>d_g1ElementSize_8 ::
+<span class="lineno">   44 </span>  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_670 -&gt; Integer
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">d_g1ElementSize_8 = size</span></span>
+<span class="lineno">   46 </span>-- Cost.Size.g2ElementSize
+<span class="lineno">   47 </span>d_g2ElementSize_10 ::
+<span class="lineno">   48 </span>  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_674 -&gt; Integer
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">d_g2ElementSize_10 = size</span></span>
+<span class="lineno">   50 </span>-- Cost.Size.mlResultElementSize
+<span class="lineno">   51 </span>d_mlResultElementSize_12 ::
+<span class="lineno">   52 </span>  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_678 -&gt; Integer
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">d_mlResultElementSize_12 = size</span></span>
+<span class="lineno">   54 </span>-- Cost.Size.dataSize
+<span class="lineno">   55 </span>d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_524 -&gt; Integer
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">d_dataSize_14 = size</span></span>
+<span class="lineno">   57 </span>-- Cost.Size.boolSize
+<span class="lineno">   58 </span>d_boolSize_16 :: Bool -&gt; Integer
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">d_boolSize_16 = size</span></span>
+<span class="lineno">   60 </span>-- Cost.Size.unitSize
+<span class="lineno">   61 </span>d_unitSize_18 ::
+<span class="lineno">   62 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt; Integer
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">d_unitSize_18 = size</span></span>
+<span class="lineno">   64 </span>-- Cost.Size.stringSize
+<span class="lineno">   65 </span>d_stringSize_20 ::
+<span class="lineno">   66 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; Integer
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">d_stringSize_20 = size</span></span>
+<span class="lineno">   68 </span>-- Cost.Size.defaultConstantMeasure
+<span class="lineno">   69 </span>d_defaultConstantMeasure_22 ::
+<span class="lineno">   70 </span>  MAlonzo.Code.RawU.T_TmCon_202 -&gt; Integer
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">d_defaultConstantMeasure_22 v0</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">= case coe v0 of</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.RawU.C_tmCon_206 v1 v2</span>
+<span class="lineno">   74 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">   75 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C_atomic_12 v4</span>
+<span class="lineno">   76 </span><span class="spaces">               </span><span class="istickedoff">-&gt; case coe v4 of</span>
+<span class="lineno">   77 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8</span>
+<span class="lineno">   78 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe d_integerSize_4 v2</span>
+<span class="lineno">   79 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10</span>
+<span class="lineno">   80 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe d_byteStringSize_6 v2</span>
+<span class="lineno">   81 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aString_12</span>
+<span class="lineno">   82 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe d_stringSize_20 v2</span>
+<span class="lineno">   83 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14</span>
+<span class="lineno">   84 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe d_unitSize_18 v2</span></span>
+<span class="lineno">   85 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16</span>
+<span class="lineno">   86 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe d_boolSize_16 v2</span></span>
+<span class="lineno">   87 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18</span>
+<span class="lineno">   88 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe d_dataSize_14 v2</span>
+<span class="lineno">   89 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20</span>
+<span class="lineno">   90 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe d_g1ElementSize_8 v2</span></span>
+<span class="lineno">   91 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_22</span>
+<span class="lineno">   92 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe d_g2ElementSize_10 v2</span></span>
+<span class="lineno">   93 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_24</span>
+<span class="lineno">   94 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe d_mlResultElementSize_12 v2</span></span>
+<span class="lineno">   95 </span><span class="spaces">                    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   96 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C_list_16 v4</span>
+<span class="lineno">   97 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Utils.du_length_424 (coe v2)</span>
+<span class="lineno">   98 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C_array_20 v4</span>
+<span class="lineno">   99 </span><span class="spaces">               </span><span class="istickedoff">-&gt; <span class="nottickedoff">let v5</span></span>
+<span class="lineno">  100 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">= coe MAlonzo.Code.Utils.d_HSlengthOfArray_512 erased v2 in</span></span>
+<span class="lineno">  101 </span><span class="spaces">                  </span><span class="istickedoff"><span class="nottickedoff">coe</span></span>
+<span class="lineno">  102 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(case coe v5 of</span></span>
+<span class="lineno">  103 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">0 -&gt; coe (1 :: Integer)</span></span>
+<span class="lineno">  104 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_ | coe geqInt (coe v5) (coe (1 :: Integer)) -&gt; coe v5</span></span>
+<span class="lineno">  105 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; coe (1 :: Integer))</span></span>
+<span class="lineno">  106 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C_pair_24 v4 v5</span>
+<span class="lineno">  107 </span><span class="spaces">               </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe seq (coe v2) (coe (1 :: Integer))</span></span>
+<span class="lineno">  108 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  110 </span>-- Cost.Size.defaultValueMeasure
+<span class="lineno">  111 </span>d_defaultValueMeasure_78 ::
+<span class="lineno">  112 </span>  MAlonzo.Code.Untyped.CEK.T_Value_14 -&gt; Integer
+<span class="lineno">  113 </span><span class="decl"><span class="istickedoff">d_defaultValueMeasure_78 v0</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">= let <span class="nottickedoff">v1 = 0 :: Integer</span> in</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">coe</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="istickedoff">(case coe v0 of</span>
+<span class="lineno">  117 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3</span>
+<span class="lineno">  118 </span><span class="spaces">           </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  119 </span><span class="spaces">                </span><span class="istickedoff">d_defaultConstantMeasure_22</span>
+<span class="lineno">  120 </span><span class="spaces">                </span><span class="istickedoff">(coe MAlonzo.Code.RawU.C_tmCon_206 (coe v2) (coe v3))</span>
+<span class="lineno">  121 </span><span class="spaces">         </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">coe v1</span>)</span></span>
+
+</pre>
+</body>
+</html>

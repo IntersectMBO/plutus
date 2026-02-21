@@ -1,0 +1,531 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Parser.Type</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Parser.Type.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Parser.Type</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PType"
+	      >PType</a
+	      > = <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:varType"
+	      >varType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:funType"
+	      >funType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:allType"
+	      >allType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:lamType"
+	      >lamType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ifixType"
+	      >ifixType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinType"
+	      >builtinType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sopType"
+	      >sopType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:appType"
+	      >appType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:kind"
+	      >kind</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > <a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:pType"
+	      >pType</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	      >PType</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultUniApplication"
+	      >defaultUniApplication</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > (<a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+	      >Kinded</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:defaultUni"
+	      >defaultUni</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > (<a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+	      >Kinded</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:tyName"
+	      >tyName</a
+	      > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PType" class="def"
+	    >PType</a
+	    > = <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/PlutusCore.Parser.Type.html#PType" class="link"
+	    >Source</a
+	    > <a href="#t:PType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A PLC <code
+	      >Type</code
+	      > to be parsed. ATM the parser only works
+for types in the <code
+	      >DefaultUni</code
+	      > with <code
+	      >DefaultFun</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:varType" class="def"
+	    >varType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#varType" class="link"
+	    >Source</a
+	    > <a href="#v:varType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:funType" class="def"
+	    >funType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#funType" class="link"
+	    >Source</a
+	    > <a href="#v:funType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:allType" class="def"
+	    >allType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#allType" class="link"
+	    >Source</a
+	    > <a href="#v:allType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lamType" class="def"
+	    >lamType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#lamType" class="link"
+	    >Source</a
+	    > <a href="#v:lamType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ifixType" class="def"
+	    >ifixType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#ifixType" class="link"
+	    >Source</a
+	    > <a href="#v:ifixType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinType" class="def"
+	    >builtinType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#builtinType" class="link"
+	    >Source</a
+	    > <a href="#v:builtinType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sopType" class="def"
+	    >sopType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#sopType" class="link"
+	    >Source</a
+	    > <a href="#v:sopType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:appType" class="def"
+	    >appType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#appType" class="link"
+	    >Source</a
+	    > <a href="#v:appType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:kind" class="def"
+	    >kind</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > <a href="PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >) <a href="src/PlutusCore.Parser.Type.html#kind" class="link"
+	    >Source</a
+	    > <a href="#v:kind" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pType" class="def"
+	    >pType</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Parser-Type.html#t:PType" title="PlutusCore.Parser.Type"
+	    >PType</a
+	    > <a href="src/PlutusCore.Parser.Type.html#pType" class="link"
+	    >Source</a
+	    > <a href="#v:pType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for <code
+	      >PType</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultUniApplication" class="def"
+	    >defaultUniApplication</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > (<a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+	    >Kinded</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >)) <a href="src/PlutusCore.Parser.Type.html#defaultUniApplication" class="link"
+	    >Source</a
+	    > <a href="#v:defaultUniApplication" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for built-in type applications.  The textual names here should match
+the ones in the PrettyBy instance for DefaultUni in PlutusCore.Default.Universe. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultUni" class="def"
+	    >defaultUni</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > (<a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+	    >Kinded</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >)) <a href="src/PlutusCore.Parser.Type.html#defaultUni" class="link"
+	    >Source</a
+	    > <a href="#v:defaultUni" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for built-in types (the ones from <code
+	      ><a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		>DefaultUni</a
+		></code
+	      > specifically).</p
+	    ><p
+	    ><code
+	      ><a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+		>Kinded</a
+		></code
+	      > is needed for checking that a type function can be applied to its argument.
+I.e. we do Plutus kind checking of builtin type applications during parsing, which is
+unfortunate, but there's no way we could construct a <code
+	      ><a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		>DefaultUni</a
+		></code
+	      > otherwise.</p
+	    ><p
+	    >In case of kind error no sensible message is shown, only an overly general one:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>:set -XTypeApplications
+</code
+		></strong
+	      ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>:set -XOverloadedStrings
+</code
+		></strong
+	      ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>import PlutusCore.Error
+</code
+		></strong
+	      ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>import PlutusCore.Quote
+</code
+		></strong
+	      ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>let runP = putStrLn . either display display . runQuoteT . parseGen @ParserErrorBundle defaultUni
+</code
+		></strong
+	      ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>runP &quot;(list integer)&quot;
+</code
+		></strong
+	      >(list integer)
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>runP &quot;(bool integer)&quot;
+</code
+		></strong
+	      >test:1:14:
+  |
+1 | (bool integer)
+  |              ^
+expecting &quot;bool&quot;, &quot;bytestring&quot;, &quot;data&quot;, &quot;integer&quot;, &quot;list&quot;, &quot;pair&quot;, &quot;string&quot;, &quot;unit&quot;, or '('
+</pre
+	    ><p
+	    >This is to be fixed.</p
+	    ><p
+	    >One thing we could do to avoid doing kind checking during parsing is to parse into</p
+	    ><p
+	    >data TextualUni a where
+        TextualUni :: TextualUni (Esc (Tree Text))</p
+	    ><p
+	    >i.e. parse into <code
+	      >Tree Text</code
+	      > and do the kind checking afterwards, but given that we'll still need
+to do the kind checking of builtins regardless (even for UPLC), we don't win much by deferring
+doing it. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tyName" class="def"
+	    >tyName</a
+	    > &#8759; <a href="PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="src/PlutusCore.Parser.Type.html#tyName" class="link"
+	    >Source</a
+	    > <a href="#v:tyName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,135 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>module PlutusCore.Evaluation.Machine.MachineParameters
+<span class="lineno">    9 </span>where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import PlutusCore (UniOf)
+<span class="lineno">   12 </span>import PlutusCore.Builtin
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Control.DeepSeq
+<span class="lineno">   15 </span>import Control.Lens
+<span class="lineno">   16 </span>import GHC.Exts (inline)
+<span class="lineno">   17 </span>import GHC.Generics
+<span class="lineno">   18 </span>import NoThunks.Class
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>{-| We need to account for the costs of evaluator steps and also built-in function
+<span class="lineno">   21 </span>   evaluation.  The models for these have different structures and are used in
+<span class="lineno">   22 </span>   different parts of the code, so inside the valuator we pass separate objects
+<span class="lineno">   23 </span>   about most of the time .  It's convenient for clients of the evaluator to
+<span class="lineno">   24 </span>   only have to worry about a single object, so the CostModel type bundles the
+<span class="lineno">   25 </span>   two together.  We could conceivably have different evaluators with different
+<span class="lineno">   26 </span>   internal costs, so we keep the machine costs abstract.  The model for Cek
+<span class="lineno">   27 </span>   machine steps is in UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts. -}
+<span class="lineno">   28 </span>data CostModel machinecosts builtincosts
+<span class="lineno">   29 </span>  = CostModel
+<span class="lineno">   30 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_machineCostModel</span></span></span> :: machinecosts
+<span class="lineno">   31 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_builtinCostModel</span></span></span> :: builtincosts
+<span class="lineno">   32 </span>  }
+<span class="lineno">   33 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''CostModel</span></span></span></span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>{-| The part of 'MachineParameters' that is individual for each semantics variant of 'DefaultFun'.
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>'CaserBuiltin' isn't included, because it only explicitly depends on the protocol version and not
+<span class="lineno">   40 </span>the language version (even though there's an implicit dependency on the language version: older
+<span class="lineno">   41 </span>languages don't support 'Case' in general, but it's safe to ignore that, because support for
+<span class="lineno">   42 </span>'Case' is controlled by the AST version, which is a separate check during deserialisation). -}
+<span class="lineno">   43 </span>data MachineVariantParameters machineCosts fun val
+<span class="lineno">   44 </span>  = MachineVariantParameters
+<span class="lineno">   45 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">machineCosts</span></span></span> :: machineCosts
+<span class="lineno">   46 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">builtinsRuntime</span></span></span> :: BuiltinsRuntime fun val
+<span class="lineno">   47 </span>  }
+<span class="lineno">   48 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   49 </span>  deriving anyclass (<span class="decl"><span class="istickedoff">NFData</span></span>)
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>{-| At execution time we need a 'BuiltinsRuntime' object which includes both the cost model for
+<span class="lineno">   52 </span>builtins and their denotations. This bundles one of those together with the cost model for evaluator
+<span class="lineno">   53 </span>steps and a 'CaserBuiltin' specifying how casing on values of built-in types works.
+<span class="lineno">   54 </span>The @val@ type will be 'CekValue' when we're using this with the CEK machine. -}
+<span class="lineno">   55 </span>data MachineParameters machineCosts fun val
+<span class="lineno">   56 </span>  = MachineParameters
+<span class="lineno">   57 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">machineCaserBuiltin</span></span></span> :: CaserBuiltin (UniOf val)
+<span class="lineno">   58 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">machineVariantParameters</span></span></span> :: MachineVariantParameters machineCosts fun val
+<span class="lineno">   59 </span>  }
+<span class="lineno">   60 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   61 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>-- For some reason the generic instance gives incorrect nothunk errors,
+<span class="lineno">   64 </span>-- see https://github.com/input-output-hk/nothunks/issues/24
+<span class="lineno">   65 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">(NoThunks machinecosts, Bounded fun, Enum fun) =&gt; NoThunks (MachineVariantParameters machinecosts fun val)</span></span></span></span> where
+<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">wNoThunks ctx (MachineVariantParameters costs runtime) =</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">allNoThunks [noThunks ctx costs, noThunks ctx runtime]</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">(NoThunks machinecosts, Bounded fun, Enum fun) =&gt; NoThunks (MachineParameters machinecosts fun val)</span></span></span></span> where
+<span class="lineno">   70 </span>  <span class="decl"><span class="nottickedoff">wNoThunks ctx (MachineParameters caser varPars) =</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">allNoThunks [noThunks ctx caser, noThunks ctx varPars]</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>{- Note [The CostingPart constraint in mkMachineVariantParameters]
+<span class="lineno">   74 </span>Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
+<span class="lineno">   75 </span>to fail to inline the function at its call site regardless of the @INLINE@ pragma and an explicit
+<span class="lineno">   76 </span>'inline' call.
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>We think that this is because discharging the @CostingPart uni fun ~ builtincosts@ constraint in the
+<span class="lineno">   79 </span>type of 'mkMachineParameters' somehow causes it to be compiled into @expr `Cast@` co@ , where @co@'s
+<span class="lineno">   80 </span>type is
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>    (CostingPart DefaultUni DefaultFun) ... ~R# ... BuiltinCostModel ...
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>and this fails to inline, because in order for @inline f@ to work, @f@ must be compiled into either
+<span class="lineno">   85 </span>a @Var@, or an @App@ whose head is a @Var@, according to https://gitlab.haskell.org/ghc/ghc/-/blob/1f02b7430b2fbab403d7ffdde9cfd006e884678e/compiler/prelude/PrelRules.hs#L1442-1449
+<span class="lineno">   86 </span>And if @f@ is compiled into a @Cast@ like 'mkMachineParameters' with the discharged constraint, then
+<span class="lineno">   87 </span>inlining won't work. We don't know why it's implemented this way in GHC.
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>It seems fully applying @f@ helps, i.e.
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>    - inline mkMachineParameters unlMode &lt;$&gt; &lt;...&gt;
+<span class="lineno">   92 </span>    + (\x -&gt; inline (mkMachineParameters unlMode x)) &lt;$&gt; &lt;...&gt;
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>which makes sense: if @f@ receives all its type and term args then there's less reason to throw a
+<span class="lineno">   95 </span>@Cast@ in there.
+<span class="lineno">   96 </span>-}
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>-- See Note [Inlining meanings of builtins].
+<span class="lineno">   99 </span>-- | This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime.
+<span class="lineno">  100 </span>mkMachineVariantParameters
+<span class="lineno">  101 </span>  :: ( -- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the
+<span class="lineno">  102 </span>       -- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].
+<span class="lineno">  103 </span>       CostingPart uni fun ~ builtincosts
+<span class="lineno">  104 </span>     , HasMeaningIn uni val
+<span class="lineno">  105 </span>     , ToBuiltinMeaning uni fun
+<span class="lineno">  106 </span>     )
+<span class="lineno">  107 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  108 </span>  -&gt; CostModel machineCosts builtincosts
+<span class="lineno">  109 </span>  -&gt; MachineVariantParameters machineCosts fun val
+<span class="lineno">  110 </span><span class="decl"><span class="istickedoff">mkMachineVariantParameters semvar (CostModel mchnCosts builtinCosts) =</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="istickedoff">MachineVariantParameters mchnCosts $ inline toBuiltinsRuntime semvar builtinCosts</span></span>
+<span class="lineno">  112 </span>{-# INLINE mkMachineVariantParameters #-}
+
+</pre>
+</body>
+</html>

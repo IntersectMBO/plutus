@@ -1,0 +1,111 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Tree.AVL.Value where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Relation.Binary.Bundles qualified
+<span class="lineno">   19 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   20 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   21 </span>                    word64ToNat)
+<span class="lineno">   22 </span>import MAlonzo.RTE qualified
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- Data.Tree.AVL.Value.Value
+<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">d_Value_38 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">   26 </span>newtype T_Value_38
+<span class="lineno">   27 </span>  = C_MkValue_50 (AgdaAny -&gt;
+<span class="lineno">   28 </span>                  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   29 </span>-- Data.Tree.AVL.Value.Value.family
+<span class="lineno">   30 </span>d_family_46 :: T_Value_38 -&gt; AgdaAny -&gt; ()
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">d_family_46 = erased</span></span>
+<span class="lineno">   32 </span>-- Data.Tree.AVL.Value.Value.respects
+<span class="lineno">   33 </span>d_respects_48 ::
+<span class="lineno">   34 </span>  T_Value_38 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">d_respects_48 v0</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   37 </span><span class="spaces">      </span><span class="nottickedoff">C_MkValue_50 v2 -&gt; coe v2</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">_               -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   39 </span>-- Data.Tree.AVL.Value.K&amp;_
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">d_K'38'__56 a0 a1 a2 a3 a4 = ()</span></span>
+<span class="lineno">   41 </span>data T_K'38'__56 = C__'44'__70 AgdaAny AgdaAny
+<span class="lineno">   42 </span>-- Data.Tree.AVL.Value.K&amp;_.key
+<span class="lineno">   43 </span>d_key_66 :: T_K'38'__56 -&gt; AgdaAny
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">d_key_66 v0</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">C__'44'__70 v1 v2 -&gt; coe v1</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">_                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   48 </span>-- Data.Tree.AVL.Value.K&amp;_.value
+<span class="lineno">   49 </span>d_value_68 :: T_K'38'__56 -&gt; AgdaAny
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">d_value_68 v0</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">C__'44'__70 v1 v2 -&gt; coe v2</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="nottickedoff">_                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   54 </span>-- Data.Tree.AVL.Value._.toPair
+<span class="lineno">   55 </span>d_toPair_80 ::
+<span class="lineno">   56 </span>  T_K'38'__56 -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">d_toPair_80 v0</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">C__'44'__70 v1 v2</span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   61 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v1) (coe v2)</span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   63 </span>-- Data.Tree.AVL.Value._.fromPair
+<span class="lineno">   64 </span>d_fromPair_86 ::
+<span class="lineno">   65 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   66 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   67 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44 -&gt;
+<span class="lineno">   68 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   69 </span>  T_Value_38 -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 -&gt; T_K'38'__56
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">d_fromPair_86 ~v0 ~v1 ~v2 ~v3 ~v4 v5 = du_fromPair_86 v5</span></span>
+<span class="lineno">   71 </span>du_fromPair_86 ::
+<span class="lineno">   72 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 -&gt; T_K'38'__56
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">du_fromPair_86 v0</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   75 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v1 v2</span>
+<span class="lineno">   76 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe C__'44'__70 (coe v1) (coe v2)</span>
+<span class="lineno">   77 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   78 </span>-- Data.Tree.AVL.Value.const
+<span class="lineno">   79 </span>d_const_94 ::
+<span class="lineno">   80 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   81 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   82 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44 -&gt;
+<span class="lineno">   83 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt; () -&gt; T_Value_38
+<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">d_const_94 ~v0 ~v1 ~v2 ~v3 ~v4 = du_const_94</span></span>
+<span class="lineno">   85 </span>du_const_94 :: T_Value_38
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">du_const_94</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">C_MkValue_50 (\ v0 v1 -&gt; let v2 = \ v2 -&gt; v2 in coe (\ v3 -&gt; v2))</span></span>
+
+</pre>
+</body>
+</html>

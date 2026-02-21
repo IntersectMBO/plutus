@@ -1,0 +1,680 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Flat instances for the bytestring library</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Instances.ByteString</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>B</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>L</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Short.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Short</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>SBS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-$setup
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Test
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Base
+&gt;&gt;&gt; import qualified Data.ByteString               as B
+&gt;&gt;&gt; import qualified Data.ByteString.Lazy          as L
+&gt;&gt;&gt; import qualified Data.ByteString.Short         as SBS -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+ByteString, ByteString.Lazy and ByteString.Short are all encoded as Prealigned Arrays:
+
+@
+PreAligned a &#8801; PreAligned {preFiller :: Filler, preValue :: a}
+
+Filler &#8801;   FillerBit Filler
+          | FillerEnd
+
+Array v = A0
+        | A1 v (Array v)
+        | A2 v v (Array v)
+        ...
+        | A255 ... (Array v)
+@
+
+That's to say as a byte-aligned sequence of blocks of up to 255 elements, with every block preceded by the count of the elements in the block and a final 0-length block.
+
+&gt;&gt;&gt;  tst (B.pack [11,22,33])
+(True,48,[1,3,11,22,33,0])
+
+where:
+
+1= PreAlignment (takes a byte if we are already on a byte boundary)
+
+3= Number of bytes in ByteString
+
+11,22,33= Bytes
+
+0= End of Array
+
+&gt;&gt;&gt;  tst (B.pack [])
+(True,16,[1,0])
+
+Pre-alignment ensures that a ByteString always starts at a byte boundary:
+
+&gt;&gt;&gt;  tst ((False,True,False,B.pack [11,22,33]))
+(True,51,[65,3,11,22,33,0])
+
+All ByteStrings are encoded in the same way:
+
+&gt;&gt;&gt; all (tst (B.pack [55]) ==) [tst (L.pack [55]),tst (SBS.pack [55])]
+True -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier hs-type"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >B.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106639"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: ByteString -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679106639"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#eBytes"
+	><span class="hs-identifier hs-var"
+	  >eBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106642"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: ByteString -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="#local-6989586621679106642"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#sBytes"
+	><span class="hs-identifier hs-var"
+	  >sBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106645"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get ByteString
+</span
+	  ><a href="#local-6989586621679106645"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get ByteString
+</span
+	><a href="PlutusCore.Flat.Decoder.Strict.html#dByteString"
+	><span class="hs-identifier hs-var"
+	  >dByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+&gt;&gt;&gt;  tst ((False,True,False,L.pack [11,22,33]))
+(True,51,[65,3,11,22,33,0]) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier hs-type"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.Internal.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >L.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106652"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: ByteString -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#eLazyBytes"
+	><span class="hs-identifier hs-var"
+	  >eLazyBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106654"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: ByteString -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#sLazyBytes"
+	><span class="hs-identifier hs-var"
+	  >sLazyBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106656"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get ByteString
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get ByteString
+</span
+	><a href="PlutusCore.Flat.Decoder.Strict.html#dLazyByteString"
+	><span class="hs-identifier hs-var"
+	  >dLazyByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+&gt;&gt;&gt;  tst ((False,True,False,SBS.pack [11,22,33]))
+(True,51,[65,3,11,22,33,0]) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier hs-type"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Short.Internal.html#ShortByteString"
+	><span class="hs-identifier hs-type"
+	  >SBS.ShortByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106662"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: ShortByteString -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShortByteString -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#eShortBytes"
+	><span class="hs-identifier hs-var"
+	  >eShortBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106664"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: ShortByteString -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShortByteString -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#sShortBytes"
+	><span class="hs-identifier hs-var"
+	  >sShortBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106666"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get ShortByteString
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get ShortByteString
+</span
+	><a href="PlutusCore.Flat.Decoder.Strict.html#dShortByteString"
+	><span class="hs-identifier hs-var"
+	  >dShortByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

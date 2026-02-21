@@ -1,0 +1,1973 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span id="local-6989586621680011136"
+      ><span id="local-6989586621680011137"
+	></span
+	></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE AllowAmbiguousTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveDataTypeable  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Definition.Id</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	><span class="hs-identifier"
+	  >DefinitionId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdFromType"
+	><span class="hs-identifier"
+	  >definitionIdFromType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdFromTypeK"
+	><span class="hs-identifier"
+	  >definitionIdFromTypeK</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdToText"
+	><span class="hs-identifier"
+	  >definitionIdToText</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdUnit"
+	><span class="hs-identifier"
+	  >definitionIdUnit</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdList"
+	><span class="hs-identifier"
+	  >definitionIdList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple2"
+	><span class="hs-identifier"
+	  >definitionIdTuple2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple3"
+	><span class="hs-identifier"
+	  >definitionIdTuple3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSON</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSONKey</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html"
+	><span class="hs-identifier"
+	  >Data.Data</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+	><span class="hs-identifier"
+	  >Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#pack"
+	><span class="hs-identifier"
+	  >pack</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.html"
+	><span class="hs-identifier"
+	  >Data.Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.html#typeRep"
+	><span class="hs-identifier"
+	  >typeRep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A reference to a Schema definition.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="DefinitionId"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	  ><span class="hs-identifier hs-var"
+	    >DefinitionId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkDefinitionId"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	  ><span class="hs-identifier hs-var"
+	    >MkDefinitionId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="definitionIdToText"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId -&gt; Text
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdToText"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionIdToText</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680011154"
+      ><span id="local-6989586621680011160"
+	><span id="local-6989586621680011164"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; DefinitionId -&gt; ShowS
+[DefinitionId] -&gt; ShowS
+DefinitionId -&gt; String
+(Int -&gt; DefinitionId -&gt; ShowS)
+-&gt; (DefinitionId -&gt; String)
+-&gt; ([DefinitionId] -&gt; ShowS)
+-&gt; Show DefinitionId
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DefinitionId -&gt; ShowS
+showsPrec :: Int -&gt; DefinitionId -&gt; ShowS
+$cshow :: DefinitionId -&gt; String
+show :: DefinitionId -&gt; String
+$cshowList :: [DefinitionId] -&gt; ShowS
+showList :: [DefinitionId] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011168"
+      ><span id="local-6989586621680011170"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. DefinitionId -&gt; Rep DefinitionId x)
+-&gt; (forall x. Rep DefinitionId x -&gt; DefinitionId)
+-&gt; Generic DefinitionId
+forall x. Rep DefinitionId x -&gt; DefinitionId
+forall x. DefinitionId -&gt; Rep DefinitionId x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. DefinitionId -&gt; Rep DefinitionId x
+from :: forall x. DefinitionId -&gt; Rep DefinitionId x
+$cto :: forall x. Rep DefinitionId x -&gt; DefinitionId
+to :: forall x. Rep DefinitionId x -&gt; DefinitionId
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011176"
+      ><span id="local-6989586621680011180"
+	><span id="local-6989586621680011183"
+	  ><span id="local-6989586621680011185"
+	    ><span id="local-6989586621680011187"
+	      ><span id="local-6989586621680011193"
+		><span id="local-6989586621680011198"
+		  ><span id="local-6989586621680011201"
+		    ><span id="local-6989586621680011204"
+		      ><span id="local-6989586621680011207"
+			><span id="local-6989586621680011210"
+			  ><span id="local-6989586621680011213"
+			    ><span id="local-6989586621680011218"
+			      ><span id="local-6989586621680011223"
+				><span class="annot"
+				  ><span class="annottext"
+				    >Typeable DefinitionId
+Typeable DefinitionId =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; DefinitionId -&gt; c DefinitionId)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c DefinitionId)
+-&gt; (DefinitionId -&gt; Constr)
+-&gt; (DefinitionId -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c DefinitionId))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c DefinitionId))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; DefinitionId -&gt; DefinitionId)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId)
+-&gt; Data DefinitionId
+DefinitionId -&gt; Constr
+DefinitionId -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b) -&gt; DefinitionId -&gt; DefinitionId
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c DefinitionId
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; DefinitionId -&gt; c DefinitionId
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c DefinitionId)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c DefinitionId)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; DefinitionId -&gt; c DefinitionId
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; DefinitionId -&gt; c DefinitionId
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c DefinitionId
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c DefinitionId
+$ctoConstr :: DefinitionId -&gt; Constr
+toConstr :: DefinitionId -&gt; Constr
+$cdataTypeOf :: DefinitionId -&gt; DataType
+dataTypeOf :: DefinitionId -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c DefinitionId)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c DefinitionId)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c DefinitionId)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c DefinitionId)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; DefinitionId -&gt; DefinitionId
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; DefinitionId -&gt; DefinitionId
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; DefinitionId -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; [u]
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; u
+gmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; DefinitionId -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; DefinitionId -&gt; m DefinitionId
+</span
+				    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+				    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				      >Data</span
+				      ></a
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680011229"
+      ><span id="local-6989586621680011234"
+	><span class="annot"
+	  ><span class="annottext"
+	    >DefinitionId -&gt; DefinitionId -&gt; Bool
+(DefinitionId -&gt; DefinitionId -&gt; Bool)
+-&gt; (DefinitionId -&gt; DefinitionId -&gt; Bool) -&gt; Eq DefinitionId
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DefinitionId -&gt; DefinitionId -&gt; Bool
+== :: DefinitionId -&gt; DefinitionId -&gt; Bool
+$c/= :: DefinitionId -&gt; DefinitionId -&gt; Bool
+/= :: DefinitionId -&gt; DefinitionId -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011242"
+      ><span id="local-6989586621680011247"
+	><span id="local-6989586621680011251"
+	  ><span id="local-6989586621680011255"
+	    ><span id="local-6989586621680011259"
+	      ><span id="local-6989586621680011263"
+		><span id="local-6989586621680011267"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq DefinitionId
+Eq DefinitionId =&gt;
+(DefinitionId -&gt; DefinitionId -&gt; Ordering)
+-&gt; (DefinitionId -&gt; DefinitionId -&gt; Bool)
+-&gt; (DefinitionId -&gt; DefinitionId -&gt; Bool)
+-&gt; (DefinitionId -&gt; DefinitionId -&gt; Bool)
+-&gt; (DefinitionId -&gt; DefinitionId -&gt; Bool)
+-&gt; (DefinitionId -&gt; DefinitionId -&gt; DefinitionId)
+-&gt; (DefinitionId -&gt; DefinitionId -&gt; DefinitionId)
+-&gt; Ord DefinitionId
+DefinitionId -&gt; DefinitionId -&gt; Bool
+DefinitionId -&gt; DefinitionId -&gt; Ordering
+DefinitionId -&gt; DefinitionId -&gt; DefinitionId
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DefinitionId -&gt; DefinitionId -&gt; Ordering
+compare :: DefinitionId -&gt; DefinitionId -&gt; Ordering
+$c&lt; :: DefinitionId -&gt; DefinitionId -&gt; Bool
+&lt; :: DefinitionId -&gt; DefinitionId -&gt; Bool
+$c&lt;= :: DefinitionId -&gt; DefinitionId -&gt; Bool
+&lt;= :: DefinitionId -&gt; DefinitionId -&gt; Bool
+$c&gt; :: DefinitionId -&gt; DefinitionId -&gt; Bool
+&gt; :: DefinitionId -&gt; DefinitionId -&gt; Bool
+$c&gt;= :: DefinitionId -&gt; DefinitionId -&gt; Bool
+&gt;= :: DefinitionId -&gt; DefinitionId -&gt; Bool
+$cmax :: DefinitionId -&gt; DefinitionId -&gt; DefinitionId
+max :: DefinitionId -&gt; DefinitionId -&gt; DefinitionId
+$cmin :: DefinitionId -&gt; DefinitionId -&gt; DefinitionId
+min :: DefinitionId -&gt; DefinitionId -&gt; DefinitionId
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011273"
+      ><span id="local-6989586621680011278"
+	><span id="local-6989586621680011282"
+	  ><span id="local-6989586621680011286"
+	    ><span id="local-6989586621680011290"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[DefinitionId] -&gt; Encoding
+[DefinitionId] -&gt; Value
+DefinitionId -&gt; Bool
+DefinitionId -&gt; Encoding
+DefinitionId -&gt; Value
+(DefinitionId -&gt; Value)
+-&gt; (DefinitionId -&gt; Encoding)
+-&gt; ([DefinitionId] -&gt; Value)
+-&gt; ([DefinitionId] -&gt; Encoding)
+-&gt; (DefinitionId -&gt; Bool)
+-&gt; ToJSON DefinitionId
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: DefinitionId -&gt; Value
+toJSON :: DefinitionId -&gt; Value
+$ctoEncoding :: DefinitionId -&gt; Encoding
+toEncoding :: DefinitionId -&gt; Encoding
+$ctoJSONList :: [DefinitionId] -&gt; Value
+toJSONList :: [DefinitionId] -&gt; Value
+$ctoEncodingList :: [DefinitionId] -&gt; Encoding
+toEncodingList :: [DefinitionId] -&gt; Encoding
+$comitField :: DefinitionId -&gt; Bool
+omitField :: DefinitionId -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011296"
+      ><span id="local-6989586621680011301"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ToJSONKeyFunction [DefinitionId]
+ToJSONKeyFunction DefinitionId
+ToJSONKeyFunction DefinitionId
+-&gt; ToJSONKeyFunction [DefinitionId] -&gt; ToJSONKey DefinitionId
+forall a.
+ToJSONKeyFunction a -&gt; ToJSONKeyFunction [a] -&gt; ToJSONKey a
+$ctoJSONKey :: ToJSONKeyFunction DefinitionId
+toJSONKey :: ToJSONKeyFunction DefinitionId
+$ctoJSONKeyList :: ToJSONKeyFunction [DefinitionId]
+toJSONKeyList :: ToJSONKeyFunction [DefinitionId]
+</span
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	    >ToJSONKey</span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011308"
+      ><span id="local-6989586621680011312"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	    ><span class="hs-identifier hs-type"
+	      >Semigroup</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	    ><span class="hs-identifier hs-type"
+	      >DefinitionId</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680011321"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: DefinitionId -&gt; DefinitionId -&gt; DefinitionId
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680011322"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+</span
+	  ><a href="#local-6989586621680011322"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680011323"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+</span
+	  ><a href="#local-6989586621680011323"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	><span class="hs-identifier hs-var"
+	  >MkDefinitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; DefinitionId) -&gt; Text -&gt; DefinitionId
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefinitionId -&gt; Text
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdToText"
+	><span class="hs-identifier hs-var"
+	  >definitionIdToText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefinitionId
+</span
+	><a href="#local-6989586621680011322"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;_&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefinitionId -&gt; Text
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdToText"
+	><span class="hs-identifier hs-var"
+	  >definitionIdToText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefinitionId
+</span
+	><a href="#local-6989586621680011323"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Creates a 'DefinitionId' from a type with a kind 'Type'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdFromType"
+	><span class="hs-identifier hs-type"
+	  >definitionIdFromType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680011098"
+      ><span class="annot"
+	><a href="#local-6989586621680011098"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier hs-type"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680011098"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	><span class="hs-identifier hs-type"
+	  >DefinitionId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="definitionIdFromType"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionIdFromType :: forall t. Typeable t =&gt; DefinitionId
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdFromType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionIdFromType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	><span class="hs-identifier hs-var"
+	  >MkDefinitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; DefinitionId)
+-&gt; (Proxy t -&gt; Text) -&gt; Proxy t -&gt; DefinitionId
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#pack"
+	><span class="hs-identifier hs-var"
+	  >pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Text) -&gt; (Proxy t -&gt; String) -&gt; Proxy t -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeRep -&gt; String) -&gt; (Proxy t -&gt; TypeRep) -&gt; Proxy t -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy t -&gt; TypeRep
+forall {k} (proxy :: k -&gt; *) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.html#typeRep"
+	><span class="hs-identifier hs-var"
+	  >typeRep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Proxy t -&gt; DefinitionId) -&gt; Proxy t -&gt; DefinitionId
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680011098"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Creates a 'DefinitionId' from a type with a kind other than 'Type'.
+Example:
+&gt; definitionIdFromTypeK @(Type -&gt; Type) @Maybe
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdFromTypeK"
+	><span class="hs-identifier hs-type"
+	  >definitionIdFromTypeK</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680011110"
+      ><span class="annot"
+	><a href="#local-6989586621680011110"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680011111"
+      ><span class="annot"
+	><a href="#local-6989586621680011111"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680011110"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	><span class="hs-identifier hs-type"
+	  >Typeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680011111"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680011110"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	><span class="hs-identifier hs-type"
+	  >DefinitionId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="definitionIdFromTypeK"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionIdFromTypeK :: forall k (t :: k). Typeable t =&gt; DefinitionId
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdFromTypeK"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionIdFromTypeK</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	><span class="hs-identifier hs-var"
+	  >MkDefinitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; DefinitionId)
+-&gt; (Proxy t -&gt; Text) -&gt; Proxy t -&gt; DefinitionId
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#pack"
+	><span class="hs-identifier hs-var"
+	  >pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Text) -&gt; (Proxy t -&gt; String) -&gt; Proxy t -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeRep -&gt; String) -&gt; (Proxy t -&gt; TypeRep) -&gt; Proxy t -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy t -&gt; TypeRep
+forall {k} (proxy :: k -&gt; *) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.html#typeRep"
+	><span class="hs-identifier hs-var"
+	  >typeRep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Proxy t -&gt; DefinitionId) -&gt; Proxy t -&gt; DefinitionId
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (t :: k). Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680011111"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680011110"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-comment"
+      >-- Special cases that we want to be alphanumeric instead of symbolic,</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >-- E.g. &quot;Unit&quot; instead of &quot;()&quot;, &quot;List&quot; instead of &quot;[]&quot; etc.</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdUnit"
+	><span class="hs-identifier hs-type"
+	  >definitionIdUnit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	><span class="hs-identifier hs-type"
+	  >DefinitionId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="definitionIdUnit"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionIdUnit :: DefinitionId
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdUnit"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionIdUnit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	><span class="hs-identifier hs-var"
+	  >MkDefinitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Unit&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdList"
+	><span class="hs-identifier hs-type"
+	  >definitionIdList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	><span class="hs-identifier hs-type"
+	  >DefinitionId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="definitionIdList"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionIdList :: DefinitionId
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionIdList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	><span class="hs-identifier hs-var"
+	  >MkDefinitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;List&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple2"
+	><span class="hs-identifier hs-type"
+	  >definitionIdTuple2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	><span class="hs-identifier hs-type"
+	  >DefinitionId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="definitionIdTuple2"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionIdTuple2 :: DefinitionId
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple2"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionIdTuple2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	><span class="hs-identifier hs-var"
+	  >MkDefinitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Tuple2&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple3"
+	><span class="hs-identifier hs-type"
+	  >definitionIdTuple3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Id.html#DefinitionId"
+	><span class="hs-identifier hs-type"
+	  >DefinitionId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="definitionIdTuple3"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionIdTuple3 :: DefinitionId
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Id.html#definitionIdTuple3"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionIdTuple3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Id.html#MkDefinitionId"
+	><span class="hs-identifier hs-var"
+	  >MkDefinitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Tuple3&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

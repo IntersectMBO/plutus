@@ -1,0 +1,1733 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Builtin.Meaning</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Builtin.Meaning.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Builtin.Meaning</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:FoldArgs"
+	      >FoldArgs</a
+	      > args res <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinMeaning"
+	      >BuiltinMeaning</a
+	      > val cost = &#8704; args res. <a href="#v:BuiltinMeaning"
+	      >BuiltinMeaning</a
+	      > (<a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+	      >TypeScheme</a
+	      > val args res) ~(<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+	      >FoldArgs</a
+	      > args res) (cost &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinRuntime</a
+	      > val)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:HasMeaningIn"
+	      >HasMeaningIn</a
+	      > uni val = (<a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > val, <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >ExMemoryUsage</a
+	      > val, <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstantIn" title="PlutusCore.Builtin.HasConstant"
+	      >HasConstantIn</a
+	      > uni val)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > (<a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > uni, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+	      >Ix</a
+	      > fun, <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+	      >Default</a
+	      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun)) &#8658; <a href="#t:ToBuiltinMeaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><span class="keyword"
+		  >type</span
+		  > <a href="#t:CostingPart"
+		  >CostingPart</a
+		  > uni fun</li
+		><li
+		><span class="keyword"
+		  >data</span
+		  > <a href="#t:BuiltinSemanticsVariant"
+		  >BuiltinSemanticsVariant</a
+		  > fun</li
+		><li
+		><a href="#v:toBuiltinMeaning"
+		  >toBuiltinMeaning</a
+		  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+		  >HasMeaningIn</a
+		  > uni val &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun &#8594; fun &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinMeaning</a
+		  > val (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		  >CostingPart</a
+		  > uni fun)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withTypeSchemeOfBuiltinFunction"
+	      >withTypeSchemeOfBuiltinFunction</a
+	      > &#8759; &#8704; val fun r. (<a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > val) fun, <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >ExMemoryUsage</a
+	      > val, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > val, <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	      >HasConstant</a
+	      > val) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; fun &#8594; (&#8704; args res. <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+	      >TypeScheme</a
+	      > val args res &#8594; r) &#8594; r</li
+	    ><li class="src short"
+	    ><a href="#v:typeOfBuiltinFunction"
+	      >typeOfBuiltinFunction</a
+	      > &#8759; &#8704; uni fun. <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; fun &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:GetArgs"
+	      >GetArgs</a
+	      > a <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:KnownMonotype"
+	      >KnownMonotype</a
+	      > val args res <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:knownMonotype"
+		  >knownMonotype</a
+		  > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		  >TypeScheme</a
+		  > val args res</li
+		><li
+		><a href="#v:toMonoF"
+		  >toMonoF</a
+		  > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+		  >ReadKnownM</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > args res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > args <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		  >ExBudgetStream</a
+		  >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="PlutusCore-Builtin-Meaning.html#t:KnownMonotype" title="PlutusCore.Builtin.Meaning"
+	      >KnownMonotype</a
+	      > val args res &#8658; <a href="#t:KnownPolytype"
+	      >KnownPolytype</a
+	      > (binds &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+	      >Some</a
+	      > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+	      >TyNameRep</a
+	      >]) val args res <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:knownPolytype"
+		  >knownPolytype</a
+		  > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		  >TypeScheme</a
+		  > val args res</li
+		><li
+		><a href="#v:toPolyF"
+		  >toPolyF</a
+		  > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+		  >ReadKnownM</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > args res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > args <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		  >ExBudgetStream</a
+		  >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:ThrowOnBothEmpty"
+	      >ThrowOnBothEmpty</a
+	      > binds args isBuiltin a <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:MakeBuiltinMeaning"
+	      >MakeBuiltinMeaning</a
+	      > a val <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:makeBuiltinMeaning"
+		  >makeBuiltinMeaning</a
+		  > &#8759; a &#8594; (cost &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:GetArgs" title="PlutusCore.Builtin.Meaning"
+		  >GetArgs</a
+		  > a) <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		  >ExBudgetStream</a
+		  >) &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinMeaning</a
+		  > val cost</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toBuiltinRuntime"
+	      >toBuiltinRuntime</a
+	      > &#8759; cost &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinMeaning</a
+	      > val cost &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinRuntime</a
+	      > val</li
+	    ><li class="src short"
+	    ><a href="#v:toBuiltinsRuntime"
+	      >toBuiltinsRuntime</a
+	      > &#8759; (cost <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun, <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	      >HasMeaningIn</a
+	      > uni val) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; cost &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinsRuntime</a
+	      > fun val</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:FoldArgs" class="def"
+	    >FoldArgs</a
+	    > args res <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusCore.Builtin.Meaning.html#FoldArgs" class="link"
+	    >Source</a
+	    > <a href="#t:FoldArgs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Turn a list of Haskell types <code
+	      >args</code
+	      > into a functional type ending in <code
+	      >res</code
+	      >.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>:set -XDataKinds
+</code
+		></strong
+	      ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>:kind! FoldArgs [(), Bool] Integer
+</code
+		></strong
+	      >FoldArgs [(), Bool] Integer :: *
+= () -&gt; Bool -&gt; Integer 
+</pre
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > '[] res = res</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > (arg ': args) res = arg &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > args res</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinMeaning" class="def"
+	    >BuiltinMeaning</a
+	    > val cost <a href="src/PlutusCore.Builtin.Meaning.html#BuiltinMeaning" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinMeaning" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The meaning of a built-in function consists of its type represented as a <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      >,
+its Haskell denotation and its uninstantiated runtime denotation.</p
+	    ><p
+	    >The <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      > of a built-in function is used for example for</p
+	    ><ol
+	    ><li value="1"
+	      >computing the PLC type of the function to be used during type checking</li
+	      ><li value="2"
+	      >getting arity information</li
+	      ><li value="3"
+	      >generating arbitrary values to apply the function to in tests</li
+	      ></ol
+	    ><p
+	    >The denotation is lazy, so that we don't need to worry about a builtin being bottom
+(happens in tests). The production path is not affected by that, since only runtime denotations
+are used for evaluation. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8704; args res. <a id="v:BuiltinMeaning" class="def"
+		  >BuiltinMeaning</a
+		  > (<a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		  >TypeScheme</a
+		  > val args res) ~(<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		  >FoldArgs</a
+		  > args res) (cost &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:HasMeaningIn" class="def"
+	    >HasMeaningIn</a
+	    > uni val = (<a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > val, <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >ExMemoryUsage</a
+	    > val, <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstantIn" title="PlutusCore.Builtin.HasConstant"
+	    >HasConstantIn</a
+	    > uni val) <a href="src/PlutusCore.Builtin.Meaning.html#HasMeaningIn" class="link"
+	    >Source</a
+	    > <a href="#t:HasMeaningIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Constraints available when defining a built-in function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > (<a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > uni, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+	    >Ix</a
+	    > fun, <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+	    >Default</a
+	    > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun)) &#8658; <a id="t:ToBuiltinMeaning" class="def"
+	    >ToBuiltinMeaning</a
+	    > uni fun <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning" class="link"
+	    >Source</a
+	    > <a href="#t:ToBuiltinMeaning" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A type class for &quot;each function from a set of built-in functions has a <code
+	      ><a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		>BuiltinMeaning</a
+		></code
+	      >&quot;.</p
+	    ></div
+	  ><div class="subs associated-types"
+	  ><p class="caption"
+	    >Associated Types</p
+	    ><p class="src"
+	    ><span class="keyword"
+	      >type</span
+	      > <a id="t:CostingPart" class="def"
+	      >CostingPart</a
+	      > uni fun <a href="src/PlutusCore.Builtin.Meaning.html#CostingPart" class="link"
+	      >Source</a
+	      > <a href="#t:CostingPart" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >The <code
+		>cost</code
+		> part of <code
+		><a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinMeaning</a
+		  ></code
+		>.</p
+	      ></div
+	    ><p class="src"
+	    ><span class="keyword"
+	      >data</span
+	      > <a id="t:BuiltinSemanticsVariant" class="def"
+	      >BuiltinSemanticsVariant</a
+	      > fun <a href="src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant" class="link"
+	      >Source</a
+	      > <a href="#t:BuiltinSemanticsVariant" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >See Note [Builtin semantics variants]</p
+	      ></div
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:toBuiltinMeaning" class="def"
+	      >toBuiltinMeaning</a
+	      > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	      >HasMeaningIn</a
+	      > uni val &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; fun &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinMeaning</a
+	      > val (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun) <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinMeaning" class="link"
+	      >Source</a
+	      > <a href="#v:toBuiltinMeaning" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Get the <code
+		><a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinMeaning</a
+		  ></code
+		> of a built-in function.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ToBuiltinMeaning"
+	    >Instances</h4
+	    ><details id="i:ToBuiltinMeaning" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToBuiltinMeaning:ToBuiltinMeaning:1"
+		      ></span
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >ToBuiltinMeaning</a
+		      > uni <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Builtins.html#line-1053" class="link"
+		    >Source</a
+		    > <a href="#t:ToBuiltinMeaning" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToBuiltinMeaning:ToBuiltinMeaning:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Builtins.html"
+			>PlutusCore.Default.Builtins</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > <a href="src/PlutusCore.Builtin.Meaning.html#CostingPart" class="link"
+			  >Source</a
+			  > <a href="#t:CostingPart" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >data</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > <a href="src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant" class="link"
+			  >Source</a
+			  > <a href="#t:BuiltinSemanticsVariant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinMeaning"
+			  >toBuiltinMeaning</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+			  >HasMeaningIn</a
+			  > uni val &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > &#8594; <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinMeaning</a
+			  > val (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  >) <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinMeaning" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinMeaning" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToBuiltinMeaning:ToBuiltinMeaning:2"
+		      ></span
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >ToBuiltinMeaning</a
+		      > uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-247" class="link"
+		    >Source</a
+		    > <a href="#t:ToBuiltinMeaning" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToBuiltinMeaning:ToBuiltinMeaning:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="src/PlutusCore.Builtin.Meaning.html#CostingPart" class="link"
+			  >Source</a
+			  > <a href="#t:CostingPart" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >data</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant" class="link"
+			  >Source</a
+			  > <a href="#t:BuiltinSemanticsVariant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinMeaning"
+			  >toBuiltinMeaning</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+			  >HasMeaningIn</a
+			  > uni val &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinMeaning</a
+			  > val (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinMeaning" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinMeaning" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToBuiltinMeaning:ToBuiltinMeaning:3"
+		      ></span
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >ToBuiltinMeaning</a
+		      > uni fun1, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >ToBuiltinMeaning</a
+		      > uni fun2, <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		      >Default</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > fun1), <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		      >Default</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > fun2)) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >ToBuiltinMeaning</a
+		      > uni (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > fun1 fun2)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-148" class="link"
+		    >Source</a
+		    > <a href="#t:ToBuiltinMeaning" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToBuiltinMeaning:ToBuiltinMeaning:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > fun1 fun2) <a href="src/PlutusCore.Builtin.Meaning.html#CostingPart" class="link"
+			  >Source</a
+			  > <a href="#t:CostingPart" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >data</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > fun1 fun2) <a href="src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant" class="link"
+			  >Source</a
+			  > <a href="#t:BuiltinSemanticsVariant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinMeaning"
+			  >toBuiltinMeaning</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+			  >HasMeaningIn</a
+			  > uni val &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > fun1 fun2) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > fun1 fun2 &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinMeaning</a
+			  > val (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > fun1 fun2)) <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinMeaning" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinMeaning" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTypeSchemeOfBuiltinFunction" class="def"
+	    >withTypeSchemeOfBuiltinFunction</a
+	    > &#8759; &#8704; val fun r. (<a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	    >UniOf</a
+	    > val) fun, <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >ExMemoryUsage</a
+	    > val, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > val, <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	    >HasConstant</a
+	    > val) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; fun &#8594; (&#8704; args res. <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+	    >TypeScheme</a
+	    > val args res &#8594; r) &#8594; r <a href="src/PlutusCore.Builtin.Meaning.html#withTypeSchemeOfBuiltinFunction" class="link"
+	    >Source</a
+	    > <a href="#v:withTypeSchemeOfBuiltinFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Feed the <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      > of the given built-in function to the continuation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeOfBuiltinFunction" class="def"
+	    >typeOfBuiltinFunction</a
+	    > &#8759; &#8704; uni fun. <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; fun &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Builtin.Meaning.html#typeOfBuiltinFunction" class="link"
+	    >Source</a
+	    > <a href="#v:typeOfBuiltinFunction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the type of a built-in function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:GetArgs" class="def"
+	    >GetArgs</a
+	    > a <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusCore.Builtin.Meaning.html#GetArgs" class="link"
+	    >Source</a
+	    > <a href="#t:GetArgs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Chop a function type to get a list of its argument types.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Builtin-Meaning.html#t:GetArgs" title="PlutusCore.Builtin.Meaning"
+		  >GetArgs</a
+		  > (a &#8594; b) = a ': <a href="PlutusCore-Builtin-Meaning.html#t:GetArgs" title="PlutusCore.Builtin.Meaning"
+		  >GetArgs</a
+		  > b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Builtin-Meaning.html#t:GetArgs" title="PlutusCore.Builtin.Meaning"
+		  >GetArgs</a
+		  > _ = '[]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:KnownMonotype" class="def"
+	    >KnownMonotype</a
+	    > val args res <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.Meaning.html#KnownMonotype" class="link"
+	    >Source</a
+	    > <a href="#t:KnownMonotype" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class that allows us to derive a monotype for a builtin.
+We could've computed the runtime denotation from the
+<code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      > and the denotation of the builtin, but not statically (due to unfolding not working
+for recursive functions and <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      > being recursive, i.e. requiring the conversion function
+to be recursive), and so it would cause us to retain a lot of evaluation-irrelevant stuff in the
+constructors of <code
+	      ><a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		>BuiltinRuntime</a
+		></code
+	      >, which has to make evaluation slower (we didn't check) and
+certainly makes the generated Core much harder to read. Technically speaking, we could get
+a <code
+	      >RuntimeScheme</code
+	      > from the <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      > and the denotation statically if we changed the
+definition of <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      > and made it a singleton, but then the conversion function would have
+to become a class anyway and we'd just replicate what we have here, except in a much more
+complicated way. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:knownMonotype" class="def"
+	      >knownMonotype</a
+	      > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+	      >TypeScheme</a
+	      > val args res <a href="src/PlutusCore.Builtin.Meaning.html#knownMonotype" class="link"
+	      >Source</a
+	      > <a href="#v:knownMonotype" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:toMonoF" class="def"
+	      >toMonoF</a
+	      > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+	      >ReadKnownM</a
+	      > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+	      >FoldArgs</a
+	      > args res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+	      >FoldArgs</a
+	      > args <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	      >ExBudgetStream</a
+	      >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinRuntime</a
+	      > val <a href="src/PlutusCore.Builtin.Meaning.html#toMonoF" class="link"
+	      >Source</a
+	      > <a href="#v:toMonoF" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Convert the denotation of a builtin to its runtime counterpart .
+  The argument is in <code
+		><a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+		  >ReadKnownM</a
+		  ></code
+		>, because that's what deferred unlifting amounts to:
+  passing the action returning the builtin application around until full saturation, which is
+  when the action actually gets run. </p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:KnownMonotype"
+	    >Instances</h4
+	    ><details id="i:KnownMonotype" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:KnownMonotype:KnownMonotype:1"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+		      >Typeable</a
+		      > res, <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		      >UniOf</a
+		      > val) res, <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnown</a
+		      > val res) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:KnownMonotype" title="PlutusCore.Builtin.Meaning"
+		      >KnownMonotype</a
+		      > val ('[] &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >]) res</span
+		    > <a href="src/PlutusCore.Builtin.Meaning.html#line-243" class="link"
+		    >Source</a
+		    > <a href="#t:KnownMonotype" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Once we've run out of term-level arguments, we return a
+<code
+		      ><a href="PlutusCore-Builtin-TypeScheme.html#v:TypeSchemeResult" title="PlutusCore.Builtin.TypeScheme"
+			>TypeSchemeResult</a
+			></code
+		      >/<code
+		      >RuntimeSchemeResult</code
+		      >. </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:KnownMonotype:KnownMonotype:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Meaning.html"
+			>PlutusCore.Builtin.Meaning</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:knownMonotype"
+			  >knownMonotype</a
+			  > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+			  >TypeScheme</a
+			  > val '[] res <a href="src/PlutusCore.Builtin.Meaning.html#knownMonotype" class="link"
+			  >Source</a
+			  > <a href="#v:knownMonotype" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toMonoF"
+			  >toMonoF</a
+			  > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > '[] res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > '[] <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val <a href="src/PlutusCore.Builtin.Meaning.html#toMonoF" class="link"
+			  >Source</a
+			  > <a href="#v:toMonoF" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:KnownMonotype:KnownMonotype:2"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+		      >Typeable</a
+		      > arg, <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		      >UniOf</a
+		      > val) arg, <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnown</a
+		      > val arg, <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnown" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnown</a
+		      > val arg, <a href="PlutusCore-Builtin-Meaning.html#t:KnownMonotype" title="PlutusCore.Builtin.Meaning"
+		      >KnownMonotype</a
+		      > val args res) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:KnownMonotype" title="PlutusCore.Builtin.Meaning"
+		      >KnownMonotype</a
+		      > val (arg ': args) res</span
+		    > <a href="src/PlutusCore.Builtin.Meaning.html#line-293" class="link"
+		    >Source</a
+		    > <a href="#t:KnownMonotype" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Every term-level argument becomes a <code
+		      ><a href="PlutusCore-Builtin-TypeScheme.html#v:TypeSchemeArrow" title="PlutusCore.Builtin.TypeScheme"
+			>TypeSchemeArrow</a
+			></code
+		      >/<code
+		      >RuntimeSchemeArrow</code
+		      >.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:KnownMonotype:KnownMonotype:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Meaning.html"
+			>PlutusCore.Builtin.Meaning</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:knownMonotype"
+			  >knownMonotype</a
+			  > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+			  >TypeScheme</a
+			  > val (arg ': args) res <a href="src/PlutusCore.Builtin.Meaning.html#knownMonotype" class="link"
+			  >Source</a
+			  > <a href="#v:knownMonotype" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toMonoF"
+			  >toMonoF</a
+			  > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > (arg ': args) res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > (arg ': args) <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val <a href="src/PlutusCore.Builtin.Meaning.html#toMonoF" class="link"
+			  >Source</a
+			  > <a href="#v:toMonoF" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="PlutusCore-Builtin-Meaning.html#t:KnownMonotype" title="PlutusCore.Builtin.Meaning"
+	    >KnownMonotype</a
+	    > val args res &#8658; <a id="t:KnownPolytype" class="def"
+	    >KnownPolytype</a
+	    > (binds &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+	    >Some</a
+	    > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+	    >TyNameRep</a
+	    >]) val args res <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.Meaning.html#KnownPolytype" class="link"
+	    >Source</a
+	    > <a href="#t:KnownPolytype" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class that allows us to derive a polytype for a builtin.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:knownPolytype" class="def"
+	      >knownPolytype</a
+	      > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+	      >TypeScheme</a
+	      > val args res <a href="src/PlutusCore.Builtin.Meaning.html#knownPolytype" class="link"
+	      >Source</a
+	      > <a href="#v:knownPolytype" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:toPolyF" class="def"
+	      >toPolyF</a
+	      > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+	      >ReadKnownM</a
+	      > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+	      >FoldArgs</a
+	      > args res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+	      >FoldArgs</a
+	      > args <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	      >ExBudgetStream</a
+	      >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinRuntime</a
+	      > val <a href="src/PlutusCore.Builtin.Meaning.html#toPolyF" class="link"
+	      >Source</a
+	      > <a href="#v:toPolyF" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Convert the denotation of a builtin to its runtime counterpart.
+  The argument is in <code
+		><a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+		  >ReadKnownM</a
+		  ></code
+		>, because that's what we need to do:
+  passing the action returning the builtin application around until full saturation, which is
+  when the action actually gets run. </p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:KnownPolytype"
+	    >Instances</h4
+	    ><details id="i:KnownPolytype" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:KnownPolytype:KnownPolytype:1"
+		      ></span
+		      > <a href="PlutusCore-Builtin-Meaning.html#t:KnownMonotype" title="PlutusCore.Builtin.Meaning"
+		      >KnownMonotype</a
+		      > val args res &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:KnownPolytype" title="PlutusCore.Builtin.Meaning"
+		      >KnownPolytype</a
+		      > ('[] &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+		      >Some</a
+		      > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+		      >TyNameRep</a
+		      >]) val args res</span
+		    > <a href="src/PlutusCore.Builtin.Meaning.html#line-353" class="link"
+		    >Source</a
+		    > <a href="#t:KnownPolytype" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Once we've run out of type-level arguments, we start handling term-level ones.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:KnownPolytype:KnownPolytype:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Meaning.html"
+			>PlutusCore.Builtin.Meaning</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:knownPolytype"
+			  >knownPolytype</a
+			  > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+			  >TypeScheme</a
+			  > val args res <a href="src/PlutusCore.Builtin.Meaning.html#knownPolytype" class="link"
+			  >Source</a
+			  > <a href="#v:knownPolytype" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toPolyF"
+			  >toPolyF</a
+			  > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > args res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > args <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val <a href="src/PlutusCore.Builtin.Meaning.html#toPolyF" class="link"
+			  >Source</a
+			  > <a href="#v:toPolyF" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:KnownPolytype:KnownPolytype:2"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:KnownSymbol" title="GHC.TypeLits"
+		      >KnownSymbol</a
+		      > name, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:KnownNat" title="GHC.TypeNats"
+		      >KnownNat</a
+		      > uniq, <a href="PlutusCore-Builtin-KnownKind.html#t:KnownKind" title="PlutusCore.Builtin.KnownKind"
+		      >KnownKind</a
+		      > kind, <a href="PlutusCore-Builtin-Meaning.html#t:KnownPolytype" title="PlutusCore.Builtin.Meaning"
+		      >KnownPolytype</a
+		      > binds val args res) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:KnownPolytype" title="PlutusCore.Builtin.Meaning"
+		      >KnownPolytype</a
+		      > ('<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#v:Some" title="Data.Some.GADT"
+		      >Some</a
+		      > ('<a href="PlutusCore-Builtin-Polymorphism.html#v:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+		      >TyNameRep</a
+		      > name uniq &#8759; <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+		      >TyNameRep</a
+		      > kind) ': binds) val args res</span
+		    > <a href="src/PlutusCore.Builtin.Meaning.html#line-365" class="link"
+		    >Source</a
+		    > <a href="#t:KnownPolytype" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Every type-level argument becomes a <code
+		      ><a href="PlutusCore-Builtin-TypeScheme.html#v:TypeSchemeAll" title="PlutusCore.Builtin.TypeScheme"
+			>TypeSchemeAll</a
+			></code
+		      >.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:KnownPolytype:KnownPolytype:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Meaning.html"
+			>PlutusCore.Builtin.Meaning</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:knownPolytype"
+			  >knownPolytype</a
+			  > &#8759; <a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+			  >TypeScheme</a
+			  > val args res <a href="src/PlutusCore.Builtin.Meaning.html#knownPolytype" class="link"
+			  >Source</a
+			  > <a href="#v:knownPolytype" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toPolyF"
+			  >toPolyF</a
+			  > &#8759; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > (<a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > args res, <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > args <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  >) &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val <a href="src/PlutusCore.Builtin.Meaning.html#toPolyF" class="link"
+			  >Source</a
+			  > <a href="#v:toPolyF" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:ThrowOnBothEmpty" class="def"
+	    >ThrowOnBothEmpty</a
+	    > binds args isBuiltin a <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusCore.Builtin.Meaning.html#ThrowOnBothEmpty" class="link"
+	    >Source</a
+	    > <a href="#t:ThrowOnBothEmpty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Ensure a built-in function is not nullary and throw a nice error otherwise.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Builtin-Meaning.html#t:ThrowOnBothEmpty" title="PlutusCore.Builtin.Meaning"
+		  >ThrowOnBothEmpty</a
+		  > '[] '[] '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+		  >True</a
+		  > a = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		  >TypeError</a
+		  > (('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot;A built-in function must take at least one type or term argument&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v::-36--36-:" title="GHC.TypeLits"
+		  >:$$:</a
+		  > ((('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot;\8216&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v::-60--62-:" title="GHC.TypeLits"
+		  >:&lt;&gt;:</a
+		  > '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:ShowType" title="GHC.TypeLits"
+		  >ShowType</a
+		  > a) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v::-60--62-:" title="GHC.TypeLits"
+		  >:&lt;&gt;:</a
+		  > '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot;\8217 is a built-in type&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v::-60--62-:" title="GHC.TypeLits"
+		  >:&lt;&gt;:</a
+		  > '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot; so you can embed any of its values as a constant&quot;)) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v::-36--36-:" title="GHC.TypeLits"
+		  >:$$:</a
+		  > '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot;If you still want a built-in function, add a dummy \8216()\8217 argument&quot;)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Builtin-Meaning.html#t:ThrowOnBothEmpty" title="PlutusCore.Builtin.Meaning"
+		  >ThrowOnBothEmpty</a
+		  > '[] '[] '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+		  >False</a
+		  > a = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		  >TypeError</a
+		  > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot;A built-in function must take at least one type or term argument&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v::-36--36-:" title="GHC.TypeLits"
+		  >:$$:</a
+		  > '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot;To fix this error add a dummy \8216()\8217 argument&quot;)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusCore-Builtin-Meaning.html#t:ThrowOnBothEmpty" title="PlutusCore.Builtin.Meaning"
+		  >ThrowOnBothEmpty</a
+		  > _ _ _ _ = ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:MakeBuiltinMeaning" class="def"
+	    >MakeBuiltinMeaning</a
+	    > a val <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.Meaning.html#MakeBuiltinMeaning" class="link"
+	    >Source</a
+	    > <a href="#t:MakeBuiltinMeaning" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A function turned into a type class with exactly one fully general instance.
+We can't package up the constraints of <code
+	      ><a href="PlutusCore-Builtin-Meaning.html#v:makeBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		>makeBuiltinMeaning</a
+		></code
+	      > (see the instance) into a type or
+class synonym, because they contain a bunch of variables defined by <code
+	      >~</code
+	      > or determined via
+functional dependencies and neither class nor type definitions can handle that
+(see <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/-/issues/7100)"
+	      >https://gitlab.haskell.org/ghc/ghc/-/issues/7100)</a
+	      >. Inlining three lines of constraints
+whenever we need to call <code
+	      ><a href="PlutusCore-Builtin-Meaning.html#v:makeBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		>makeBuiltinMeaning</a
+		></code
+	      > over a non-concrete type is a bad option and this
+abstraction is free anyway, hence its existence.</p
+	    ><p
+	    >The <code
+	      >a</code
+	      > type variable goes first, because <code
+	      >makeBuiltinMeaning @A</code
+	      > is a common pattern. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:makeBuiltinMeaning" class="def"
+	      >makeBuiltinMeaning</a
+	      > &#8759; a &#8594; (cost &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+	      >FoldArgs</a
+	      > (<a href="PlutusCore-Builtin-Meaning.html#t:GetArgs" title="PlutusCore.Builtin.Meaning"
+	      >GetArgs</a
+	      > a) <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	      >ExBudgetStream</a
+	      >) &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinMeaning</a
+	      > val cost <a href="src/PlutusCore.Builtin.Meaning.html#makeBuiltinMeaning" class="link"
+	      >Source</a
+	      > <a href="#v:makeBuiltinMeaning" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Construct the meaning for a built-in function by automatically deriving its
+  <code
+		><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		  >TypeScheme</a
+		  ></code
+		>, given</p
+	      ><ol
+	      ><li value="1"
+		>the denotation of the builtin</li
+		><li value="2"
+		>an uninstantiated costing function </li
+		></ol
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MakeBuiltinMeaning"
+	    >Instances</h4
+	    ><details id="i:MakeBuiltinMeaning" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MakeBuiltinMeaning:MakeBuiltinMeaning:1"
+		      ></span
+		      > (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		      >UniOf</a
+		      > val, binds <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > uni ('[] &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+		      >Some</a
+		      > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+		      >TyNameRep</a
+		      >]) a, args <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Builtin-Meaning.html#t:GetArgs" title="PlutusCore.Builtin.Meaning"
+		      >GetArgs</a
+		      > a, a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+		      >FoldArgs</a
+		      > args res, <a href="PlutusCore-Builtin-Meaning.html#t:ThrowOnBothEmpty" title="PlutusCore.Builtin.Meaning"
+		      >ThrowOnBothEmpty</a
+		      > binds args (<a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > uni a) a, <a href="PlutusCore-Builtin-Elaborate.html#t:ElaborateFromTo" title="PlutusCore.Builtin.Elaborate"
+		      >ElaborateFromTo</a
+		      > uni 0 j val a, <a href="PlutusCore-Builtin-Meaning.html#t:KnownPolytype" title="PlutusCore.Builtin.Meaning"
+		      >KnownPolytype</a
+		      > binds val args res) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:MakeBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >MakeBuiltinMeaning</a
+		      > a val</span
+		    > <a href="src/PlutusCore.Builtin.Meaning.html#line-414" class="link"
+		    >Source</a
+		    > <a href="#t:MakeBuiltinMeaning" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MakeBuiltinMeaning:MakeBuiltinMeaning:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Meaning.html"
+			>PlutusCore.Builtin.Meaning</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeBuiltinMeaning"
+			  >makeBuiltinMeaning</a
+			  > &#8759; a &#8594; (cost &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:FoldArgs" title="PlutusCore.Builtin.Meaning"
+			  >FoldArgs</a
+			  > (<a href="PlutusCore-Builtin-Meaning.html#t:GetArgs" title="PlutusCore.Builtin.Meaning"
+			  >GetArgs</a
+			  > a) <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  >) &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinMeaning</a
+			  > val cost <a href="src/PlutusCore.Builtin.Meaning.html#makeBuiltinMeaning" class="link"
+			  >Source</a
+			  > <a href="#v:makeBuiltinMeaning" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toBuiltinRuntime" class="def"
+	    >toBuiltinRuntime</a
+	    > &#8759; cost &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinMeaning</a
+	    > val cost &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	    >BuiltinRuntime</a
+	    > val <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinRuntime" class="link"
+	    >Source</a
+	    > <a href="#v:toBuiltinRuntime" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a <code
+	      ><a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		>BuiltinMeaning</a
+		></code
+	      > to a <code
+	      ><a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		>BuiltinRuntime</a
+		></code
+	      > given a cost model.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toBuiltinsRuntime" class="def"
+	    >toBuiltinsRuntime</a
+	    > &#8759; (cost <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun, <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	    >HasMeaningIn</a
+	    > uni val) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; cost &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	    >BuiltinsRuntime</a
+	    > fun val <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinsRuntime" class="link"
+	    >Source</a
+	    > <a href="#v:toBuiltinsRuntime" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Calculate runtime info for all built-in functions given meanings of builtins (as a constraint),
+the semantics variant of the set of builtins and a cost model. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

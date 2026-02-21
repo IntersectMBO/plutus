@@ -1,0 +1,925 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Normalize.Internal</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Normalize.Internal.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Normalize.Internal</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >The internals of the normalizer.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:NormalizeTypeT"
+	      >NormalizeTypeT</a
+	      > m tyname uni ann a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MonadNormalizeType"
+	      >MonadNormalizeType</a
+	      > uni m = (<a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="Universe-Core.html#t:HasUniApply" title="Universe.Core"
+	      >HasUniApply</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><a href="#v:runNormalizeTypeT"
+	      >runNormalizeTypeT</a
+	      > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	      >NormalizeTypeT</a
+	      > m tyname uni ann a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:withExtendedTypeVarEnv"
+	      >withExtendedTypeVarEnv</a
+	      > &#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; tyname &#8594; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann) &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	      >NormalizeTypeT</a
+	      > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	      >NormalizeTypeT</a
+	      > m tyname uni ann a</li
+	    ><li class="src short"
+	    ><a href="#v:normalizeTypeM"
+	      >normalizeTypeM</a
+	      > &#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+	      >MonadNormalizeType</a
+	      > uni m) &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	      >NormalizeTypeT</a
+	      > m tyname uni ann (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann))</li
+	    ><li class="src short"
+	    ><a href="#v:substNormalizeTypeM"
+	      >substNormalizeTypeM</a
+	      > &#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+	      >MonadNormalizeType</a
+	      > uni m) &#8658; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann) &#8594; tyname &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	      >NormalizeTypeT</a
+	      > m tyname uni ann (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ann))</li
+	    ><li class="src short"
+	    ><a href="#v:normalizeTypesInM"
+	      >normalizeTypesInM</a
+	      > &#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+	      >MonadNormalizeType</a
+	      > uni m) &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	      >NormalizeTypeT</a
+	      > m tyname uni ann (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:NormalizeTypeT" class="def"
+	    >NormalizeTypeT</a
+	    > m tyname uni ann a <a href="src/PlutusCore.Normalize.Internal.html#NormalizeTypeT" class="link"
+	    >Source</a
+	    > <a href="#t:NormalizeTypeT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad transformer that type normalization runs in.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:NormalizeTypeT"
+	    >Instances</h4
+	    ><details id="i:NormalizeTypeT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NormalizeTypeT:MonadState:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+		      >MonadState</a
+		      > s m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+		      >MonadState</a
+		      > s (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:NormalizeTypeT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NormalizeTypeT:MonadState:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:get"
+			  >get</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann s <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:get" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:put"
+			  >put</a
+			  > &#8759; s &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann () <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:put" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:state"
+			  >state</a
+			  > &#8759; (s &#8594; (a, s)) &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:state" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NormalizeTypeT:Alternative:2"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Alternative" title="PlutusPrelude"
+		      >Alternative</a
+		      > m &#8658; <a href="PlutusPrelude.html#t:Alternative" title="PlutusPrelude"
+		      >Alternative</a
+		      > (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-93" class="link"
+		    >Source</a
+		    > <a href="#t:NormalizeTypeT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NormalizeTypeT:Alternative:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:empty"
+			  >empty</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:empty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--124--62-"
+			  >(&lt;|&gt;)</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--124--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:some"
+			  >some</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:some" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:many"
+			  >many</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:many" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NormalizeTypeT:Applicative:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-92" class="link"
+		    >Source</a
+		    > <a href="#t:NormalizeTypeT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NormalizeTypeT:Applicative:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann (a &#8594; b) &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NormalizeTypeT:Functor:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-91" class="link"
+		    >Source</a
+		    > <a href="#t:NormalizeTypeT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NormalizeTypeT:Functor:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NormalizeTypeT:Monad:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:NormalizeTypeT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NormalizeTypeT:Monad:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; (a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b) &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NormalizeTypeT:MonadPlus:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+		      >MonadPlus</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+		      >MonadPlus</a
+		      > (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:NormalizeTypeT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NormalizeTypeT:MonadPlus:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mzero"
+			  >mzero</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mzero" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mplus"
+			  >mplus</a
+			  > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mplus" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NormalizeTypeT:MonadQuote:7"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		      >NormalizeTypeT</a
+		      > m tyname uni ann)</span
+		    > <a href="src/PlutusCore.Normalize.Internal.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:NormalizeTypeT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NormalizeTypeT:MonadQuote:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Normalize-Internal.html"
+			>PlutusCore.Normalize.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+			  >NormalizeTypeT</a
+			  > m tyname uni ann a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MonadNormalizeType" class="def"
+	    >MonadNormalizeType</a
+	    > uni m = (<a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="Universe-Core.html#t:HasUniApply" title="Universe.Core"
+	    >HasUniApply</a
+	    > uni) <a href="src/PlutusCore.Normalize.Internal.html#MonadNormalizeType" class="link"
+	    >Source</a
+	    > <a href="#t:MonadNormalizeType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The constraints that type normalization requires.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runNormalizeTypeT" class="def"
+	    >runNormalizeTypeT</a
+	    > &#8759; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	    >NormalizeTypeT</a
+	    > m tyname uni ann a &#8594; m a <a href="src/PlutusCore.Normalize.Internal.html#runNormalizeTypeT" class="link"
+	    >Source</a
+	    > <a href="#v:runNormalizeTypeT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run a <code
+	      ><a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		>NormalizeTypeT</a
+		></code
+	      > computation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withExtendedTypeVarEnv" class="def"
+	    >withExtendedTypeVarEnv</a
+	    > &#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; tyname &#8594; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	    >Normalized</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann) &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	    >NormalizeTypeT</a
+	    > m tyname uni ann a &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	    >NormalizeTypeT</a
+	    > m tyname uni ann a <a href="src/PlutusCore.Normalize.Internal.html#withExtendedTypeVarEnv" class="link"
+	    >Source</a
+	    > <a href="#v:withExtendedTypeVarEnv" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Locally extend a <code
+	      >TypeVarEnv</code
+	      > in a <code
+	      ><a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		>NormalizeTypeT</a
+		></code
+	      > computation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normalizeTypeM" class="def"
+	    >normalizeTypeM</a
+	    > &#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+	    >MonadNormalizeType</a
+	    > uni m) &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	    >NormalizeTypeT</a
+	    > m tyname uni ann (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	    >Normalized</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni ann)) <a href="src/PlutusCore.Normalize.Internal.html#normalizeTypeM" class="link"
+	    >Source</a
+	    > <a href="#v:normalizeTypeM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Normalize a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		>Type</a
+		></code
+	      > in the <code
+	      ><a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		>NormalizeTypeT</a
+		></code
+	      > monad.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substNormalizeTypeM" class="def"
+	    >substNormalizeTypeM</a
+	    > <a href="src/PlutusCore.Normalize.Internal.html#substNormalizeTypeM" class="link"
+	    >Source</a
+	    > <a href="#v:substNormalizeTypeM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+		  >HasUnique</a
+		  > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+		  >TypeUnique</a
+		  >, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+		  >MonadNormalizeType</a
+		  > uni m)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann)</td
+		><td class="doc"
+		><pre
+		  >ty</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; tyname</td
+		><td class="doc"
+		><pre
+		  >name</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann</td
+		><td class="doc"
+		><pre
+		  >body</pre
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		  >NormalizeTypeT</a
+		  > m tyname uni ann (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > tyname uni ann))</td
+		><td class="doc"
+		><pre
+		  >NORM ([ty / name] body)</pre
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Substitute a type for a variable in a type and normalize in the <code
+	      ><a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+		>NormalizeTypeT</a
+		></code
+	      > monad.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normalizeTypesInM" class="def"
+	    >normalizeTypesInM</a
+	    > &#8759; (<a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+	    >MonadNormalizeType</a
+	    > uni m) &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusCore-Normalize-Internal.html#t:NormalizeTypeT" title="PlutusCore.Normalize.Internal"
+	    >NormalizeTypeT</a
+	    > m tyname uni ann (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusCore.Normalize.Internal.html#normalizeTypesInM" class="link"
+	    >Source</a
+	    > <a href="#v:normalizeTypesInM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Normalize every <code
+	      ><a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		>Type</a
+		></code
+	      > in a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

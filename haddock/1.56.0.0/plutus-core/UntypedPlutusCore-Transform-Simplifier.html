@@ -1,0 +1,775 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Transform.Simplifier</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Transform.Simplifier.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Transform.Simplifier</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:SimplifierT" class="def"
+	    >SimplifierT</a
+	    > name uni fun ann m a <a href="src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierT" class="link"
+	    >Source</a
+	    > <a href="#t:SimplifierT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:SimplifierT" class="def"
+		  >SimplifierT</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:getSimplifierT" class="def"
+			  >getSimplifierT</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+			  >StateT</a
+			  > (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierTrace</a
+			  > name uni fun ann) m a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SimplifierT"
+	    >Instances</h4
+	    ><details id="i:SimplifierT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SimplifierT:MonadTrans:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/Control-Monad-Morph.html#t:MonadTrans" title="Control.Monad.Morph"
+		      >MonadTrans</a
+		      > (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+		      >SimplifierT</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SimplifierT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SimplifierT:MonadTrans:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Simplifier.html"
+			>UntypedPlutusCore.Transform.Simplifier</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; m a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SimplifierT:Applicative:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+		      >SimplifierT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SimplifierT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SimplifierT:Applicative:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Simplifier.html"
+			>UntypedPlutusCore.Transform.Simplifier</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m (a &#8594; b) &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SimplifierT:Functor:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+		      >SimplifierT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SimplifierT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SimplifierT:Functor:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Simplifier.html"
+			>UntypedPlutusCore.Transform.Simplifier</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SimplifierT:Monad:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+		      >SimplifierT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SimplifierT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SimplifierT:Monad:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Simplifier.html"
+			>UntypedPlutusCore.Transform.Simplifier</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a &#8594; (a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b) &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SimplifierT:MonadQuote:5"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+		      >SimplifierT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:SimplifierT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SimplifierT:MonadQuote:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Simplifier.html"
+			>UntypedPlutusCore.Transform.Simplifier</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierT</a
+			  > name uni fun ann m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:SimplifierTrace" class="def"
+	    >SimplifierTrace</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierTrace" class="link"
+	    >Source</a
+	    > <a href="#t:SimplifierTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:SimplifierTrace" class="def"
+		  >SimplifierTrace</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:simplifierTrace" class="def"
+			  >simplifierTrace</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Simplifier.html#t:Simplification" title="UntypedPlutusCore.Transform.Simplifier"
+			  >Simplification</a
+			  > name uni fun a]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:SimplifierStage" class="def"
+	    >SimplifierStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierStage" class="link"
+	    >Source</a
+	    > <a href="#t:SimplifierStage" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FloatDelay" class="def"
+		  >FloatDelay</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ForceDelay" class="def"
+		  >ForceDelay</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ForceCaseDelay" class="def"
+		  >ForceCaseDelay</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CaseOfCase" class="def"
+		  >CaseOfCase</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CaseReduce" class="def"
+		  >CaseReduce</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Inline" class="def"
+		  >Inline</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CSE" class="def"
+		  >CSE</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Simplification" class="def"
+	    >Simplification</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Simplifier.html#Simplification" class="link"
+	    >Source</a
+	    > <a href="#t:Simplification" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Simplification" class="def"
+		  >Simplification</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:beforeAST" class="def"
+			  >beforeAST</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:stage" class="def"
+			  >stage</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+			  >SimplifierStage</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:afterAST" class="def"
+			  >afterAST</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runSimplifierT" class="def"
+	    >runSimplifierT</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun ann m a &#8594; m (a, <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierTrace</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Transform.Simplifier.html#runSimplifierT" class="link"
+	    >Source</a
+	    > <a href="#v:runSimplifierT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalSimplifierT" class="def"
+	    >evalSimplifierT</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun ann m a &#8594; m a <a href="src/UntypedPlutusCore.Transform.Simplifier.html#evalSimplifierT" class="link"
+	    >Source</a
+	    > <a href="#v:evalSimplifierT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execSimplifierT" class="def"
+	    >execSimplifierT</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun ann m a &#8594; m (<a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierTrace</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Transform.Simplifier.html#execSimplifierT" class="link"
+	    >Source</a
+	    > <a href="#v:execSimplifierT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Simplifier" class="def"
+	    >Simplifier</a
+	    > name uni fun ann = <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	    >Identity</a
+	    > <a href="src/UntypedPlutusCore.Transform.Simplifier.html#Simplifier" class="link"
+	    >Source</a
+	    > <a href="#t:Simplifier" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runSimplifier" class="def"
+	    >runSimplifier</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:Simplifier" title="UntypedPlutusCore.Transform.Simplifier"
+	    >Simplifier</a
+	    > name uni fun ann a &#8594; (a, <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierTrace</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Transform.Simplifier.html#runSimplifier" class="link"
+	    >Source</a
+	    > <a href="#v:runSimplifier" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalSimplifier" class="def"
+	    >evalSimplifier</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:Simplifier" title="UntypedPlutusCore.Transform.Simplifier"
+	    >Simplifier</a
+	    > name uni fun ann a &#8594; a <a href="src/UntypedPlutusCore.Transform.Simplifier.html#evalSimplifier" class="link"
+	    >Source</a
+	    > <a href="#v:evalSimplifier" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execSimplifier" class="def"
+	    >execSimplifier</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:Simplifier" title="UntypedPlutusCore.Transform.Simplifier"
+	    >Simplifier</a
+	    > name uni fun ann a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierTrace</a
+	    > name uni fun ann <a href="src/UntypedPlutusCore.Transform.Simplifier.html#execSimplifier" class="link"
+	    >Source</a
+	    > <a href="#v:execSimplifier" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:initSimplifierTrace" class="def"
+	    >initSimplifierTrace</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierTrace</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Simplifier.html#initSimplifierTrace" class="link"
+	    >Source</a
+	    > <a href="#v:initSimplifierTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:recordSimplification" class="def"
+	    >recordSimplification</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun a m () <a href="src/UntypedPlutusCore.Transform.Simplifier.html#recordSimplification" class="link"
+	    >Source</a
+	    > <a href="#v:recordSimplification" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

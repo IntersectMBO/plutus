@@ -1,0 +1,1735 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Encoder</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Encoder.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Encoder</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Encoder and encoding primitives</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Encoding"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:-60--62-"
+	      >(&lt;&gt;)</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+	      >Semigroup</a
+	      > a &#8658; a &#8594; a &#8594; a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:NumBits"
+	      >NumBits</a
+	      > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodersS"
+	      >encodersS</a
+	      > &#8759; [<a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      >] &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mempty"
+	      >mempty</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a &#8658; a</li
+	    ><li class="src short"
+	    ><a href="#v:strictEncoder"
+	      >strictEncoder</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	      >NumBits</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eTrueF"
+	      >eTrueF</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder-Types.html#t:Prim" title="PlutusCore.Flat.Encoder.Types"
+	      >Prim</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eFalseF"
+	      >eFalseF</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder-Types.html#t:Prim" title="PlutusCore.Flat.Encoder.Types"
+	      >Prim</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eFloat"
+	      >eFloat</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	      >Float</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eDouble"
+	      >eDouble</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eInteger"
+	      >eInteger</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eNatural"
+	      >eNatural</a
+	      > &#8759; <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+	      >Natural</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eWord16"
+	      >eWord16</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	      >Word16</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eWord32"
+	      >eWord32</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	      >Word32</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eWord64"
+	      >eWord64</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eWord8"
+	      >eWord8</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	      >Word8</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eBits"
+	      >eBits</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	      >NumBits</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	      >Word8</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eBits16"
+	      >eBits16</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	      >NumBits</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	      >Word16</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eFiller"
+	      >eFiller</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eBool"
+	      >eBool</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eTrue"
+	      >eTrue</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eFalse"
+	      >eFalse</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eBytes"
+	      >eBytes</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eUTF16"
+	      >eUTF16</a
+	      > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eLazyBytes"
+	      >eLazyBytes</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eShortBytes"
+	      >eShortBytes</a
+	      > &#8759; <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	      >ShortByteString</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eInt"
+	      >eInt</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eInt8"
+	      >eInt8</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+	      >Int8</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eInt16"
+	      >eInt16</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+	      >Int16</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eInt32"
+	      >eInt32</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+	      >Int32</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eInt64"
+	      >eInt64</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eWord"
+	      >eWord</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	      >Word</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eChar"
+	      >eChar</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+	      >Char</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodeArrayWith"
+	      >encodeArrayWith</a
+	      > &#8759; (t &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      >) &#8594; [t] &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodeListWith"
+	      >encodeListWith</a
+	      > &#8759; (t &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      >) &#8594; [t] &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Size"
+	      >Size</a
+	      > a = a &#8594; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	      >NumBits</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	      >NumBits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arrayBits"
+	      >arrayBits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	      >NumBits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sWord"
+	      >sWord</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	      >Word</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sWord8"
+	      >sWord8</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	      >Word8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sWord16"
+	      >sWord16</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	      >Word16</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sWord32"
+	      >sWord32</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	      >Word32</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sWord64"
+	      >sWord64</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sInt"
+	      >sInt</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sInt8"
+	      >sInt8</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+	      >Int8</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sInt16"
+	      >sInt16</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+	      >Int16</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sInt32"
+	      >sInt32</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+	      >Int32</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sInt64"
+	      >sInt64</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sNatural"
+	      >sNatural</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+	      >Natural</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sInteger"
+	      >sInteger</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sFloat"
+	      >sFloat</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	      >Float</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sDouble"
+	      >sDouble</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sChar"
+	      >sChar</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+	      >Char</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sBytes"
+	      >sBytes</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sLazyBytes"
+	      >sLazyBytes</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sShortBytes"
+	      >sShortBytes</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	      >ShortByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sUTF16"
+	      >sUTF16</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sFillerMax"
+	      >sFillerMax</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:sBool"
+	      >sBool</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sUTF8Max"
+	      >sUTF8Max</a
+	      > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	      >Size</a
+	      > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:eUTF8"
+	      >eUTF8</a
+	      > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	      >Encoding</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Encoding" class="def"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#Encoding" class="link"
+	    >Source</a
+	    > <a href="#t:Encoding" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Encoding"
+	    >Instances</h4
+	    ><details id="i:Encoding" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Encoding:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+		      >Encoding</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:Encoding" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Encoding:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Encoder-Strict.html"
+			>PlutusCore.Flat.Encoder.Strict</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  >] &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Encoding:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+		      >Encoding</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:Encoding" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Encoding:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Encoder-Strict.html"
+			>PlutusCore.Flat.Encoder.Strict</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Encoding:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+		      >Encoding</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:Encoding" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Encoding:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Encoder-Strict.html"
+			>PlutusCore.Flat.Encoder.Strict</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+			  >Encoding</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-60--62-" class="def"
+	    >(&lt;&gt;)</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+	    >Semigroup</a
+	    > a &#8658; a &#8594; a &#8594; a <span class="fixity"
+	    >infixr 6</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+	    >Source</a
+	    > <a href="#v:-60--62-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An associative operation.</p
+	    ><h4 class="subheading details-toggle-control details-toggle" data-details-id="ch:-60--62-0"
+	    >Examples</h4
+	    ><details id="ch:-60--62-0"
+	    ><summary class="hide-when-js-enabled"
+	      >Expand</summary
+	      ><pre class="screen"
+	      ><code class="prompt"
+		>&gt;&gt;&gt; </code
+		><strong class="userinput"
+		><code
+		  >[1,2,3] &lt;&gt; [4,5,6]
+</code
+		  ></strong
+		>[1,2,3,4,5,6]
+</pre
+	      ><pre class="screen"
+	      ><code class="prompt"
+		>&gt;&gt;&gt; </code
+		><strong class="userinput"
+		><code
+		  >Just [1, 2, 3] &lt;&gt; Just [4, 5, 6]
+</code
+		  ></strong
+		>Just [1,2,3,4,5,6]
+</pre
+	      ><pre class="screen"
+	      ><code class="prompt"
+		>&gt;&gt;&gt; </code
+		><strong class="userinput"
+		><code
+		  >putStr &quot;Hello, &quot; &lt;&gt; putStrLn &quot;World!&quot;
+</code
+		  ></strong
+		>Hello, World!
+</pre
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:NumBits" class="def"
+	    >NumBits</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Flat.Types.html#NumBits" class="link"
+	    >Source</a
+	    > <a href="#t:NumBits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Number of bits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodersS" class="def"
+	    >encodersS</a
+	    > &#8759; [<a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    >] &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#encodersS" class="link"
+	    >Source</a
+	    > <a href="#v:encodersS" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mempty" class="def"
+	    >mempty</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a &#8658; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+	    >Source</a
+	    > <a href="#v:mempty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Identity of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#v:mappend" title="Data.Monoid"
+		>mappend</a
+		></code
+	      ></p
+	    ><h4 class="subheading details-toggle-control details-toggle" data-details-id="ch:mempty0"
+	    >Examples</h4
+	    ><details id="ch:mempty0"
+	    ><summary class="hide-when-js-enabled"
+	      >Expand</summary
+	      ><pre class="screen"
+	      ><code class="prompt"
+		>&gt;&gt;&gt; </code
+		><strong class="userinput"
+		><code
+		  >&quot;Hello world&quot; &lt;&gt; mempty
+</code
+		  ></strong
+		>&quot;Hello world&quot;
+</pre
+	      ><pre class="screen"
+	      ><code class="prompt"
+		>&gt;&gt;&gt; </code
+		><strong class="userinput"
+		><code
+		  >mempty &lt;&gt; [1, 2, 3]
+</code
+		  ></strong
+		>[1,2,3]
+</pre
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:strictEncoder" class="def"
+	    >strictEncoder</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	    >NumBits</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#strictEncoder" class="link"
+	    >Source</a
+	    > <a href="#v:strictEncoder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Strict encoder</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eTrueF" class="def"
+	    >eTrueF</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder-Types.html#t:Prim" title="PlutusCore.Flat.Encoder.Types"
+	    >Prim</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Prim.html#eTrueF" class="link"
+	    >Source</a
+	    > <a href="#v:eTrueF" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>enc eTrueF
+</code
+		></strong
+	      >&quot;1&quot;
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eFalseF" class="def"
+	    >eFalseF</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder-Types.html#t:Prim" title="PlutusCore.Flat.Encoder.Types"
+	    >Prim</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Prim.html#eFalseF" class="link"
+	    >Source</a
+	    > <a href="#v:eFalseF" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>enc eFalseF
+</code
+		></strong
+	      >&quot;0&quot;
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eFloat" class="def"
+	    >eFloat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	    >Float</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eFloat" class="link"
+	    >Source</a
+	    > <a href="#v:eFloat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eDouble" class="def"
+	    >eDouble</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eDouble" class="link"
+	    >Source</a
+	    > <a href="#v:eDouble" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eInteger" class="def"
+	    >eInteger</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eInteger" class="link"
+	    >Source</a
+	    > <a href="#v:eInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eNatural" class="def"
+	    >eNatural</a
+	    > &#8759; <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+	    >Natural</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eNatural" class="link"
+	    >Source</a
+	    > <a href="#v:eNatural" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eWord16" class="def"
+	    >eWord16</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	    >Word16</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eWord16" class="link"
+	    >Source</a
+	    > <a href="#v:eWord16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eWord32" class="def"
+	    >eWord32</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	    >Word32</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eWord32" class="link"
+	    >Source</a
+	    > <a href="#v:eWord32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eWord64" class="def"
+	    >eWord64</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eWord64" class="link"
+	    >Source</a
+	    > <a href="#v:eWord64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eWord8" class="def"
+	    >eWord8</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	    >Word8</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eWord8" class="link"
+	    >Source</a
+	    > <a href="#v:eWord8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eBits" class="def"
+	    >eBits</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	    >NumBits</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	    >Word8</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eBits" class="link"
+	    >Source</a
+	    > <a href="#v:eBits" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eBits16" class="def"
+	    >eBits16</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	    >NumBits</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	    >Word16</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eBits16" class="link"
+	    >Source</a
+	    > <a href="#v:eBits16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eFiller" class="def"
+	    >eFiller</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eFiller" class="link"
+	    >Source</a
+	    > <a href="#v:eFiller" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eBool" class="def"
+	    >eBool</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eBool" class="link"
+	    >Source</a
+	    > <a href="#v:eBool" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eTrue" class="def"
+	    >eTrue</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eTrue" class="link"
+	    >Source</a
+	    > <a href="#v:eTrue" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eFalse" class="def"
+	    >eFalse</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eFalse" class="link"
+	    >Source</a
+	    > <a href="#v:eFalse" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eBytes" class="def"
+	    >eBytes</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eBytes" class="link"
+	    >Source</a
+	    > <a href="#v:eBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eUTF16" class="def"
+	    >eUTF16</a
+	    > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eUTF16" class="link"
+	    >Source</a
+	    > <a href="#v:eUTF16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eLazyBytes" class="def"
+	    >eLazyBytes</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	    >ByteString</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eLazyBytes" class="link"
+	    >Source</a
+	    > <a href="#v:eLazyBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eShortBytes" class="def"
+	    >eShortBytes</a
+	    > &#8759; <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	    >ShortByteString</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eShortBytes" class="link"
+	    >Source</a
+	    > <a href="#v:eShortBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eInt" class="def"
+	    >eInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eInt" class="link"
+	    >Source</a
+	    > <a href="#v:eInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eInt8" class="def"
+	    >eInt8</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+	    >Int8</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eInt8" class="link"
+	    >Source</a
+	    > <a href="#v:eInt8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eInt16" class="def"
+	    >eInt16</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+	    >Int16</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eInt16" class="link"
+	    >Source</a
+	    > <a href="#v:eInt16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eInt32" class="def"
+	    >eInt32</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+	    >Int32</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eInt32" class="link"
+	    >Source</a
+	    > <a href="#v:eInt32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eInt64" class="def"
+	    >eInt64</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	    >Int64</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eInt64" class="link"
+	    >Source</a
+	    > <a href="#v:eInt64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eWord" class="def"
+	    >eWord</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	    >Word</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eWord" class="link"
+	    >Source</a
+	    > <a href="#v:eWord" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eChar" class="def"
+	    >eChar</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+	    >Char</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eChar" class="link"
+	    >Source</a
+	    > <a href="#v:eChar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeArrayWith" class="def"
+	    >encodeArrayWith</a
+	    > &#8759; (t &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    >) &#8594; [t] &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#encodeArrayWith" class="link"
+	    >Source</a
+	    > <a href="#v:encodeArrayWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode as Array</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeListWith" class="def"
+	    >encodeListWith</a
+	    > &#8759; (t &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    >) &#8594; [t] &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#encodeListWith" class="link"
+	    >Source</a
+	    > <a href="#v:encodeListWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode as a List</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Size" class="def"
+	    >Size</a
+	    > a = a &#8594; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	    >NumBits</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	    >NumBits</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Types.html#Size" class="link"
+	    >Source</a
+	    > <a href="#t:Size" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add the maximum size in bits of the encoding of value a to a NumBits</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arrayBits" class="def"
+	    >arrayBits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:NumBits" title="PlutusCore.Flat.Encoder"
+	    >NumBits</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Size.html#arrayBits" class="link"
+	    >Source</a
+	    > <a href="#v:arrayBits" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sWord" class="def"
+	    >sWord</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word" title="Data.Word"
+	    >Word</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sWord" class="link"
+	    >Source</a
+	    > <a href="#v:sWord" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sWord8" class="def"
+	    >sWord8</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+	    >Word8</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sWord8" class="link"
+	    >Source</a
+	    > <a href="#v:sWord8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sWord16" class="def"
+	    >sWord16</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+	    >Word16</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sWord16" class="link"
+	    >Source</a
+	    > <a href="#v:sWord16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sWord32" class="def"
+	    >sWord32</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	    >Word32</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sWord32" class="link"
+	    >Source</a
+	    > <a href="#v:sWord32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sWord64" class="def"
+	    >sWord64</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sWord64" class="link"
+	    >Source</a
+	    > <a href="#v:sWord64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sInt" class="def"
+	    >sInt</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sInt" class="link"
+	    >Source</a
+	    > <a href="#v:sInt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sInt8" class="def"
+	    >sInt8</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+	    >Int8</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sInt8" class="link"
+	    >Source</a
+	    > <a href="#v:sInt8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sInt16" class="def"
+	    >sInt16</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+	    >Int16</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sInt16" class="link"
+	    >Source</a
+	    > <a href="#v:sInt16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sInt32" class="def"
+	    >sInt32</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+	    >Int32</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sInt32" class="link"
+	    >Source</a
+	    > <a href="#v:sInt32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sInt64" class="def"
+	    >sInt64</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	    >Int64</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sInt64" class="link"
+	    >Source</a
+	    > <a href="#v:sInt64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sNatural" class="def"
+	    >sNatural</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+	    >Natural</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sNatural" class="link"
+	    >Source</a
+	    > <a href="#v:sNatural" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sInteger" class="def"
+	    >sInteger</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sInteger" class="link"
+	    >Source</a
+	    > <a href="#v:sInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sFloat" class="def"
+	    >sFloat</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	    >Float</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sFloat" class="link"
+	    >Source</a
+	    > <a href="#v:sFloat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sDouble" class="def"
+	    >sDouble</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sDouble" class="link"
+	    >Source</a
+	    > <a href="#v:sDouble" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sChar" class="def"
+	    >sChar</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+	    >Char</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sChar" class="link"
+	    >Source</a
+	    > <a href="#v:sChar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sBytes" class="def"
+	    >sBytes</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sBytes" class="link"
+	    >Source</a
+	    > <a href="#v:sBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sLazyBytes" class="def"
+	    >sLazyBytes</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sLazyBytes" class="link"
+	    >Source</a
+	    > <a href="#v:sLazyBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sShortBytes" class="def"
+	    >sShortBytes</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="PlutusCore-Flat-Types.html#t:ShortByteString" title="PlutusCore.Flat.Types"
+	    >ShortByteString</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sShortBytes" class="link"
+	    >Source</a
+	    > <a href="#v:sShortBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sUTF16" class="def"
+	    >sUTF16</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sUTF16" class="link"
+	    >Source</a
+	    > <a href="#v:sUTF16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sFillerMax" class="def"
+	    >sFillerMax</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > a <a href="src/PlutusCore.Flat.Encoder.Strict.html#sFillerMax" class="link"
+	    >Source</a
+	    > <a href="#v:sFillerMax" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sBool" class="def"
+	    >sBool</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sBool" class="link"
+	    >Source</a
+	    > <a href="#v:sBool" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sUTF8Max" class="def"
+	    >sUTF8Max</a
+	    > &#8759; <a href="PlutusCore-Flat-Encoder.html#t:Size" title="PlutusCore.Flat.Encoder"
+	    >Size</a
+	    > <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#sUTF8Max" class="link"
+	    >Source</a
+	    > <a href="#v:sUTF8Max" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eUTF8" class="def"
+	    >eUTF8</a
+	    > &#8759; <a href="PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Flat-Encoder.html#t:Encoding" title="PlutusCore.Flat.Encoder"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Encoder.Strict.html#eUTF8" class="link"
+	    >Source</a
+	    > <a href="#v:eUTF8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

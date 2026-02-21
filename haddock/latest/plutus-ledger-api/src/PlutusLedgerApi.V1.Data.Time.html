@@ -1,0 +1,2944 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BlockArguments #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-comment"
+      >-- Otherwise we get a complaint about the 'fromIntegral'</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-comment"
+      >-- call in the generated instance of 'Integral' for 'Ada'</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-identities #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | UTCTime and UTCTime ranges.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.V1.Data.Time</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#DiffMilliSeconds"
+	><span class="hs-identifier"
+	  >DiffMilliSeconds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#fromMilliSeconds"
+	><span class="hs-identifier"
+	  >fromMilliSeconds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Data.Interval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#Interval"
+	><span class="hs-identifier"
+	  >Interval</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	><span class="hs-identifier"
+	  >HasBlueprintSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaInteger"
+	><span class="hs-identifier"
+	  >SchemaInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#emptyIntegerSchema"
+	><span class="hs-identifier"
+	  >emptyIntegerSchema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	><span class="hs-identifier"
+	  >SchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.TH.html#makeLift"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier"
+	  >pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | This is a length of time, as measured by a number of milliseconds.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="DiffMilliSeconds"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#DiffMilliSeconds"
+	  ><span class="hs-identifier hs-var"
+	    >DiffMilliSeconds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="DiffMilliSeconds"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#DiffMilliSeconds"
+	  ><span class="hs-identifier hs-var"
+	    >DiffMilliSeconds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681205660"
+      ><span id="local-6989586621681205664"
+	><span class="annot"
+	  ><span class="annottext"
+	    >DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; Eq DiffMilliSeconds
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+== :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$c/= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+/= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205671"
+      ><span id="local-6989586621681205675"
+	><span id="local-6989586621681205678"
+	  ><span id="local-6989586621681205682"
+	    ><span id="local-6989586621681205685"
+	      ><span id="local-6989586621681205688"
+		><span id="local-6989586621681205691"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq DiffMilliSeconds
+Eq DiffMilliSeconds =&gt;
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; Ord DiffMilliSeconds
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering
+compare :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering
+$c&lt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&lt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$c&lt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&lt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$c&gt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&gt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$c&gt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&gt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$cmax :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+max :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$cmin :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+min :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205695"
+      ><span id="local-6989586621681205701"
+	><span id="local-6989586621681205705"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; DiffMilliSeconds -&gt; ShowS
+[DiffMilliSeconds] -&gt; ShowS
+DiffMilliSeconds -&gt; String
+(Int -&gt; DiffMilliSeconds -&gt; ShowS)
+-&gt; (DiffMilliSeconds -&gt; String)
+-&gt; ([DiffMilliSeconds] -&gt; ShowS)
+-&gt; Show DiffMilliSeconds
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DiffMilliSeconds -&gt; ShowS
+showsPrec :: Int -&gt; DiffMilliSeconds -&gt; ShowS
+$cshow :: DiffMilliSeconds -&gt; String
+show :: DiffMilliSeconds -&gt; String
+$cshowList :: [DiffMilliSeconds] -&gt; ShowS
+showList :: [DiffMilliSeconds] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205709"
+      ><span id="local-6989586621681205711"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. DiffMilliSeconds -&gt; Rep DiffMilliSeconds x)
+-&gt; (forall x. Rep DiffMilliSeconds x -&gt; DiffMilliSeconds)
+-&gt; Generic DiffMilliSeconds
+forall x. Rep DiffMilliSeconds x -&gt; DiffMilliSeconds
+forall x. DiffMilliSeconds -&gt; Rep DiffMilliSeconds x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. DiffMilliSeconds -&gt; Rep DiffMilliSeconds x
+from :: forall x. DiffMilliSeconds -&gt; Rep DiffMilliSeconds x
+$cto :: forall x. Rep DiffMilliSeconds x -&gt; DiffMilliSeconds
+to :: forall x. Rep DiffMilliSeconds x -&gt; DiffMilliSeconds
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681205715"
+      ><span class="annot"
+	><span class="annottext"
+	  >DiffMilliSeconds -&gt; ()
+(DiffMilliSeconds -&gt; ()) -&gt; NFData DiffMilliSeconds
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: DiffMilliSeconds -&gt; ()
+rnf :: DiffMilliSeconds -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205730"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition DiffMilliSeconds
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205736"
+      ><span id="local-6989586621681205741"
+	><span id="local-6989586621681205745"
+	  ><span id="local-6989586621681205749"
+	    ><span id="local-6989586621681205753"
+	      ><span id="local-6989586621681205757"
+		><span id="local-6989586621681205761"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Integer -&gt; DiffMilliSeconds
+DiffMilliSeconds -&gt; DiffMilliSeconds
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (Integer -&gt; DiffMilliSeconds)
+-&gt; Num DiffMilliSeconds
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; Num a
+$c+ :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
++ :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$c- :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+- :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$c* :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+* :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$cnegate :: DiffMilliSeconds -&gt; DiffMilliSeconds
+negate :: DiffMilliSeconds -&gt; DiffMilliSeconds
+$cabs :: DiffMilliSeconds -&gt; DiffMilliSeconds
+abs :: DiffMilliSeconds -&gt; DiffMilliSeconds
+$csignum :: DiffMilliSeconds -&gt; DiffMilliSeconds
+signum :: DiffMilliSeconds -&gt; DiffMilliSeconds
+$cfromInteger :: Integer -&gt; DiffMilliSeconds
+fromInteger :: Integer -&gt; DiffMilliSeconds
+</span
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Num</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205767"
+      ><span class="annot"
+	><span class="annottext"
+	  >DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; AdditiveSemigroup DiffMilliSeconds
+forall a. (a -&gt; a -&gt; a) -&gt; AdditiveSemigroup a
+$c+ :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
++ :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveSemigroup"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >AdditiveSemigroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205776"
+      ><span class="annot"
+	><span class="annottext"
+	  >AdditiveSemigroup DiffMilliSeconds
+DiffMilliSeconds
+AdditiveSemigroup DiffMilliSeconds =&gt;
+DiffMilliSeconds -&gt; AdditiveMonoid DiffMilliSeconds
+forall a. AdditiveSemigroup a =&gt; a -&gt; AdditiveMonoid a
+$czero :: DiffMilliSeconds
+zero :: DiffMilliSeconds
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveMonoid"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >AdditiveMonoid</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205785"
+      ><span class="annot"
+	><span class="annottext"
+	  >AdditiveMonoid DiffMilliSeconds
+AdditiveMonoid DiffMilliSeconds =&gt;
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; AdditiveGroup DiffMilliSeconds
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+forall a. AdditiveMonoid a =&gt; (a -&gt; a -&gt; a) -&gt; AdditiveGroup a
+$c- :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+- :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveGroup"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >AdditiveGroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205792"
+      ><span id="local-6989586621681205797"
+	><span id="local-6989586621681205801"
+	  ><span id="local-6989586621681205805"
+	    ><span id="local-6989586621681205809"
+	      ><span id="local-6989586621681205813"
+		><span id="local-6989586621681205817"
+		  ><span id="local-6989586621681205821"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; DiffMilliSeconds
+DiffMilliSeconds -&gt; Int
+DiffMilliSeconds -&gt; [DiffMilliSeconds]
+DiffMilliSeconds -&gt; DiffMilliSeconds
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+(DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (Int -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; Int)
+-&gt; (DiffMilliSeconds -&gt; [DiffMilliSeconds])
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds])
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds])
+-&gt; (DiffMilliSeconds
+    -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds])
+-&gt; Enum DiffMilliSeconds
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: DiffMilliSeconds -&gt; DiffMilliSeconds
+succ :: DiffMilliSeconds -&gt; DiffMilliSeconds
+$cpred :: DiffMilliSeconds -&gt; DiffMilliSeconds
+pred :: DiffMilliSeconds -&gt; DiffMilliSeconds
+$ctoEnum :: Int -&gt; DiffMilliSeconds
+toEnum :: Int -&gt; DiffMilliSeconds
+$cfromEnum :: DiffMilliSeconds -&gt; Int
+fromEnum :: DiffMilliSeconds -&gt; Int
+$cenumFrom :: DiffMilliSeconds -&gt; [DiffMilliSeconds]
+enumFrom :: DiffMilliSeconds -&gt; [DiffMilliSeconds]
+$cenumFromThen :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+enumFromThen :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+$cenumFromTo :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+enumFromTo :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+$cenumFromThenTo :: DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+enumFromThenTo :: DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; [DiffMilliSeconds]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Haskell.Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205827"
+      ><span class="annot"
+	><span class="annottext"
+	  >DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; Eq DiffMilliSeconds
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+== :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205836"
+      ><span id="local-6989586621681205841"
+	><span id="local-6989586621681205845"
+	  ><span id="local-6989586621681205849"
+	    ><span id="local-6989586621681205853"
+	      ><span id="local-6989586621681205857"
+		><span id="local-6989586621681205861"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq DiffMilliSeconds
+Eq DiffMilliSeconds =&gt;
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; Ord DiffMilliSeconds
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering
+compare :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Ordering
+$c&lt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&lt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$c&lt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&lt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$c&gt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&gt; :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$c&gt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+&gt;= :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; Bool
+$cmax :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+max :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$cmin :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+min :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+</span
+		      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205871"
+      ><span class="annot"
+	><span class="annottext"
+	  >Num DiffMilliSeconds
+Ord DiffMilliSeconds
+(Num DiffMilliSeconds, Ord DiffMilliSeconds) =&gt;
+(DiffMilliSeconds -&gt; Rational) -&gt; Real DiffMilliSeconds
+DiffMilliSeconds -&gt; Rational
+forall a. (Num a, Ord a) =&gt; (a -&gt; Rational) -&gt; Real a
+$ctoRational :: DiffMilliSeconds -&gt; Rational
+toRational :: DiffMilliSeconds -&gt; Rational
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Real"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	    >Haskell.Real</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205882"
+      ><span id="local-6989586621681205887"
+	><span id="local-6989586621681205891"
+	  ><span id="local-6989586621681205895"
+	    ><span id="local-6989586621681205899"
+	      ><span id="local-6989586621681205903"
+		><span id="local-6989586621681205907"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Enum DiffMilliSeconds
+Real DiffMilliSeconds
+(Real DiffMilliSeconds, Enum DiffMilliSeconds) =&gt;
+(DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds)
+-&gt; (DiffMilliSeconds
+    -&gt; DiffMilliSeconds -&gt; (DiffMilliSeconds, DiffMilliSeconds))
+-&gt; (DiffMilliSeconds
+    -&gt; DiffMilliSeconds -&gt; (DiffMilliSeconds, DiffMilliSeconds))
+-&gt; (DiffMilliSeconds -&gt; Integer)
+-&gt; Integral DiffMilliSeconds
+DiffMilliSeconds -&gt; Integer
+DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; (DiffMilliSeconds, DiffMilliSeconds)
+DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+forall a.
+(Real a, Enum a) =&gt;
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; (a, a))
+-&gt; (a -&gt; a -&gt; (a, a))
+-&gt; (a -&gt; Integer)
+-&gt; Integral a
+$cquot :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+quot :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$crem :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+rem :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$cdiv :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+div :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$cmod :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+mod :: DiffMilliSeconds -&gt; DiffMilliSeconds -&gt; DiffMilliSeconds
+$cquotRem :: DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; (DiffMilliSeconds, DiffMilliSeconds)
+quotRem :: DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; (DiffMilliSeconds, DiffMilliSeconds)
+$cdivMod :: DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; (DiffMilliSeconds, DiffMilliSeconds)
+divMod :: DiffMilliSeconds
+-&gt; DiffMilliSeconds -&gt; (DiffMilliSeconds, DiffMilliSeconds)
+$ctoInteger :: DiffMilliSeconds -&gt; Integer
+toInteger :: DiffMilliSeconds -&gt; Integer
+</span
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Integral"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Integral</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205913"
+      ><span class="annot"
+	><span class="annottext"
+	  >DiffMilliSeconds -&gt; BuiltinData
+(DiffMilliSeconds -&gt; BuiltinData) -&gt; ToData DiffMilliSeconds
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: DiffMilliSeconds -&gt; BuiltinData
+toBuiltinData :: DiffMilliSeconds -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205920"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe DiffMilliSeconds
+(BuiltinData -&gt; Maybe DiffMilliSeconds)
+-&gt; FromData DiffMilliSeconds
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe DiffMilliSeconds
+fromBuiltinData :: BuiltinData -&gt; Maybe DiffMilliSeconds
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205927"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; DiffMilliSeconds
+(BuiltinData -&gt; DiffMilliSeconds)
+-&gt; UnsafeFromData DiffMilliSeconds
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; DiffMilliSeconds
+unsafeFromBuiltinData :: BuiltinData -&gt; DiffMilliSeconds
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205458"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#DiffMilliSeconds"
+	  ><span class="hs-identifier hs-type"
+	    >DiffMilliSeconds</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681205458"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681205939"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="#local-6989586621681205939"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; IntegerSchema -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; IntegerSchema -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaInteger"
+	><span class="hs-identifier hs-var"
+	  >SchemaInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;DiffMilliSeconds&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntegerSchema
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#emptyIntegerSchema"
+	><span class="hs-identifier hs-var"
+	  >emptyIntegerSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| POSIX time is measured as the number of /milliseconds/ since 1970-01-01T00:00:00Z.
+This is not the same as Haskell's `Data.Time.Clock.POSIX.POSIXTime` -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="POSIXTime"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	  ><span class="hs-identifier hs-var"
+	    >POSIXTime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="POSIXTime"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	  ><span class="hs-identifier hs-var"
+	    >POSIXTime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="getPOSIXTime"
+      ><span class="annot"
+	><span class="annottext"
+	  >POSIXTime -&gt; Integer
+</span
+	  ><a href="PlutusLedgerApi.V1.Data.Time.html#getPOSIXTime"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getPOSIXTime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681205945"
+      ><span id="local-6989586621681205948"
+	><span class="annot"
+	  ><span class="annottext"
+	    >POSIXTime -&gt; POSIXTime -&gt; Bool
+(POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool) -&gt; Eq POSIXTime
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: POSIXTime -&gt; POSIXTime -&gt; Bool
+== :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$c/= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+/= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205954"
+      ><span id="local-6989586621681205957"
+	><span id="local-6989586621681205960"
+	  ><span id="local-6989586621681205964"
+	    ><span id="local-6989586621681205967"
+	      ><span id="local-6989586621681205970"
+		><span id="local-6989586621681205973"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq POSIXTime
+Eq POSIXTime =&gt;
+(POSIXTime -&gt; POSIXTime -&gt; Ordering)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; Ord POSIXTime
+POSIXTime -&gt; POSIXTime -&gt; Bool
+POSIXTime -&gt; POSIXTime -&gt; Ordering
+POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: POSIXTime -&gt; POSIXTime -&gt; Ordering
+compare :: POSIXTime -&gt; POSIXTime -&gt; Ordering
+$c&lt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&lt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$c&lt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&lt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$c&gt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&gt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$c&gt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&gt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$cmax :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+max :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$cmin :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+min :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205976"
+      ><span id="local-6989586621681205980"
+	><span id="local-6989586621681205984"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; POSIXTime -&gt; ShowS
+[POSIXTime] -&gt; ShowS
+POSIXTime -&gt; String
+(Int -&gt; POSIXTime -&gt; ShowS)
+-&gt; (POSIXTime -&gt; String)
+-&gt; ([POSIXTime] -&gt; ShowS)
+-&gt; Show POSIXTime
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; POSIXTime -&gt; ShowS
+showsPrec :: Int -&gt; POSIXTime -&gt; ShowS
+$cshow :: POSIXTime -&gt; String
+show :: POSIXTime -&gt; String
+$cshowList :: [POSIXTime] -&gt; ShowS
+showList :: [POSIXTime] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205987"
+      ><span id="local-6989586621681205989"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. POSIXTime -&gt; Rep POSIXTime x)
+-&gt; (forall x. Rep POSIXTime x -&gt; POSIXTime) -&gt; Generic POSIXTime
+forall x. Rep POSIXTime x -&gt; POSIXTime
+forall x. POSIXTime -&gt; Rep POSIXTime x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. POSIXTime -&gt; Rep POSIXTime x
+from :: forall x. POSIXTime -&gt; Rep POSIXTime x
+$cto :: forall x. Rep POSIXTime x -&gt; POSIXTime
+to :: forall x. Rep POSIXTime x -&gt; POSIXTime
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681205992"
+      ><span class="annot"
+	><span class="annottext"
+	  >POSIXTime -&gt; ()
+(POSIXTime -&gt; ()) -&gt; NFData POSIXTime
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: POSIXTime -&gt; ()
+rnf :: POSIXTime -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206003"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition POSIXTime
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206008"
+      ><span class="annot"
+	><span class="annottext"
+	  >POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+(POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; AdditiveSemigroup POSIXTime
+forall a. (a -&gt; a -&gt; a) -&gt; AdditiveSemigroup a
+$c+ :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
++ :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveSemigroup"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >AdditiveSemigroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206015"
+      ><span class="annot"
+	><span class="annottext"
+	  >AdditiveSemigroup POSIXTime
+POSIXTime
+AdditiveSemigroup POSIXTime =&gt;
+POSIXTime -&gt; AdditiveMonoid POSIXTime
+forall a. AdditiveSemigroup a =&gt; a -&gt; AdditiveMonoid a
+$czero :: POSIXTime
+zero :: POSIXTime
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveMonoid"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >AdditiveMonoid</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206022"
+      ><span class="annot"
+	><span class="annottext"
+	  >AdditiveMonoid POSIXTime
+AdditiveMonoid POSIXTime =&gt;
+(POSIXTime -&gt; POSIXTime -&gt; POSIXTime) -&gt; AdditiveGroup POSIXTime
+POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+forall a. AdditiveMonoid a =&gt; (a -&gt; a -&gt; a) -&gt; AdditiveGroup a
+$c- :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+- :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveGroup"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >AdditiveGroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206027"
+      ><span class="annot"
+	><span class="annottext"
+	  >POSIXTime -&gt; POSIXTime -&gt; Bool
+(POSIXTime -&gt; POSIXTime -&gt; Bool) -&gt; Eq POSIXTime
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: POSIXTime -&gt; POSIXTime -&gt; Bool
+== :: POSIXTime -&gt; POSIXTime -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206034"
+      ><span id="local-6989586621681206038"
+	><span id="local-6989586621681206042"
+	  ><span id="local-6989586621681206046"
+	    ><span id="local-6989586621681206050"
+	      ><span id="local-6989586621681206054"
+		><span id="local-6989586621681206058"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq POSIXTime
+Eq POSIXTime =&gt;
+(POSIXTime -&gt; POSIXTime -&gt; Ordering)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; Bool)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; Ord POSIXTime
+POSIXTime -&gt; POSIXTime -&gt; Bool
+POSIXTime -&gt; POSIXTime -&gt; Ordering
+POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: POSIXTime -&gt; POSIXTime -&gt; Ordering
+compare :: POSIXTime -&gt; POSIXTime -&gt; Ordering
+$c&lt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&lt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$c&lt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&lt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$c&gt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&gt; :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$c&gt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+&gt;= :: POSIXTime -&gt; POSIXTime -&gt; Bool
+$cmax :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+max :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$cmin :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+min :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+</span
+		      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206063"
+      ><span id="local-6989586621681206068"
+	><span id="local-6989586621681206072"
+	  ><span id="local-6989586621681206076"
+	    ><span id="local-6989586621681206080"
+	      ><span id="local-6989586621681206084"
+		><span class="annot"
+		  ><span class="annottext"
+		    >Integer -&gt; POSIXTime
+POSIXTime -&gt; Integer
+POSIXTime -&gt; POSIXTime
+POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+(POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime)
+-&gt; (Integer -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; Integer)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; [POSIXTime])
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime])
+-&gt; Enum POSIXTime
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; (a -&gt; Integer)
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: POSIXTime -&gt; POSIXTime
+succ :: POSIXTime -&gt; POSIXTime
+$cpred :: POSIXTime -&gt; POSIXTime
+pred :: POSIXTime -&gt; POSIXTime
+$ctoEnum :: Integer -&gt; POSIXTime
+toEnum :: Integer -&gt; POSIXTime
+$cfromEnum :: POSIXTime -&gt; Integer
+fromEnum :: POSIXTime -&gt; Integer
+$cenumFromTo :: POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+enumFromTo :: POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+$cenumFromThenTo :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+enumFromThenTo :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+</span
+		    ><a href="../../plutus-tx/src/PlutusTx.Enum.Class.html#Enum"
+		    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		      >Enum</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206090"
+      ><span class="annot"
+	><span class="annottext"
+	  >POSIXTime -&gt; BuiltinData
+(POSIXTime -&gt; BuiltinData) -&gt; ToData POSIXTime
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: POSIXTime -&gt; BuiltinData
+toBuiltinData :: POSIXTime -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206095"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe POSIXTime
+(BuiltinData -&gt; Maybe POSIXTime) -&gt; FromData POSIXTime
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe POSIXTime
+fromBuiltinData :: BuiltinData -&gt; Maybe POSIXTime
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206100"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; POSIXTime
+(BuiltinData -&gt; POSIXTime) -&gt; UnsafeFromData POSIXTime
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; POSIXTime
+unsafeFromBuiltinData :: BuiltinData -&gt; POSIXTime
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206105"
+      ><span id="local-6989586621681206109"
+	><span id="local-6989586621681206113"
+	  ><span id="local-6989586621681206117"
+	    ><span id="local-6989586621681206121"
+	      ><span id="local-6989586621681206125"
+		><span id="local-6989586621681206129"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Integer -&gt; POSIXTime
+POSIXTime -&gt; POSIXTime
+POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+(POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime)
+-&gt; (Integer -&gt; POSIXTime)
+-&gt; Num POSIXTime
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; Num a
+$c+ :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
++ :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$c- :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+- :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$c* :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+* :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$cnegate :: POSIXTime -&gt; POSIXTime
+negate :: POSIXTime -&gt; POSIXTime
+$cabs :: POSIXTime -&gt; POSIXTime
+abs :: POSIXTime -&gt; POSIXTime
+$csignum :: POSIXTime -&gt; POSIXTime
+signum :: POSIXTime -&gt; POSIXTime
+$cfromInteger :: Integer -&gt; POSIXTime
+fromInteger :: Integer -&gt; POSIXTime
+</span
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Num</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206134"
+      ><span id="local-6989586621681206138"
+	><span id="local-6989586621681206142"
+	  ><span id="local-6989586621681206146"
+	    ><span id="local-6989586621681206150"
+	      ><span id="local-6989586621681206154"
+		><span id="local-6989586621681206158"
+		  ><span id="local-6989586621681206162"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; POSIXTime
+POSIXTime -&gt; Int
+POSIXTime -&gt; [POSIXTime]
+POSIXTime -&gt; POSIXTime
+POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+(POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime)
+-&gt; (Int -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; Int)
+-&gt; (POSIXTime -&gt; [POSIXTime])
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; [POSIXTime])
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; [POSIXTime])
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime])
+-&gt; Enum POSIXTime
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: POSIXTime -&gt; POSIXTime
+succ :: POSIXTime -&gt; POSIXTime
+$cpred :: POSIXTime -&gt; POSIXTime
+pred :: POSIXTime -&gt; POSIXTime
+$ctoEnum :: Int -&gt; POSIXTime
+toEnum :: Int -&gt; POSIXTime
+$cfromEnum :: POSIXTime -&gt; Int
+fromEnum :: POSIXTime -&gt; Int
+$cenumFrom :: POSIXTime -&gt; [POSIXTime]
+enumFrom :: POSIXTime -&gt; [POSIXTime]
+$cenumFromThen :: POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+enumFromThen :: POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+$cenumFromTo :: POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+enumFromTo :: POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+$cenumFromThenTo :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+enumFromThenTo :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime -&gt; [POSIXTime]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Haskell.Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206171"
+      ><span class="annot"
+	><span class="annottext"
+	  >Num POSIXTime
+Ord POSIXTime
+(Num POSIXTime, Ord POSIXTime) =&gt;
+(POSIXTime -&gt; Rational) -&gt; Real POSIXTime
+POSIXTime -&gt; Rational
+forall a. (Num a, Ord a) =&gt; (a -&gt; Rational) -&gt; Real a
+$ctoRational :: POSIXTime -&gt; Rational
+toRational :: POSIXTime -&gt; Rational
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Real"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	    >Haskell.Real</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206180"
+      ><span id="local-6989586621681206184"
+	><span id="local-6989586621681206188"
+	  ><span id="local-6989586621681206192"
+	    ><span id="local-6989586621681206196"
+	      ><span id="local-6989586621681206200"
+		><span id="local-6989586621681206204"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Enum POSIXTime
+Real POSIXTime
+(Real POSIXTime, Enum POSIXTime) =&gt;
+(POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; POSIXTime)
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; (POSIXTime, POSIXTime))
+-&gt; (POSIXTime -&gt; POSIXTime -&gt; (POSIXTime, POSIXTime))
+-&gt; (POSIXTime -&gt; Integer)
+-&gt; Integral POSIXTime
+POSIXTime -&gt; Integer
+POSIXTime -&gt; POSIXTime -&gt; (POSIXTime, POSIXTime)
+POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+forall a.
+(Real a, Enum a) =&gt;
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; (a, a))
+-&gt; (a -&gt; a -&gt; (a, a))
+-&gt; (a -&gt; Integer)
+-&gt; Integral a
+$cquot :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+quot :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$crem :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+rem :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$cdiv :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+div :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$cmod :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+mod :: POSIXTime -&gt; POSIXTime -&gt; POSIXTime
+$cquotRem :: POSIXTime -&gt; POSIXTime -&gt; (POSIXTime, POSIXTime)
+quotRem :: POSIXTime -&gt; POSIXTime -&gt; (POSIXTime, POSIXTime)
+$cdivMod :: POSIXTime -&gt; POSIXTime -&gt; (POSIXTime, POSIXTime)
+divMod :: POSIXTime -&gt; POSIXTime -&gt; (POSIXTime, POSIXTime)
+$ctoInteger :: POSIXTime -&gt; Integer
+toInteger :: POSIXTime -&gt; Integer
+</span
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Integral"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Integral</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681205467"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	  ><span class="hs-identifier hs-type"
+	    >POSIXTime</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681205467"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681206212"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; IntegerSchema -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; IntegerSchema -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaInteger"
+	><span class="hs-identifier hs-var"
+	  >SchemaInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;POSIXTime&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntegerSchema
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#emptyIntegerSchema"
+	><span class="hs-identifier hs-var"
+	  >emptyIntegerSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681206215"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	  ><span class="hs-identifier hs-type"
+	    >POSIXTime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681206223"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. POSIXTime -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier hs-type"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681206224"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681206224"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;POSIXTime&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Doc ann
+forall ann. Integer -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681206224"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | An 'Interval' of 'POSIXTime's.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="POSIXTimeRange"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTimeRange"
+	  ><span class="hs-identifier hs-var"
+	    >POSIXTimeRange</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Interval.html#Interval"
+	><span class="hs-identifier hs-type"
+	  >Interval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier hs-type"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Simple conversion from 'DiffMilliSeconds' to 'POSIXTime'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#fromMilliSeconds"
+	><span class="hs-identifier hs-type"
+	  >fromMilliSeconds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#DiffMilliSeconds"
+	><span class="hs-identifier hs-type"
+	  >DiffMilliSeconds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier hs-type"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="fromMilliSeconds"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromMilliSeconds :: DiffMilliSeconds -&gt; POSIXTime
+</span
+	  ><a href="PlutusLedgerApi.V1.Data.Time.html#fromMilliSeconds"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromMilliSeconds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#DiffMilliSeconds"
+	><span class="hs-identifier hs-type"
+	  >DiffMilliSeconds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681206225"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681206225"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; POSIXTime
+</span
+	><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier hs-var"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681206225"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#fromMilliSeconds"
+	><span class="hs-pragma hs-type"
+	  >fromMilliSeconds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-comment"
+      >-- TH Splices --------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621681206227"
+      ><span id="local-6989586621681206229"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >DiffMilliSeconds</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621681206357"
+      ><span id="local-6989586621681206359"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >POSIXTime</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

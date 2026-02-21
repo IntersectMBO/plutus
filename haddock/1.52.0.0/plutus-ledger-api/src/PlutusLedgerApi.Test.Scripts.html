@@ -1,0 +1,888 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Test.Scripts</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Scripts.html#uplcToScriptForEvaluation"
+	><span class="hs-identifier"
+	  >uplcToScriptForEvaluation</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Scripts.html#compiledCodeToScriptForEvaluation"
+	><span class="hs-identifier"
+	  >compiledCodeToScriptForEvaluation</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Example scripts</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Scripts.html#unitRedeemer"
+	><span class="hs-identifier"
+	  >unitRedeemer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Scripts.html#unitDatum"
+	><span class="hs-identifier"
+	  >unitDatum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Scripts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Code</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	><span class="hs-identifier"
+	  >CompiledCode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Scripts.html#uplcToScriptForEvaluation"
+	><span class="hs-identifier hs-type"
+	  >uplcToScriptForEvaluation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >UPLC.DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >UPLC.DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#ScriptDecodeError"
+	><span class="hs-identifier hs-type"
+	  >ScriptDecodeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#ScriptForEvaluation"
+	><span class="hs-identifier hs-type"
+	  >ScriptForEvaluation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="uplcToScriptForEvaluation"
+      ><span class="annot"
+	><span class="annottext"
+	  >uplcToScriptForEvaluation :: PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+-&gt; Either ScriptDecodeError ScriptForEvaluation
+</span
+	  ><a href="PlutusLedgerApi.Test.Scripts.html#uplcToScriptForEvaluation"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >uplcToScriptForEvaluation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679227118"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusLedgerLanguage
+</span
+	  ><a href="#local-6989586621679227118"
+	  ><span class="hs-identifier hs-var"
+	    >ll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679227119"
+      ><span class="annot"
+	><span class="annottext"
+	  >MajorProtocolVersion
+</span
+	  ><a href="#local-6989586621679227119"
+	  ><span class="hs-identifier hs-var"
+	    >pv</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; SerialisedScript
+-&gt; Either ScriptDecodeError ScriptForEvaluation
+forall (m :: * -&gt; *).
+MonadError ScriptDecodeError m =&gt;
+PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; SerialisedScript
+-&gt; m ScriptForEvaluation
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#deserialiseScript"
+	><span class="hs-identifier hs-var"
+	  >deserialiseScript</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="#local-6989586621679227118"
+	><span class="hs-identifier hs-var"
+	  >ll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="#local-6989586621679227119"
+	><span class="hs-identifier hs-var"
+	  >pv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SerialisedScript -&gt; Either ScriptDecodeError ScriptForEvaluation)
+-&gt; (Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript)
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+-&gt; Either ScriptDecodeError ScriptForEvaluation
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program DeBruijn DefaultUni DefaultFun () -&gt; SerialisedScript
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC"
+	><span class="hs-identifier hs-var"
+	  >serialiseUPLC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="local-6989586621679227098"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.Scripts.html#compiledCodeToScriptForEvaluation"
+	  ><span class="hs-identifier hs-type"
+	    >compiledCodeToScriptForEvaluation</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-24"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusLedgerLanguage</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-25"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	  ><span class="hs-identifier hs-type"
+	    >MajorProtocolVersion</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-26"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679227098"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-27"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	  ><span class="hs-identifier hs-type"
+	    >Either</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#ScriptDecodeError"
+	  ><span class="hs-identifier hs-type"
+	    >ScriptDecodeError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#ScriptForEvaluation"
+	  ><span class="hs-identifier hs-type"
+	    >ScriptForEvaluation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="compiledCodeToScriptForEvaluation"
+      ><span class="annot"
+	><span class="annottext"
+	  >compiledCodeToScriptForEvaluation :: forall a.
+PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; CompiledCode a
+-&gt; Either ScriptDecodeError ScriptForEvaluation
+</span
+	  ><a href="PlutusLedgerApi.Test.Scripts.html#compiledCodeToScriptForEvaluation"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compiledCodeToScriptForEvaluation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679227124"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusLedgerLanguage
+</span
+	  ><a href="#local-6989586621679227124"
+	  ><span class="hs-identifier hs-var"
+	    >ll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679227125"
+      ><span class="annot"
+	><span class="annottext"
+	  >MajorProtocolVersion
+</span
+	  ><a href="#local-6989586621679227125"
+	  ><span class="hs-identifier hs-var"
+	    >pv</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; SerialisedScript
+-&gt; Either ScriptDecodeError ScriptForEvaluation
+forall (m :: * -&gt; *).
+MonadError ScriptDecodeError m =&gt;
+PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; SerialisedScript
+-&gt; m ScriptForEvaluation
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#deserialiseScript"
+	><span class="hs-identifier hs-var"
+	  >deserialiseScript</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="#local-6989586621679227124"
+	><span class="hs-identifier hs-var"
+	  >ll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="#local-6989586621679227125"
+	><span class="hs-identifier hs-var"
+	  >pv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SerialisedScript -&gt; Either ScriptDecodeError ScriptForEvaluation)
+-&gt; (CompiledCode a -&gt; SerialisedScript)
+-&gt; CompiledCode a
+-&gt; Either ScriptDecodeError ScriptForEvaluation
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a -&gt; SerialisedScript
+forall a. CompiledCode a -&gt; SerialisedScript
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseCompiledCode"
+	><span class="hs-identifier hs-var"
+	  >serialiseCompiledCode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | @()@ as a datum.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Scripts.html#unitDatum"
+	><span class="hs-identifier hs-type"
+	  >unitDatum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-type"
+	  >Datum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="unitDatum"
+      ><span class="annot"
+	><span class="annottext"
+	  >unitDatum :: Datum
+</span
+	  ><a href="PlutusLedgerApi.Test.Scripts.html#unitDatum"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unitDatum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Datum
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-var"
+	  >Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Datum) -&gt; BuiltinData -&gt; Datum
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | @()@ as a redeemer.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Scripts.html#unitRedeemer"
+	><span class="hs-identifier hs-type"
+	  >unitRedeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-type"
+	  >Redeemer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="unitRedeemer"
+      ><span class="annot"
+	><span class="annottext"
+	  >unitRedeemer :: Redeemer
+</span
+	  ><a href="PlutusLedgerApi.Test.Scripts.html#unitRedeemer"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unitRedeemer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Redeemer
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-var"
+	  >Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Redeemer) -&gt; BuiltinData -&gt; Redeemer
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

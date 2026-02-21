@@ -1,0 +1,361 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.Evaluator.Base</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.55.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.Evaluator.Base.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.Evaluator.Base</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_ParseError_4" class="def"
+	    >T_ParseError_4</a
+	    > = <a href="../plutus-core/PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	    >ParserErrorBundle</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#T_ParseError_4" class="link"
+	    >Source</a
+	    > <a href="#t:T_ParseError_4" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_ParseError_4" class="def"
+	    >d_ParseError_4</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Evaluator.Base.html#d_ParseError_4" class="link"
+	    >Source</a
+	    > <a href="#v:d_ParseError_4" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_prettyPrintTm_6" class="def"
+	    >d_prettyPrintTm_6</a
+	    > &#8759; <a href="MAlonzo-Code-Raw.html#t:T_RawTm_32" title="MAlonzo.Code.Raw"
+	    >T_RawTm_32</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#d_prettyPrintTm_6" class="link"
+	    >Source</a
+	    > <a href="#v:d_prettyPrintTm_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_prettyPrintTy_8" class="def"
+	    >d_prettyPrintTy_8</a
+	    > &#8759; <a href="MAlonzo-Code-Raw.html#t:T_RawTy_2" title="MAlonzo.Code.Raw"
+	    >T_RawTy_2</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#d_prettyPrintTy_8" class="link"
+	    >Source</a
+	    > <a href="#v:d_prettyPrintTy_8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_prettyPrintUTm_10" class="def"
+	    >d_prettyPrintUTm_10</a
+	    > &#8759; <a href="MAlonzo-Code-RawU.html#t:T_Untyped_208" title="MAlonzo.Code.RawU"
+	    >T_Untyped_208</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#d_prettyPrintUTm_10" class="link"
+	    >Source</a
+	    > <a href="#v:d_prettyPrintUTm_10" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_ERROR_12" class="def"
+	    >d_ERROR_12</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Evaluator.Base.html#d_ERROR_12" class="link"
+	    >Source</a
+	    > <a href="#v:d_ERROR_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_ERROR_12" class="def"
+	    >T_ERROR_12</a
+	    > = <a href="Raw.html#t:ERROR" title="Raw"
+	    >ERROR</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#T_ERROR_12" class="link"
+	    >Source</a
+	    > <a href="#t:T_ERROR_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_typeError_14" class="def"
+	    >C_typeError_14</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="Raw.html#t:ERROR" title="Raw"
+	    >ERROR</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#C_typeError_14" class="link"
+	    >Source</a
+	    > <a href="#v:C_typeError_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_parseError_16" class="def"
+	    >C_parseError_16</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	    >ParserErrorBundle</a
+	    > &#8594; <a href="Raw.html#t:ERROR" title="Raw"
+	    >ERROR</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#C_parseError_16" class="link"
+	    >Source</a
+	    > <a href="#v:C_parseError_16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_scopeError_18" class="def"
+	    >C_scopeError_18</a
+	    > &#8759; <a href="Raw.html#t:ScopeError" title="Raw"
+	    >ScopeError</a
+	    > &#8594; <a href="Raw.html#t:ERROR" title="Raw"
+	    >ERROR</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#C_scopeError_18" class="link"
+	    >Source</a
+	    > <a href="#v:C_scopeError_18" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_runtimeError_20" class="def"
+	    >C_runtimeError_20</a
+	    > &#8759; <a href="Raw.html#t:RuntimeError" title="Raw"
+	    >RuntimeError</a
+	    > &#8594; <a href="Raw.html#t:ERROR" title="Raw"
+	    >ERROR</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#C_runtimeError_20" class="link"
+	    >Source</a
+	    > <a href="#v:C_runtimeError_20" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_jsonError_22" class="def"
+	    >C_jsonError_22</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="Raw.html#t:ERROR" title="Raw"
+	    >ERROR</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#C_jsonError_22" class="link"
+	    >Source</a
+	    > <a href="#v:C_jsonError_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_typeError_14" class="def"
+	    >check_typeError_14</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#check_typeError_14" class="link"
+	    >Source</a
+	    > <a href="#v:check_typeError_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_parseError_16" class="def"
+	    >check_parseError_16</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ParseError_4" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ParseError_4</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#check_parseError_16" class="link"
+	    >Source</a
+	    > <a href="#v:check_parseError_16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_scopeError_18" class="def"
+	    >check_scopeError_18</a
+	    > &#8759; <a href="MAlonzo-Code-Scoped.html#t:T_ScopeError_576" title="MAlonzo.Code.Scoped"
+	    >T_ScopeError_576</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#check_scopeError_18" class="link"
+	    >Source</a
+	    > <a href="#v:check_scopeError_18" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_runtimeError_20" class="def"
+	    >check_runtimeError_20</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_RuntimeError_348" title="MAlonzo.Code.Utils"
+	    >T_RuntimeError_348</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#check_runtimeError_20" class="link"
+	    >Source</a
+	    > <a href="#v:check_runtimeError_20" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_jsonError_22" class="def"
+	    >check_jsonError_22</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#check_jsonError_22" class="link"
+	    >Source</a
+	    > <a href="#v:check_jsonError_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_ERROR_12" class="def"
+	    >cover_ERROR_12</a
+	    > &#8759; <a href="Raw.html#t:ERROR" title="Raw"
+	    >ERROR</a
+	    > &#8594; () <a href="src/MAlonzo.Code.Evaluator.Base.html#cover_ERROR_12" class="link"
+	    >Source</a
+	    > <a href="#v:cover_ERROR_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_uglyTypeError_24" class="def"
+	    >d_uglyTypeError_24</a
+	    > &#8759; <a href="MAlonzo-Code-Check.html#t:T_TypeError_12" title="MAlonzo.Code.Check"
+	    >T_TypeError_12</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#d_uglyTypeError_24" class="link"
+	    >Source</a
+	    > <a href="#v:d_uglyTypeError_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_reportError_66" class="def"
+	    >d_reportError_66</a
+	    > &#8759; <a href="MAlonzo-Code-Evaluator-Base.html#t:T_ERROR_12" title="MAlonzo.Code.Evaluator.Base"
+	    >T_ERROR_12</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#d_reportError_66" class="link"
+	    >Source</a
+	    > <a href="#v:d_reportError_66" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_maxsteps_72" class="def"
+	    >d_maxsteps_72</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Evaluator.Base.html#d_maxsteps_72" class="link"
+	    >Source</a
+	    > <a href="#v:d_maxsteps_72" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

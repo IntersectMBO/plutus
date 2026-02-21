@@ -1,0 +1,2685 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Cardano.Constitution.Config.Types</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >cardano-constitution-1.52.0.0: Cardano's Constitution</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Cardano.Constitution.Config.Types.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Cardano.Constitution.Config.Types</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PredKey"
+	      >PredKey</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:MinValue"
+		  >MinValue</a
+		  ></li
+		><li
+		>| <a href="#v:MaxValue"
+		  >MaxValue</a
+		  ></li
+		><li
+		>| <a href="#v:NotEqual"
+		  >NotEqual</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Predicate"
+	      >Predicate</a
+	      > v = (<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+	      >PredKey</a
+	      >, [v])</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Predicates"
+	      >Predicates</a
+	      > v = <a href="#v:Predicates"
+	      >Predicates</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unPredicates"
+		  >unPredicates</a
+		  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:Predicate" title="Cardano.Constitution.Config.Types"
+		  >Predicate</a
+		  > v]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PredMeaning"
+	      >PredMeaning</a
+	      > a = <a href="../plutus-tx/PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+	      >Ord</a
+	      > a &#8658; a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Param"
+	      >Param</a
+	      > = (<a href="Cardano-Constitution-Config-Types.html#t:ParamKey" title="Cardano.Constitution.Config.Types"
+	      >ParamKey</a
+	      >, <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+	      >ParamValue</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:ParamKey"
+	      >ParamKey</a
+	      > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ParamValue"
+	      >ParamValue</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:ParamInteger"
+		  >ParamInteger</a
+		  > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		  >Predicates</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  >)</li
+		><li
+		>| <a href="#v:ParamRational"
+		  >ParamRational</a
+		  > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		  >Predicates</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V3.html#t:Rational" title="PlutusLedgerApi.V3"
+		  >Rational</a
+		  >)</li
+		><li
+		>| <a href="#v:ParamList"
+		  >ParamList</a
+		  > [<a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+		  >ParamValue</a
+		  >]</li
+		><li
+		>| <a href="#v:ParamAny"
+		  >ParamAny</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ConstitutionConfig"
+	      >ConstitutionConfig</a
+	      > = <a href="#v:ConstitutionConfig"
+	      >ConstitutionConfig</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unConstitutionConfig"
+		  >unConstitutionConfig</a
+		  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:Param" title="Cardano.Constitution.Config.Types"
+		  >Param</a
+		  >]</li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PredKey" class="def"
+	    >PredKey</a
+	    > <a href="src/Cardano.Constitution.Config.Types.html#PredKey" class="link"
+	    >Source</a
+	    > <a href="#t:PredKey" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The &quot;unresolved&quot; Predicate names, as read from JSON. At runtime, these PredKeys
+ will each be resolved to actual <code
+	      ><a href="Cardano-Constitution-Config-Types.html#t:PredMeaning" title="Cardano.Constitution.Config.Types"
+		>PredMeaning</a
+		></code
+	      > functions.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MinValue" class="def"
+		  >MinValue</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MaxValue" class="def"
+		  >MaxValue</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:NotEqual" class="def"
+		  >NotEqual</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PredKey"
+	    >Instances</h4
+	    ><details id="i:PredKey" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.FromJSON.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:FromJSON" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-FromJSON.html"
+			>Cardano.Constitution.Config.Instance.FromJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:FromJSONKey:2"
+		      ></span
+		      > FromJSONKey <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:FromJSONKey:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-FromJSON.html"
+			>Cardano.Constitution.Config.Instance.FromJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromJSONKey"
+			  >fromJSONKey</a
+			  > &#8759; FromJSONKeyFunction <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromJSONKeyList"
+			  >fromJSONKeyList</a
+			  > &#8759; FromJSONKeyFunction [<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  >]</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Bounded:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Bounded:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Enum:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Enum:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; [<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; [<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; [<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; [<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Generic:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Generic:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > x &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Show:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Show:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Eq:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Eq:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Ord:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Ord:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Eq:9"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Eq:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Lift:10"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-15" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Lift:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Lift:11"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Lift:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Typeable:12"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-15" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Typeable:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			  >PredKey</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PredKey:Rep:13"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		      >PredKey</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:PredKey" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PredKey:Rep:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+			>PredKey</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;PredKey&quot; &quot;Cardano.Constitution.Config.Types&quot; &quot;cardano-constitution-1.52.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MinValue&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MaxValue&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;NotEqual&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Predicate" class="def"
+	    >Predicate</a
+	    > v = (<a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+	    >PredKey</a
+	    >, [v]) <a href="src/Cardano.Constitution.Config.Types.html#Predicate" class="link"
+	    >Source</a
+	    > <a href="#t:Predicate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Polymorphic over the values. In reality, the value v is an Tx.Integer or Tx.Rational</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Predicates" class="def"
+	    >Predicates</a
+	    > v <a href="src/Cardano.Constitution.Config.Types.html#Predicates" class="link"
+	    >Source</a
+	    > <a href="#t:Predicates" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >newtype so we can overload FromJSON</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Predicates" class="def"
+		  >Predicates</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unPredicates" class="def"
+			  >unPredicates</a
+			  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:Predicate" title="Cardano.Constitution.Config.Types"
+			  >Predicate</a
+			  > v]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Predicates"
+	    >Instances</h4
+	    ><details id="i:Predicates" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Predicates:Lift:1"
+		      ></span
+		      > (<a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > predValue, <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > predValue) &#8658; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		      >Predicates</a
+		      > predValue)</span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-17" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Predicates:Lift:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > predValue &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Predicates:Lift:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > v &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		      >Predicates</a
+		      > v &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:Predicates" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Predicates:Lift:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v) <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Predicates:FromJSON:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		      >Predicates</a
+		      > a)</span
+		    > <a href="src/Cardano.Constitution.Config.Instance.FromJSON.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:FromJSON" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Predicates:FromJSON:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-FromJSON.html"
+			>Cardano.Constitution.Config.Instance.FromJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > a)</p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > a]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > a)</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Predicates:Show:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > v &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		      >Predicates</a
+		      > v)</span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:Predicates" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Predicates:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Predicates:Eq:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > v &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		      >Predicates</a
+		      > v)</span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:Predicates" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Predicates:Eq:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Predicates:Typeable:6"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		      >Predicates</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-20" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Predicates:Typeable:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+			  >Predicates</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PredMeaning" class="def"
+	    >PredMeaning</a
+	    > a <a href="src/Cardano.Constitution.Config.Types.html#PredMeaning" class="link"
+	    >Source</a
+	    > <a href="#t:PredMeaning" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&nbsp;= <a href="../plutus-tx/PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		  >Ord</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; a</td
+		><td class="doc"
+		><p
+		  >the expected value, supplied from the config (json)</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc"
+		><p
+		  >the proposed value, taken from the ScriptContext</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >True means the proposed value meets the expectations.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >The &quot;meaning&quot; of a predicate, resolved from a <code
+	      ><a href="Cardano-Constitution-Config-Types.html#t:PredKey" title="Cardano.Constitution.Config.Types"
+		>PredKey</a
+		></code
+	      > (a string in JSON)
+ to a Tx binary predicate function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Param" class="def"
+	    >Param</a
+	    > = (<a href="Cardano-Constitution-Config-Types.html#t:ParamKey" title="Cardano.Constitution.Config.Types"
+	    >ParamKey</a
+	    >, <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+	    >ParamValue</a
+	    >) <a href="src/Cardano.Constitution.Config.Types.html#Param" class="link"
+	    >Source</a
+	    > <a href="#t:Param" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:ParamKey" class="def"
+	    >ParamKey</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/Cardano.Constitution.Config.Types.html#ParamKey" class="link"
+	    >Source</a
+	    > <a href="#t:ParamKey" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Promised to be a stable identifier (stable at least for a whole cardano era)</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ParamValue" class="def"
+	    >ParamValue</a
+	    > <a href="src/Cardano.Constitution.Config.Types.html#ParamValue" class="link"
+	    >Source</a
+	    > <a href="#t:ParamValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ParamInteger" class="def"
+		  >ParamInteger</a
+		  > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		  >Predicates</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ParamRational" class="def"
+		  >ParamRational</a
+		  > (<a href="Cardano-Constitution-Config-Types.html#t:Predicates" title="Cardano.Constitution.Config.Types"
+		  >Predicates</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V3.html#t:Rational" title="PlutusLedgerApi.V3"
+		  >Rational</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ParamList" class="def"
+		  >ParamList</a
+		  > [<a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+		  >ParamValue</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ParamAny" class="def"
+		  >ParamAny</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ParamValue"
+	    >Instances</h4
+	    ><details id="i:ParamValue" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParamValue:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+		      >ParamValue</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:ParamValue" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParamValue:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParamValue:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+		      >ParamValue</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:ParamValue" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParamValue:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParamValue:Lift:3"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+		      >ParamValue</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-21" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParamValue:Lift:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParamValue:Lift:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+		      >ParamValue</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:ParamValue" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParamValue:Lift:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParamValue:Typeable:5"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+		      >ParamValue</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-21" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParamValue:Typeable:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:ParamValue" title="Cardano.Constitution.Config.Types"
+			  >ParamValue</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ConstitutionConfig" class="def"
+	    >ConstitutionConfig</a
+	    > <a href="src/Cardano.Constitution.Config.Types.html#ConstitutionConfig" class="link"
+	    >Source</a
+	    > <a href="#t:ConstitutionConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >See Note [Manually constructing a Configuration value]</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ConstitutionConfig" class="def"
+		  >ConstitutionConfig</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unConstitutionConfig" class="def"
+			  >unConstitutionConfig</a
+			  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:Param" title="Cardano.Constitution.Config.Types"
+			  >Param</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ConstitutionConfig"
+	    >Instances</h4
+	    ><details id="i:ConstitutionConfig" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstitutionConfig:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+		      >ConstitutionConfig</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.FromJSON.html#line-60" class="link"
+		    >Source</a
+		    > <a href="#t:FromJSON" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstitutionConfig:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-FromJSON.html"
+			>Cardano.Constitution.Config.Instance.FromJSON</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstitutionConfig:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+		      >ConstitutionConfig</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:ConstitutionConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstitutionConfig:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstitutionConfig:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+		      >ConstitutionConfig</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:ConstitutionConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstitutionConfig:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstitutionConfig:Lift:4"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+		      >ConstitutionConfig</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-22" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstitutionConfig:Lift:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstitutionConfig:Lift:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+		      >ConstitutionConfig</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Types.html#line-81" class="link"
+		    >Source</a
+		    > <a href="#t:ConstitutionConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstitutionConfig:Lift:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Types.html"
+			>Cardano.Constitution.Config.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstitutionConfig:Typeable:6"
+		      ></span
+		      > <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+		      >ConstitutionConfig</a
+		      ></span
+		    > <a href="src/Cardano.Constitution.Config.Instance.TxLift.html#line-22" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstitutionConfig:Typeable:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Cardano-Constitution-Config-Instance-TxLift.html"
+			>Cardano.Constitution.Config.Instance.TxLift</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="Cardano-Constitution-Config-Types.html#t:ConstitutionConfig" title="Cardano.Constitution.Config.Types"
+			  >ConstitutionConfig</a
+			  > &#8594; <a href="../plutus-tx/PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="../../plutus-tx/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Lift:Lift:1"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		  >Lift</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V3.html#t:Rational" title="PlutusLedgerApi.V3"
+		  >Rational</a
+		  ></span
+		> <a href="src/Cardano.Constitution.Config.Types.html#line-85" class="link"
+		>Source</a
+		> <a href="#v:-36-fLiftBoxedRepRational" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Lift:Lift:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:lift"
+		      >lift</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+		      >Quote</a
+		      > m &#8658; <a href="../plutus-ledger-api/PlutusLedgerApi-V3.html#t:Rational" title="PlutusLedgerApi.V3"
+		      >Rational</a
+		      > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+		      >Exp</a
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:lift" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:liftTyped"
+		      >liftTyped</a
+		      > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+		      >Quote</a
+		      > m &#8658; <a href="../plutus-ledger-api/PlutusLedgerApi-V3.html#t:Rational" title="PlutusLedgerApi.V3"
+		      >Rational</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+		      >Code</a
+		      > m <a href="../plutus-ledger-api/PlutusLedgerApi-V3.html#t:Rational" title="PlutusLedgerApi.V3"
+		      >Rational</a
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:liftTyped" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

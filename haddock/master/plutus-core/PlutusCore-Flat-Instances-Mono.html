@@ -1,0 +1,2360 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Instances.Mono</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Instances.Mono.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Instances.Mono</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:sizeSequence"
+	      >sizeSequence</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+	      >IsSequence</a
+	      > mono, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > mono)) &#8658; mono &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	      >NumBits</a
+	      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	      >NumBits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodeSequence"
+	      >encodeSequence</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > mono), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:MonoFoldable" title="Data.MonoTraversable"
+	      >MonoFoldable</a
+	      > mono) &#8658; mono &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeSequence"
+	      >decodeSequence</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > b), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+	      >IsSequence</a
+	      > b) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	      >Get</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:sizeList"
+	      >sizeList</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:MonoFoldable" title="Data.MonoTraversable"
+	      >MonoFoldable</a
+	      > mono, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > mono)) &#8658; mono &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	      >NumBits</a
+	      > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	      >NumBits</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:encodeList"
+	      >encodeList</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > mono), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:MonoFoldable" title="Data.MonoTraversable"
+	      >MonoFoldable</a
+	      > mono) &#8658; mono &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeList"
+	      >decodeList</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+	      >IsSequence</a
+	      > b, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > b)) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	      >Get</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:sizeSet"
+	      >sizeSet</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsSet" title="Data.Containers"
+	      >IsSet</a
+	      > set, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > set)) &#8658; <a href="PlutusCore-Flat-Encoder-Types.html#t:Size" title="PlutusCore.Flat.Encoder.Types"
+	      >Size</a
+	      > set</li
+	    ><li class="src short"
+	    ><a href="#v:encodeSet"
+	      >encodeSet</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsSet" title="Data.Containers"
+	      >IsSet</a
+	      > set, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > set)) &#8658; set &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeSet"
+	      >decodeSet</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsSet" title="Data.Containers"
+	      >IsSet</a
+	      > set, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	      >Element</a
+	      > set)) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	      >Get</a
+	      > set</li
+	    ><li class="src short"
+	    ><a href="#v:sizeMap"
+	      >sizeMap</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:ContainerKey" title="Data.Containers"
+	      >ContainerKey</a
+	      > r), <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:MapValue" title="Data.Containers"
+	      >MapValue</a
+	      > r), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsMap" title="Data.Containers"
+	      >IsMap</a
+	      > r) &#8658; <a href="PlutusCore-Flat-Encoder-Types.html#t:Size" title="PlutusCore.Flat.Encoder.Types"
+	      >Size</a
+	      > r</li
+	    ><li class="src short"
+	    ><a href="#v:encodeMap"
+	      >encodeMap</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:ContainerKey" title="Data.Containers"
+	      >ContainerKey</a
+	      > map), <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:MapValue" title="Data.Containers"
+	      >MapValue</a
+	      > map), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsMap" title="Data.Containers"
+	      >IsMap</a
+	      > map) &#8658; map &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	      >Encoding</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:decodeMap"
+	      >decodeMap</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:ContainerKey" title="Data.Containers"
+	      >ContainerKey</a
+	      > map), <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:MapValue" title="Data.Containers"
+	      >MapValue</a
+	      > map), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsMap" title="Data.Containers"
+	      >IsMap</a
+	      > map) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	      >Get</a
+	      > map</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:AsArray"
+	      >AsArray</a
+	      > a = <a href="#v:AsArray"
+	      >AsArray</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unArray"
+		  >unArray</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:AsList"
+	      >AsList</a
+	      > a = <a href="#v:AsList"
+	      >AsList</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unList"
+		  >unList</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:AsSet"
+	      >AsSet</a
+	      > a = <a href="#v:AsSet"
+	      >AsSet</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unSet"
+		  >unSet</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:AsMap"
+	      >AsMap</a
+	      > a = <a href="#v:AsMap"
+	      >AsMap</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unMap"
+		  >unMap</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sizeSequence" class="def"
+	    >sizeSequence</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+	    >IsSequence</a
+	    > mono, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > mono)) &#8658; mono &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	    >NumBits</a
+	    > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	    >NumBits</a
+	    > <a href="src/PlutusCore.Flat.Instances.Mono.html#sizeSequence" class="link"
+	    >Source</a
+	    > <a href="#v:sizeSequence" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Calculate size of an instance of IsSequence as the sum:</p
+	    ><ul
+	    ><li
+	      >of the size of all the elements</li
+	      ><li
+	      >plus the size of the array constructors (1 byte every 255 elements plus one final byte) </li
+	      ></ul
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeSequence" class="def"
+	    >encodeSequence</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > mono), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:MonoFoldable" title="Data.MonoTraversable"
+	    >MonoFoldable</a
+	    > mono) &#8658; mono &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Instances.Mono.html#encodeSequence" class="link"
+	    >Source</a
+	    > <a href="#v:encodeSequence" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode an instance of IsSequence, as an array</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeSequence" class="def"
+	    >decodeSequence</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > b), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+	    >IsSequence</a
+	    > b) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	    >Get</a
+	    > b <a href="src/PlutusCore.Flat.Instances.Mono.html#decodeSequence" class="link"
+	    >Source</a
+	    > <a href="#v:decodeSequence" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode an instance of IsSequence, as an array</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sizeList" class="def"
+	    >sizeList</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:MonoFoldable" title="Data.MonoTraversable"
+	    >MonoFoldable</a
+	    > mono, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > mono)) &#8658; mono &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	    >NumBits</a
+	    > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	    >NumBits</a
+	    > <a href="src/PlutusCore.Flat.Instances.Mono.html#sizeList" class="link"
+	    >Source</a
+	    > <a href="#v:sizeList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeList" class="def"
+	    >encodeList</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > mono), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:MonoFoldable" title="Data.MonoTraversable"
+	    >MonoFoldable</a
+	    > mono) &#8658; mono &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Instances.Mono.html#encodeList" class="link"
+	    >Source</a
+	    > <a href="#v:encodeList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeList" class="def"
+	    >decodeList</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+	    >IsSequence</a
+	    > b, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > b)) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	    >Get</a
+	    > b <a href="src/PlutusCore.Flat.Instances.Mono.html#decodeList" class="link"
+	    >Source</a
+	    > <a href="#v:decodeList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sizeSet" class="def"
+	    >sizeSet</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsSet" title="Data.Containers"
+	    >IsSet</a
+	    > set, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > set)) &#8658; <a href="PlutusCore-Flat-Encoder-Types.html#t:Size" title="PlutusCore.Flat.Encoder.Types"
+	    >Size</a
+	    > set <a href="src/PlutusCore.Flat.Instances.Mono.html#sizeSet" class="link"
+	    >Source</a
+	    > <a href="#v:sizeSet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeSet" class="def"
+	    >encodeSet</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsSet" title="Data.Containers"
+	    >IsSet</a
+	    > set, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > set)) &#8658; set &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Instances.Mono.html#encodeSet" class="link"
+	    >Source</a
+	    > <a href="#v:encodeSet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeSet" class="def"
+	    >decodeSet</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsSet" title="Data.Containers"
+	    >IsSet</a
+	    > set, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+	    >Element</a
+	    > set)) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	    >Get</a
+	    > set <a href="src/PlutusCore.Flat.Instances.Mono.html#decodeSet" class="link"
+	    >Source</a
+	    > <a href="#v:decodeSet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sizeMap" class="def"
+	    >sizeMap</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:ContainerKey" title="Data.Containers"
+	    >ContainerKey</a
+	    > r), <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:MapValue" title="Data.Containers"
+	    >MapValue</a
+	    > r), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsMap" title="Data.Containers"
+	    >IsMap</a
+	    > r) &#8658; <a href="PlutusCore-Flat-Encoder-Types.html#t:Size" title="PlutusCore.Flat.Encoder.Types"
+	    >Size</a
+	    > r <a href="src/PlutusCore.Flat.Instances.Mono.html#sizeMap" class="link"
+	    >Source</a
+	    > <a href="#v:sizeMap" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeMap" class="def"
+	    >encodeMap</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:ContainerKey" title="Data.Containers"
+	    >ContainerKey</a
+	    > map), <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:MapValue" title="Data.Containers"
+	    >MapValue</a
+	    > map), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsMap" title="Data.Containers"
+	    >IsMap</a
+	    > map) &#8658; map &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+	    >Encoding</a
+	    > <a href="src/PlutusCore.Flat.Instances.Mono.html#encodeMap" class="link"
+	    >Source</a
+	    > <a href="#v:encodeMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode an instance of IsMap, as a list of (Key,Value) tuples</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeMap" class="def"
+	    >decodeMap</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:ContainerKey" title="Data.Containers"
+	    >ContainerKey</a
+	    > map), <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:MapValue" title="Data.Containers"
+	    >MapValue</a
+	    > map), <a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsMap" title="Data.Containers"
+	    >IsMap</a
+	    > map) &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	    >Get</a
+	    > map <a href="src/PlutusCore.Flat.Instances.Mono.html#decodeMap" class="link"
+	    >Source</a
+	    > <a href="#v:decodeMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode an instance of IsMap, as a list of (Key,Value) tuples</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:AsArray" class="def"
+	    >AsArray</a
+	    > a <a href="src/PlutusCore.Flat.Instances.Mono.html#AsArray" class="link"
+	    >Source</a
+	    > <a href="#t:AsArray" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Sequences are defined as Arrays:</p
+	    ><p
+	    >Array v = A0
+        | A1 v (Array v)
+        | A2 v v (Array v)
+        ...
+        | A255 ... (Array v)</p
+	    ><p
+	    >In practice, this means that the sequence is encoded as a sequence of blocks of up to 255 elements, with every block preceded by the count of the elements in the block and a final 0-length block.</p
+	    ><p
+	    >Lists are defined as:</p
+	    ><p
+	    >List a &#8801;  Nil
+        | Cons a (List a)</p
+	    ><p
+	    >In practice, this means that the list elements will be prefixed with a 1 bit and followed by a final 0 bit.</p
+	    ><p
+	    >The AsList/AsArray wrappers can be used to serialise sequences as Lists or Arrays.</p
+	    ><p
+	    >Let's see some examples.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>flatBits $ AsList [True,True,True]
+</code
+		></strong
+	      >&quot;1111110&quot;
+</pre
+	    ><p
+	    >So we have Cons True (11) repeated three times, followed by a final Nil (0).</p
+	    ><p
+	    >The list encoding is the default one for lists so AsList is in this case unnecessary:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>flatBits $ [True,True,True]
+</code
+		></strong
+	      >&quot;1111110&quot;
+</pre
+	    ><p
+	    >We can force a list to be encoded as an Array with AsArray:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>flatBits $ AsArray [True,True,True]
+</code
+		></strong
+	      >&quot;00000011 11100000 000&quot;
+</pre
+	    ><p
+	    >We have the initial block with a count of 3 (3 == 00000011) followed by the elements True True True (111) and then the final block of 0 elements (&quot;00000 000&quot;).</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>flatBits $ [AsArray [True,True,True]]
+</code
+		></strong
+	      >&quot;10000001 11110000 00000&quot;
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>flatBits $ (True,True,True,AsArray $ replicate 7 True)
+</code
+		></strong
+	      >&quot;11100000 11111111 11000000 00&quot;
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>flatBits $ AsArray ([]::[()])
+</code
+		></strong
+	      >&quot;00000000&quot;
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>flatBits $ AsList ([]::[()])
+</code
+		></strong
+	      >&quot;0&quot;
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst (AsList [11::Word8,22,33])
+</code
+		></strong
+	      >(True,28,[133,197,164,32])
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst (AsSet (Data.Set.fromList [11::Word8,22,33]))
+</code
+		></strong
+	      >(True,28,[133,197,164,32])
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst [AsArray [1..3], AsArray [4..8]]
+</code
+		></strong
+	      >(True,99,[129,129,2,3,0,65,66,2,131,3,132,0,0])
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst $ [AsArray [(1::Word8)..3], AsArray [4..8]]
+</code
+		></strong
+	      >(True,99,[129,128,129,1,128,65,65,1,65,129,194,0,0])
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst $ [AsArray [(1::Int)..3]]
+</code
+		></strong
+	      >(True,42,[129,129,2,3,0,0]) 
+</pre
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AsArray" class="def"
+		  >AsArray</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unArray" class="def"
+			  >unArray</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsArray"
+	    >Instances</h4
+	    ><details id="i:AsArray" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArray:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+		      >AsArray</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-109" class="link"
+		    >Source</a
+		    > <a href="#t:AsArray" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArray:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArray:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+		      >AsArray</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-109" class="link"
+		    >Source</a
+		    > <a href="#t:AsArray" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArray:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArray:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+		      >AsArray</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-109" class="link"
+		    >Source</a
+		    > <a href="#t:AsArray" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArray:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsArray:Flat:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+		      >IsSequence</a
+		      > r, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+		      >Element</a
+		      > r)) &#8658; <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+		      >AsArray</a
+		      > r)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:AsArray" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsArray:Flat:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > r &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > r) <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsArray" title="PlutusCore.Flat.Instances.Mono"
+			  >AsArray</a
+			  > r &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:AsList" class="def"
+	    >AsList</a
+	    > a <a href="src/PlutusCore.Flat.Instances.Mono.html#AsList" class="link"
+	    >Source</a
+	    > <a href="#t:AsList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AsList" class="def"
+		  >AsList</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unList" class="def"
+			  >unList</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsList"
+	    >Instances</h4
+	    ><details id="i:AsList" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsList:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+		      >AsList</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-147" class="link"
+		    >Source</a
+		    > <a href="#t:AsList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsList:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsList:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+		      >AsList</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-147" class="link"
+		    >Source</a
+		    > <a href="#t:AsList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsList:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsList:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+		      >AsList</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-147" class="link"
+		    >Source</a
+		    > <a href="#t:AsList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsList:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsList:Flat:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Sequences.html#t:IsSequence" title="Data.Sequences"
+		      >IsSequence</a
+		      > l, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+		      >Element</a
+		      > l)) &#8658; <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+		      >AsList</a
+		      > l)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-149" class="link"
+		    >Source</a
+		    > <a href="#t:AsList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsList:Flat:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > l &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > l) <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsList" title="PlutusCore.Flat.Instances.Mono"
+			  >AsList</a
+			  > l &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:AsSet" class="def"
+	    >AsSet</a
+	    > a <a href="src/PlutusCore.Flat.Instances.Mono.html#AsSet" class="link"
+	    >Source</a
+	    > <a href="#t:AsSet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Sets are saved as lists of values.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tstBits $ AsSet (Data.Set.fromList ([False,True,False]::[Bool]))
+</code
+		></strong
+	      >(True,5,&quot;10110&quot;) 
+</pre
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AsSet" class="def"
+		  >AsSet</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unSet" class="def"
+			  >unSet</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsSet"
+	    >Instances</h4
+	    ><details id="i:AsSet" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSet:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+		      >AsSet</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-180" class="link"
+		    >Source</a
+		    > <a href="#t:AsSet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSet:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSet:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+		      >AsSet</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-180" class="link"
+		    >Source</a
+		    > <a href="#t:AsSet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSet:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSet:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+		      >AsSet</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-180" class="link"
+		    >Source</a
+		    > <a href="#t:AsSet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSet:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSet:Flat:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsSet" title="Data.Containers"
+		      >IsSet</a
+		      > set, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-MonoTraversable.html#t:Element" title="Data.MonoTraversable"
+		      >Element</a
+		      > set)) &#8658; <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+		      >AsSet</a
+		      > set)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-182" class="link"
+		    >Source</a
+		    > <a href="#t:AsSet" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSet:Flat:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > set &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > set) <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsSet" title="PlutusCore.Flat.Instances.Mono"
+			  >AsSet</a
+			  > set &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:AsMap" class="def"
+	    >AsMap</a
+	    > a <a href="src/PlutusCore.Flat.Instances.Mono.html#AsMap" class="link"
+	    >Source</a
+	    > <a href="#t:AsMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Maps are saved as lists of (key,value) tuples.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst (AsMap (Data.Map.fromList ([]::[(Word8,())])))
+</code
+		></strong
+	      >(True,1,[0])
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>tst (AsMap (Data.Map.fromList [(3::Word,9::Word)]))
+</code
+		></strong
+	      >(True,18,[129,132,128]) 
+</pre
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AsMap" class="def"
+		  >AsMap</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unMap" class="def"
+			  >unMap</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsMap"
+	    >Instances</h4
+	    ><details id="i:AsMap" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsMap:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+		      >AsMap</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-211" class="link"
+		    >Source</a
+		    > <a href="#t:AsMap" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsMap:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsMap:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+		      >AsMap</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-211" class="link"
+		    >Source</a
+		    > <a href="#t:AsMap" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsMap:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsMap:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+		      >AsMap</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-211" class="link"
+		    >Source</a
+		    > <a href="#t:AsMap" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsMap:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a &#8594; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsMap:Flat:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:IsMap" title="Data.Containers"
+		      >IsMap</a
+		      > map, <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:ContainerKey" title="Data.Containers"
+		      >ContainerKey</a
+		      > map), <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/Data-Containers.html#t:MapValue" title="Data.Containers"
+		      >MapValue</a
+		      > map)) &#8658; <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+		      >AsMap</a
+		      > map)</span
+		    > <a href="src/PlutusCore.Flat.Instances.Mono.html#line-213" class="link"
+		    >Source</a
+		    > <a href="#t:AsMap" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsMap:Flat:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Instances-Mono.html"
+			>PlutusCore.Flat.Instances.Mono</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > map &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > map) <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Flat-Instances-Mono.html#t:AsMap" title="PlutusCore.Flat.Instances.Mono"
+			  >AsMap</a
+			  > map &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

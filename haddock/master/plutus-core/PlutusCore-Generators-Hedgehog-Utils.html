@@ -1,0 +1,489 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.Hedgehog.Utils</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.Hedgehog.Utils.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.Hedgehog.Utils</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Utilities used in modules from the <code
+	    >TestSupport</code
+	    > folder.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:liftT"
+	      >liftT</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+	      >MFunctor</a
+	      > t, <a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MonadTrans" title="Control.Monad.Morph"
+	      >MonadTrans</a
+	      > s, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; t m a &#8594; t (s m) a</li
+	    ><li class="src short"
+	    ><a href="#v:generalizeT"
+	      >generalizeT</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+	      >MFunctor</a
+	      > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	      >Identity</a
+	      > a &#8594; t m a</li
+	    ><li class="src short"
+	    ><a href="#v:hoistSupply"
+	      >hoistSupply</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+	      >MFunctor</a
+	      > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; r &#8594; t (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	      >ReaderT</a
+	      > r m) a &#8594; t m a</li
+	    ><li class="src short"
+	    ><a href="#v:choiceDef"
+	      >choiceDef</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m a &#8594; [<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m a] &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:forAllNoShow"
+	      >forAllNoShow</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	      >PropertyT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:forAllNoShowT"
+	      >forAllNoShowT</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	      >PropertyT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:forAllPretty"
+	      >forAllPretty</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	      >PropertyT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:forAllPrettyT"
+	      >forAllPrettyT</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	      >PropertyT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:forAllPrettyPlc"
+	      >forAllPrettyPlc</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	      >PropertyT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:forAllPrettyPlcT"
+	      >forAllPrettyPlcT</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	      >PropertyT</a
+	      > m a</li
+	    ><li class="src short"
+	    ><a href="#v:prettyPlcErrorString"
+	      >prettyPlcErrorString</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > err &#8658; err &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:liftT" class="def"
+	    >liftT</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+	    >MFunctor</a
+	    > t, <a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MonadTrans" title="Control.Monad.Morph"
+	    >MonadTrans</a
+	    > s, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; t m a &#8594; t (s m) a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#liftT" class="link"
+	    >Source</a
+	    > <a href="#v:liftT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >hoist lift</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:generalizeT" class="def"
+	    >generalizeT</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+	    >MFunctor</a
+	    > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	    >Identity</a
+	    > a &#8594; t m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#generalizeT" class="link"
+	    >Source</a
+	    > <a href="#v:generalizeT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >hoist generalize</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:hoistSupply" class="def"
+	    >hoistSupply</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+	    >MFunctor</a
+	    > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; r &#8594; t (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	    >ReaderT</a
+	    > r m) a &#8594; t m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#hoistSupply" class="link"
+	    >Source</a
+	    > <a href="#v:hoistSupply" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Supply an environment to an inner <code
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+		>ReaderT</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:choiceDef" class="def"
+	    >choiceDef</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m a &#8594; [<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m a] &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#choiceDef" class="link"
+	    >Source</a
+	    > <a href="#v:choiceDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Same as <code
+	      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog-Gen.html#v:choice" title="Hedgehog.Gen"
+		>choice</a
+		></code
+	      >, but with a default generator to be used
+when the supplied list of generators is empty. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:forAllNoShow" class="def"
+	    >forAllNoShow</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	    >PropertyT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShow" class="link"
+	    >Source</a
+	    > <a href="#v:forAllNoShow" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a value, but do not show it in case an error occurs.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:forAllNoShowT" class="def"
+	    >forAllNoShowT</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	    >PropertyT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#forAllNoShowT" class="link"
+	    >Source</a
+	    > <a href="#v:forAllNoShowT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a value, but do not show it in case an error occurs.
+A supplied generator has access to the <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		>Monad</a
+		></code
+	      > the whole property has access to. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:forAllPretty" class="def"
+	    >forAllPretty</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	    >PropertyT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#forAllPretty" class="link"
+	    >Source</a
+	    > <a href="#v:forAllPretty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a value using the <code
+	      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		>Pretty</a
+		></code
+	      > class for getting its <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > representation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:forAllPrettyT" class="def"
+	    >forAllPrettyT</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	    >PropertyT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyT" class="link"
+	    >Source</a
+	    > <a href="#v:forAllPrettyT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a value using the <code
+	      ><a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		>Pretty</a
+		></code
+	      > class for getting its <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > representation.
+A supplied generator has access to the <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		>Monad</a
+		></code
+	      > the whole property has access to. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:forAllPrettyPlc" class="def"
+	    >forAllPrettyPlc</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	    >PropertyT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlc" class="link"
+	    >Source</a
+	    > <a href="#v:forAllPrettyPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a value using the <code
+	      ><a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		>PrettyPlc</a
+		></code
+	      > constraint for getting its <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > representation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:forAllPrettyPlcT" class="def"
+	    >forAllPrettyPlcT</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > m a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:PropertyT" title="Hedgehog"
+	    >PropertyT</a
+	    > m a <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#forAllPrettyPlcT" class="link"
+	    >Source</a
+	    > <a href="#v:forAllPrettyPlcT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a value using the <code
+	      ><a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		>PrettyPlc</a
+		></code
+	      > constraint for getting its <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > representation.
+A supplied generator has access to the <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		>Monad</a
+		></code
+	      > the whole property has access to. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyPlcErrorString" class="def"
+	    >prettyPlcErrorString</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > err &#8658; err &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Utils.html#prettyPlcErrorString" class="link"
+	    >Source</a
+	    > <a href="#v:prettyPlcErrorString" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print a PLC error.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

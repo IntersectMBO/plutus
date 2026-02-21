@@ -1,0 +1,897 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Pretty.ConfigName</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Pretty.ConfigName.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Pretty.ConfigName</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:PrettyConfigName"
+	      >PrettyConfigName</a
+	      > = <a href="#v:PrettyConfigName"
+	      >PrettyConfigName</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_pcnShowsUnique"
+		  >_pcnShowsUnique</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:HasPrettyConfigName"
+	      >HasPrettyConfigName</a
+	      > config <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:toPrettyConfigName"
+		  >toPrettyConfigName</a
+		  > &#8759; config &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		  >PrettyConfigName</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:prettyConfigName"
+	      >prettyConfigName</a
+	      > &#8759; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	      >PrettyConfigName</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:prettyConfigNameSimple"
+	      >prettyConfigNameSimple</a
+	      > &#8759; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	      >PrettyConfigName</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:PrettyConfigName" class="def"
+	    >PrettyConfigName</a
+	    > <a href="src/PlutusCore.Pretty.ConfigName.html#PrettyConfigName" class="link"
+	    >Source</a
+	    > <a href="#t:PrettyConfigName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A config that determines how to pretty-print a PLC name.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PrettyConfigName" class="def"
+		  >PrettyConfigName</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_pcnShowsUnique" class="def"
+			  >_pcnShowsUnique</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Whether to show the <code
+			    >Unique</code
+			    > of a name or not.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PrettyConfigName"
+	    >Instances</h4
+	    ><details id="i:PrettyConfigName" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PrettyConfigName:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.ConfigName.html#line-21" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PrettyConfigName:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-ConfigName.html"
+			>PlutusCore.Pretty.ConfigName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PrettyConfigName:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.ConfigName.html#line-21" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PrettyConfigName:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-ConfigName.html"
+			>PlutusCore.Pretty.ConfigName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PrettyConfigName:HasPrettyConfigName:3"
+		      ></span
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:HasPrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >HasPrettyConfigName</a
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:Sole" title="PlutusCore.Pretty.Readable"
+		      >Sole</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      >)</span
+		    > <a href="src/PlutusCore.Pretty.ConfigName.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PrettyConfigName:HasPrettyConfigName:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-ConfigName.html"
+			>PlutusCore.Pretty.ConfigName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toPrettyConfigName"
+			  >toPrettyConfigName</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:Sole" title="PlutusCore.Pretty.Readable"
+			  >Sole</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > <a href="src/PlutusCore.Pretty.ConfigName.html#toPrettyConfigName" class="link"
+			  >Source</a
+			  > <a href="#v:toPrettyConfigName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PrettyConfigName:PrettyBy:4"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-Classic.html#t:PrettyClassic" title="PlutusCore.Pretty.Classic"
+		      >PrettyClassic</a
+		      > name, <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > ann) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > (<a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+		      >PrettyConfigClassic</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      >) (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-255" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyBy" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PrettyConfigName:PrettyBy:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+			  >PrettyConfigClassic</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+			  >PrettyConfigClassic</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; [<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PrettyConfigName:PrettyBy:5"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyReadable" title="PlutusCore.Pretty.Readable"
+		      >PrettyReadable</a
+		      > name, <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+		      >PrettyConfigReadable</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      >) (<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+		      >UnrestrictedProgram</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Core.Instance.Flat.html#line-259" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyBy" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PrettyConfigName:PrettyBy:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Instance-Flat.html"
+			>UntypedPlutusCore.Core.Instance.Flat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; [<a href="UntypedPlutusCore-Core-Instance-Flat.html#t:UnrestrictedProgram" title="UntypedPlutusCore.Core.Instance.Flat"
+			  >UnrestrictedProgram</a
+			  > name uni fun ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PrettyConfigName:HasPrettyDefaults:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusPrelude.html#t:HasPrettyDefaults" title="PlutusPrelude"
+		      >HasPrettyDefaults</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.ConfigName.html#line-23" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PrettyConfigName:HasPrettyDefaults:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-ConfigName.html"
+			>PlutusCore.Pretty.ConfigName</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusPrelude.html#t:HasPrettyDefaults" title="PlutusPrelude"
+			>HasPrettyDefaults</a
+			> <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			>PrettyConfigName</a
+			> = '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:HasPrettyConfigName" class="def"
+	    >HasPrettyConfigName</a
+	    > config <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Pretty.ConfigName.html#HasPrettyConfigName" class="link"
+	    >Source</a
+	    > <a href="#t:HasPrettyConfigName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class of configs from which a <code
+	      ><a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		>PrettyConfigName</a
+		></code
+	      > can be extracted.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:toPrettyConfigName" class="def"
+	      >toPrettyConfigName</a
+	      > &#8759; config &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	      >PrettyConfigName</a
+	      > <a href="src/PlutusCore.Pretty.ConfigName.html#toPrettyConfigName" class="link"
+	      >Source</a
+	      > <a href="#v:toPrettyConfigName" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:HasPrettyConfigName"
+	    >Instances</h4
+	    ><details id="i:HasPrettyConfigName" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasPrettyConfigName:HasPrettyConfigName:1"
+		      ></span
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:HasPrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >HasPrettyConfigName</a
+		      > <a href="PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyConfigPlc</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.Plc.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:HasPrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasPrettyConfigName:HasPrettyConfigName:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-Plc.html"
+			>PlutusCore.Pretty.Plc</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toPrettyConfigName"
+			  >toPrettyConfigName</a
+			  > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlc</a
+			  > &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > <a href="src/PlutusCore.Pretty.ConfigName.html#toPrettyConfigName" class="link"
+			  >Source</a
+			  > <a href="#v:toPrettyConfigName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasPrettyConfigName:HasPrettyConfigName:2"
+		      ></span
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:HasPrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >HasPrettyConfigName</a
+		      > <a href="PlutusCore-Pretty-Plc.html#t:PrettyConfigPlcStrategy" title="PlutusCore.Pretty.Plc"
+		      >PrettyConfigPlcStrategy</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.Plc.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:HasPrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasPrettyConfigName:HasPrettyConfigName:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-Plc.html"
+			>PlutusCore.Pretty.Plc</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toPrettyConfigName"
+			  >toPrettyConfigName</a
+			  > &#8759; <a href="PlutusCore-Pretty-Plc.html#t:PrettyConfigPlcStrategy" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlcStrategy</a
+			  > &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > <a href="src/PlutusCore.Pretty.ConfigName.html#toPrettyConfigName" class="link"
+			  >Source</a
+			  > <a href="#v:toPrettyConfigName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasPrettyConfigName:HasPrettyConfigName:3"
+		      ></span
+		      > configName <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      > &#8658; <a href="PlutusCore-Pretty-ConfigName.html#t:HasPrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >HasPrettyConfigName</a
+		      > (<a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+		      >PrettyConfigClassic</a
+		      > configName)</span
+		    > <a href="src/PlutusCore.Pretty.Classic.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:HasPrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasPrettyConfigName:HasPrettyConfigName:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-Classic.html"
+			>PlutusCore.Pretty.Classic</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toPrettyConfigName"
+			  >toPrettyConfigName</a
+			  > &#8759; <a href="PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+			  >PrettyConfigClassic</a
+			  > configName &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > <a href="src/PlutusCore.Pretty.ConfigName.html#toPrettyConfigName" class="link"
+			  >Source</a
+			  > <a href="#v:toPrettyConfigName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasPrettyConfigName:HasPrettyConfigName:4"
+		      ></span
+		      > configName <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      > &#8658; <a href="PlutusCore-Pretty-ConfigName.html#t:HasPrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >HasPrettyConfigName</a
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+		      >PrettyConfigReadable</a
+		      > configName)</span
+		    > <a href="src/PlutusCore.Pretty.Readable.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:HasPrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasPrettyConfigName:HasPrettyConfigName:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-Readable.html"
+			>PlutusCore.Pretty.Readable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toPrettyConfigName"
+			  >toPrettyConfigName</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+			  >PrettyConfigReadable</a
+			  > configName &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > <a href="src/PlutusCore.Pretty.ConfigName.html#toPrettyConfigName" class="link"
+			  >Source</a
+			  > <a href="#v:toPrettyConfigName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasPrettyConfigName:HasPrettyConfigName:5"
+		      ></span
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:HasPrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >HasPrettyConfigName</a
+		      > (<a href="PlutusCore-Pretty-Readable.html#t:Sole" title="PlutusCore.Pretty.Readable"
+		      >Sole</a
+		      > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		      >PrettyConfigName</a
+		      >)</span
+		    > <a href="src/PlutusCore.Pretty.ConfigName.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:HasPrettyConfigName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasPrettyConfigName:HasPrettyConfigName:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-ConfigName.html"
+			>PlutusCore.Pretty.ConfigName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toPrettyConfigName"
+			  >toPrettyConfigName</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:Sole" title="PlutusCore.Pretty.Readable"
+			  >Sole</a
+			  > <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > &#8594; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+			  >PrettyConfigName</a
+			  > <a href="src/PlutusCore.Pretty.ConfigName.html#toPrettyConfigName" class="link"
+			  >Source</a
+			  > <a href="#v:toPrettyConfigName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyConfigName" class="def"
+	    >prettyConfigName</a
+	    > &#8759; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	    >PrettyConfigName</a
+	    > <a href="src/PlutusCore.Pretty.ConfigName.html#prettyConfigName" class="link"
+	    >Source</a
+	    > <a href="#v:prettyConfigName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The <code
+	      ><a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		>PrettyConfigName</a
+		></code
+	      > used by default: print <code
+	      >Unique</code
+	      > indexes after nams.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyConfigNameSimple" class="def"
+	    >prettyConfigNameSimple</a
+	    > &#8759; <a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	    >PrettyConfigName</a
+	    > <a href="src/PlutusCore.Pretty.ConfigName.html#prettyConfigNameSimple" class="link"
+	    >Source</a
+	    > <a href="#v:prettyConfigNameSimple" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The <code
+	      ><a href="PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+		>PrettyConfigName</a
+		></code
+	      > to be used when <code
+	      >Unique</code
+	      > indices don't matter. Easier to read.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

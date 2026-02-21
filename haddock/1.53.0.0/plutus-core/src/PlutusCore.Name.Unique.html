@@ -1,0 +1,5924 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DefaultSignatures      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A 'Name' is a datatype used to identify a variable inside the Plutus Core languages.
+ Name comparisons are a fundamental part of the domain logic, and comparing 'Text' directly
+ is inefficient. As a solution to this problem, we provide the 'Unique' type which is an
+ integer associated to the 'Name', unique to each instantiation of the type. We can,
+ therefore, compare the integers instead, which is obviously much more cost-effective.
+
+ We distinguish between the names of term variables and type variables by defining the
+ 'TyName' wrapper over 'Name'. Since the code we usually write is polymorphic in the
+ name type, we want to be able to define a class of names which have an associated 'Unique'.
+ This class is 'HasUnique', see the definition below.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Name.Unique</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Types</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isIdentifierStartingChar"
+	><span class="hs-identifier"
+	  >isIdentifierStartingChar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isIdentifierChar"
+	><span class="hs-identifier"
+	  >isIdentifierChar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isQuotedIdentifierChar"
+	><span class="hs-identifier"
+	  >isQuotedIdentifierChar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isValidUnquotedName"
+	><span class="hs-identifier"
+	  >isValidUnquotedName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#toPrintedName"
+	><span class="hs-identifier"
+	  >toPrintedName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Named"
+	><span class="hs-identifier"
+	  >Named</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasText"
+	><span class="hs-identifier"
+	  >HasText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Functions</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#mapNameString"
+	><span class="hs-identifier"
+	  >mapNameString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#mapTyNameString"
+	><span class="hs-identifier"
+	  >mapTyNameString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	><span class="hs-identifier"
+	  >Coercible</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Lens'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier"
+	  >pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+	><span class="hs-identifier"
+	  >PrettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >                      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#Render"
+	><span class="hs-identifier"
+	  >Render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier"
+	  >render</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier"
+	  >coerce</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#on"
+	><span class="hs-identifier"
+	  >on</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>over</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty.ConfigName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html#HasPrettyConfigName"
+	><span class="hs-identifier"
+	  >HasPrettyConfigName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html#PrettyConfigName"
+	><span class="hs-identifier"
+	  >PrettyConfigName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html#PrettyConfigName"
+	><span class="hs-identifier"
+	  >PrettyConfigName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Wrapped</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>coerced</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>makeLenses</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Char.html"
+	><span class="hs-identifier"
+	  >Data.Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isAlpha"
+	><span class="hs-identifier"
+	  >isAlpha</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isAscii"
+	><span class="hs-identifier"
+	  >isAscii</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isDigit"
+	><span class="hs-identifier"
+	  >isDigit</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isPunctuation"
+	><span class="hs-identifier"
+	  >isPunctuation</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isSymbol"
+	><span class="hs-identifier"
+	  >isSymbol</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.html"
+	><span class="hs-identifier"
+	  >Data.Hashable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	><span class="hs-identifier"
+	  >Hashable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#hashWithSalt"
+	><span class="hs-identifier"
+	  >hashWithSalt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/th-lift-instances-0.1.20/docs/src/Instances.TH.Lift.html"
+	><span class="hs-identifier"
+	  >Instances.TH.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A 'Name' represents variables/names in Plutus Core.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Name"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-var"
+	    >Name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Name"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-var"
+	    >Name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_nameText"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name -&gt; Text
+</span
+	  ><a href="PlutusCore.Name.Unique.html#_nameText"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_nameText</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The identifier name, for use in error messages.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_nameUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name -&gt; Unique
+</span
+	  ><a href="PlutusCore.Name.Unique.html#_nameUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_nameUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835137"
+      ><span id="local-6989586621681835145"
+	><span id="local-6989586621681835149"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Name -&gt; ShowS
+[Name] -&gt; ShowS
+Name -&gt; String
+(Int -&gt; Name -&gt; ShowS)
+-&gt; (Name -&gt; String) -&gt; ([Name] -&gt; ShowS) -&gt; Show Name
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Name -&gt; ShowS
+showsPrec :: Int -&gt; Name -&gt; ShowS
+$cshow :: Name -&gt; String
+show :: Name -&gt; String
+$cshowList :: [Name] -&gt; ShowS
+showList :: [Name] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835153"
+      ><span id="local-6989586621681835155"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Name -&gt; Rep Name x)
+-&gt; (forall x. Rep Name x -&gt; Name) -&gt; Generic Name
+forall x. Rep Name x -&gt; Name
+forall x. Name -&gt; Rep Name x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Name -&gt; Rep Name x
+from :: forall x. Name -&gt; Rep Name x
+$cto :: forall x. Rep Name x -&gt; Name
+to :: forall x. Rep Name x -&gt; Name
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835159"
+      ><span id="local-6989586621681835169"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; Code m Name)
+-&gt; Lift Name
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; Code m Name
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; Code m Name
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Name -&gt; Code m Name
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835179"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name -&gt; ()
+(Name -&gt; ()) -&gt; NFData Name
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Name -&gt; ()
+rnf :: Name -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Allowed characters in the starting position of a non-quoted identifier.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isIdentifierStartingChar"
+	><span class="hs-identifier hs-type"
+	  >isIdentifierStartingChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Char"
+	><span class="hs-identifier hs-type"
+	  >Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="isIdentifierStartingChar"
+      ><span class="annot"
+	><span class="annottext"
+	  >isIdentifierStartingChar :: Char -&gt; Bool
+</span
+	  ><a href="PlutusCore.Name.Unique.html#isIdentifierStartingChar"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isIdentifierStartingChar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835199"
+      ><span class="annot"
+	><span class="annottext"
+	  >Char
+</span
+	  ><a href="#local-6989586621681835199"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isAscii"
+	><span class="hs-identifier hs-var"
+	  >isAscii</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835199"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isAlpha"
+	><span class="hs-identifier hs-var"
+	  >isAlpha</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835199"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835199"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'_'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Allowed characters in a non-starting position of a non-quoted identifier.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isIdentifierChar"
+	><span class="hs-identifier hs-type"
+	  >isIdentifierChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Char"
+	><span class="hs-identifier hs-type"
+	  >Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="isIdentifierChar"
+      ><span class="annot"
+	><span class="annottext"
+	  >isIdentifierChar :: Char -&gt; Bool
+</span
+	  ><a href="PlutusCore.Name.Unique.html#isIdentifierChar"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isIdentifierChar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835202"
+      ><span class="annot"
+	><span class="annottext"
+	  >Char
+</span
+	  ><a href="#local-6989586621681835202"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="PlutusCore.Name.Unique.html#isIdentifierStartingChar"
+	><span class="hs-identifier hs-var"
+	  >isIdentifierStartingChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835202"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isDigit"
+	><span class="hs-identifier hs-var"
+	  >isDigit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835202"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835202"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'\''</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Allowed characters in a quoted identifier.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isQuotedIdentifierChar"
+	><span class="hs-identifier hs-type"
+	  >isQuotedIdentifierChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Char"
+	><span class="hs-identifier hs-type"
+	  >Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="isQuotedIdentifierChar"
+      ><span class="annot"
+	><span class="annottext"
+	  >isQuotedIdentifierChar :: Char -&gt; Bool
+</span
+	  ><a href="PlutusCore.Name.Unique.html#isQuotedIdentifierChar"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isQuotedIdentifierChar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835203"
+      ><span class="annot"
+	><span class="annottext"
+	  >Char
+</span
+	  ><a href="#local-6989586621681835203"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isAlpha"
+	><span class="hs-identifier hs-var"
+	  >isAlpha</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835203"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isDigit"
+	><span class="hs-identifier hs-var"
+	  >isDigit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835203"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isPunctuation"
+	><span class="hs-identifier hs-var"
+	  >isPunctuation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835203"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isSymbol"
+	><span class="hs-identifier hs-var"
+	  >isSymbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835203"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#isAscii"
+	><span class="hs-identifier hs-var"
+	  >isAscii</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835203"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835203"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'`'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#isValidUnquotedName"
+	><span class="hs-identifier hs-type"
+	  >isValidUnquotedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span id="isValidUnquotedName"
+      ><span class="annot"
+	><span class="annottext"
+	  >isValidUnquotedName :: Text -&gt; Bool
+</span
+	  ><a href="PlutusCore.Name.Unique.html#isValidUnquotedName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isValidUnquotedName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835205"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681835205"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Maybe (Char, Text)
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#uncons"
+	><span class="hs-identifier hs-var"
+	  >T.uncons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681835205"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835207"
+      ><span class="annot"
+	><span class="annottext"
+	  >Char
+</span
+	  ><a href="#local-6989586621681835207"
+	  ><span class="hs-identifier hs-var"
+	    >hd</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835208"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681835208"
+	  ><span class="hs-identifier hs-var"
+	    >tl</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="PlutusCore.Name.Unique.html#isIdentifierStartingChar"
+	><span class="hs-identifier hs-var"
+	  >isIdentifierStartingChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681835207"
+	><span class="hs-identifier hs-var"
+	  >hd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Char -&gt; Bool) -&gt; Text -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#all"
+	><span class="hs-identifier hs-var"
+	  >T.all</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Bool
+</span
+	><a href="PlutusCore.Name.Unique.html#isIdentifierChar"
+	><span class="hs-identifier hs-var"
+	  >isIdentifierChar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681835208"
+	><span class="hs-identifier hs-var"
+	  >tl</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Char, Text)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Quote the name with backticks if it is not a valid unquoted name.
+It does not check whether the given name is a valid quoted name.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#toPrintedName"
+	><span class="hs-identifier hs-type"
+	  >toPrintedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="toPrintedName"
+      ><span class="annot"
+	><span class="annottext"
+	  >toPrintedName :: Text -&gt; Text
+</span
+	  ><a href="PlutusCore.Name.Unique.html#toPrintedName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toPrintedName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835210"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681835210"
+	  ><span class="hs-identifier hs-var"
+	    >txt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Bool
+</span
+	><a href="PlutusCore.Name.Unique.html#isValidUnquotedName"
+	><span class="hs-identifier hs-var"
+	  >isValidUnquotedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681835210"
+	><span class="hs-identifier hs-var"
+	  >txt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681835210"
+	><span class="hs-identifier hs-var"
+	  >txt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;`&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681835210"
+	><span class="hs-identifier hs-var"
+	  >txt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;`&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | We use a @newtype@ to enforce separation between names used for types and
+those used for terms.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="TyName"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-var"
+	    >TyName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="TyName"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-var"
+	    >TyName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="unTyName"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName -&gt; Name
+</span
+	  ><a href="PlutusCore.Name.Unique.html#unTyName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unTyName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835213"
+      ><span id="local-6989586621681835217"
+	><span id="local-6989586621681835221"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; TyName -&gt; ShowS
+[TyName] -&gt; ShowS
+TyName -&gt; String
+(Int -&gt; TyName -&gt; ShowS)
+-&gt; (TyName -&gt; String) -&gt; ([TyName] -&gt; ShowS) -&gt; Show TyName
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; TyName -&gt; ShowS
+showsPrec :: Int -&gt; TyName -&gt; ShowS
+$cshow :: TyName -&gt; String
+show :: TyName -&gt; String
+$cshowList :: [TyName] -&gt; ShowS
+showList :: [TyName] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835224"
+      ><span id="local-6989586621681835226"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. TyName -&gt; Rep TyName x)
+-&gt; (forall x. Rep TyName x -&gt; TyName) -&gt; Generic TyName
+forall x. Rep TyName x -&gt; TyName
+forall x. TyName -&gt; Rep TyName x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. TyName -&gt; Rep TyName x
+from :: forall x. TyName -&gt; Rep TyName x
+$cto :: forall x. Rep TyName x -&gt; TyName
+to :: forall x. Rep TyName x -&gt; TyName
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835229"
+      ><span id="local-6989586621681835235"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; Code m TyName)
+-&gt; Lift TyName
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; Code m TyName
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; Code m TyName
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; TyName -&gt; Code m TyName
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835242"
+      ><span id="local-6989586621681835247"
+	><span class="annot"
+	  ><span class="annottext"
+	    >TyName -&gt; TyName -&gt; Bool
+(TyName -&gt; TyName -&gt; Bool)
+-&gt; (TyName -&gt; TyName -&gt; Bool) -&gt; Eq TyName
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: TyName -&gt; TyName -&gt; Bool
+== :: TyName -&gt; TyName -&gt; Bool
+$c/= :: TyName -&gt; TyName -&gt; Bool
+/= :: TyName -&gt; TyName -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835255"
+      ><span id="local-6989586621681835260"
+	><span id="local-6989586621681835264"
+	  ><span id="local-6989586621681835268"
+	    ><span id="local-6989586621681835272"
+	      ><span id="local-6989586621681835276"
+		><span id="local-6989586621681835280"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq TyName
+Eq TyName =&gt;
+(TyName -&gt; TyName -&gt; Ordering)
+-&gt; (TyName -&gt; TyName -&gt; Bool)
+-&gt; (TyName -&gt; TyName -&gt; Bool)
+-&gt; (TyName -&gt; TyName -&gt; Bool)
+-&gt; (TyName -&gt; TyName -&gt; Bool)
+-&gt; (TyName -&gt; TyName -&gt; TyName)
+-&gt; (TyName -&gt; TyName -&gt; TyName)
+-&gt; Ord TyName
+TyName -&gt; TyName -&gt; Bool
+TyName -&gt; TyName -&gt; Ordering
+TyName -&gt; TyName -&gt; TyName
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: TyName -&gt; TyName -&gt; Ordering
+compare :: TyName -&gt; TyName -&gt; Ordering
+$c&lt; :: TyName -&gt; TyName -&gt; Bool
+&lt; :: TyName -&gt; TyName -&gt; Bool
+$c&lt;= :: TyName -&gt; TyName -&gt; Bool
+&lt;= :: TyName -&gt; TyName -&gt; Bool
+$c&gt; :: TyName -&gt; TyName -&gt; Bool
+&gt; :: TyName -&gt; TyName -&gt; Bool
+$c&gt;= :: TyName -&gt; TyName -&gt; Bool
+&gt;= :: TyName -&gt; TyName -&gt; Bool
+$cmax :: TyName -&gt; TyName -&gt; TyName
+max :: TyName -&gt; TyName -&gt; TyName
+$cmin :: TyName -&gt; TyName -&gt; TyName
+min :: TyName -&gt; TyName -&gt; TyName
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835286"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName -&gt; ()
+(TyName -&gt; ()) -&gt; NFData TyName
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: TyName -&gt; ()
+rnf :: TyName -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835293"
+      ><span id="local-6989586621681835298"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Eq TyName
+Eq TyName =&gt;
+(Int -&gt; TyName -&gt; Int) -&gt; (TyName -&gt; Int) -&gt; Hashable TyName
+Int -&gt; TyName -&gt; Int
+TyName -&gt; Int
+forall a. Eq a =&gt; (Int -&gt; a -&gt; Int) -&gt; (a -&gt; Int) -&gt; Hashable a
+$chashWithSalt :: Int -&gt; TyName -&gt; Int
+hashWithSalt :: Int -&gt; TyName -&gt; Int
+$chash :: TyName -&gt; Int
+hash :: TyName -&gt; Int
+</span
+	    ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835303"
+      ><span id="local-6989586621681835306"
+	><span id="local-6989586621681835311"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+	      ><span class="hs-identifier hs-type"
+		>PrettyBy</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681835303"
+	      ><span class="hs-identifier hs-type"
+		>config</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835317"
+      ><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Wrapped</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-type"
+	    >TyName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Named"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Named"
+	  ><span class="hs-identifier hs-var"
+	    >Named</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834989"
+      ><span class="annot"
+	><a href="#local-6989586621681834989"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Named"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Named"
+	  ><span class="hs-identifier hs-var"
+	    >Named</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_namedString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. Named a -&gt; Text
+</span
+	  ><a href="PlutusCore.Name.Unique.html#_namedString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_namedString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_namedValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. Named a -&gt; a
+</span
+	  ><a href="PlutusCore.Name.Unique.html#_namedValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_namedValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681834989"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835334"
+      ><span id="local-6989586621681835336"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; Named a -&gt; Named b)
+-&gt; (forall a b. a -&gt; Named b -&gt; Named a) -&gt; Functor Named
+forall a b. a -&gt; Named b -&gt; Named a
+forall a b. (a -&gt; b) -&gt; Named a -&gt; Named b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; Named a -&gt; Named b
+fmap :: forall a b. (a -&gt; b) -&gt; Named a -&gt; Named b
+$c&lt;$ :: forall a b. a -&gt; Named b -&gt; Named a
+&lt;$ :: forall a b. a -&gt; Named b -&gt; Named a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835340"
+      ><span id="local-6989586621681835346"
+	><span id="local-6989586621681835349"
+	  ><span id="local-6989586621681835354"
+	    ><span id="local-6989586621681835356"
+	      ><span id="local-6989586621681835359"
+		><span id="local-6989586621681835362"
+		  ><span id="local-6989586621681835365"
+		    ><span id="local-6989586621681835368"
+		      ><span id="local-6989586621681835371"
+			><span id="local-6989586621681835374"
+			  ><span id="local-6989586621681835376"
+			    ><span id="local-6989586621681835379"
+			      ><span id="local-6989586621681835384"
+				><span id="local-6989586621681835389"
+				  ><span id="local-6989586621681835394"
+				    ><span id="local-6989586621681835399"
+				      ><span class="annot"
+					><span class="annottext"
+					  >(forall m. Monoid m =&gt; Named m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Named a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Named a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Named a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Named a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Named a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Named a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Named a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Named a -&gt; a)
+-&gt; (forall a. Named a -&gt; [a])
+-&gt; (forall a. Named a -&gt; Bool)
+-&gt; (forall a. Named a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; Named a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; Named a -&gt; a)
+-&gt; (forall a. Ord a =&gt; Named a -&gt; a)
+-&gt; (forall a. Num a =&gt; Named a -&gt; a)
+-&gt; (forall a. Num a =&gt; Named a -&gt; a)
+-&gt; Foldable Named
+forall a. Eq a =&gt; a -&gt; Named a -&gt; Bool
+forall a. Num a =&gt; Named a -&gt; a
+forall a. Ord a =&gt; Named a -&gt; a
+forall m. Monoid m =&gt; Named m -&gt; m
+forall a. Named a -&gt; Bool
+forall a. Named a -&gt; Int
+forall a. Named a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; Named a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Named a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Named a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Named a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; Named m -&gt; m
+fold :: forall m. Monoid m =&gt; Named m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Named a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Named a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Named a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Named a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Named a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Named a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Named a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Named a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Named a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Named a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Named a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Named a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Named a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Named a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Named a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Named a -&gt; a
+$ctoList :: forall a. Named a -&gt; [a]
+toList :: forall a. Named a -&gt; [a]
+$cnull :: forall a. Named a -&gt; Bool
+null :: forall a. Named a -&gt; Bool
+$clength :: forall a. Named a -&gt; Int
+length :: forall a. Named a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; Named a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; Named a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; Named a -&gt; a
+maximum :: forall a. Ord a =&gt; Named a -&gt; a
+$cminimum :: forall a. Ord a =&gt; Named a -&gt; a
+minimum :: forall a. Ord a =&gt; Named a -&gt; a
+$csum :: forall a. Num a =&gt; Named a -&gt; a
+sum :: forall a. Num a =&gt; Named a -&gt; a
+$cproduct :: forall a. Num a =&gt; Named a -&gt; a
+product :: forall a. Num a =&gt; Named a -&gt; a
+</span
+					  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+					    >Foldable</span
+					    ></a
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835409"
+      ><span id="local-6989586621681835414"
+	><span id="local-6989586621681835420"
+	  ><span id="local-6989586621681835425"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>Functor Named
+Foldable Named
+(Functor Named, Foldable Named) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; Named a -&gt; f (Named b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    Named (f a) -&gt; f (Named a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; Named a -&gt; m (Named b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; Named (m a) -&gt; m (Named a))
+-&gt; Traversable Named
+forall (t :: * -&gt; *).
+(Functor t, Foldable t) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a. Monad m =&gt; Named (m a) -&gt; m (Named a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; Named (f a) -&gt; f (Named a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Named a -&gt; m (Named b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Named a -&gt; f (Named b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Named a -&gt; f (Named b)
+traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Named a -&gt; f (Named b)
+$csequenceA :: forall (f :: * -&gt; *) a. Applicative f =&gt; Named (f a) -&gt; f (Named a)
+sequenceA :: forall (f :: * -&gt; *) a. Applicative f =&gt; Named (f a) -&gt; f (Named a)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Named a -&gt; m (Named b)
+mapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Named a -&gt; m (Named b)
+$csequence :: forall (m :: * -&gt; *) a. Monad m =&gt; Named (m a) -&gt; m (Named a)
+sequence :: forall (m :: * -&gt; *) a. Monad m =&gt; Named (m a) -&gt; m (Named a)
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#Traversable"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Traversable</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834979"
+      ><span id="local-6989586621681835434"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.ConfigName.html#HasPrettyConfigName"
+	    ><span class="hs-identifier hs-type"
+	      >HasPrettyConfigName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681834979"
+	    ><span class="hs-identifier hs-type"
+	      >config</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyBy</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681834979"
+	    ><span class="hs-identifier hs-type"
+	      >config</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Name"
+	    ><span class="hs-identifier hs-type"
+	      >Name</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835446"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann. config -&gt; Name -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835447"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621681835447"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835448"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681835448"
+	  ><span class="hs-identifier hs-var"
+	    >txt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835449"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621681835449"
+	  ><span class="hs-identifier hs-var"
+	    >uniq</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621681835450"
+	><span class="hs-identifier hs-var"
+	  >showsUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Doc ann) -&gt; Text -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text
+</span
+	><a href="PlutusCore.Name.Unique.html#toPrintedName"
+	><span class="hs-identifier hs-var"
+	  >toPrintedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681835448"
+	><span class="hs-identifier hs-var"
+	  >txt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Text
+forall ann. Doc ann -&gt; Text
+forall str ann. Render str =&gt; Doc ann -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Doc Any
+forall ann. Int -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681835449"
+	><span class="hs-identifier hs-var"
+	  >uniq</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Doc ann) -&gt; Text -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text
+</span
+	><a href="PlutusCore.Name.Unique.html#toPrintedName"
+	><span class="hs-identifier hs-var"
+	  >toPrintedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681835448"
+	><span class="hs-identifier hs-var"
+	  >txt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.ConfigName.html#PrettyConfigName"
+	><span class="hs-identifier hs-type"
+	  >PrettyConfigName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835450"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621681835450"
+	  ><span class="hs-identifier hs-var"
+	    >showsUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; PrettyConfigName
+forall config.
+HasPrettyConfigName config =&gt;
+config -&gt; PrettyConfigName
+</span
+	><a href="PlutusCore.Pretty.ConfigName.html#toPrettyConfigName"
+	><span class="hs-identifier hs-var"
+	  >toPrettyConfigName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621681835447"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835455"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	  ><span class="hs-identifier hs-type"
+	    >Eq</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-type"
+	    >Name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835459"
+      ><span class="annot"
+	><span class="annottext"
+	  >== :: Name -&gt; Name -&gt; Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(==)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Unique -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >(==)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Unique -&gt; Bool)
+-&gt; (Name -&gt; Unique) -&gt; Name -&gt; Name -&gt; Bool
+forall b c a. (b -&gt; b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#on"
+	><span class="hs-operator hs-var"
+	  >`on`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Unique
+</span
+	><a href="PlutusCore.Name.Unique.html#_nameUnique"
+	><span class="hs-identifier hs-var"
+	  >_nameUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835463"
+      ><span id="local-6989586621681835466"
+	><span id="local-6989586621681835470"
+	  ><span id="local-6989586621681835473"
+	    ><span id="local-6989586621681835476"
+	      ><span id="local-6989586621681835479"
+		><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#Name"
+		    ><span class="hs-identifier hs-type"
+		      >Name</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835483"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;= :: Name -&gt; Name -&gt; Bool
+</span
+	  ><a href="#local-6989586621681835483"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;=)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Unique -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >(&lt;=)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Unique -&gt; Bool)
+-&gt; (Name -&gt; Unique) -&gt; Name -&gt; Name -&gt; Bool
+forall b c a. (b -&gt; b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#on"
+	><span class="hs-operator hs-var"
+	  >`on`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Unique
+</span
+	><a href="PlutusCore.Name.Unique.html#_nameUnique"
+	><span class="hs-identifier hs-var"
+	  >_nameUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- Hashable follows Eq and Ord in only depending on the unique</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835489"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	  ><span class="hs-identifier hs-type"
+	    >Hashable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-type"
+	    >Name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835493"
+      ><span class="annot"
+	><span class="annottext"
+	  >hashWithSalt :: Int -&gt; Name -&gt; Int
+</span
+	  ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#hashWithSalt"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >hashWithSalt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835494"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621681835494"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Unique -&gt; Int
+forall a. Hashable a =&gt; Int -&gt; a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#hashWithSalt"
+	><span class="hs-identifier hs-var"
+	  >hashWithSalt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681835494"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Int) -&gt; (Name -&gt; Unique) -&gt; Name -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Unique
+</span
+	><a href="PlutusCore.Name.Unique.html#_nameUnique"
+	><span class="hs-identifier hs-var"
+	  >_nameUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A unique identifier</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Unique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Unique"
+	  ><span class="hs-identifier hs-var"
+	    >Unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Unique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Unique"
+	  ><span class="hs-identifier hs-var"
+	    >Unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="unUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >Unique -&gt; Int
+</span
+	  ><a href="PlutusCore.Name.Unique.html#unUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835498"
+      ><span id="local-6989586621681835502"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Unique -&gt; Unique -&gt; Bool
+(Unique -&gt; Unique -&gt; Bool)
+-&gt; (Unique -&gt; Unique -&gt; Bool) -&gt; Eq Unique
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Unique -&gt; Unique -&gt; Bool
+== :: Unique -&gt; Unique -&gt; Bool
+$c/= :: Unique -&gt; Unique -&gt; Bool
+/= :: Unique -&gt; Unique -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835505"
+      ><span id="local-6989586621681835510"
+	><span id="local-6989586621681835513"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Unique -&gt; ShowS
+[Unique] -&gt; ShowS
+Unique -&gt; String
+(Int -&gt; Unique -&gt; ShowS)
+-&gt; (Unique -&gt; String) -&gt; ([Unique] -&gt; ShowS) -&gt; Show Unique
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Unique -&gt; ShowS
+showsPrec :: Int -&gt; Unique -&gt; ShowS
+$cshow :: Unique -&gt; String
+show :: Unique -&gt; String
+$cshowList :: [Unique] -&gt; ShowS
+showList :: [Unique] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835518"
+      ><span id="local-6989586621681835521"
+	><span id="local-6989586621681835524"
+	  ><span id="local-6989586621681835527"
+	    ><span id="local-6989586621681835530"
+	      ><span id="local-6989586621681835533"
+		><span id="local-6989586621681835536"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Unique
+Eq Unique =&gt;
+(Unique -&gt; Unique -&gt; Ordering)
+-&gt; (Unique -&gt; Unique -&gt; Bool)
+-&gt; (Unique -&gt; Unique -&gt; Bool)
+-&gt; (Unique -&gt; Unique -&gt; Bool)
+-&gt; (Unique -&gt; Unique -&gt; Bool)
+-&gt; (Unique -&gt; Unique -&gt; Unique)
+-&gt; (Unique -&gt; Unique -&gt; Unique)
+-&gt; Ord Unique
+Unique -&gt; Unique -&gt; Bool
+Unique -&gt; Unique -&gt; Ordering
+Unique -&gt; Unique -&gt; Unique
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Unique -&gt; Unique -&gt; Ordering
+compare :: Unique -&gt; Unique -&gt; Ordering
+$c&lt; :: Unique -&gt; Unique -&gt; Bool
+&lt; :: Unique -&gt; Unique -&gt; Bool
+$c&lt;= :: Unique -&gt; Unique -&gt; Bool
+&lt;= :: Unique -&gt; Unique -&gt; Bool
+$c&gt; :: Unique -&gt; Unique -&gt; Bool
+&gt; :: Unique -&gt; Unique -&gt; Bool
+$c&gt;= :: Unique -&gt; Unique -&gt; Bool
+&gt;= :: Unique -&gt; Unique -&gt; Bool
+$cmax :: Unique -&gt; Unique -&gt; Unique
+max :: Unique -&gt; Unique -&gt; Unique
+$cmin :: Unique -&gt; Unique -&gt; Unique
+min :: Unique -&gt; Unique -&gt; Unique
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835539"
+      ><span id="local-6989586621681835546"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; Code m Unique)
+-&gt; Lift Unique
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; Code m Unique
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; Code m Unique
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; Unique -&gt; Code m Unique
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835552"
+      ><span id="local-6989586621681835557"
+	><span id="local-6989586621681835561"
+	  ><span id="local-6989586621681835565"
+	    ><span id="local-6989586621681835569"
+	      ><span id="local-6989586621681835573"
+		><span id="local-6989586621681835577"
+		  ><span id="local-6989586621681835581"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; Unique
+Unique -&gt; Int
+Unique -&gt; [Unique]
+Unique -&gt; Unique
+Unique -&gt; Unique -&gt; [Unique]
+Unique -&gt; Unique -&gt; Unique -&gt; [Unique]
+(Unique -&gt; Unique)
+-&gt; (Unique -&gt; Unique)
+-&gt; (Int -&gt; Unique)
+-&gt; (Unique -&gt; Int)
+-&gt; (Unique -&gt; [Unique])
+-&gt; (Unique -&gt; Unique -&gt; [Unique])
+-&gt; (Unique -&gt; Unique -&gt; [Unique])
+-&gt; (Unique -&gt; Unique -&gt; Unique -&gt; [Unique])
+-&gt; Enum Unique
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: Unique -&gt; Unique
+succ :: Unique -&gt; Unique
+$cpred :: Unique -&gt; Unique
+pred :: Unique -&gt; Unique
+$ctoEnum :: Int -&gt; Unique
+toEnum :: Int -&gt; Unique
+$cfromEnum :: Unique -&gt; Int
+fromEnum :: Unique -&gt; Int
+$cenumFrom :: Unique -&gt; [Unique]
+enumFrom :: Unique -&gt; [Unique]
+$cenumFromThen :: Unique -&gt; Unique -&gt; [Unique]
+enumFromThen :: Unique -&gt; Unique -&gt; [Unique]
+$cenumFromTo :: Unique -&gt; Unique -&gt; [Unique]
+enumFromTo :: Unique -&gt; Unique -&gt; [Unique]
+$cenumFromThenTo :: Unique -&gt; Unique -&gt; Unique -&gt; [Unique]
+enumFromThenTo :: Unique -&gt; Unique -&gt; Unique -&gt; [Unique]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835587"
+      ><span class="annot"
+	><span class="annottext"
+	  >Unique -&gt; ()
+(Unique -&gt; ()) -&gt; NFData Unique
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Unique -&gt; ()
+rnf :: Unique -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835592"
+      ><span id="local-6989586621681835596"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. Unique -&gt; Doc ann)
+-&gt; (forall ann. [Unique] -&gt; Doc ann) -&gt; Pretty Unique
+forall ann. [Unique] -&gt; Doc ann
+forall ann. Unique -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. Unique -&gt; Doc ann
+pretty :: forall ann. Unique -&gt; Doc ann
+$cprettyList :: forall ann. [Unique] -&gt; Doc ann
+prettyList :: forall ann. [Unique] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835604"
+      ><span id="local-6989586621681835609"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Eq Unique
+Eq Unique =&gt;
+(Int -&gt; Unique -&gt; Int) -&gt; (Unique -&gt; Int) -&gt; Hashable Unique
+Int -&gt; Unique -&gt; Int
+Unique -&gt; Int
+forall a. Eq a =&gt; (Int -&gt; a -&gt; Int) -&gt; (a -&gt; Int) -&gt; Hashable a
+$chashWithSalt :: Int -&gt; Unique -&gt; Int
+hashWithSalt :: Int -&gt; Unique -&gt; Int
+$chash :: Unique -&gt; Int
+hash :: Unique -&gt; Int
+</span
+	    ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The unique of a type-level name.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="TypeUnique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	  ><span class="hs-identifier hs-var"
+	    >TypeUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="TypeUnique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	  ><span class="hs-identifier hs-var"
+	    >TypeUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unTypeUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeUnique -&gt; Unique
+</span
+	  ><a href="PlutusCore.Name.Unique.html#unTypeUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unTypeUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835615"
+      ><span id="local-6989586621681835618"
+	><span class="annot"
+	  ><span class="annottext"
+	    >TypeUnique -&gt; TypeUnique -&gt; Bool
+(TypeUnique -&gt; TypeUnique -&gt; Bool)
+-&gt; (TypeUnique -&gt; TypeUnique -&gt; Bool) -&gt; Eq TypeUnique
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: TypeUnique -&gt; TypeUnique -&gt; Bool
+== :: TypeUnique -&gt; TypeUnique -&gt; Bool
+$c/= :: TypeUnique -&gt; TypeUnique -&gt; Bool
+/= :: TypeUnique -&gt; TypeUnique -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835624"
+      ><span id="local-6989586621681835627"
+	><span id="local-6989586621681835630"
+	  ><span id="local-6989586621681835634"
+	    ><span id="local-6989586621681835637"
+	      ><span id="local-6989586621681835640"
+		><span id="local-6989586621681835643"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq TypeUnique
+Eq TypeUnique =&gt;
+(TypeUnique -&gt; TypeUnique -&gt; Ordering)
+-&gt; (TypeUnique -&gt; TypeUnique -&gt; Bool)
+-&gt; (TypeUnique -&gt; TypeUnique -&gt; Bool)
+-&gt; (TypeUnique -&gt; TypeUnique -&gt; Bool)
+-&gt; (TypeUnique -&gt; TypeUnique -&gt; Bool)
+-&gt; (TypeUnique -&gt; TypeUnique -&gt; TypeUnique)
+-&gt; (TypeUnique -&gt; TypeUnique -&gt; TypeUnique)
+-&gt; Ord TypeUnique
+TypeUnique -&gt; TypeUnique -&gt; Bool
+TypeUnique -&gt; TypeUnique -&gt; Ordering
+TypeUnique -&gt; TypeUnique -&gt; TypeUnique
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: TypeUnique -&gt; TypeUnique -&gt; Ordering
+compare :: TypeUnique -&gt; TypeUnique -&gt; Ordering
+$c&lt; :: TypeUnique -&gt; TypeUnique -&gt; Bool
+&lt; :: TypeUnique -&gt; TypeUnique -&gt; Bool
+$c&lt;= :: TypeUnique -&gt; TypeUnique -&gt; Bool
+&lt;= :: TypeUnique -&gt; TypeUnique -&gt; Bool
+$c&gt; :: TypeUnique -&gt; TypeUnique -&gt; Bool
+&gt; :: TypeUnique -&gt; TypeUnique -&gt; Bool
+$c&gt;= :: TypeUnique -&gt; TypeUnique -&gt; Bool
+&gt;= :: TypeUnique -&gt; TypeUnique -&gt; Bool
+$cmax :: TypeUnique -&gt; TypeUnique -&gt; TypeUnique
+max :: TypeUnique -&gt; TypeUnique -&gt; TypeUnique
+$cmin :: TypeUnique -&gt; TypeUnique -&gt; TypeUnique
+min :: TypeUnique -&gt; TypeUnique -&gt; TypeUnique
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835648"
+      ><span id="local-6989586621681835652"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Eq TypeUnique
+Eq TypeUnique =&gt;
+(Int -&gt; TypeUnique -&gt; Int)
+-&gt; (TypeUnique -&gt; Int) -&gt; Hashable TypeUnique
+Int -&gt; TypeUnique -&gt; Int
+TypeUnique -&gt; Int
+forall a. Eq a =&gt; (Int -&gt; a -&gt; Int) -&gt; (a -&gt; Int) -&gt; Hashable a
+$chashWithSalt :: Int -&gt; TypeUnique -&gt; Int
+hashWithSalt :: Int -&gt; TypeUnique -&gt; Int
+$chash :: TypeUnique -&gt; Int
+hash :: TypeUnique -&gt; Int
+</span
+	    ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The unique of a term-level name.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="TermUnique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TermUnique"
+	  ><span class="hs-identifier hs-var"
+	    >TermUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="TermUnique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TermUnique"
+	  ><span class="hs-identifier hs-var"
+	    >TermUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unTermUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >TermUnique -&gt; Unique
+</span
+	  ><a href="PlutusCore.Name.Unique.html#unTermUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unTermUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835659"
+      ><span id="local-6989586621681835662"
+	><span class="annot"
+	  ><span class="annottext"
+	    >TermUnique -&gt; TermUnique -&gt; Bool
+(TermUnique -&gt; TermUnique -&gt; Bool)
+-&gt; (TermUnique -&gt; TermUnique -&gt; Bool) -&gt; Eq TermUnique
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: TermUnique -&gt; TermUnique -&gt; Bool
+== :: TermUnique -&gt; TermUnique -&gt; Bool
+$c/= :: TermUnique -&gt; TermUnique -&gt; Bool
+/= :: TermUnique -&gt; TermUnique -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835668"
+      ><span id="local-6989586621681835671"
+	><span id="local-6989586621681835674"
+	  ><span id="local-6989586621681835678"
+	    ><span id="local-6989586621681835681"
+	      ><span id="local-6989586621681835684"
+		><span id="local-6989586621681835687"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq TermUnique
+Eq TermUnique =&gt;
+(TermUnique -&gt; TermUnique -&gt; Ordering)
+-&gt; (TermUnique -&gt; TermUnique -&gt; Bool)
+-&gt; (TermUnique -&gt; TermUnique -&gt; Bool)
+-&gt; (TermUnique -&gt; TermUnique -&gt; Bool)
+-&gt; (TermUnique -&gt; TermUnique -&gt; Bool)
+-&gt; (TermUnique -&gt; TermUnique -&gt; TermUnique)
+-&gt; (TermUnique -&gt; TermUnique -&gt; TermUnique)
+-&gt; Ord TermUnique
+TermUnique -&gt; TermUnique -&gt; Bool
+TermUnique -&gt; TermUnique -&gt; Ordering
+TermUnique -&gt; TermUnique -&gt; TermUnique
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: TermUnique -&gt; TermUnique -&gt; Ordering
+compare :: TermUnique -&gt; TermUnique -&gt; Ordering
+$c&lt; :: TermUnique -&gt; TermUnique -&gt; Bool
+&lt; :: TermUnique -&gt; TermUnique -&gt; Bool
+$c&lt;= :: TermUnique -&gt; TermUnique -&gt; Bool
+&lt;= :: TermUnique -&gt; TermUnique -&gt; Bool
+$c&gt; :: TermUnique -&gt; TermUnique -&gt; Bool
+&gt; :: TermUnique -&gt; TermUnique -&gt; Bool
+$c&gt;= :: TermUnique -&gt; TermUnique -&gt; Bool
+&gt;= :: TermUnique -&gt; TermUnique -&gt; Bool
+$cmax :: TermUnique -&gt; TermUnique -&gt; TermUnique
+max :: TermUnique -&gt; TermUnique -&gt; TermUnique
+$cmin :: TermUnique -&gt; TermUnique -&gt; TermUnique
+min :: TermUnique -&gt; TermUnique -&gt; TermUnique
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681835692"
+      ><span id="local-6989586621681835696"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Eq TermUnique
+Eq TermUnique =&gt;
+(Int -&gt; TermUnique -&gt; Int)
+-&gt; (TermUnique -&gt; Int) -&gt; Hashable TermUnique
+Int -&gt; TermUnique -&gt; Int
+TermUnique -&gt; Int
+forall a. Eq a =&gt; (Int -&gt; a -&gt; Int) -&gt; (a -&gt; Int) -&gt; Hashable a
+$chashWithSalt :: Int -&gt; TermUnique -&gt; Int
+hashWithSalt :: Int -&gt; TermUnique -&gt; Int
+$chash :: TermUnique -&gt; Int
+hash :: TermUnique -&gt; Int
+</span
+	    ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span id="nameText"
+      ><span id="nameUnique"
+	><span class="hs-identifier"
+	  >makeLenses</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="hs-identifier"
+	  >Name</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Apply a function to the string representation of a 'Name'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#mapNameString"
+	><span class="hs-identifier hs-type"
+	  >mapNameString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span id="mapNameString"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapNameString :: (Text -&gt; Text) -&gt; Name -&gt; Name
+</span
+	  ><a href="PlutusCore.Name.Unique.html#mapNameString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapNameString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter Name Name Text Text -&gt; (Text -&gt; Text) -&gt; Name -&gt; Name
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-identifier hs-var"
+	>over</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter Name Name Text Text
+Lens' Name Text
+</span
+	><a href="PlutusCore.Name.Unique.html#nameText"
+	><span class="hs-identifier hs-var"
+	  >nameText</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Apply a function to the string representation of a 'TyName'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#mapTyNameString"
+	><span class="hs-identifier hs-type"
+	  >mapTyNameString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span id="mapTyNameString"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapTyNameString :: (Text -&gt; Text) -&gt; TyName -&gt; TyName
+</span
+	  ><a href="PlutusCore.Name.Unique.html#mapTyNameString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapTyNameString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Text -&gt; Text) -&gt; Name -&gt; Name)
+-&gt; (Text -&gt; Text) -&gt; TyName -&gt; TyName
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Text) -&gt; Name -&gt; Name
+</span
+	><a href="PlutusCore.Name.Unique.html#mapNameString"
+	><span class="hs-identifier hs-var"
+	  >mapNameString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Types which have a textual name attached to them.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="HasText"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#HasText"
+	  ><span class="hs-identifier hs-var"
+	    >HasText</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835073"
+      ><span class="annot"
+	><a href="#local-6989586621681835073"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >  </span
+      ><span id="theText"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#theText"
+	  ><span class="hs-identifier hs-type"
+	    >theText</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Lens'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681835073"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasText"
+	><span class="hs-identifier hs-type"
+	  >HasText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835720"
+      ><span class="annot"
+	><span class="annottext"
+	  >theText :: Lens' Name Text
+</span
+	  ><a href="PlutusCore.Name.Unique.html#theText"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >theText</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; f Text) -&gt; Name -&gt; f Name
+Lens' Name Text
+</span
+	><a href="PlutusCore.Name.Unique.html#nameText"
+	><span class="hs-identifier hs-var"
+	  >nameText</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasText"
+	><span class="hs-identifier hs-type"
+	  >HasText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835731"
+      ><span class="annot"
+	><span class="annottext"
+	  >theText :: Lens' TyName Text
+</span
+	  ><a href="PlutusCore.Name.Unique.html#theText"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >theText</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name -&gt; f Name) -&gt; TyName -&gt; f TyName
+forall s t a b. (Coercible s a, Coercible t b) =&gt; Iso s t a b
+Iso TyName TyName Name Name
+</span
+	><span class="hs-identifier hs-var"
+	>coerced</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Name -&gt; f Name) -&gt; TyName -&gt; f TyName)
+-&gt; ((Text -&gt; f Text) -&gt; Name -&gt; f Name)
+-&gt; (Text -&gt; f Text)
+-&gt; TyName
+-&gt; f TyName
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. HasText a =&gt; Lens' a Text
+</span
+	><a href="PlutusCore.Name.Unique.html#theText"
+	><span class="hs-identifier hs-var"
+	  >theText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Types which have a 'Unique' attached to them, mostly names.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	><span class="hs-identifier hs-type"
+	  >Coercible</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681835082"
+	><span class="hs-identifier hs-type"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="HasUnique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#HasUnique"
+	  ><span class="hs-identifier hs-var"
+	    >HasUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835081"
+      ><span class="annot"
+	><a href="#local-6989586621681835081"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681835082"
+      ><span class="annot"
+	><a href="#local-6989586621681835082"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681835081"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681835082"
+	><span class="hs-identifier hs-type"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >  </span
+      ><span id="unique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#unique"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Lens'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681835081"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681835082"
+	><span class="hs-identifier hs-type"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | The default implementation of 'HasUnique' for newtypes.</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >default</span
+      ><span
+      > </span
+      ><span id="unique"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#unique"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681835084"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Wrapped</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681835081"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#HasUnique"
+	  ><span class="hs-identifier hs-type"
+	    >HasUnique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Unwrapped</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681835081"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681835084"
+	  ><span class="hs-identifier hs-type"
+	    >unique'</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	  ><span class="hs-identifier hs-type"
+	    >Coercible</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681835084"
+	  ><span class="hs-identifier hs-type"
+	    >unique'</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681835082"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	>
+</span
+	><span id="line-170"
+	></span
+	><span
+	>    </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Lens'</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681835081"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681835082"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835735"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#unique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >(Unwrapped a -&gt; f (Unwrapped a)) -&gt; a -&gt; f a
+forall s. Wrapped s =&gt; Iso' s (Unwrapped s)
+Iso' a (Unwrapped a)
+</span
+	  ><span class="hs-identifier hs-var"
+	  >_Wrapped'</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >((Unwrapped a -&gt; f (Unwrapped a)) -&gt; a -&gt; f a)
+-&gt; ((unique -&gt; f unique) -&gt; Unwrapped a -&gt; f (Unwrapped a))
+-&gt; (unique -&gt; f unique)
+-&gt; a
+-&gt; f a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	  ><span class="hs-operator hs-var"
+	    >.</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >(unique' -&gt; f unique') -&gt; Unwrapped a -&gt; f (Unwrapped a)
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' (Unwrapped a) unique'
+</span
+	  ><a href="PlutusCore.Name.Unique.html#unique"
+	  ><span class="hs-identifier hs-var"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >((unique' -&gt; f unique') -&gt; Unwrapped a -&gt; f (Unwrapped a))
+-&gt; ((unique -&gt; f unique) -&gt; unique' -&gt; f unique')
+-&gt; (unique -&gt; f unique)
+-&gt; Unwrapped a
+-&gt; f (Unwrapped a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	  ><span class="hs-operator hs-var"
+	    >.</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >(unique -&gt; f unique) -&gt; unique' -&gt; f unique'
+forall s t a b. (Coercible s a, Coercible t b) =&gt; Iso s t a b
+Iso unique' unique' unique unique
+</span
+	  ><span class="hs-identifier hs-var"
+	  >coerced</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier hs-type"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835756"
+      ><span class="annot"
+	><span class="annottext"
+	  >unique :: Lens' Unique Unique
+</span
+	  ><a href="PlutusCore.Name.Unique.html#unique"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; f Unique) -&gt; Unique -&gt; f Unique
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier hs-type"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier hs-type"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681835768"
+      ><span class="annot"
+	><span class="annottext"
+	  >unique :: Lens' Name TermUnique
+</span
+	  ><a href="PlutusCore.Name.Unique.html#unique"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; f Unique) -&gt; Name -&gt; f Name
+Lens' Name Unique
+</span
+	><a href="PlutusCore.Name.Unique.html#nameUnique"
+	><span class="hs-identifier hs-var"
+	  >nameUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Unique -&gt; f Unique) -&gt; Name -&gt; f Name)
+-&gt; ((TermUnique -&gt; f TermUnique) -&gt; Unique -&gt; f Unique)
+-&gt; (TermUnique -&gt; f TermUnique)
+-&gt; Name
+-&gt; f Name
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TermUnique -&gt; f TermUnique) -&gt; Unique -&gt; f Unique
+forall s t a b. (Coercible s a, Coercible t b) =&gt; Iso s t a b
+Iso Unique Unique TermUnique TermUnique
+</span
+	><span class="hs-identifier hs-var"
+	>coerced</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681835772"
+      ><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#HasUnique"
+	  ><span class="hs-identifier hs-type"
+	    >HasUnique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-type"
+	    >TyName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	  ><span class="hs-identifier hs-type"
+	    >TypeUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A lens focused on the 'Unique' of a name.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span id="local-6989586621681835091"
+      ><span id="local-6989586621681835092"
+	><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#theUnique"
+	    ><span class="hs-identifier hs-type"
+	      >theUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	    ><span class="hs-identifier hs-type"
+	      >HasUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681835091"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681835092"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Lens'</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681835091"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Unique"
+	    ><span class="hs-identifier hs-type"
+	      >Unique</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span id="theUnique"
+      ><span class="annot"
+	><span class="annottext"
+	  >theUnique :: forall name unique. HasUnique name unique =&gt; Lens' name Unique
+</span
+	  ><a href="PlutusCore.Name.Unique.html#theUnique"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >theUnique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; f unique) -&gt; name -&gt; f name
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((unique -&gt; f unique) -&gt; name -&gt; f name)
+-&gt; ((Unique -&gt; f Unique) -&gt; unique -&gt; f unique)
+-&gt; (Unique -&gt; f Unique)
+-&gt; name
+-&gt; f name
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; f Unique) -&gt; unique -&gt; f unique
+forall s t a b. (Coercible s a, Coercible t b) =&gt; Iso s t a b
+Iso unique unique Unique Unique
+</span
+	><span class="hs-identifier hs-var"
+	>coerced</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

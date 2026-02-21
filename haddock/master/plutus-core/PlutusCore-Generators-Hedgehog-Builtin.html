@@ -1,0 +1,419 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.Hedgehog.Builtin</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.Hedgehog.Builtin.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.Hedgehog.Builtin</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:GenTypedTerm"
+	      >GenTypedTerm</a
+	      > uni <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:genTypedTerm"
+		  >genTypedTerm</a
+		  > &#8759; &#8704; (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		  >Type</a
+		  >) fun. <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		  >KnownTypeAst</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+		  >TypeRep</a
+		  > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+		  >Gen</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:GenArbitraryTerm"
+	      >GenArbitraryTerm</a
+	      > uni <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:genArbitraryTerm"
+		  >genArbitraryTerm</a
+		  > &#8759; &#8704; fun. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		  >Enum</a
+		  > fun) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+		  >Gen</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genConstant"
+	      >genConstant</a
+	      > &#8759; &#8704; (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	      >TypeRep</a
+	      > a &#8594; SomeGen <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:GenTypedTerm" class="def"
+	    >GenTypedTerm</a
+	    > uni <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#GenTypedTerm" class="link"
+	    >Source</a
+	    > <a href="#t:GenTypedTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This class exists so we can provide an ad-hoc typed term generator
+for various universes. We usually rely-on a universe-specific generator
+for well-typed constants within that universe.</p
+	    ><p
+	    >TODO: Move this to <a href="PlutusIR-Generators-AST.html"
+	      >PlutusIR.Generators.AST</a
+	      >, and merge <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Builtin.html#v:genConstant" title="PlutusCore.Generators.Hedgehog.Builtin"
+		>genConstant</a
+		></code
+	      > with
+<code
+	      ><a href="PlutusIR-Generators-AST.html#v:genConstant" title="PlutusIR.Generators.AST"
+		>genConstant</a
+		></code
+	      >. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:genTypedTerm" class="def"
+	      >genTypedTerm</a
+	      > &#8759; &#8704; (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) fun. <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	      >KnownTypeAst</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	      >TypeRep</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#genTypedTerm" class="link"
+	      >Source</a
+	      > <a href="#v:genTypedTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Generate a <code
+		><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  ></code
+		> in <code
+		>uni</code
+		> with the given type.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:GenTypedTerm"
+	    >Instances</h4
+	    ><details id="i:GenTypedTerm" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:GenTypedTerm:GenTypedTerm:1"
+		      ></span
+		      > <a href="PlutusCore-Generators-Hedgehog-Builtin.html#t:GenTypedTerm" title="PlutusCore.Generators.Hedgehog.Builtin"
+		      >GenTypedTerm</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:GenTypedTerm" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:GenTypedTerm:GenTypedTerm:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-Builtin.html"
+			>PlutusCore.Generators.Hedgehog.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:genTypedTerm"
+			  >genTypedTerm</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+			  >KnownTypeAst</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+			  >TypeRep</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+			  >Gen</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#genTypedTerm" class="link"
+			  >Source</a
+			  > <a href="#v:genTypedTerm" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:GenArbitraryTerm" class="def"
+	    >GenArbitraryTerm</a
+	    > uni <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#GenArbitraryTerm" class="link"
+	    >Source</a
+	    > <a href="#t:GenArbitraryTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This class exists so we can provide an ad-hoc arbitrary term generator
+for various universes. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:genArbitraryTerm" class="def"
+	      >genArbitraryTerm</a
+	      > &#8759; &#8704; fun. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > fun) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#genArbitraryTerm" class="link"
+	      >Source</a
+	      > <a href="#v:genArbitraryTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Generate an arbitrary <code
+		><a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  ></code
+		> in <code
+		>uni</code
+		>.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:GenArbitraryTerm"
+	    >Instances</h4
+	    ><details id="i:GenArbitraryTerm" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:GenArbitraryTerm:GenArbitraryTerm:1"
+		      ></span
+		      > <a href="PlutusCore-Generators-Hedgehog-Builtin.html#t:GenArbitraryTerm" title="PlutusCore.Generators.Hedgehog.Builtin"
+		      >GenArbitraryTerm</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      ></span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:GenArbitraryTerm" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:GenArbitraryTerm:GenArbitraryTerm:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-Builtin.html"
+			>PlutusCore.Generators.Hedgehog.Builtin</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:genArbitraryTerm"
+			  >genArbitraryTerm</a
+			  > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+			  >Bounded</a
+			  > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+			  >Enum</a
+			  > fun) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+			  >Gen</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#genArbitraryTerm" class="link"
+			  >Source</a
+			  > <a href="#v:genArbitraryTerm" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genConstant" class="def"
+	    >genConstant</a
+	    > &#8759; &#8704; (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+	    >TypeRep</a
+	    > a &#8594; SomeGen <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Builtin.html#genConstant" class="link"
+	    >Source</a
+	    > <a href="#v:genConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

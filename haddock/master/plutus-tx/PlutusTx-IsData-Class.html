@@ -1,0 +1,3684 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.IsData.Class</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.58.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.IsData.Class.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.IsData.Class</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:ToData"
+	      >ToData</a
+	      > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:toBuiltinData"
+		  >toBuiltinData</a
+		  > &#8759; a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:FromData"
+	      >FromData</a
+	      > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:fromBuiltinData"
+		  >fromBuiltinData</a
+		  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:UnsafeFromData"
+	      >UnsafeFromData</a
+	      > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:unsafeFromBuiltinData"
+		  >unsafeFromBuiltinData</a
+		  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  > &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toData"
+	      >toData</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; a &#8594; <a href="PlutusTx.html#t:Data" title="PlutusTx"
+	      >Data</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromData"
+	      >fromData</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+	      >FromData</a
+	      > a &#8658; <a href="PlutusTx.html#t:Data" title="PlutusTx"
+	      >Data</a
+	      > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:unsafeFromData"
+	      >unsafeFromData</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx.html#t:Data" title="PlutusTx"
+	      >Data</a
+	      > &#8594; a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:ToData" class="def"
+	    >ToData</a
+	    > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.IsData.Class.html#ToData" class="link"
+	    >Source</a
+	    > <a href="#t:ToData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A typeclass for types that can be converted to and from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:toBuiltinData" class="def"
+	      >toBuiltinData</a
+	      > &#8759; a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+	      >Source</a
+	      > <a href="#v:toBuiltinData" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Convert a value to <code
+		><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  ></code
+		>.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ToData"
+	    >Instances</h4
+	    ><details id="i:ToData" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:1"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-150" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+			  >Void</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:2"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-167" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >For the BLS12-381 G1 and G2 types we use the <code
+		      >compress</code
+		      > functions to convert
+   to a ByteString and then encode that as Data as usual.  We have to be more
+   careful going the other way because we decode a Data object to (possibly) get
+   a BuiltinByteString and then uncompress the underlying ByteString to get a
+   group element.  However uncompression can fail so we have to check what
+   happens: we don't use bls12_381_G?_uncompress because that invokes <code
+		      ><a href="PlutusTx-Builtins.html#v:error" title="PlutusTx.Builtins"
+			>error</a
+			></code
+		      > if
+   something goes wrong (but we do use it for unsafeFromData). </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:3"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-181" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;toBuiltinData is not supported for BuiltinBLS12_381_MlResult&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-199" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >We do not provide instances of any of these classes for
+   BuiltinBLS12_381_MlResult since there is no serialisation format: we expect
+   that values of that type will only occur as the result of on-chain
+   computations. </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:5"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:6"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:7"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:8"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:9"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:10"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > ()</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; () &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:11"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-23" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:12"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;Int is not supported, use Integer instead&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-74" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:13"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:14"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > a &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      > a)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-24" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:15"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > a &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > [a]</span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; [a] &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:16"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-25" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a b &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:17"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > v) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Hand-written instances to use the underlying <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      > type in <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      >, and
+to be reasonably efficient. </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:18"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:19"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		      >These</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.These.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-These.html"
+			>PlutusTx.These</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+			  >These</a
+			  > a b &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:20"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; (a, b) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:21"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > b, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > c) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (a, b, c)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; (a, b, c) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToData:ToData:22"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > b, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > c, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > d) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (a, b, c, d)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:ToData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToData:ToData:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; (a, b, c, d) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:FromData" class="def"
+	    >FromData</a
+	    > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.IsData.Class.html#FromData" class="link"
+	    >Source</a
+	    > <a href="#t:FromData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:fromBuiltinData" class="def"
+	      >fromBuiltinData</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+	      >Source</a
+	      > <a href="#v:fromBuiltinData" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Convert a value from <code
+		><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  ></code
+		>, returning <code
+		><a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+		  >Nothing</a
+		  ></code
+		> if this fails.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:FromData"
+	    >Instances</h4
+	    ><details id="i:FromData" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:1"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-153" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+			  >Void</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:2"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-171" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:3"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-184" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;fromBuiltinData is not supported for BuiltinBLS12_381_MlResult&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-205" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:5"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:6"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:7"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-169" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:8"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:9"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-92" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:10"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > ()</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > () <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:11"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-23" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:12"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;Int is not supported, use Integer instead&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:13"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:14"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > a &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      > a)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-24" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:15"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > a &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > [a]</span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-122" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > [a] <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:16"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-25" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a b) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:17"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > k, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > v) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-117" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >A hand-written transformation from <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > to <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      >. Compared to <code
+		      ><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+			>unsafeFromBuiltinData</a
+			></code
+		      >,
+it is safe to call when it is unknown if the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is built with <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      >s <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      > constructor.
+Note that it is, however, unsafe in the sense that it assumes that any map
+encoded in the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is well-formed, i.e. <code
+		      ><a href="PlutusTx-IsData-Class.html#v:fromBuiltinData" title="PlutusTx.IsData.Class"
+			>fromBuiltinData</a
+			></code
+		      > does not perform any
+deduplication of keys or of key-value pairs! </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:18"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:19"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		      >These</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.These.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-These.html"
+			>PlutusTx.These</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+			  >These</a
+			  > a b) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:20"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (a, b) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:21"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > b, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > c) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (a, b, c)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (a, b, c) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:FromData:FromData:22"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > b, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > c, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > d) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (a, b, c, d)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:FromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:FromData:FromData:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (a, b, c, d) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:UnsafeFromData" class="def"
+	    >UnsafeFromData</a
+	    > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.IsData.Class.html#UnsafeFromData" class="link"
+	    >Source</a
+	    > <a href="#t:UnsafeFromData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:unsafeFromBuiltinData" class="def"
+	      >unsafeFromBuiltinData</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      > &#8594; a <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+	      >Source</a
+	      > <a href="#v:unsafeFromBuiltinData" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Convert a value from <code
+		><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  ></code
+		>, calling <code
+		><a href="PlutusTx-Builtins.html#v:error" title="PlutusTx.Builtins"
+		  >error</a
+		  ></code
+		> if this fails.
+  This is typically much faster than <code
+		><a href="PlutusTx-IsData-Class.html#v:fromBuiltinData" title="PlutusTx.IsData.Class"
+		  >fromBuiltinData</a
+		  ></code
+		>.</p
+	      ><p
+	      >When implementing this function, make sure to call <code
+		><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+		  >unsafeFromBuiltinData</a
+		  ></code
+		>
+  rather than <code
+		><a href="PlutusTx-IsData-Class.html#v:fromBuiltinData" title="PlutusTx.IsData.Class"
+		  >fromBuiltinData</a
+		  ></code
+		> when converting substructures!</p
+	      ><p
+	      >This is a simple type without any validation, <strong
+		>use with caution</strong
+		>. </p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UnsafeFromData"
+	    >Instances</h4
+	    ><details id="i:UnsafeFromData" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:1"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+			  >Void</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:2"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:3"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-190" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;unsafeFromBuiltinData is not supported for BuiltinBLS12_381_MlResult&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-210" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:5"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:6"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:7"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-176" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:8"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:9"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:10"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > ()</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-29" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; () <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:11"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-23" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:12"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;Int is not supported, use Integer instead&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:13"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-118" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:14"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      > a)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-24" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:15"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > [a]</span
+		    > <a href="src/PlutusTx.IsData.Class.html#line-139" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Class.html"
+			>PlutusTx.IsData.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; [a] <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:16"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-25" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > a b <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:17"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > v) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-150" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >A hand-written transformation from <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > to <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      >. It is unsafe because the
+caller must provide the guarantee that the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is constructed using the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      >s
+<code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      > constructor.
+Note that it assumes, like the <code
+		      ><a href="PlutusTx-IsData-Class.html#v:fromBuiltinData" title="PlutusTx.IsData.Class"
+			>fromBuiltinData</a
+			></code
+		      > transformation, that the map
+encoded in the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is well-formed, i.e. <code
+		      ><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+			>unsafeFromBuiltinData</a
+			></code
+		      > does not perform
+any deduplication of keys or of key-value pairs! </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:18"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+		      >Map</a
+		      > k a)</span
+		    > <a href="src/PlutusTx.Data.AssocMap.html#line-83" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-AssocMap.html"
+			>PlutusTx.Data.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Data-AssocMap.html#t:Map" title="PlutusTx.Data.AssocMap"
+			  >Map</a
+			  > k a <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:19"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		      >These</a
+		      > a b)</span
+		    > <a href="src/PlutusTx.These.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-These.html"
+			>PlutusTx.These</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+			  >These</a
+			  > a b <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:20"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > b) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; (a, b) <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:21"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > b, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > c) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (a, b, c)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; (a, b, c) <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:UnsafeFromData:UnsafeFromData:22"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > b, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > c, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > d) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (a, b, c, d)</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:UnsafeFromData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:UnsafeFromData:UnsafeFromData:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; (a, b, c, d) <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toData" class="def"
+	    >toData</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; a &#8594; <a href="PlutusTx.html#t:Data" title="PlutusTx"
+	    >Data</a
+	    > <a href="src/PlutusTx.IsData.Class.html#toData" class="link"
+	    >Source</a
+	    > <a href="#v:toData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a value to <code
+	      ><a href="PlutusTx.html#t:Data" title="PlutusTx"
+		>Data</a
+		></code
+	      >.</p
+	    ><p
+	    >Note: off-chain only. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromData" class="def"
+	    >fromData</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+	    >FromData</a
+	    > a &#8658; <a href="PlutusTx.html#t:Data" title="PlutusTx"
+	    >Data</a
+	    > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.IsData.Class.html#fromData" class="link"
+	    >Source</a
+	    > <a href="#v:fromData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a value from <code
+	      ><a href="PlutusTx.html#t:Data" title="PlutusTx"
+		>Data</a
+		></code
+	      >, returning <code
+	      ><a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+		>Nothing</a
+		></code
+	      > if this fails.</p
+	    ><p
+	    >Note: off-chain only. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeFromData" class="def"
+	    >unsafeFromData</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx.html#t:Data" title="PlutusTx"
+	    >Data</a
+	    > &#8594; a <a href="src/PlutusTx.IsData.Class.html#unsafeFromData" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeFromData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a value from <code
+	      ><a href="PlutusTx.html#t:Data" title="PlutusTx"
+		>Data</a
+		></code
+	      >, throwing if this fails.</p
+	    ><p
+	    >Note: off-chain only. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

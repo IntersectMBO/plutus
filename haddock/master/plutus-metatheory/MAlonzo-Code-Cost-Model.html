@@ -1,0 +1,639 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.Cost.Model</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.58.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.Cost.Model.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.Cost.Model</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Intercept_4" class="def"
+	    >d_Intercept_4</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Cost.Model.html#d_Intercept_4" class="link"
+	    >Source</a
+	    > <a href="#v:d_Intercept_4" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Slope_6" class="def"
+	    >d_Slope_6</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Cost.Model.html#d_Slope_6" class="link"
+	    >Source</a
+	    > <a href="#v:d_Slope_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_CostingModel_8" class="def"
+	    >d_CostingModel_8</a
+	    > &#8759; p &#8594; () <a href="src/MAlonzo.Code.Cost.Model.html#d_CostingModel_8" class="link"
+	    >Source</a
+	    > <a href="#v:d_CostingModel_8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_CostingModel_8" class="def"
+	    >T_CostingModel_8</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#T_CostingModel_8" class="link"
+	    >Source</a
+	    > <a href="#t:T_CostingModel_8" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_constantCost_12" class="def"
+		  >C_constantCost_12</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_linearCostIn_16" class="def"
+		  >C_linearCostIn_16</a
+		  > <a href="MAlonzo-Code-Data-Fin-Base.html#t:T_Fin_10" title="MAlonzo.Code.Data.Fin.Base"
+		  >T_Fin_10</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_quadraticCostIn1_20" class="def"
+		  >C_quadraticCostIn1_20</a
+		  > <a href="MAlonzo-Code-Data-Fin-Base.html#t:T_Fin_10" title="MAlonzo.Code.Data.Fin.Base"
+		  >T_Fin_10</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_quadraticCostIn2_24" class="def"
+		  >C_quadraticCostIn2_24</a
+		  > <a href="MAlonzo-Code-Data-Fin-Base.html#t:T_Fin_10" title="MAlonzo.Code.Data.Fin.Base"
+		  >T_Fin_10</a
+		  > <a href="MAlonzo-Code-Data-Fin-Base.html#t:T_Fin_10" title="MAlonzo.Code.Data.Fin.Base"
+		  >T_Fin_10</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_literalCostIn_28" class="def"
+		  >C_literalCostIn_28</a
+		  > <a href="MAlonzo-Code-Data-Fin-Base.html#t:T_Fin_10" title="MAlonzo.Code.Data.Fin.Base"
+		  >T_Fin_10</a
+		  > <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+		  >T_CostingModel_8</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_addedSizes_32" class="def"
+		  >C_addedSizes_32</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_multipliedSizes_36" class="def"
+		  >C_multipliedSizes_36</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_minSize_40" class="def"
+		  >C_minSize_40</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_maxSize_44" class="def"
+		  >C_maxSize_44</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_twoArgumentsSubtractedSizes_46" class="def"
+		  >C_twoArgumentsSubtractedSizes_46</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_twoArgumentsConstAboveDiagonal_48" class="def"
+		  >C_twoArgumentsConstAboveDiagonal_48</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+		  >T_CostingModel_8</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_twoArgumentsConstBelowDiagonal_50" class="def"
+		  >C_twoArgumentsConstBelowDiagonal_50</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+		  >T_CostingModel_8</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_twoArgumentsConstOffDiagonal_52" class="def"
+		  >C_twoArgumentsConstOffDiagonal_52</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+		  >T_CostingModel_8</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_twoArgumentsLinearInYAndZ_54" class="def"
+		  >C_twoArgumentsLinearInYAndZ_54</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_twoArgumentsLinearInMaxYZ_56" class="def"
+		  >C_twoArgumentsLinearInMaxYZ_56</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_threeArgumentsExpModCost_58" class="def"
+		  >C_threeArgumentsExpModCost_58</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_BuiltinModel_62" class="def"
+	    >d_BuiltinModel_62</a
+	    > &#8759; p &#8594; () <a href="src/MAlonzo.Code.Cost.Model.html#d_BuiltinModel_62" class="link"
+	    >Source</a
+	    > <a href="#v:d_BuiltinModel_62" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_BuiltinModel_62" class="def"
+	    >T_BuiltinModel_62</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#T_BuiltinModel_62" class="link"
+	    >Source</a
+	    > <a href="#t:T_BuiltinModel_62" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_BuiltinModel-39-46-39-constructor_607" class="def"
+		  >C_BuiltinModel'46'constructor_607</a
+		  > <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+		  >T_CostingModel_8</a
+		  > <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+		  >T_CostingModel_8</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_costingCPU_70" class="def"
+	    >d_costingCPU_70</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Model.html#t:T_BuiltinModel_62" title="MAlonzo.Code.Cost.Model"
+	    >T_BuiltinModel_62</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+	    >T_CostingModel_8</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_costingCPU_70" class="link"
+	    >Source</a
+	    > <a href="#v:d_costingCPU_70" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_costingMem_72" class="def"
+	    >d_costingMem_72</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Model.html#t:T_BuiltinModel_62" title="MAlonzo.Code.Cost.Model"
+	    >T_BuiltinModel_62</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+	    >T_CostingModel_8</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_costingMem_72" class="link"
+	    >Source</a
+	    > <a href="#v:d_costingMem_72" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_prod_76" class="def"
+	    >d_prod_76</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Vec-Base.html#t:T_Vec_28" title="MAlonzo.Code.Data.Vec.Base"
+	    >T_Vec_28</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_prod_76" class="link"
+	    >Source</a
+	    > <a href="#v:d_prod_76" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_maximum_80" class="def"
+	    >d_maximum_80</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Vec-Base.html#t:T_Vec_28" title="MAlonzo.Code.Data.Vec.Base"
+	    >T_Vec_28</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_maximum_80" class="link"
+	    >Source</a
+	    > <a href="#v:d_maximum_80" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_minimum_84" class="def"
+	    >d_minimum_84</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Vec-Base.html#t:T_Vec_28" title="MAlonzo.Code.Data.Vec.Base"
+	    >T_Vec_28</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_minimum_84" class="link"
+	    >Source</a
+	    > <a href="#v:d_minimum_84" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runModel_96" class="def"
+	    >d_runModel_96</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+	    >T_CostingModel_8</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Vec-Base.html#t:T_Vec_28" title="MAlonzo.Code.Data.Vec.Base"
+	    >T_Vec_28</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_runModel_96" class="link"
+	    >Source</a
+	    > <a href="#v:d_runModel_96" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_convertRawModel_292" class="def"
+	    >d_convertRawModel_292</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Raw.html#t:T_RawModel_144" title="MAlonzo.Code.Cost.Raw"
+	    >T_RawModel_144</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-Code-Cost-Model.html#t:T_CostingModel_8" title="MAlonzo.Code.Cost.Model"
+	    >T_CostingModel_8</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_convertRawModel_292" class="link"
+	    >Source</a
+	    > <a href="#v:d_convertRawModel_292" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_convertCpuAndMemoryModel_416" class="def"
+	    >d_convertCpuAndMemoryModel_416</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Raw.html#t:T_CpuAndMemoryModel_192" title="MAlonzo.Code.Cost.Raw"
+	    >T_CpuAndMemoryModel_192</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-Code-Cost-Model.html#t:T_BuiltinModel_62" title="MAlonzo.Code.Cost.Model"
+	    >T_BuiltinModel_62</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_convertCpuAndMemoryModel_416" class="link"
+	    >Source</a
+	    > <a href="#v:d_convertCpuAndMemoryModel_416" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_getModel_440" class="def"
+	    >d_getModel_440</a
+	    > &#8759; <a href="MAlonzo-Code-Builtin.html#t:T_Builtin_2" title="MAlonzo.Code.Builtin"
+	    >T_Builtin_2</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_414" title="MAlonzo.Code.Utils"
+	    >T_List_414</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__396" title="MAlonzo.Code.Utils"
+	    >T__'215'__396</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="MAlonzo-Code-Cost-Raw.html#t:T_CpuAndMemoryModel_192" title="MAlonzo.Code.Cost.Raw"
+	    >T_CpuAndMemoryModel_192</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-Sigma.html#t:T_-931-_14" title="MAlonzo.Code.Agda.Builtin.Sigma"
+	    >T_&#931;_14</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_getModel_440" class="link"
+	    >Source</a
+	    > <a href="#v:d_getModel_440" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_dummyModel_476" class="def"
+	    >d_dummyModel_476</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Model.html#t:T_BuiltinModel_62" title="MAlonzo.Code.Cost.Model"
+	    >T_BuiltinModel_62</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_dummyModel_476" class="link"
+	    >Source</a
+	    > <a href="#v:d_dummyModel_476" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_dummyModel_476" class="def"
+	    >du_dummyModel_476</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Model.html#t:T_BuiltinModel_62" title="MAlonzo.Code.Cost.Model"
+	    >T_BuiltinModel_62</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#du_dummyModel_476" class="link"
+	    >Source</a
+	    > <a href="#v:du_dummyModel_476" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_lookupModel_482" class="def"
+	    >d_lookupModel_482</a
+	    > &#8759; [<a href="MAlonzo-Code-Agda-Builtin-Sigma.html#t:T_-931-_14" title="MAlonzo.Code.Agda.Builtin.Sigma"
+	    >T_&#931;_14</a
+	    >] &#8594; <a href="MAlonzo-Code-Builtin.html#t:T_Builtin_2" title="MAlonzo.Code.Builtin"
+	    >T_Builtin_2</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Model.html#t:T_BuiltinModel_62" title="MAlonzo.Code.Cost.Model"
+	    >T_BuiltinModel_62</a
+	    > <a href="src/MAlonzo.Code.Cost.Model.html#d_lookupModel_482" class="link"
+	    >Source</a
+	    > <a href="#v:d_lookupModel_482" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_allJust_518" class="def"
+	    >d_allJust_518</a
+	    > &#8759; () &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Cost.Model.html#d_allJust_518" class="link"
+	    >Source</a
+	    > <a href="#v:d_allJust_518" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_allJust_518" class="def"
+	    >du_allJust_518</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Cost.Model.html#du_allJust_518" class="link"
+	    >Source</a
+	    > <a href="#v:du_allJust_518" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_ModelAssignment_540" class="def"
+	    >d_ModelAssignment_540</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Cost.Model.html#d_ModelAssignment_540" class="link"
+	    >Source</a
+	    > <a href="#v:d_ModelAssignment_540" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_createMap_544" class="def"
+	    >d_createMap_544</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_414" title="MAlonzo.Code.Utils"
+	    >T_List_414</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__396" title="MAlonzo.Code.Utils"
+	    >T__'215'__396</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="MAlonzo-Code-Cost-Raw.html#t:T_CpuAndMemoryModel_192" title="MAlonzo.Code.Cost.Raw"
+	    >T_CpuAndMemoryModel_192</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="MAlonzo-Code-Builtin.html#t:T_Builtin_2" title="MAlonzo.Code.Builtin"
+	    >T_Builtin_2</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Model.html#t:T_BuiltinModel_62" title="MAlonzo.Code.Cost.Model"
+	    >T_BuiltinModel_62</a
+	    >) <a href="src/MAlonzo.Code.Cost.Model.html#d_createMap_544" class="link"
+	    >Source</a
+	    > <a href="#v:d_createMap_544" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

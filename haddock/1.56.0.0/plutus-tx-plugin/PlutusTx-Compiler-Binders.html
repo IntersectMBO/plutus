@@ -1,0 +1,542 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Compiler.Binders</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.56.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Compiler.Binders.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Compiler.Binders</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Convenient functions for compiling binders.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:withVarScoped"
+	      >withVarScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun) &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	      >VarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; m a) &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:withVarTyScoped"
+	      >withVarTyScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      > &#8594; <a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	      >VarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; m a) &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:withVarsScoped"
+	      >withVarsScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; [(<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun))] &#8594; ([<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	      >VarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      >] &#8594; m a) &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:withTyVarScoped"
+	      >withTyVarScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      > &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; m a) &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:withTyVarsScoped"
+	      >withTyVarsScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      >] &#8594; ([<a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      >] &#8594; m a) &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:mkLamAbsScoped"
+	      >mkLamAbsScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:mkTyAbsScoped"
+	      >mkTyAbsScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyAbsScoped"
+	      >mkIterTyAbsScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      >] &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:mkTyForallScoped"
+	      >mkTyForallScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyForallScoped"
+	      >mkIterTyForallScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      >] &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><a href="#v:mkTyLamScoped"
+	      >mkTyLamScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><a href="#v:mkIterTyLamScoped"
+	      >mkIterTyLamScoped</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	      >Var</a
+	      >] &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withVarScoped" class="def"
+	    >withVarScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	    >VarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; m a) &#8594; m a <a href="src/PlutusTx.Compiler.Binders.html#withVarScoped" class="link"
+	    >Source</a
+	    > <a href="#v:withVarScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withVarTyScoped" class="def"
+	    >withVarTyScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    > &#8594; <a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	    >VarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; m a) &#8594; m a <a href="src/PlutusTx.Compiler.Binders.html#withVarTyScoped" class="link"
+	    >Source</a
+	    > <a href="#v:withVarTyScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Compiler-Binders.html#v:withVarScoped" title="PlutusTx.Compiler.Binders"
+		>withVarScoped</a
+		></code
+	      >, but takes a <code
+	      ><a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+		>PIRType</a
+		></code
+	      >, and uses it for the type
+of the compiled <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:Expr" title="GHC.Core"
+		>Expr</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withVarsScoped" class="def"
+	    >withVarsScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; [(<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun))] &#8594; ([<a href="../plutus-core/PlutusCore-Core-Type.html#t:VarDecl" title="PlutusCore.Core.Type"
+	    >VarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    >] &#8594; m a) &#8594; m a <a href="src/PlutusTx.Compiler.Binders.html#withVarsScoped" class="link"
+	    >Source</a
+	    > <a href="#v:withVarsScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTyVarScoped" class="def"
+	    >withTyVarScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    > &#8594; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; m a) &#8594; m a <a href="src/PlutusTx.Compiler.Binders.html#withTyVarScoped" class="link"
+	    >Source</a
+	    > <a href="#v:withTyVarScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTyVarsScoped" class="def"
+	    >withTyVarsScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    >] &#8594; ([<a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    >] &#8594; m a) &#8594; m a <a href="src/PlutusTx.Compiler.Binders.html#withTyVarsScoped" class="link"
+	    >Source</a
+	    > <a href="#v:withTyVarsScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkLamAbsScoped" class="def"
+	    >mkLamAbsScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) <a href="src/PlutusTx.Compiler.Binders.html#mkLamAbsScoped" class="link"
+	    >Source</a
+	    > <a href="#v:mkLamAbsScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Builds a lambda, binding the given variable to a name that
+will be in scope when running the second argument. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTyAbsScoped" class="def"
+	    >mkTyAbsScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) <a href="src/PlutusTx.Compiler.Binders.html#mkTyAbsScoped" class="link"
+	    >Source</a
+	    > <a href="#v:mkTyAbsScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Builds a type abstraction, binding the given variable to a name that
+will be in scope when running the second argument. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyAbsScoped" class="def"
+	    >mkIterTyAbsScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    >] &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun) <a href="src/PlutusTx.Compiler.Binders.html#mkIterTyAbsScoped" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyAbsScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTyForallScoped" class="def"
+	    >mkTyForallScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Binders.html#mkTyForallScoped" class="link"
+	    >Source</a
+	    > <a href="#v:mkTyForallScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Builds a forall, binding the given variable to a name that
+will be in scope when running the second argument. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyForallScoped" class="def"
+	    >mkIterTyForallScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    >] &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Binders.html#mkIterTyForallScoped" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyForallScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTyLamScoped" class="def"
+	    >mkTyLamScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Binders.html#mkTyLamScoped" class="link"
+	    >Source</a
+	    > <a href="#v:mkTyLamScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Builds a type lambda, binding the given variable to a name that
+will be in scope when running the second argument. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkIterTyLamScoped" class="def"
+	    >mkIterTyLamScoped</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Var" title="GHC.Types.Var"
+	    >Var</a
+	    >] &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Binders.html#mkIterTyLamScoped" class="link"
+	    >Source</a
+	    > <a href="#v:mkIterTyLamScoped" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

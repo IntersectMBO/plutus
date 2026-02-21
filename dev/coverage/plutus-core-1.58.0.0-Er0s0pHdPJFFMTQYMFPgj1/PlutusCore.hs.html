@@ -1,0 +1,189 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- Why is it needed here, but not in &quot;Universe.Core&quot;?
+<span class="lineno">    2 </span>{-# LANGUAGE ExplicitNamespaces #-}
+<span class="lineno">    3 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module PlutusCore
+<span class="lineno">    6 </span>  ( -- * Parser
+<span class="lineno">    7 </span>    parseProgram
+<span class="lineno">    8 </span>  , parseTerm
+<span class="lineno">    9 </span>  , parseType
+<span class="lineno">   10 </span>  , SourcePos
+<span class="lineno">   11 </span>  , SrcSpan (..)
+<span class="lineno">   12 </span>  , SrcSpans
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>    -- * Builtins
+<span class="lineno">   15 </span>  , Some (..)
+<span class="lineno">   16 </span>  , SomeTypeIn (..)
+<span class="lineno">   17 </span>  , Kinded (..)
+<span class="lineno">   18 </span>  , ValueOf (..)
+<span class="lineno">   19 </span>  , someValueOf
+<span class="lineno">   20 </span>  , someValue
+<span class="lineno">   21 </span>  , someValueType
+<span class="lineno">   22 </span>  , Esc
+<span class="lineno">   23 </span>  , Contains (..)
+<span class="lineno">   24 </span>  , Closed (..)
+<span class="lineno">   25 </span>  , EverywhereAll
+<span class="lineno">   26 </span>  , knownUniOf
+<span class="lineno">   27 </span>  , GShow (..)
+<span class="lineno">   28 </span>  , show
+<span class="lineno">   29 </span>  , GEq (..)
+<span class="lineno">   30 </span>  , HasUniApply (..)
+<span class="lineno">   31 </span>  , checkStar
+<span class="lineno">   32 </span>  , withApplicable
+<span class="lineno">   33 </span>  , (:~:) (..)
+<span class="lineno">   34 </span>  , type (&lt;:)
+<span class="lineno">   35 </span>  , HasTypeLevel
+<span class="lineno">   36 </span>  , HasTermLevel
+<span class="lineno">   37 </span>  , HasTypeAndTermLevel
+<span class="lineno">   38 </span>  , DefaultUni (..)
+<span class="lineno">   39 </span>  , pattern DefaultUniList
+<span class="lineno">   40 </span>  , pattern DefaultUniPair
+<span class="lineno">   41 </span>  , pattern DefaultUniArray
+<span class="lineno">   42 </span>  , DefaultFun (..)
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>    -- * AST
+<span class="lineno">   45 </span>  , Term (..)
+<span class="lineno">   46 </span>  , termSubterms
+<span class="lineno">   47 </span>  , termSubtypes
+<span class="lineno">   48 </span>  , termMapNames
+<span class="lineno">   49 </span>  , programMapNames
+<span class="lineno">   50 </span>  , UniOf
+<span class="lineno">   51 </span>  , Type (..)
+<span class="lineno">   52 </span>  , typeSubtypes
+<span class="lineno">   53 </span>  , typeMapNames
+<span class="lineno">   54 </span>  , Kind (..)
+<span class="lineno">   55 </span>  , toPatFuncKind
+<span class="lineno">   56 </span>  , fromPatFuncKind
+<span class="lineno">   57 </span>  , argsFunKind
+<span class="lineno">   58 </span>  , ParserError (..)
+<span class="lineno">   59 </span>  , Version (..)
+<span class="lineno">   60 </span>  , Program (..)
+<span class="lineno">   61 </span>  , Name (..)
+<span class="lineno">   62 </span>  , TyName (..)
+<span class="lineno">   63 </span>  , Unique (..)
+<span class="lineno">   64 </span>  , UniqueMap (..)
+<span class="lineno">   65 </span>  , UniqueSet (..)
+<span class="lineno">   66 </span>  , Normalized (..)
+<span class="lineno">   67 </span>  , latestVersion
+<span class="lineno">   68 </span>  , termAnn
+<span class="lineno">   69 </span>  , typeAnn
+<span class="lineno">   70 </span>  , tyVarDeclAnn
+<span class="lineno">   71 </span>  , tyVarDeclName
+<span class="lineno">   72 </span>  , tyVarDeclKind
+<span class="lineno">   73 </span>  , varDeclAnn
+<span class="lineno">   74 </span>  , varDeclName
+<span class="lineno">   75 </span>  , varDeclType
+<span class="lineno">   76 </span>  , tyDeclAnn
+<span class="lineno">   77 </span>  , tyDeclType
+<span class="lineno">   78 </span>  , tyDeclKind
+<span class="lineno">   79 </span>  , progAnn
+<span class="lineno">   80 </span>  , progVer
+<span class="lineno">   81 </span>  , progTerm
+<span class="lineno">   82 </span>  , mapFun
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>    -- * DeBruijn representation
+<span class="lineno">   85 </span>  , DeBruijn (..)
+<span class="lineno">   86 </span>  , TyDeBruijn (..)
+<span class="lineno">   87 </span>  , NamedDeBruijn (..)
+<span class="lineno">   88 </span>  , NamedTyDeBruijn (..)
+<span class="lineno">   89 </span>  , deBruijnTerm
+<span class="lineno">   90 </span>  , unDeBruijnTerm
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>    -- * Processing
+<span class="lineno">   93 </span>  , HasUniques
+<span class="lineno">   94 </span>  , Rename (..)
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>    -- * Type checking
+<span class="lineno">   97 </span>  , module TypeCheck
+<span class="lineno">   98 </span>  , normalizeTypesIn
+<span class="lineno">   99 </span>  , normalizeTypesInProgram
+<span class="lineno">  100 </span>  , TypeError
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>    -- * Errors
+<span class="lineno">  103 </span>  , Error (..)
+<span class="lineno">  104 </span>  , NormCheckError (..)
+<span class="lineno">  105 </span>  , UniqueError (..)
+<span class="lineno">  106 </span>  , FreeVariableError (..)
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>    -- * Quotation and term construction
+<span class="lineno">  109 </span>  , Quote
+<span class="lineno">  110 </span>  , runQuote
+<span class="lineno">  111 </span>  , QuoteT
+<span class="lineno">  112 </span>  , runQuoteT
+<span class="lineno">  113 </span>  , MonadQuote
+<span class="lineno">  114 </span>  , liftQuote
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>    -- * Name generation
+<span class="lineno">  117 </span>  , freshUnique
+<span class="lineno">  118 </span>  , freshName
+<span class="lineno">  119 </span>  , freshTyName
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>    -- * Evaluation
+<span class="lineno">  122 </span>  , EvaluationResult (..)
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>    -- * Combining programs
+<span class="lineno">  125 </span>  , applyProgram
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>    -- * Benchmarking
+<span class="lineno">  128 </span>  , termAstSize
+<span class="lineno">  129 </span>  , typeAstSize
+<span class="lineno">  130 </span>  , kindAstSize
+<span class="lineno">  131 </span>  , programAstSize
+<span class="lineno">  132 </span>  ) where
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>import PlutusCore.Annotation
+<span class="lineno">  135 </span>import PlutusCore.AstSize
+<span class="lineno">  136 </span>import PlutusCore.Builtin
+<span class="lineno">  137 </span>import PlutusCore.Core
+<span class="lineno">  138 </span>import PlutusCore.DeBruijn
+<span class="lineno">  139 </span>import PlutusCore.Default
+<span class="lineno">  140 </span>import PlutusCore.Error
+<span class="lineno">  141 </span>import PlutusCore.Evaluation.Machine.Ck
+<span class="lineno">  142 </span>import PlutusCore.FlatInstances ()
+<span class="lineno">  143 </span>import PlutusCore.Name.Unique
+<span class="lineno">  144 </span>import PlutusCore.Name.UniqueMap
+<span class="lineno">  145 </span>import PlutusCore.Name.UniqueSet
+<span class="lineno">  146 </span>import PlutusCore.Normalize
+<span class="lineno">  147 </span>import PlutusCore.Parser
+<span class="lineno">  148 </span>import PlutusCore.Quote
+<span class="lineno">  149 </span>import PlutusCore.Rename
+<span class="lineno">  150 </span>import PlutusCore.Subst
+<span class="lineno">  151 </span>import PlutusCore.TypeCheck as TypeCheck
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>import Control.Monad.Except
+<span class="lineno">  154 </span>
+<span class="lineno">  155 </span>{-| Applies one program to another. Fails if the versions do not match
+<span class="lineno">  156 </span>and tries to merge annotations. -}
+<span class="lineno">  157 </span>applyProgram
+<span class="lineno">  158 </span>  :: (MonadError ApplyProgramError m, Semigroup a)
+<span class="lineno">  159 </span>  =&gt; Program tyname name uni fun a
+<span class="lineno">  160 </span>  -&gt; Program tyname name uni fun a
+<span class="lineno">  161 </span>  -&gt; m (Program tyname name uni fun a)
+<span class="lineno">  162 </span><span class="decl"><span class="nottickedoff">applyProgram (Program a1 v1 t1) (Program a2 v2 t2)</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="nottickedoff">| v1 == v2 =</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="nottickedoff">pure $ Program (a1 &lt;&gt; a2) v1 (Apply (termAnn t1 &lt;&gt; termAnn t2) t1 t2)</span>
+<span class="lineno">  165 </span><span class="spaces"></span><span class="nottickedoff">applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =</span>
+<span class="lineno">  166 </span><span class="spaces">  </span><span class="nottickedoff">throwError $ MkApplyProgramError v1 v2</span></span>
+
+</pre>
+</body>
+</html>

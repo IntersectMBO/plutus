@@ -1,0 +1,1975 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Data.SatInt</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Data.SatInt.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Data.SatInt</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Adapted from <code
+	    ><a href="Data.html#v:SafeInt" title="Data"
+	      >SafeInt</a
+	      ></code
+	    > to perform saturating arithmetic (i.e. returning max or min bounds) instead of throwing on overflow.</p
+	  ><p
+	  >This is not quite as fast as using <code
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></code
+	    > or <code
+	    >Int64</code
+	    > directly, but we need the safety. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:SatInt"
+	      >SatInt</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unsafeToSatInt"
+	      >unsafeToSatInt</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromSatInt"
+	      >fromSatInt</a
+	      > &#8759; &#8704; a. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+	      >Num</a
+	      > a &#8658; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      > &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:dividedBy"
+	      >dividedBy</a
+	      > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:SatInt" class="def"
+	    >SatInt</a
+	    > <a href="src/Data.SatInt.html#SatInt" class="link"
+	    >Source</a
+	    > <a href="#t:SatInt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SatInt"
+	    >Instances</h4
+	    ><details id="i:SatInt" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:FromJSON:1"
+		      ></span
+		      > FromJSON <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:ToJSON:2"
+		      ></span
+		      > ToJSON <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:ToJSON:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Bits:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bits.html#t:Bits" title="Data.Bits"
+		      >Bits</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Bits:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:.-38-."
+			  >(.&amp;.)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:.-38-." class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:.-124-."
+			  >(.|.)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:.-124-." class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:xor"
+			  >xor</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:xor" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:complement"
+			  >complement</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:complement" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shift"
+			  >shift</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:shift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:rotate"
+			  >rotate</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rotate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zeroBits"
+			  >zeroBits</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:zeroBits" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bit"
+			  >bit</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bit" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:setBit"
+			  >setBit</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:setBit" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:clearBit"
+			  >clearBit</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:clearBit" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:complementBit"
+			  >complementBit</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:complementBit" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:testBit"
+			  >testBit</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:testBit" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bitSizeMaybe"
+			  >bitSizeMaybe</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bitSizeMaybe" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bitSize"
+			  >bitSize</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bitSize" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:isSigned"
+			  >isSigned</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:isSigned" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shiftL"
+			  >shiftL</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:shiftL" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:unsafeShiftL"
+			  >unsafeShiftL</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeShiftL" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shiftR"
+			  >shiftR</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:shiftR" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:unsafeShiftR"
+			  >unsafeShiftR</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeShiftR" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:rotateL"
+			  >rotateL</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rotateL" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:rotateR"
+			  >rotateR</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rotateR" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:popCount"
+			  >popCount</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:popCount" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:FiniteBits:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bits.html#t:FiniteBits" title="Data.Bits"
+		      >FiniteBits</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:FiniteBits:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:finiteBitSize"
+			  >finiteBitSize</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:finiteBitSize" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:countLeadingZeros"
+			  >countLeadingZeros</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:countLeadingZeros" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:countTrailingZeros"
+			  >countTrailingZeros</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:countTrailingZeros" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Bounded:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Bounded:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Generic:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Generic:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > x &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Num:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >In the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			>Num</a
+			></code
+		      > instance, we plug in our own addition, multiplication
+and subtraction function that perform overflow-checking. </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Num:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negate"
+			  >negate</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:negate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:abs"
+			  >abs</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:abs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:signum"
+			  >signum</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:signum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromInteger"
+			  >fromInteger</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Read:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+		      >Read</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Read:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readsPrec"
+			  >readsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readList"
+			  >readList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readPrec"
+			  >readPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readListPrec"
+			  >readListPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readListPrec" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Show:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Show:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:FromField:10"
+		      ></span
+		      > FromField <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:FromField:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseField"
+			  >parseField</a
+			  > &#8759; Field &#8594; Parser <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:NFData:11"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:NFData:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Eq:12"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Eq:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Ord:13"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Ord:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:NoThunks:14"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:NoThunks:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Prim:15"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/Data-Primitive-Types.html#t:Prim" title="Data.Primitive.Types"
+		      >Prim</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Prim:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:sizeOfType-35-"
+			  >sizeOfType#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sizeOfType-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sizeOf-35-"
+			  >sizeOf#</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sizeOf-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:alignmentOfType-35-"
+			  >alignmentOfType#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:alignmentOfType-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:alignment-35-"
+			  >alignment#</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:alignment-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:indexByteArray-35-"
+			  >indexByteArray#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:ByteArray-35-" title="GHC.Exts"
+			  >ByteArray#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:indexByteArray-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readByteArray-35-"
+			  >readByteArray#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:MutableByteArray-35-" title="GHC.Exts"
+			  >MutableByteArray#</a
+			  > s &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s &#8594; (# <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s, <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > #) <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readByteArray-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:writeByteArray-35-"
+			  >writeByteArray#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:MutableByteArray-35-" title="GHC.Exts"
+			  >MutableByteArray#</a
+			  > s &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:writeByteArray-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:setByteArray-35-"
+			  >setByteArray#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:MutableByteArray-35-" title="GHC.Exts"
+			  >MutableByteArray#</a
+			  > s &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:setByteArray-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:indexOffAddr-35-"
+			  >indexOffAddr#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Addr-35-" title="GHC.Exts"
+			  >Addr#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:indexOffAddr-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readOffAddr-35-"
+			  >readOffAddr#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Addr-35-" title="GHC.Exts"
+			  >Addr#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s &#8594; (# <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s, <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > #) <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readOffAddr-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:writeOffAddr-35-"
+			  >writeOffAddr#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Addr-35-" title="GHC.Exts"
+			  >Addr#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:writeOffAddr-35-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:setOffAddr-35-"
+			  >setOffAddr#</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Addr-35-" title="GHC.Exts"
+			  >Addr#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:Int-35-" title="GHC.Exts"
+			  >Int#</a
+			  > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Exts.html#t:State-35-" title="GHC.Exts"
+			  >State#</a
+			  > s <a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:setOffAddr-35-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Serialise:16"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-38" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Serialise:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Lift:17"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Lift:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			  >SatInt</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SatInt:Rep:18"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      ></span
+		    > <a href="src/Data.SatInt.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:SatInt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SatInt:Rep:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Data-SatInt.html"
+			>Data.SatInt</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+			>SatInt</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;SatInt&quot; &quot;Data.SatInt&quot; &quot;plutus-core-1.56.0.0-inplace-satint&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;SI&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;unSatInt&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			>Int</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeToSatInt" class="def"
+	    >unsafeToSatInt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > <a href="src/Data.SatInt.html#unsafeToSatInt" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeToSatInt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Wrap an <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		>Int</a
+		></code
+	      > as a <code
+	      ><a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		>SatInt</a
+		></code
+	      >. This is unsafe because the <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		>Int</a
+		></code
+	      > can be a result of an arbitrary
+potentially underflowing/overflowing operation. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromSatInt" class="def"
+	    >fromSatInt</a
+	    > &#8759; &#8704; a. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+	    >Num</a
+	    > a &#8658; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > &#8594; a <a href="src/Data.SatInt.html#fromSatInt" class="link"
+	    >Source</a
+	    > <a href="#v:fromSatInt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An optimized version of <code
+	      >fromIntegral . unSatInt</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dividedBy" class="def"
+	    >dividedBy</a
+	    > &#8759; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > <a href="src/Data.SatInt.html#dividedBy" class="link"
+	    >Source</a
+	    > <a href="#v:dividedBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Divide a <code
+	      ><a href="Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		>SatInt</a
+		></code
+	      > by a natural number.  If the natural number is zero,
+return <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#v:maxBound" title="Prelude"
+		>maxBound</a
+		></code
+	      >; if we're at the maximum or minimum value then leave the
+input unaltered. This should never throw. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

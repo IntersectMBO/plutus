@@ -1,0 +1,390 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    5 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    6 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    7 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">   10 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   11 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>-- | The CK machine.
+<span class="lineno">   14 </span>module PlutusCore.Evaluation.Machine.Ck
+<span class="lineno">   15 </span>  ( EvaluationResult (..)
+<span class="lineno">   16 </span>  , CkEvaluationException
+<span class="lineno">   17 </span>  , CkM
+<span class="lineno">   18 </span>  , CkValue
+<span class="lineno">   19 </span>  , runCk
+<span class="lineno">   20 </span>  , splitStructuralOperational
+<span class="lineno">   21 </span>  , unsafeSplitStructuralOperational
+<span class="lineno">   22 </span>  , evaluateCk
+<span class="lineno">   23 </span>  , evaluateCkNoEmit
+<span class="lineno">   24 </span>  , readKnownCk
+<span class="lineno">   25 </span>  ) where
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>import PlutusPrelude
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>import PlutusCore.Builtin
+<span class="lineno">   30 </span>import PlutusCore.Core
+<span class="lineno">   31 </span>import PlutusCore.Evaluation.Machine.ExMemoryUsage
+<span class="lineno">   32 </span>import PlutusCore.Evaluation.Machine.Exception
+<span class="lineno">   33 </span>import PlutusCore.Evaluation.Result
+<span class="lineno">   34 </span>import PlutusCore.Name.Unique
+<span class="lineno">   35 </span>import PlutusCore.Pretty
+<span class="lineno">   36 </span>import PlutusCore.Subst
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>import Control.Lens ((^?))
+<span class="lineno">   39 </span>import Control.Monad.Except
+<span class="lineno">   40 </span>import Control.Monad.Reader
+<span class="lineno">   41 </span>import Control.Monad.ST
+<span class="lineno">   42 </span>import Data.Bifunctor
+<span class="lineno">   43 </span>import Data.DList (DList)
+<span class="lineno">   44 </span>import Data.DList qualified as DList
+<span class="lineno">   45 </span>import Data.List.Extras (wix)
+<span class="lineno">   46 </span>import Data.STRef
+<span class="lineno">   47 </span>import Data.Text (Text)
+<span class="lineno">   48 </span>import Data.Vector qualified as Vector
+<span class="lineno">   49 </span>import Prettyprinter (vcat)
+<span class="lineno">   50 </span>import Universe
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>infix 4 |&gt;, &lt;|
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>-- See Note [Show instance for BuiltinRuntime] in the CEK machine.
+<span class="lineno">   55 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show (BuiltinRuntime (CkValue uni fun))</span></span></span></span> where
+<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">show _ = &quot;&lt;builtin_runtime&gt;&quot;</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>data CkValue uni fun
+<span class="lineno">   59 </span>  = VCon (Some (ValueOf uni))
+<span class="lineno">   60 </span>  | VTyAbs TyName (Kind ()) (Term TyName Name uni fun ())
+<span class="lineno">   61 </span>  | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
+<span class="lineno">   62 </span>  | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
+<span class="lineno">   63 </span>  | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
+<span class="lineno">   64 </span>  | VConstr (Type TyName uni ()) Word64 [CkValue uni fun]
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">(GShow uni, Everywhere uni Show, Show fun, Closed uni)</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Show (CkValue uni fun)</span></span></span></span></span></span>
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>ckValueToTerm :: CkValue uni fun -&gt; Term TyName Name uni fun ()
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">ckValueToTerm = \case</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">VCon val -&gt; Constant () val</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">VTyAbs tn k body -&gt; TyAbs () tn k body</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">VLamAbs name ty body -&gt; LamAbs () name ty body</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">VIWrap ty1 ty2 val -&gt; IWrap <span class="nottickedoff">()</span> <span class="nottickedoff">ty1</span> <span class="nottickedoff">ty2</span> $ ckValueToTerm val</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">VBuiltin term _ -&gt; term</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">VConstr ty i es -&gt; Constr () ty i (fmap ckValueToTerm es)</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>data CkEnv uni fun s = CkEnv
+<span class="lineno">   80 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">ckEnvRuntime</span></span></span> :: BuiltinsRuntime fun (CkValue uni fun)
+<span class="lineno">   81 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">ckCaserBuiltin</span></span></span> :: CaserBuiltin uni
+<span class="lineno">   82 </span>  , -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
+<span class="lineno">   83 </span>    -- as we store logs as &quot;latest go last&quot;.
+<span class="lineno">   84 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">ckEnvMayEmitRef</span></span></span> :: Maybe (STRef s (DList Text))
+<span class="lineno">   85 </span>  }
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>instance <span class="decl"><span class="nottickedoff">(PrettyUni uni, Pretty fun) =&gt; PrettyBy PrettyConfigPlc (CkValue uni fun)</span></span> where
+<span class="lineno">   88 </span>  <span class="decl"><span class="nottickedoff">prettyBy cfg = prettyBy cfg . ckValueToTerm</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>data CkUserError
+<span class="lineno">   91 </span>  = -- | 'Case' over a value of a built-in type failed.
+<span class="lineno">   92 </span>    CkCaseBuiltinError Text
+<span class="lineno">   93 </span>  | CkEvaluationFailure -- Error has been called or a builtin application has failed
+<span class="lineno">   94 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   95 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>-- | The CK machine-specific 'EvaluationException'.
+<span class="lineno">   98 </span>type CkEvaluationException uni fun =
+<span class="lineno">   99 </span>  EvaluationException (MachineError fun) CkUserError (Term TyName Name uni fun ())
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>type CkM uni fun s =
+<span class="lineno">  102 </span>  ReaderT
+<span class="lineno">  103 </span>    (CkEnv uni fun s)
+<span class="lineno">  104 </span>    ( ExceptT
+<span class="lineno">  105 </span>        (CkEvaluationException uni fun)
+<span class="lineno">  106 </span>        (ST s)
+<span class="lineno">  107 </span>    )
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>instance <span class="decl"><span class="nottickedoff">Pretty CkUserError</span></span> where
+<span class="lineno">  110 </span>  <span class="decl"><span class="istickedoff">pretty (CkCaseBuiltinError err) =</span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">vcat</span>
+<span class="lineno">  112 </span><span class="spaces">      </span><span class="istickedoff">[ &quot;'case' over a value of a built-in type failed with&quot;</span>
+<span class="lineno">  113 </span><span class="spaces">      </span><span class="istickedoff">, pretty err</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="istickedoff">]</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">pretty CkEvaluationFailure = &quot;The provided Plutus code called 'error'.&quot;</span></span>
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>instance BuiltinErrorToEvaluationError (MachineError fun) CkUserError where
+<span class="lineno">  118 </span>  <span class="decl"><span class="istickedoff">builtinErrorToEvaluationError (BuiltinUnliftingEvaluationError err) =</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="istickedoff">bimap UnliftingMachineError <span class="nottickedoff">(const CkEvaluationFailure)</span> (unUnliftingEvaluationError err)</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="istickedoff">builtinErrorToEvaluationError BuiltinEvaluationFailure =</span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="istickedoff">OperationalError CkEvaluationFailure</span></span>
+<span class="lineno">  122 </span>  {-# INLINE builtinErrorToEvaluationError #-}
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>-- The 'DList' is just be consistent with the CEK machine (see Note [DList-based emitting]).
+<span class="lineno">  125 </span>emitCkM :: DList Text -&gt; CkM uni fun s ()
+<span class="lineno">  126 </span><span class="decl"><span class="istickedoff">emitCkM logs = do</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="istickedoff">mayLogsRef &lt;- asks ckEnvMayEmitRef</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="istickedoff">case mayLogsRef of</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; pure <span class="nottickedoff">()</span></span>
+<span class="lineno">  130 </span><span class="spaces">    </span><span class="istickedoff">Just logsRef -&gt; <span class="nottickedoff">lift . lift $ modifySTRef logsRef (`DList.append` logs)</span></span></span>
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>type instance UniOf (CkValue uni fun) = uni
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>instance HasConstant (CkValue uni fun) where
+<span class="lineno">  135 </span>  <span class="decl"><span class="istickedoff">asConstant (VCon val) = pure val</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="istickedoff">asConstant _ = <span class="nottickedoff">throwError notAConstant</span></span></span>
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>  <span class="decl"><span class="istickedoff">fromConstant = VCon</span></span>
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>data Frame uni fun
+<span class="lineno">  141 </span>  = -- | @[V _]@
+<span class="lineno">  142 </span>    FrameAwaitArg (CkValue uni fun)
+<span class="lineno">  143 </span>  | -- | @[_ N]@
+<span class="lineno">  144 </span>    FrameAwaitFunTerm (Term TyName Name uni fun ())
+<span class="lineno">  145 </span>  | -- | @[_ V]@
+<span class="lineno">  146 </span>    FrameAwaitFunValue (CkValue uni fun)
+<span class="lineno">  147 </span>  | -- | @{_ A}@
+<span class="lineno">  148 </span>    FrameTyInstArg (Type TyName uni ())
+<span class="lineno">  149 </span>  | -- | @(unwrap _)@
+<span class="lineno">  150 </span>    FrameUnwrap
+<span class="lineno">  151 </span>  | -- | @(iwrap A B _)@
+<span class="lineno">  152 </span>    FrameIWrap (Type TyName uni ()) (Type TyName uni ())
+<span class="lineno">  153 </span>  | FrameConstr (Type TyName uni ()) Word64 [Term TyName Name uni fun ()] [CkValue uni fun]
+<span class="lineno">  154 </span>  | FrameCase [Term TyName Name uni fun ()]
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="nottickedoff">(GShow uni, Closed uni, uni `Everywhere` Show, Show fun)</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Show (Frame uni fun)</span></span></span></span></span></span>
+<span class="lineno">  159 </span>
+<span class="lineno">  160 </span>type Context uni fun = [Frame uni fun]
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>-- See Note [ExMemoryUsage instances for non-constants].
+<span class="lineno">  163 </span>instance ExMemoryUsage (CkValue uni fun) where
+<span class="lineno">  164 </span>  <span class="decl"><span class="nottickedoff">memoryUsage = error &quot;Internal error: 'memoryUsage' for 'CkValue' is not supposed to be forced&quot;</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>runCkM
+<span class="lineno">  167 </span>  :: BuiltinsRuntime fun (CkValue uni fun)
+<span class="lineno">  168 </span>  -&gt; CaserBuiltin uni
+<span class="lineno">  169 </span>  -&gt; Bool
+<span class="lineno">  170 </span>  -&gt; (forall s. CkM uni fun s a)
+<span class="lineno">  171 </span>  -&gt; (Either (CkEvaluationException uni fun) a, [Text])
+<span class="lineno">  172 </span><span class="decl"><span class="istickedoff">runCkM runtime caser emitting a = runST $ do</span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="istickedoff">mayLogsRef &lt;- if <span class="tickonlyfalse">emitting</span> then <span class="nottickedoff">Just &lt;$&gt; newSTRef DList.empty</span> else pure Nothing</span>
+<span class="lineno">  174 </span><span class="spaces">  </span><span class="istickedoff">errOrRes &lt;- runExceptT . runReaderT a $ CkEnv runtime caser mayLogsRef</span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">logs &lt;- case mayLogsRef of</span>
+<span class="lineno">  176 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; pure <span class="nottickedoff">[]</span></span>
+<span class="lineno">  177 </span><span class="spaces">    </span><span class="istickedoff">Just logsRef -&gt; <span class="nottickedoff">DList.toList &lt;$&gt; readSTRef logsRef</span></span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="istickedoff">pure (errOrRes, <span class="nottickedoff">logs</span>)</span></span>
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>-- FIXME: make sure that the specification is up to date and that this matches.
+<span class="lineno">  181 </span>-- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1552.
+<span class="lineno">  182 </span>{-| The computing part of the CK machine. Rules are as follows:
+<span class="lineno">  183 </span>
+<span class="lineno">  184 </span>&gt; s ▷ {M A}      ↦ s , {_ A}        ▷ M
+<span class="lineno">  185 </span>&gt; s ▷ [M N]      ↦ s , [_ N]        ▷ M
+<span class="lineno">  186 </span>&gt; s ▷ wrap α A M ↦ s , (wrap α S _) ▷ M
+<span class="lineno">  187 </span>&gt; s ▷ unwrap M   ↦ s , (unwrap _)   ▷ M
+<span class="lineno">  188 </span>&gt; s ▷ abs α K M  ↦ s ◁ abs α K M
+<span class="lineno">  189 </span>&gt; s ▷ lam x A M  ↦ s ◁ lam x A M
+<span class="lineno">  190 </span>&gt; s ▷ builtin bn ↦ s ◁ builtin (Builtin () bn) (runtimeOf bn)
+<span class="lineno">  191 </span>&gt; s ▷ con cn     ↦ s ◁ con cn
+<span class="lineno">  192 </span>&gt; s ▻ constr I T0 .. Tn ↦ s , (constr I _ T1 Tn) ▻ T0
+<span class="lineno">  193 </span>&gt; s ▻ case S C0 ... Cn ↦ s , (case _ C0 ... Cn) ▻ S
+<span class="lineno">  194 </span>&gt; s ▷ error A    ↦ ◆ -}
+<span class="lineno">  195 </span>(|&gt;)
+<span class="lineno">  196 </span>  :: Context uni fun -&gt; Term TyName Name uni fun () -&gt; CkM uni fun s (Term TyName Name uni fun ())
+<span class="lineno">  197 </span><span class="decl"><span class="istickedoff">stack |&gt; TyInst _ fun ty = FrameTyInstArg ty : stack |&gt; fun</span>
+<span class="lineno">  198 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; Apply _ fun arg = FrameAwaitFunTerm arg : stack |&gt; fun</span>
+<span class="lineno">  199 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; IWrap _ pat arg term = FrameIWrap <span class="nottickedoff">pat</span> <span class="nottickedoff">arg</span> : stack |&gt; term</span>
+<span class="lineno">  200 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; Unwrap _ term = FrameUnwrap : stack |&gt; term</span>
+<span class="lineno">  201 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; TyAbs _ tn k term = stack &lt;| VTyAbs tn k term</span>
+<span class="lineno">  202 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; LamAbs _ name ty body = stack &lt;| VLamAbs name ty body</span>
+<span class="lineno">  203 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; Builtin _ bn = do</span>
+<span class="lineno">  204 </span><span class="spaces">  </span><span class="istickedoff">runtime &lt;- lookupBuiltin bn . ckEnvRuntime &lt;$&gt; ask</span>
+<span class="lineno">  205 </span><span class="spaces">  </span><span class="istickedoff">stack &lt;| VBuiltin (Builtin () bn) runtime</span>
+<span class="lineno">  206 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; Constant _ val = stack &lt;| VCon val</span>
+<span class="lineno">  207 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; Constr _ ty i es = case es of</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="istickedoff">[] -&gt; <span class="nottickedoff">stack &lt;| VConstr ty i []</span></span>
+<span class="lineno">  209 </span><span class="spaces">  </span><span class="istickedoff">t : ts -&gt; FrameConstr ty i ts [] : stack |&gt; t</span>
+<span class="lineno">  210 </span><span class="spaces"></span><span class="istickedoff">stack |&gt; Case _ _ arg cs = FrameCase cs : stack |&gt; arg</span>
+<span class="lineno">  211 </span><span class="spaces"></span><span class="istickedoff">_ |&gt; err@Error {} =</span>
+<span class="lineno">  212 </span><span class="spaces">  </span><span class="istickedoff">throwErrorWithCause (OperationalError CkEvaluationFailure) $ void err</span>
+<span class="lineno">  213 </span><span class="spaces"></span><span class="istickedoff">_ |&gt; var@Var {} =</span>
+<span class="lineno">  214 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) var</span></span></span>
+<span class="lineno">  215 </span>
+<span class="lineno">  216 </span>-- FIXME: make sure that the specification is up to date and that this matches.
+<span class="lineno">  217 </span>-- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1552.
+<span class="lineno">  218 </span>{-| The returning part of the CK machine. Rules are as follows:
+<span class="lineno">  219 </span>
+<span class="lineno">  220 </span>&gt; s , {_ A}           ◁ abs α K M  ↦ s         ▷ {A/α}M
+<span class="lineno">  221 </span>&gt; s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
+<span class="lineno">  222 </span>&gt; s , [_ V1 ... Vm]   ◁ (lam x A M) ↦ s , [_ V2 ... Vm] ▷ [V1/x]M
+<span class="lineno">  223 </span>&gt; s , [(lam x A M) _] ◁ V          ↦ s         ▷ [V/x]M
+<span class="lineno">  224 </span>&gt; s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially instantiated builtin application.
+<span class="lineno">  225 </span>&gt; s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated builtin application.
+<span class="lineno">  226 </span>&gt; s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated builtin application, [F V] ~&gt; W.
+<span class="lineno">  227 </span>&gt; s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
+<span class="lineno">  228 </span>&gt; s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
+<span class="lineno">  229 </span>&gt; s , (constr I V0 ... Vj-1 _ Tj+1 ... Tn) ◅ Vj ↦ s , (constr i V0 ... Vj _ Tj+2... Tn) ▻ Tj+1
+<span class="lineno">  230 </span>&gt; s , (case _ C0 ... CN) ◅ (constr i V1 .. Vm) ↦ s , [_ V1 ... Vm] ▻ Ci -}
+<span class="lineno">  231 </span>(&lt;|)
+<span class="lineno">  232 </span>  :: Context uni fun -&gt; CkValue uni fun -&gt; CkM uni fun s (Term TyName Name uni fun ())
+<span class="lineno">  233 </span><span class="decl"><span class="istickedoff">[] &lt;| val = pure $ ckValueToTerm val</span>
+<span class="lineno">  234 </span><span class="spaces"></span><span class="istickedoff">FrameTyInstArg ty : stack &lt;| fun = instantiateEvaluate stack ty fun</span>
+<span class="lineno">  235 </span><span class="spaces"></span><span class="istickedoff">FrameAwaitFunTerm arg : stack &lt;| fun = FrameAwaitArg fun : stack |&gt; arg</span>
+<span class="lineno">  236 </span><span class="spaces"></span><span class="istickedoff">FrameAwaitArg fun : stack &lt;| arg = applyEvaluate stack fun arg</span>
+<span class="lineno">  237 </span><span class="spaces"></span><span class="istickedoff">FrameAwaitFunValue arg : stack &lt;| fun = applyEvaluate stack fun arg</span>
+<span class="lineno">  238 </span><span class="spaces"></span><span class="istickedoff">FrameIWrap pat arg : stack &lt;| value = stack &lt;| VIWrap <span class="nottickedoff">pat</span> <span class="nottickedoff">arg</span> value</span>
+<span class="lineno">  239 </span><span class="spaces"></span><span class="istickedoff">FrameUnwrap : stack &lt;| wrapped = case wrapped of</span>
+<span class="lineno">  240 </span><span class="spaces">  </span><span class="istickedoff">VIWrap _ _ term -&gt; stack &lt;| term</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt;</span>
+<span class="lineno">  242 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">throwErrorWithCause (StructuralError NonWrapUnwrappedMachineError) $ ckValueToTerm wrapped</span></span>
+<span class="lineno">  243 </span><span class="spaces"></span><span class="istickedoff">FrameConstr ty i todo done : stack &lt;| e =</span>
+<span class="lineno">  244 </span><span class="spaces">  </span><span class="istickedoff">let done' = e : done</span>
+<span class="lineno">  245 </span><span class="spaces">   </span><span class="istickedoff">in case todo of</span>
+<span class="lineno">  246 </span><span class="spaces">        </span><span class="istickedoff">t : ts -&gt; FrameConstr ty i ts done' : stack |&gt; t</span>
+<span class="lineno">  247 </span><span class="spaces">        </span><span class="istickedoff">[] -&gt; stack &lt;| VConstr ty i (reverse done')</span>
+<span class="lineno">  248 </span><span class="spaces"></span><span class="istickedoff">FrameCase cs : stack &lt;| e = case e of</span>
+<span class="lineno">  249 </span><span class="spaces">  </span><span class="istickedoff">VConstr _ i args -&gt; case cs ^? wix i of</span>
+<span class="lineno">  250 </span><span class="spaces">    </span><span class="istickedoff">Just t -&gt; go (reverse args) stack |&gt; t</span>
+<span class="lineno">  251 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">  252 </span><span class="spaces">        </span><span class="istickedoff">go [] s = s</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="istickedoff">go (arg : rest) s = go rest (FrameAwaitFunValue arg : s)</span>
+<span class="lineno">  254 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt;</span>
+<span class="lineno">  255 </span><span class="spaces">      </span><span class="istickedoff">throwErrorWithCause (StructuralError $ MissingCaseBranchMachineError i) $ ckValueToTerm e</span>
+<span class="lineno">  256 </span><span class="spaces">  </span><span class="istickedoff">VCon val -&gt; do</span>
+<span class="lineno">  257 </span><span class="spaces">    </span><span class="istickedoff">caser &lt;- asks ckCaserBuiltin</span>
+<span class="lineno">  258 </span><span class="spaces">    </span><span class="istickedoff">case unCaserBuiltin caser val $ Vector.fromList cs of</span>
+<span class="lineno">  259 </span><span class="spaces">      </span><span class="istickedoff">HeadError err -&gt;</span>
+<span class="lineno">  260 </span><span class="spaces">        </span><span class="istickedoff">throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e</span>
+<span class="lineno">  261 </span><span class="spaces">      </span><span class="istickedoff">HeadOnly fX -&gt; <span class="nottickedoff">stack |&gt; fX</span></span>
+<span class="lineno">  262 </span><span class="spaces">      </span><span class="istickedoff">HeadSpine f xs -&gt; transferConstantSpine xs stack |&gt; f</span>
+<span class="lineno">  263 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e</span></span>
+<span class="lineno">  264 </span>
+<span class="lineno">  265 </span>transferConstantSpine :: Spine (Some (ValueOf uni)) -&gt; Context uni fun -&gt; Context uni fun
+<span class="lineno">  266 </span><span class="decl"><span class="istickedoff">transferConstantSpine args ctx = foldr ((:) . FrameAwaitFunValue . VCon) ctx args</span></span>
+<span class="lineno">  267 </span>
+<span class="lineno">  268 </span>{-| Take a possibly partial builtin application and
+<span class="lineno">  269 </span>
+<span class="lineno">  270 </span>- either create a 'CkValue' by evaluating the application if it's saturated (emitting logs, if
+<span class="lineno">  271 </span>   any, along the way), potentially failing evaluation
+<span class="lineno">  272 </span>- or create a partial builtin application otherwise
+<span class="lineno">  273 </span>
+<span class="lineno">  274 </span>and proceed with the returning phase of the CK machine. -}
+<span class="lineno">  275 </span>evalBuiltinApp
+<span class="lineno">  276 </span>  :: Context uni fun
+<span class="lineno">  277 </span>  -&gt; Term TyName Name uni fun ()
+<span class="lineno">  278 </span>  -&gt; BuiltinRuntime (CkValue uni fun)
+<span class="lineno">  279 </span>  -&gt; CkM uni fun s (Term TyName Name uni fun ())
+<span class="lineno">  280 </span><span class="decl"><span class="istickedoff">evalBuiltinApp stack term runtime = case runtime of</span>
+<span class="lineno">  281 </span><span class="spaces">  </span><span class="istickedoff">BuiltinCostedResult _ getFXs -&gt; case getFXs of</span>
+<span class="lineno">  282 </span><span class="spaces">    </span><span class="istickedoff">BuiltinSuccess y -&gt; stack &lt;| y</span>
+<span class="lineno">  283 </span><span class="spaces">    </span><span class="istickedoff">BuiltinSuccessWithLogs logs y -&gt; <span class="nottickedoff">emitCkM logs *&gt; (stack &lt;| y)</span></span>
+<span class="lineno">  284 </span><span class="spaces">    </span><span class="istickedoff">BuiltinFailure logs err -&gt; emitCkM <span class="nottickedoff">logs</span> *&gt; throwBuiltinErrorWithCause term err</span>
+<span class="lineno">  285 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; stack &lt;| VBuiltin term runtime</span></span>
+<span class="lineno">  286 </span>
+<span class="lineno">  287 </span>{-| Instantiate a term with a type and proceed.
+<span class="lineno">  288 </span>In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application
+<span class="lineno">  289 </span>expecting a type argument, in which case either calculate the builtin application or stick a
+<span class="lineno">  290 </span>'TyInst' on top of its 'Term' representation depending on whether the application is saturated or
+<span class="lineno">  291 </span>not. In any other case, fail. -}
+<span class="lineno">  292 </span>instantiateEvaluate
+<span class="lineno">  293 </span>  :: Context uni fun
+<span class="lineno">  294 </span>  -&gt; Type TyName uni ()
+<span class="lineno">  295 </span>  -&gt; CkValue uni fun
+<span class="lineno">  296 </span>  -&gt; CkM uni fun s (Term TyName Name uni fun ())
+<span class="lineno">  297 </span><span class="decl"><span class="istickedoff">instantiateEvaluate stack ty (VTyAbs tn _k body) =</span>
+<span class="lineno">  298 </span><span class="spaces">  </span><span class="istickedoff">-- No kind check - too expensive at run time.</span>
+<span class="lineno">  299 </span><span class="spaces">  </span><span class="istickedoff">stack |&gt; termSubstClosedType tn <span class="nottickedoff">ty</span> body</span>
+<span class="lineno">  300 </span><span class="spaces"></span><span class="istickedoff">instantiateEvaluate stack ty (VBuiltin term runtime) = do</span>
+<span class="lineno">  301 </span><span class="spaces">  </span><span class="istickedoff">let term' = TyInst () term ty</span>
+<span class="lineno">  302 </span><span class="spaces">  </span><span class="istickedoff">case runtime of</span>
+<span class="lineno">  303 </span><span class="spaces">    </span><span class="istickedoff">-- We allow a type argument to appear last in the type of a built-in function,</span>
+<span class="lineno">  304 </span><span class="spaces">    </span><span class="istickedoff">-- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the</span>
+<span class="lineno">  305 </span><span class="spaces">    </span><span class="istickedoff">-- application.</span>
+<span class="lineno">  306 </span><span class="spaces">    </span><span class="istickedoff">BuiltinExpectForce runtime' -&gt; evalBuiltinApp stack term' runtime'</span>
+<span class="lineno">  307 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'</span>
+<span class="lineno">  308 </span><span class="spaces"></span><span class="istickedoff">instantiateEvaluate _ _ val =</span>
+<span class="lineno">  309 </span><span class="spaces">  </span><span class="istickedoff">throwErrorWithCause (StructuralError NonPolymorphicInstantiationMachineError) $ ckValueToTerm val</span></span>
+<span class="lineno">  310 </span>
+<span class="lineno">  311 </span>{-| Apply a function to an argument and proceed.
+<span class="lineno">  312 </span>If the function is a lambda, then perform substitution and proceed.
+<span class="lineno">  313 </span>If the function is a builtin application then check that it's expecting a term argument,
+<span class="lineno">  314 </span>and either calculate the builtin application or stick a 'Apply' on top of its 'Term'
+<span class="lineno">  315 </span>representation depending on whether the application is saturated or not. -}
+<span class="lineno">  316 </span>applyEvaluate
+<span class="lineno">  317 </span>  :: Context uni fun
+<span class="lineno">  318 </span>  -&gt; CkValue uni fun
+<span class="lineno">  319 </span>  -&gt; CkValue uni fun
+<span class="lineno">  320 </span>  -&gt; CkM uni fun s (Term TyName Name uni fun ())
+<span class="lineno">  321 </span><span class="decl"><span class="istickedoff">applyEvaluate stack (VLamAbs name _ body) arg =</span>
+<span class="lineno">  322 </span><span class="spaces">  </span><span class="istickedoff">stack |&gt; termSubstClosedTerm name (ckValueToTerm arg) body</span>
+<span class="lineno">  323 </span><span class="spaces"></span><span class="istickedoff">applyEvaluate stack (VBuiltin term runtime) arg = do</span>
+<span class="lineno">  324 </span><span class="spaces">  </span><span class="istickedoff">let argTerm = ckValueToTerm arg</span>
+<span class="lineno">  325 </span><span class="spaces">      </span><span class="istickedoff">term' = Apply () term argTerm</span>
+<span class="lineno">  326 </span><span class="spaces">  </span><span class="istickedoff">case runtime of</span>
+<span class="lineno">  327 </span><span class="spaces">    </span><span class="istickedoff">-- It's only possible to apply a builtin application if the builtin expects a term</span>
+<span class="lineno">  328 </span><span class="spaces">    </span><span class="istickedoff">-- argument next.</span>
+<span class="lineno">  329 </span><span class="spaces">    </span><span class="istickedoff">BuiltinExpectArgument f -&gt; do</span>
+<span class="lineno">  330 </span><span class="spaces">      </span><span class="istickedoff">evalBuiltinApp stack term' $ f arg</span>
+<span class="lineno">  331 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt;</span>
+<span class="lineno">  332 </span><span class="spaces">      </span><span class="istickedoff">throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'</span>
+<span class="lineno">  333 </span><span class="spaces"></span><span class="istickedoff">applyEvaluate _ val _ =</span>
+<span class="lineno">  334 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">throwErrorWithCause (StructuralError NonFunctionalApplicationMachineError) $ ckValueToTerm val</span></span></span>
+<span class="lineno">  335 </span>
+<span class="lineno">  336 </span>runCk
+<span class="lineno">  337 </span>  :: BuiltinsRuntime fun (CkValue uni fun)
+<span class="lineno">  338 </span>  -&gt; CaserBuiltin uni
+<span class="lineno">  339 </span>  -&gt; Bool
+<span class="lineno">  340 </span>  -&gt; Term TyName Name uni fun ()
+<span class="lineno">  341 </span>  -&gt; (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
+<span class="lineno">  342 </span><span class="decl"><span class="istickedoff">runCk runtime caser emitting term = runCkM runtime caser emitting $ [] |&gt; term</span></span>
+<span class="lineno">  343 </span>
+<span class="lineno">  344 </span>-- | Evaluate a term using the CK machine with logging enabled.
+<span class="lineno">  345 </span>evaluateCk
+<span class="lineno">  346 </span>  :: BuiltinsRuntime fun (CkValue uni fun)
+<span class="lineno">  347 </span>  -&gt; CaserBuiltin uni
+<span class="lineno">  348 </span>  -&gt; Term TyName Name uni fun ()
+<span class="lineno">  349 </span>  -&gt; (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
+<span class="lineno">  350 </span><span class="decl"><span class="nottickedoff">evaluateCk runtime caser = runCk runtime caser True</span></span>
+<span class="lineno">  351 </span>
+<span class="lineno">  352 </span>-- | Evaluate a term using the CK machine with logging disabled.
+<span class="lineno">  353 </span>evaluateCkNoEmit
+<span class="lineno">  354 </span>  :: BuiltinsRuntime fun (CkValue uni fun)
+<span class="lineno">  355 </span>  -&gt; CaserBuiltin uni
+<span class="lineno">  356 </span>  -&gt; Term TyName Name uni fun ()
+<span class="lineno">  357 </span>  -&gt; Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
+<span class="lineno">  358 </span><span class="decl"><span class="istickedoff">evaluateCkNoEmit runtime caser = fst . runCk runtime caser False</span></span>
+<span class="lineno">  359 </span>
+<span class="lineno">  360 </span>-- | Unlift a value using the CK machine.
+<span class="lineno">  361 </span>readKnownCk
+<span class="lineno">  362 </span>  :: ReadKnown (Term TyName Name uni fun ()) a
+<span class="lineno">  363 </span>  =&gt; BuiltinsRuntime fun (CkValue uni fun)
+<span class="lineno">  364 </span>  -&gt; CaserBuiltin uni
+<span class="lineno">  365 </span>  -&gt; Term TyName Name uni fun ()
+<span class="lineno">  366 </span>  -&gt; Either (CkEvaluationException uni fun) a
+<span class="lineno">  367 </span><span class="decl"><span class="nottickedoff">readKnownCk runtime caser = evaluateCkNoEmit runtime caser &gt;=&gt; readKnownSelf</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,1128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Test.V2.EvaluationContext</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#costModelParamsForTesting"
+	><span class="hs-identifier"
+	  >costModelParamsForTesting</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#mCostModel"
+	><span class="hs-identifier"
+	  >mCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#clearMachineCostModel"
+	><span class="hs-identifier"
+	  >clearMachineCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#clearBuiltinCostModel"
+	><span class="hs-identifier"
+	  >clearBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.BuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.MachineParameters</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Test.Common.EvaluationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Common</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V3.EvaluationContext.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Test.V3.EvaluationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>V3</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V2.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>V2</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Int.html"
+	><span class="hs-identifier"
+	  >Data.Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html"
+	><span class="hs-identifier"
+	  >Data.Maybe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- | Example values of costs for @PlutusV2@, in expected ledger order.</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- Suitable to be used in testing.</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#costModelParamsForTesting"
+	><span class="hs-identifier hs-type"
+	  >costModelParamsForTesting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V2.ParamName.html#ParamName"
+	><span class="hs-identifier hs-type"
+	  >V2.ParamName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier hs-type"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="costModelParamsForTesting"
+      ><span class="annot"
+	><span class="annottext"
+	  >costModelParamsForTesting :: [(ParamName, Int64)]
+</span
+	  ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#costModelParamsForTesting"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >costModelParamsForTesting</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map ParamName Int64 -&gt; [(ParamName, Int64)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map ParamName Int64 -&gt; [(ParamName, Int64)])
+-&gt; Map ParamName Int64 -&gt; [(ParamName, Int64)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Map ParamName Int64) -&gt; Map ParamName Int64
+forall a. HasCallStack =&gt; Maybe a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#fromJust"
+	><span class="hs-identifier hs-var"
+	  >fromJust</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe (Map ParamName Int64) -&gt; Map ParamName Int64)
+-&gt; Maybe (Map ParamName Int64) -&gt; Map ParamName Int64
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MCostModel -&gt; Maybe (Map ParamName Int64)
+forall p.
+(IsParamName p, Ord p) =&gt;
+MCostModel -&gt; Maybe (Map p Int64)
+</span
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#extractCostModelParamsLedgerOrder"
+	><span class="hs-identifier hs-var"
+	  >Common.extractCostModelParamsLedgerOrder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MCostModel
+</span
+	><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#mCostModel"
+	><span class="hs-identifier hs-var"
+	  >mCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The PlutusV2 &quot;cost model&quot; is constructed by the v3 &quot;cost model&quot;, by clearing v3 introductions.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#mCostModel"
+	><span class="hs-identifier hs-type"
+	  >mCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCostModel"
+	><span class="hs-identifier hs-type"
+	  >MCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="mCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >mCostModel :: MCostModel
+</span
+	  ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#mCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel CekMachineCosts BuiltinCostModel -&gt; MCostModel
+</span
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#toMCostModel"
+	><span class="hs-identifier hs-var"
+	  >toMCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel CekMachineCosts BuiltinCostModel
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekCostModelForTestingB"
+	><span class="hs-identifier hs-var"
+	  >defaultCekCostModelForTestingB</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MCostModel -&gt; (MCostModel -&gt; MCostModel) -&gt; MCostModel
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(MCekMachineCosts -&gt; Identity MCekMachineCosts)
+-&gt; MCostModel -&gt; Identity MCostModel
+forall machinecosts1 builtincosts machinecosts2 (f :: * -&gt; *).
+Functor f =&gt;
+(machinecosts1 -&gt; f machinecosts2)
+-&gt; CostModel machinecosts1 builtincosts
+-&gt; f (CostModel machinecosts2 builtincosts)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#machineCostModel"
+	><span class="hs-identifier hs-var"
+	  >machineCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((MCekMachineCosts -&gt; Identity MCekMachineCosts)
+ -&gt; MCostModel -&gt; Identity MCostModel)
+-&gt; (MCekMachineCosts -&gt; MCekMachineCosts)
+-&gt; MCostModel
+-&gt; MCostModel
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>%~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MCekMachineCosts -&gt; MCekMachineCosts
+forall m. (m ~ MCekMachineCosts) =&gt; m -&gt; m
+</span
+	><a href="PlutusLedgerApi.Test.V3.EvaluationContext.html#clearMachineCostModel"
+	><span class="hs-identifier hs-var"
+	  >V3.clearMachineCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MCostModel -&gt; (MCostModel -&gt; MCostModel) -&gt; MCostModel
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(MBuiltinCostModel -&gt; Identity MBuiltinCostModel)
+-&gt; MCostModel -&gt; Identity MCostModel
+forall machinecosts builtincosts1 builtincosts2 (f :: * -&gt; *).
+Functor f =&gt;
+(builtincosts1 -&gt; f builtincosts2)
+-&gt; CostModel machinecosts builtincosts1
+-&gt; f (CostModel machinecosts builtincosts2)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#builtinCostModel"
+	><span class="hs-identifier hs-var"
+	  >builtinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((MBuiltinCostModel -&gt; Identity MBuiltinCostModel)
+ -&gt; MCostModel -&gt; Identity MCostModel)
+-&gt; (MBuiltinCostModel -&gt; MBuiltinCostModel)
+-&gt; MCostModel
+-&gt; MCostModel
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>%~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MBuiltinCostModel -&gt; MBuiltinCostModel
+forall m. (m ~ MBuiltinCostModel) =&gt; m -&gt; m
+</span
+	><a href="PlutusLedgerApi.Test.V3.EvaluationContext.html#clearBuiltinCostModel"
+	><span class="hs-identifier hs-var"
+	  >V3.clearBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Assign to `mempty` those CEK constructs that @PlutusV2@ introduces (indirectly by introducing
+a ledger language version with those CEK constructs).
+
+This can be used to generate a (machine) cost model of the previous plutus version,
+by omitting the generation of the costs concerning the missing @PlutusV2@ CEK constructs.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="local-6989586621679228922"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#clearMachineCostModel"
+	  ><span class="hs-identifier hs-type"
+	    >clearMachineCostModel</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679228922"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	  ><span class="hs-operator hs-type"
+	    >~</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCekMachineCosts"
+	  ><span class="hs-identifier hs-type"
+	    >MCekMachineCosts</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679228922"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679228922"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="clearMachineCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >clearMachineCostModel :: forall m. (m ~ MCekMachineCosts) =&gt; m -&gt; m
+</span
+	  ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#clearMachineCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >clearMachineCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m -&gt; m
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- nothing changed, so nothing to clear</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Assign to `mempty` those builtins that the @PlutusV2@ introduces.
+
+This can be used to generate a (builtin) cost model of the previous version
+by omitting the generation of the costs concerning the missing @PlutusV2@ builtins.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="local-6989586621679228925"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#clearBuiltinCostModel"
+	  ><span class="hs-identifier hs-type"
+	    >clearBuiltinCostModel</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679228925"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	  ><span class="hs-operator hs-type"
+	    >~</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MBuiltinCostModel"
+	  ><span class="hs-identifier hs-type"
+	    >MBuiltinCostModel</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679228925"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679228925"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="clearBuiltinCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >clearBuiltinCostModel :: forall m. (m ~ MBuiltinCostModel) =&gt; m -&gt; m
+</span
+	  ><a href="PlutusLedgerApi.Test.V2.EvaluationContext.html#clearBuiltinCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >clearBuiltinCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679228934"
+      ><span class="annot"
+	><span class="annottext"
+	  >m
+</span
+	  ><a href="#local-6989586621679228934"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m
+</span
+	><a href="#local-6989586621679228934"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramSerialiseData"
+	><span class="hs-identifier hs-var"
+	  >paramSerialiseData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-type"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramVerifyEcdsaSecp256k1Signature"
+	><span class="hs-identifier hs-var"
+	  >paramVerifyEcdsaSecp256k1Signature</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-type"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramVerifySchnorrSecp256k1Signature"
+	><span class="hs-identifier hs-var"
+	  >paramVerifySchnorrSecp256k1Signature</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-type"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramIntegerToByteString"
+	><span class="hs-identifier hs-var"
+	  >paramIntegerToByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-type"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramByteStringToInteger"
+	><span class="hs-identifier hs-var"
+	  >paramByteStringToInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-type"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

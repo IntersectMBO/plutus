@@ -1,0 +1,511 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Scoped.Extrication where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Algorithmic
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Data.Fin.Base
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Data.Vec.Base
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.RawU
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Scoped
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.Type
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.Type.BetaNBE
+<span class="lineno">   27 </span>import qualified MAlonzo.Code.Type.BetaNormal
+<span class="lineno">   28 </span>import qualified MAlonzo.Code.Utils
+<span class="lineno">   29 </span>import qualified MAlonzo.Code.Utils.List
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- Scoped.Extrication.len⋆
+<span class="lineno">   32 </span>d_len'8902'_4 :: MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt; Integer
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">d_len'8902'_4 v0</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   35 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Type.C_'8709'_4 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">   36 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Type.C__'44''8902'__6 v1 v2</span>
+<span class="lineno">   37 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe addInt (coe (1 :: Integer)) (coe d_len'8902'_4 (coe v1))</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   39 </span>-- Scoped.Extrication.extricateVar⋆
+<span class="lineno">   40 </span>d_extricateVar'8902'_16 ::
+<span class="lineno">   41 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">   42 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">   43 </span>  MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">   44 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">d_extricateVar'8902'_16 v0 ~v1 v2 = du_extricateVar'8902'_16 v0 v2</span></span>
+<span class="lineno">   46 </span>du_extricateVar'8902'_16 ::
+<span class="lineno">   47 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">   48 </span>  MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">   49 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">du_extricateVar'8902'_16 v0 v1</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">= case coe v1 of</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.C_Z_16</span>
+<span class="lineno">   53 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Data.Fin.Base.C_zero_12</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.C_S_18 v5</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v0 of</span>
+<span class="lineno">   56 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Type.C__'44''8902'__6 v6 v7</span>
+<span class="lineno">   57 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   58 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16</span>
+<span class="lineno">   59 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_extricateVar'8902'_16 (coe v6) (coe v5))</span>
+<span class="lineno">   60 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">   62 </span>-- Scoped.Extrication.extricateNf⋆
+<span class="lineno">   63 </span>d_extricateNf'8902'_26 ::
+<span class="lineno">   64 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">   65 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">   66 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">   67 </span>  MAlonzo.Code.Scoped.T_ScopedTy_14
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">d_extricateNf'8902'_26 v0 v1 v2</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">= case coe v2 of</span>
+<span class="lineno">   70 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_Π_14 v4 v5</span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   72 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C_Π_22 (coe v4)</span>
+<span class="lineno">   73 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">   74 </span><span class="spaces">                </span><span class="istickedoff">d_extricateNf'8902'_26</span>
+<span class="lineno">   75 </span><span class="spaces">                </span><span class="istickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) <span class="nottickedoff">(coe v4)</span>)</span>
+<span class="lineno">   76 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span> (coe v5))</span>
+<span class="lineno">   77 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v4 v5</span>
+<span class="lineno">   78 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   79 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C__'8658'__20</span>
+<span class="lineno">   80 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">   81 </span><span class="spaces">                </span><span class="istickedoff">d_extricateNf'8902'_26 (coe v0) <span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">   82 </span><span class="spaces">                </span><span class="istickedoff">(coe v4))</span>
+<span class="lineno">   83 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">   84 </span><span class="spaces">                </span><span class="istickedoff">d_extricateNf'8902'_26 (coe v0) <span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">   85 </span><span class="spaces">                </span><span class="istickedoff">(coe v5))</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_ƛ_18 v6</span>
+<span class="lineno">   87 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">   88 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Utils.C__'8658'__688 v7 v8</span>
+<span class="lineno">   89 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   90 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Scoped.C_ƛ_24 (coe v7)</span>
+<span class="lineno">   91 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">   92 </span><span class="spaces">                       </span><span class="istickedoff">d_extricateNf'8902'_26</span>
+<span class="lineno">   93 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) <span class="nottickedoff">(coe v7)</span>) (coe v8)</span>
+<span class="lineno">   94 </span><span class="spaces">                       </span><span class="istickedoff">(coe v6))</span>
+<span class="lineno">   95 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_ne_20 v5</span>
+<span class="lineno">   97 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe d_extricateNe'8902'_34 (coe v0) <span class="nottickedoff">(coe v1)</span> (coe v5)</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_con_22 v4</span>
+<span class="lineno">   99 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v4 of</span>
+<span class="lineno">  100 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_ne_20 v7</span>
+<span class="lineno">  101 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  102 </span><span class="spaces">                    </span><span class="istickedoff">d_extricateNe'8902'_34 <span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  103 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'9839'_686)</span> (coe v7)</span>
+<span class="lineno">  104 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  105 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_μ_24 v4 v5 v6</span>
+<span class="lineno">  106 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  107 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C_μ_32</span>
+<span class="lineno">  108 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  109 </span><span class="spaces">                </span><span class="istickedoff">d_extricateNf'8902'_26 (coe v0)</span>
+<span class="lineno">  110 </span><span class="spaces">                </span><span class="istickedoff">(coe</span>
+<span class="lineno">  111 </span><span class="spaces">                   </span><span class="istickedoff">MAlonzo.Code.Utils.C__'8658'__688</span>
+<span class="lineno">  112 </span><span class="spaces">                   </span><span class="istickedoff">(coe</span>
+<span class="lineno">  113 </span><span class="spaces">                      </span><span class="istickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v4)</span>
+<span class="lineno">  114 </span><span class="spaces">                      </span><span class="istickedoff">(coe MAlonzo.Code.Utils.C_'42'_684))</span>
+<span class="lineno">  115 </span><span class="spaces">                   </span><span class="istickedoff">(coe</span>
+<span class="lineno">  116 </span><span class="spaces">                      </span><span class="istickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v4)</span>
+<span class="lineno">  117 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span>))</span>
+<span class="lineno">  118 </span><span class="spaces">                </span><span class="istickedoff">(coe v5))</span>
+<span class="lineno">  119 </span><span class="spaces">             </span><span class="istickedoff">(coe d_extricateNf'8902'_26 (coe v0) (coe v4) (coe v6))</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_SOP_28 v4 v5</span>
+<span class="lineno">  121 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  122 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Scoped.C_SOP_34</span></span>
+<span class="lineno">  123 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  124 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">du_extricateNf'8902''45'VecList_56 (coe v0)</span></span>
+<span class="lineno">  125 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684) (coe v5))</span></span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  127 </span>-- Scoped.Extrication.extricateNe⋆
+<span class="lineno">  128 </span>d_extricateNe'8902'_34 ::
+<span class="lineno">  129 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  130 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  131 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6 -&gt;
+<span class="lineno">  132 </span>  MAlonzo.Code.Scoped.T_ScopedTy_14
+<span class="lineno">  133 </span><span class="decl"><span class="istickedoff">d_extricateNe'8902'_34 v0 v1 v2</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="istickedoff">= case coe v2 of</span>
+<span class="lineno">  135 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_'96'_8 v5</span>
+<span class="lineno">  136 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  137 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C_'96'_18</span>
+<span class="lineno">  138 </span><span class="spaces">             </span><span class="istickedoff">(coe du_extricateVar'8902'_16 (coe v0) (coe v5))</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C__'183'__10 v4 v6 v7</span>
+<span class="lineno">  140 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  141 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C__'183'__26</span>
+<span class="lineno">  142 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  143 </span><span class="spaces">                </span><span class="istickedoff">d_extricateNe'8902'_34 (coe v0)</span>
+<span class="lineno">  144 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C__'8658'__688 (coe v4) (coe v1))</span> (coe v6))</span>
+<span class="lineno">  145 </span><span class="spaces">             </span><span class="istickedoff">(coe d_extricateNf'8902'_26 (coe v0) <span class="nottickedoff">(coe v4)</span> (coe v7))</span>
+<span class="lineno">  146 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_'94'_12 v5</span>
+<span class="lineno">  147 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Scoped.C_con_30 <span class="nottickedoff">(coe v1)</span> (coe v5)</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  149 </span>-- Scoped.Extrication.extricateNf⋆-List
+<span class="lineno">  150 </span>d_extricateNf'8902''45'List_42 ::
+<span class="lineno">  151 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  152 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  153 </span>  [MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4] -&gt;
+<span class="lineno">  154 </span>  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTy_14
+<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">d_extricateNf'8902''45'List_42 v0 v1 v2</span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno">  157 </span><span class="spaces">      </span><span class="nottickedoff">[] -&gt; coe MAlonzo.Code.Utils.C_'91''93'_418</span>
+<span class="lineno">  158 </span><span class="spaces">      </span><span class="nottickedoff">(:) v3 v4</span>
+<span class="lineno">  159 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  160 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Utils.C__'8759'__420</span>
+<span class="lineno">  161 </span><span class="spaces">             </span><span class="nottickedoff">(coe d_extricateNf'8902'_26 (coe v0) (coe v1) (coe v3))</span>
+<span class="lineno">  162 </span><span class="spaces">             </span><span class="nottickedoff">(coe d_extricateNf'8902''45'List_42 (coe v0) (coe v1) (coe v4))</span>
+<span class="lineno">  163 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  164 </span>-- Scoped.Extrication.extricateNf⋆-VecList
+<span class="lineno">  165 </span>d_extricateNf'8902''45'VecList_56 ::
+<span class="lineno">  166 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  167 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  168 </span>  Integer -&gt;
+<span class="lineno">  169 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28 -&gt;
+<span class="lineno">  170 </span>  MAlonzo.Code.Utils.T_List_414
+<span class="lineno">  171 </span>    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTy_14)
+<span class="lineno">  172 </span><span class="decl"><span class="nottickedoff">d_extricateNf'8902''45'VecList_56 v0 v1 ~v2 v3</span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="nottickedoff">= du_extricateNf'8902''45'VecList_56 v0 v1 v3</span></span>
+<span class="lineno">  174 </span>du_extricateNf'8902''45'VecList_56 ::
+<span class="lineno">  175 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  176 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  177 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28 -&gt;
+<span class="lineno">  178 </span>  MAlonzo.Code.Utils.T_List_414
+<span class="lineno">  179 </span>    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTy_14)
+<span class="lineno">  180 </span><span class="decl"><span class="nottickedoff">du_extricateNf'8902''45'VecList_56 v0 v1 v2</span>
+<span class="lineno">  181 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno">  182 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Vec.Base.C_'91''93'_32</span>
+<span class="lineno">  183 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Utils.C_'91''93'_418</span>
+<span class="lineno">  184 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Vec.Base.C__'8759'__38 v4 v5</span>
+<span class="lineno">  185 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  186 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Utils.C__'8759'__420</span>
+<span class="lineno">  187 </span><span class="spaces">             </span><span class="nottickedoff">(coe d_extricateNf'8902''45'List_42 (coe v0) (coe v1) (coe v4))</span>
+<span class="lineno">  188 </span><span class="spaces">             </span><span class="nottickedoff">(coe du_extricateNf'8902''45'VecList_56 (coe v0) (coe v1) (coe v5))</span>
+<span class="lineno">  189 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  190 </span>-- Scoped.Extrication.len
+<span class="lineno">  191 </span>d_len_94 ::
+<span class="lineno">  192 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  193 </span>  MAlonzo.Code.Algorithmic.T_Ctx_2 -&gt; MAlonzo.Code.Scoped.T_Weirdℕ_42
+<span class="lineno">  194 </span><span class="decl"><span class="nottickedoff">d_len_94 v0 v1</span>
+<span class="lineno">  195 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  196 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algorithmic.C_'8709'_4</span>
+<span class="lineno">  197 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Scoped.C_Z_44</span>
+<span class="lineno">  198 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algorithmic.C__'44''8902'__8 v3</span>
+<span class="lineno">  199 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v0 of</span>
+<span class="lineno">  200 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Type.C__'44''8902'__6 v5 v6</span>
+<span class="lineno">  201 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Scoped.C_T_52 (d_len_94 (coe v5) (coe v3))</span>
+<span class="lineno">  202 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  203 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algorithmic.C__'44'__12 v3 v4</span>
+<span class="lineno">  204 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Scoped.C_S_48 (d_len_94 (coe v0) (coe v3))</span>
+<span class="lineno">  205 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  206 </span>-- Scoped.Extrication.extricateVar
+<span class="lineno">  207 </span>d_extricateVar_110 ::
+<span class="lineno">  208 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  209 </span>  MAlonzo.Code.Algorithmic.T_Ctx_2 -&gt;
+<span class="lineno">  210 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  211 </span>  MAlonzo.Code.Algorithmic.T__'8715'__16 -&gt;
+<span class="lineno">  212 </span>  MAlonzo.Code.Scoped.T_WeirdFin_56
+<span class="lineno">  213 </span><span class="decl"><span class="nottickedoff">d_extricateVar_110 v0 v1 ~v2 v3 = du_extricateVar_110 v0 v1 v3</span></span>
+<span class="lineno">  214 </span>du_extricateVar_110 ::
+<span class="lineno">  215 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  216 </span>  MAlonzo.Code.Algorithmic.T_Ctx_2 -&gt;
+<span class="lineno">  217 </span>  MAlonzo.Code.Algorithmic.T__'8715'__16 -&gt;
+<span class="lineno">  218 </span>  MAlonzo.Code.Scoped.T_WeirdFin_56
+<span class="lineno">  219 </span><span class="decl"><span class="istickedoff">du_extricateVar_110 v0 v1 v2</span>
+<span class="lineno">  220 </span><span class="spaces">  </span><span class="istickedoff">= case coe v2 of</span>
+<span class="lineno">  221 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_Z_22 -&gt; coe MAlonzo.Code.Scoped.C_Z_62</span>
+<span class="lineno">  222 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_S_30 v7</span>
+<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  224 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C__'44'__12 v9 v10</span>
+<span class="lineno">  225 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  226 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Scoped.C_S_68</span>
+<span class="lineno">  227 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_extricateVar_110 (coe v0) (coe v9) (coe v7))</span>
+<span class="lineno">  228 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  229 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_T_38 v6 v7</span>
+<span class="lineno">  230 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v0 of</span>
+<span class="lineno">  231 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Type.C__'44''8902'__6 v8 v9</span>
+<span class="lineno">  232 </span><span class="spaces">               </span><span class="istickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  233 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C__'44''8902'__8 v11</span>
+<span class="lineno">  234 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  235 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Scoped.C_T_74</span>
+<span class="lineno">  236 </span><span class="spaces">                           </span><span class="istickedoff">(coe du_extricateVar_110 <span class="nottickedoff">(coe v8)</span> <span class="nottickedoff">(coe v11)</span> (coe v7))</span>
+<span class="lineno">  237 </span><span class="spaces">                    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  238 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  239 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  240 </span>-- Scoped.Extrication.extricateSub
+<span class="lineno">  241 </span>d_extricateSub_122 ::
+<span class="lineno">  242 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  243 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  244 </span>  (MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  245 </span>   MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">  246 </span>   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) -&gt;
+<span class="lineno">  247 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28
+<span class="lineno">  248 </span><span class="decl"><span class="nottickedoff">d_extricateSub_122 v0 v1 v2</span>
+<span class="lineno">  249 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Type.C_'8709'_4</span>
+<span class="lineno">  251 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32</span>
+<span class="lineno">  252 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Type.C__'44''8902'__6 v3 v4</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  254 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Vec.Base.du__'43''43'__188</span>
+<span class="lineno">  255 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  256 </span><span class="spaces">                </span><span class="nottickedoff">d_extricateSub_122 (coe v0) (coe v3)</span>
+<span class="lineno">  257 </span><span class="spaces">                </span><span class="nottickedoff">(coe (\ v5 v6 -&gt; coe v2 v5 (coe MAlonzo.Code.Type.C_S_18 v6))))</span>
+<span class="lineno">  258 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  259 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Vec.Base.du_'91'_'93'_438</span>
+<span class="lineno">  260 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  261 </span><span class="spaces">                   </span><span class="nottickedoff">d_extricateNf'8902'_26 (coe v0) (coe v4)</span>
+<span class="lineno">  262 </span><span class="spaces">                   </span><span class="nottickedoff">(coe v2 v4 (coe MAlonzo.Code.Type.C_Z_16))))</span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  264 </span>-- Scoped.Extrication.extricate
+<span class="lineno">  265 </span>d_extricate_140 ::
+<span class="lineno">  266 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  267 </span>  MAlonzo.Code.Algorithmic.T_Ctx_2 -&gt;
+<span class="lineno">  268 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  269 </span>  MAlonzo.Code.Algorithmic.T__'8866'__178 -&gt;
+<span class="lineno">  270 </span>  MAlonzo.Code.Scoped.T_ScopedTm_522
+<span class="lineno">  271 </span><span class="decl"><span class="istickedoff">d_extricate_140 v0 v1 v2 v3</span>
+<span class="lineno">  272 </span><span class="spaces">  </span><span class="istickedoff">= case coe v3 of</span>
+<span class="lineno">  273 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_'96'_184 v5</span>
+<span class="lineno">  274 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  275 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C_'96'_528</span>
+<span class="lineno">  276 </span><span class="spaces">             </span><span class="istickedoff">(coe du_extricateVar_110 (coe v0) (coe v1) (coe v5))</span>
+<span class="lineno">  277 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_ƛ_190 v6</span>
+<span class="lineno">  278 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  279 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v8 v9</span>
+<span class="lineno">  280 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  281 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Scoped.C_ƛ_534</span>
+<span class="lineno">  282 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  283 </span><span class="spaces">                       </span><span class="istickedoff">d_extricateNf'8902'_26 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  284 </span><span class="spaces">                       </span><span class="istickedoff">(coe v8))</span>
+<span class="lineno">  285 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  286 </span><span class="spaces">                       </span><span class="istickedoff">d_extricate_140 (coe v0)</span>
+<span class="lineno">  287 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Algorithmic.C__'44'__12 v1 <span class="nottickedoff">v8</span>) (coe v9) (coe v6))</span>
+<span class="lineno">  288 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  289 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C__'183'__196 v4 v6 v7</span>
+<span class="lineno">  290 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  291 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C__'183'__536</span>
+<span class="lineno">  292 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  293 </span><span class="spaces">                </span><span class="istickedoff">d_extricate_140 (coe v0) (coe v1)</span>
+<span class="lineno">  294 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v4 v2)</span> (coe v6))</span>
+<span class="lineno">  295 </span><span class="spaces">             </span><span class="istickedoff">(coe d_extricate_140 (coe v0) (coe v1) <span class="nottickedoff">(coe v4)</span> (coe v7))</span>
+<span class="lineno">  296 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_Λ_202 v6</span>
+<span class="lineno">  297 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  298 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Type.BetaNormal.C_Π_14 v8 v9</span>
+<span class="lineno">  299 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  300 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Scoped.C_Λ_530 (coe v8)</span>
+<span class="lineno">  301 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  302 </span><span class="spaces">                       </span><span class="istickedoff">d_extricate_140</span>
+<span class="lineno">  303 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v8)</span>)</span>
+<span class="lineno">  304 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Algorithmic.C__'44''8902'__8 <span class="nottickedoff">v1</span>) (coe v9)</span>
+<span class="lineno">  305 </span><span class="spaces">                       </span><span class="istickedoff">(coe v6))</span>
+<span class="lineno">  306 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  307 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__212 v4 v6 v7 v8</span>
+<span class="lineno">  308 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  309 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C__'183''8902'__532</span>
+<span class="lineno">  310 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  311 </span><span class="spaces">                </span><span class="istickedoff">d_extricate_140 (coe v0) (coe v1)</span>
+<span class="lineno">  312 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v4 v6)</span> (coe v7))</span>
+<span class="lineno">  313 </span><span class="spaces">             </span><span class="istickedoff">(coe d_extricateNf'8902'_26 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v4)</span> (coe v8))</span>
+<span class="lineno">  314 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_wrap_220 v7</span>
+<span class="lineno">  315 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">case coe v2 of</span></span>
+<span class="lineno">  316 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.C_μ_24 v9 v10 v11</span></span>
+<span class="lineno">  317 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">-&gt; coe</span></span>
+<span class="lineno">  318 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Scoped.C_wrap_546</span></span>
+<span class="lineno">  319 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  320 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">d_extricateNf'8902'_26 (coe v0)</span></span>
+<span class="lineno">  321 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  322 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688</span></span>
+<span class="lineno">  323 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  324 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  325 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684))</span></span>
+<span class="lineno">  326 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  327 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  328 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)))</span></span>
+<span class="lineno">  329 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe v10))</span></span>
+<span class="lineno">  330 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe d_extricateNf'8902'_26 (coe v0) (coe v9) (coe v11))</span></span>
+<span class="lineno">  331 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  332 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">d_extricate_140 (coe v0) (coe v1)</span></span>
+<span class="lineno">  333 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  334 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNBE.d_nf_258 (coe v0)</span></span>
+<span class="lineno">  335 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  336 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  337 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.C__'183'__30 v9</span></span>
+<span class="lineno">  338 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  339 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.C__'183'__30</span></span>
+<span class="lineno">  340 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  341 </span><span class="spaces">                                   </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  342 </span><span class="spaces">                                   </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684))</span></span>
+<span class="lineno">  343 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">(MAlonzo.Code.Type.BetaNormal.d_embNf_128</span></span>
+<span class="lineno">  344 </span><span class="spaces">                                   </span><span class="istickedoff"><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  345 </span><span class="spaces">                                   </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  346 </span><span class="spaces">                                      </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688</span></span>
+<span class="lineno">  347 </span><span class="spaces">                                      </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  348 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  349 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684))</span></span>
+<span class="lineno">  350 </span><span class="spaces">                                      </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  351 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  352 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)))</span></span>
+<span class="lineno">  353 </span><span class="spaces">                                   </span><span class="istickedoff"><span class="nottickedoff">(coe v10))</span></span>
+<span class="lineno">  354 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  355 </span><span class="spaces">                                   </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.C_ƛ_28</span></span>
+<span class="lineno">  356 </span><span class="spaces">                                   </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  357 </span><span class="spaces">                                      </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.C_μ_32 v9</span></span>
+<span class="lineno">  358 </span><span class="spaces">                                      </span><span class="istickedoff"><span class="nottickedoff">(MAlonzo.Code.Type.BetaNormal.d_embNf_128</span></span>
+<span class="lineno">  359 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v9))</span></span>
+<span class="lineno">  360 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  361 </span><span class="spaces">                                            </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688</span></span>
+<span class="lineno">  362 </span><span class="spaces">                                            </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  363 </span><span class="spaces">                                               </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  364 </span><span class="spaces">                                               </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684))</span></span>
+<span class="lineno">  365 </span><span class="spaces">                                            </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  366 </span><span class="spaces">                                               </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  367 </span><span class="spaces">                                               </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)))</span></span>
+<span class="lineno">  368 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  369 </span><span class="spaces">                                            </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.d_weakenNf_122 v0</span></span>
+<span class="lineno">  370 </span><span class="spaces">                                            </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  371 </span><span class="spaces">                                               </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688</span></span>
+<span class="lineno">  372 </span><span class="spaces">                                               </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  373 </span><span class="spaces">                                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  374 </span><span class="spaces">                                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684))</span></span>
+<span class="lineno">  375 </span><span class="spaces">                                               </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  376 </span><span class="spaces">                                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'8658'__688 (coe v9)</span></span>
+<span class="lineno">  377 </span><span class="spaces">                                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)))</span></span>
+<span class="lineno">  378 </span><span class="spaces">                                            </span><span class="istickedoff"><span class="nottickedoff">v9 v10))</span></span>
+<span class="lineno">  379 </span><span class="spaces">                                      </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  380 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.C_'96'_22</span></span>
+<span class="lineno">  381 </span><span class="spaces">                                         </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C_Z_16)))))</span></span>
+<span class="lineno">  382 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(MAlonzo.Code.Type.BetaNormal.d_embNf_128</span></span>
+<span class="lineno">  383 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">(coe v0) (coe v9) (coe v11))))</span></span>
+<span class="lineno">  384 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe v7))</span></span>
+<span class="lineno">  385 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  386 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_unwrap_230 v4 v6 v7 v8</span>
+<span class="lineno">  387 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  388 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Scoped.C_unwrap_548</span></span>
+<span class="lineno">  389 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  390 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">d_extricate_140 (coe v0) (coe v1)</span></span>
+<span class="lineno">  391 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNormal.C_μ_24 v4 v6 v7) (coe v8))</span></span>
+<span class="lineno">  392 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_constr_240 v5 v7 v9</span>
+<span class="lineno">  393 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">case coe v2 of</span></span>
+<span class="lineno">  394 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.C_SOP_28 v11 v12</span></span>
+<span class="lineno">  395 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">-&gt; coe</span></span>
+<span class="lineno">  396 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Scoped.C_constr_556</span></span>
+<span class="lineno">  397 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  398 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  399 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNormal.C_SOP_28 v11 v12))</span></span>
+<span class="lineno">  400 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.du_toℕ_18 (coe v5))</span></span>
+<span class="lineno">  401 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  402 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">d_extricate'45'ConstrArgs_148 (coe v0) (coe v1)</span></span>
+<span class="lineno">  403 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v12) (coe v5))</span></span>
+<span class="lineno">  404 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe v9))</span></span>
+<span class="lineno">  405 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  406 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_case_252 v4 v5 v7 v8</span>
+<span class="lineno">  407 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  408 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Scoped.C_case_564</span></span>
+<span class="lineno">  409 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  410 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  411 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe v2))</span></span>
+<span class="lineno">  412 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  413 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">d_extricate_140 (coe v0) (coe v1)</span></span>
+<span class="lineno">  414 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNormal.C_SOP_28 v4 v5) (coe v7))</span></span>
+<span class="lineno">  415 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  416 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">du_extricate'45'Cases_166 (coe v0) (coe v1) (coe v2) (coe v5)</span></span>
+<span class="lineno">  417 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe v8))</span></span>
+<span class="lineno">  418 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_con_258 v4 v6</span>
+<span class="lineno">  419 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  420 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C_con_538</span>
+<span class="lineno">  421 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  422 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.RawU.C_tmCon_206</span>
+<span class="lineno">  423 </span><span class="spaces">                </span><span class="istickedoff">(coe MAlonzo.Code.Algorithmic.d_ty2sty_64 (coe v4)) (coe v6))</span>
+<span class="lineno">  424 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_builtin_'47'__264 v5</span>
+<span class="lineno">  425 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Scoped.C_builtin_544 (coe v5)</span>
+<span class="lineno">  426 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Algorithmic.C_error_268</span>
+<span class="lineno">  427 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  428 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Scoped.C_error_540</span>
+<span class="lineno">  429 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  430 </span><span class="spaces">                </span><span class="istickedoff">d_extricateNf'8902'_26 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  431 </span><span class="spaces">                </span><span class="istickedoff">(coe v2))</span>
+<span class="lineno">  432 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  433 </span>-- Scoped.Extrication.extricate-ConstrArgs
+<span class="lineno">  434 </span>d_extricate'45'ConstrArgs_148 ::
+<span class="lineno">  435 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  436 </span>  MAlonzo.Code.Algorithmic.T_Ctx_2 -&gt;
+<span class="lineno">  437 </span>  [MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4] -&gt;
+<span class="lineno">  438 </span>  MAlonzo.Code.Utils.List.T_IList_302 -&gt;
+<span class="lineno">  439 </span>  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTm_522
+<span class="lineno">  440 </span><span class="decl"><span class="nottickedoff">d_extricate'45'ConstrArgs_148 v0 v1 v2 v3</span>
+<span class="lineno">  441 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v3 of</span>
+<span class="lineno">  442 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Utils.List.C_'91''93'_308</span>
+<span class="lineno">  443 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Utils.C_'91''93'_418</span>
+<span class="lineno">  444 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Utils.List.C__'8759'__314 v6 v7</span>
+<span class="lineno">  445 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  446 </span><span class="spaces">             </span><span class="nottickedoff">(:) v8 v9</span>
+<span class="lineno">  447 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  448 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Utils.C__'8759'__420</span>
+<span class="lineno">  449 </span><span class="spaces">                    </span><span class="nottickedoff">(coe d_extricate_140 (coe v0) (coe v1) (coe v8) (coe v6))</span>
+<span class="lineno">  450 </span><span class="spaces">                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  451 </span><span class="spaces">                       </span><span class="nottickedoff">d_extricate'45'ConstrArgs_148 (coe v0) (coe v1) (coe v9) (coe v7))</span>
+<span class="lineno">  452 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  453 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  454 </span>-- Scoped.Extrication.extricate-Cases
+<span class="lineno">  455 </span>d_extricate'45'Cases_166 ::
+<span class="lineno">  456 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  457 </span>  MAlonzo.Code.Algorithmic.T_Ctx_2 -&gt;
+<span class="lineno">  458 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  459 </span>  Integer -&gt;
+<span class="lineno">  460 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28 -&gt;
+<span class="lineno">  461 </span>  MAlonzo.Code.Algorithmic.T_Cases_172 -&gt;
+<span class="lineno">  462 </span>  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTm_522
+<span class="lineno">  463 </span><span class="decl"><span class="nottickedoff">d_extricate'45'Cases_166 v0 v1 v2 ~v3 v4 v5</span>
+<span class="lineno">  464 </span><span class="spaces">  </span><span class="nottickedoff">= du_extricate'45'Cases_166 v0 v1 v2 v4 v5</span></span>
+<span class="lineno">  465 </span>du_extricate'45'Cases_166 ::
+<span class="lineno">  466 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  467 </span>  MAlonzo.Code.Algorithmic.T_Ctx_2 -&gt;
+<span class="lineno">  468 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  469 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28 -&gt;
+<span class="lineno">  470 </span>  MAlonzo.Code.Algorithmic.T_Cases_172 -&gt;
+<span class="lineno">  471 </span>  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTm_522
+<span class="lineno">  472 </span><span class="decl"><span class="nottickedoff">du_extricate'45'Cases_166 v0 v1 v2 v3 v4</span>
+<span class="lineno">  473 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v4 of</span>
+<span class="lineno">  474 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algorithmic.C_'91''93'_278</span>
+<span class="lineno">  475 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Utils.C_'91''93'_418</span>
+<span class="lineno">  476 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algorithmic.C__'8759'__290 v8 v9</span>
+<span class="lineno">  477 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">  478 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Vec.Base.C__'8759'__38 v11 v12</span>
+<span class="lineno">  479 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  480 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Utils.C__'8759'__420</span>
+<span class="lineno">  481 </span><span class="spaces">                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  482 </span><span class="spaces">                       </span><span class="nottickedoff">d_extricate_140 (coe v0) (coe v1)</span>
+<span class="lineno">  483 </span><span class="spaces">                       </span><span class="nottickedoff">(coe MAlonzo.Code.Algorithmic.du_mkCaseType_156 v2 v11) (coe v8))</span>
+<span class="lineno">  484 </span><span class="spaces">                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  485 </span><span class="spaces">                       </span><span class="nottickedoff">du_extricate'45'Cases_166 (coe v0) (coe v1) (coe v2) (coe v12)</span>
+<span class="lineno">  486 </span><span class="spaces">                       </span><span class="nottickedoff">(coe v9))</span>
+<span class="lineno">  487 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  488 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+
+</pre>
+</body>
+</html>

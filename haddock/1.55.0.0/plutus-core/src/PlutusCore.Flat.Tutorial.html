@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Tutorial</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- $setup</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- $main</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- $setup
+To (de)serialise a data type, make it an instance of the 'Flat.Class.Flat' class.
+
+There is &lt;https://hackage.haskell.org/package/base/docs/GHC-Generics.html Generics&gt; based support to automatically derive a correct instance.
+
+Let&#8217;s see some code.
+
+We need a couple of extensions:
+
+&gt;&gt;&gt; :set -XDeriveGeneric -XDeriveAnyClass
+
+The @Flat@ top module:
+
+&gt;&gt;&gt; import PlutusCore.Flat
+
+And, just for fun, a couple of functions to display an encoded value as a sequence of bits:
+
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Test (flatBits,allBits)
+
+Define a few custom data types, deriving @Generic@ and @Flat@:
+
+&gt;&gt;&gt; data Result = Bad | Good deriving (Show,Generic,Flat)
+
+&gt;&gt;&gt; data Direction = North | South | Center | East | West deriving (Show,Generic,Flat)
+
+&gt;&gt;&gt; data List a = Nil | Cons a (List a) deriving (Show,Generic,Flat)
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- $main
+Now we can encode a List of Directions using 'Flat.Run.flat':
+
+&gt;&gt;&gt; flat $ Cons North (Cons South Nil)
+&quot;\149&quot;
+
+The result is a strict &lt;https://hackage.haskell.org/package/bytestring/docs/Data-ByteString.html ByteString&gt;.
+
+And decode it back using 'Flat.Run.unflat':
+
+&gt;&gt;&gt; unflat . flat $ Cons North (Cons South Nil) :: Decoded (List Direction)
+Right (Cons North (Cons South Nil))
+
+The result is a 'Flat.Decoded' value: 'Either' a 'Flat.DecodeException' or the actual value.
+
+=== Optimal Bit-Encoding
+#optimal-bit-encoding#
+
+A pecularity of Flat is that it uses an optimal bit-encoding rather than
+the usual byte-oriented one.
+
+One bit is sufficient to encode a 'Result' or an empty 'List':
+
+&gt;&gt;&gt; flatBits Good
+&quot;1&quot;
+
+&gt;&gt;&gt; flatBits (Nil::List Direction)
+&quot;0&quot;
+
+Two or three bits suffice for a 'Direction':
+
+&gt;&gt;&gt; flatBits South
+&quot;01&quot;
+
+&gt;&gt;&gt; flatBits West
+&quot;111&quot;
+
+For the serialisation to work with byte-oriented devices or storage, we need to add some padding.
+
+To do so, rather than encoding a plain value, 'Flat.Run.flat' encodes a 'Flat.Filler.PostAligned' value, that's to say a value followed by a 'Flat.Filler.Filler' that stretches till the next byte boundary.
+
+In practice, the padding is a, possibly empty, sequence of 0s followed by a 1.
+
+For example, this list encodes as 7 bits:
+
+&gt;&gt;&gt; flatBits $ Cons North (Cons South Nil)
+&quot;1001010&quot;
+
+And, with the added padding of a final &quot;1&quot;, will snugly fit in a single byte:
+
+&gt;&gt;&gt; allBits $ Cons North (Cons South Nil)
+&quot;10010101&quot;
+
+But .. you don't need to worry about these details as byte-padding is automatically added by the function 'Flat.Run.flat' and removed by 'Flat.Run.unflat'.
+
+=== Pre-defined Instances
+
+Flat instances are already defined for relevant types of some common packages: array, base, bytestring, containers, dlist, mono-traversable, text, unordered-containers, vector.
+
+They are automatically imported by the &quot;Flat&quot; module.
+
+For example:
+
+&gt;&gt;&gt; flatBits $ Just True
+&quot;11&quot;
+
+=== Wrapper Types
+
+There are a few wrapper types that modify the way encoding and/or decoding occur.
+
+* &quot;Flat.AsBin&quot; and &quot;Flat.AsSize&quot; decode to a value's flat binary representation or size in bits respectively.
+
+* 'Flat.Instances.Mono.AsArray' and 'Flat.Instances.Mono.AsList' encode/decode a sequence as a List or Array respectively, see &quot;Flat.Instances.Mono&quot; for details.
+
+* 'Flat.Instances.Text.UTF8Text' and 'Flat.Instances.Text.UTF16Text' encode/decode a Text as UTF8 or UTF16 respectively.
+
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

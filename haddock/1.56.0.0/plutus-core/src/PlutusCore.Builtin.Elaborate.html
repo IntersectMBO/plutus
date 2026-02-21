@@ -1,0 +1,7565 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StandaloneKindSignatures #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-comment"
+      >-- GHC doesn't like the definition of 'TrySpecializeAsVar'.</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Builtin.Elaborate</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#ElaborateFromTo"
+	><span class="hs-identifier"
+	  >ElaborateFromTo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.KnownTypeAst</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Polymorphism.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.Polymorphism</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>GHC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Type.Bool.html"
+	><span class="hs-identifier"
+	  >Data.Type.Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Type.Equality.html"
+	><span class="hs-identifier"
+	  >Data.Type.Equality</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeLits.html"
+	><span class="hs-identifier"
+	  >GHC.TypeLits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Check if two values of different kinds are in fact the same value (with the same kind).
+A heterogeneous version of @Type.Equality.(==)@. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+	><span class="hs-operator hs-type"
+	  >(===)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026173"
+      ><span class="annot"
+	><a href="#local-6989586621682026173"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026174"
+      ><span class="annot"
+	><a href="#local-6989586621682026174"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026173"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026174"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026175"
+      ><span class="annot"
+	><a href="#local-6989586621682026175"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="%3D%3D%3D"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+	  ><span class="hs-operator hs-var"
+	    >===</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026176"
+      ><span class="annot"
+	><a href="#local-6989586621682026176"
+	  ><span class="hs-identifier hs-type"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026177"
+      ><span class="annot"
+	><a href="#local-6989586621682026177"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="%3D%3D%3D"
+	><span class="annot"
+	  ><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+	    ><span class="hs-operator hs-var"
+	      >===</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682026177"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-type"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026178"
+      ><span id="local-6989586621682026179"
+	><span class="annot"
+	  ><a href="#local-6989586621682026178"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span id="%3D%3D%3D"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+	      ><span class="hs-operator hs-var"
+		>===</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026179"
+	    ><span class="hs-identifier hs-type"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-type"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- Explained in detail in https://github.com/effectfully-ou/sketches/tree/cbf3ee9d11e0e3d4fc397ce7bf419418224122e2/poly-type-of-saga/part1-try-unify</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Unify two values if possible, otherwise leave them alone. Useful for instantiating type
+variables. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#TryUnify"
+	><span class="hs-identifier hs-type"
+	  >TryUnify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682025966"
+      ><span class="annot"
+	><a href="#local-6989586621682025966"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682025967"
+      ><span class="annot"
+	><a href="#local-6989586621682025967"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682025966"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682025967"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682025968"
+	><span class="hs-identifier hs-type"
+	  >same</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682025969"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+	><span class="hs-operator hs-type"
+	  >===</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682025970"
+	><span class="hs-identifier hs-type"
+	  >y</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="TryUnify"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#TryUnify"
+	  ><span class="hs-identifier hs-var"
+	    >TryUnify</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682025968"
+      ><span class="annot"
+	><a href="#local-6989586621682025968"
+	  ><span class="hs-identifier hs-type"
+	    >same</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682025969"
+      ><span class="annot"
+	><a href="#local-6989586621682025969"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682025970"
+      ><span class="annot"
+	><a href="#local-6989586621682025970"
+	  ><span class="hs-identifier hs-type"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682025982"
+      ><span id="local-6989586621682025983"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682025982"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+	    ><span class="hs-operator hs-type"
+	      >===</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682025983"
+	    ><span class="hs-identifier hs-type"
+	      >y</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	    ><span class="hs-operator hs-type"
+	      >~</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	    ><span class="hs-identifier hs-type"
+	      >False</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Elaborate.html#TryUnify"
+	    ><span class="hs-identifier hs-type"
+	      >TryUnify</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	    ><span class="hs-identifier hs-type"
+	      >False</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682025982"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682025983"
+	    ><span class="hs-identifier hs-type"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# INCOHERENT</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span id="local-6989586621682025992"
+      ><span id="local-6989586621682025993"
+	><span id="local-6989586621682025994"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682025992"
+	      ><span class="hs-identifier hs-type"
+		>x</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~~"
+	      ><span class="hs-operator hs-type"
+		>~~</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682025993"
+	      ><span class="hs-identifier hs-type"
+		>y</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682025994"
+	      ><span class="hs-identifier hs-type"
+		>same</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	      ><span class="hs-operator hs-type"
+		>~</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	      ><span class="hs-identifier hs-type"
+		>True</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Builtin.Elaborate.html#TryUnify"
+	      ><span class="hs-identifier hs-type"
+		>TryUnify</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682025994"
+	      ><span class="hs-identifier hs-type"
+		>same</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682025992"
+	      ><span class="hs-identifier hs-type"
+		>x</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682025993"
+	      ><span class="hs-identifier hs-type"
+		>y</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Unify two values unless they're obviously distinct (in which case do nothing).
+Allows us to detect and specialize type variables, since a type variable is not obviously
+distinct from anything else and so the INCOHERENT instance of 'TryUnify' gets triggered and the
+variable gets unified with whatever we want it to. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#~%3F~"
+	><span class="hs-operator hs-type"
+	  >(~?~)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026198"
+      ><span class="annot"
+	><a href="#local-6989586621682026198"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026199"
+      ><span class="annot"
+	><a href="#local-6989586621682026199"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026198"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026199"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026200"
+      ><span class="annot"
+	><a href="#local-6989586621682026200"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="~%3F~"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#~%3F~"
+	  ><span class="hs-operator hs-var"
+	    >~?~</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026201"
+      ><span class="annot"
+	><a href="#local-6989586621682026201"
+	  ><span class="hs-identifier hs-type"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#TryUnify"
+	><span class="hs-identifier hs-type"
+	  >TryUnify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026200"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+	><span class="hs-operator hs-type"
+	  >===</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026201"
+	><span class="hs-identifier hs-type"
+	  >y</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026200"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026201"
+	><span class="hs-identifier hs-type"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the element at an @i@th position in a list.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	><span class="hs-identifier hs-type"
+	  >Lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026203"
+      ><span class="annot"
+	><a href="#local-6989586621682026203"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026203"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026203"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="Lookup"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	  ><span class="hs-identifier hs-var"
+	    >Lookup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026204"
+      ><span class="annot"
+	><a href="#local-6989586621682026204"
+	  ><span class="hs-identifier hs-type"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026205"
+      ><span class="annot"
+	><a href="#local-6989586621682026205"
+	  ><span class="hs-identifier hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span id="Lookup"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	  ><span class="hs-identifier hs-var"
+	    >Lookup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier hs-type"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;Not enough elements&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span id="Lookup"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	  ><span class="hs-identifier hs-var"
+	    >Lookup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026206"
+      ><span id="local-6989586621682026207"
+	><span class="annot"
+	  ><span class="hs-number"
+	    >0</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026206"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="hs-glyph"
+	  >:</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026207"
+	    ><span class="hs-identifier hs-type"
+	      >xs</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026206"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span id="Lookup"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	  ><span class="hs-identifier hs-var"
+	    >Lookup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026208"
+      ><span id="local-6989586621682026209"
+	><span class="annot"
+	  ><a href="#local-6989586621682026208"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><span class="hs-identifier"
+	    >_</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="hs-glyph"
+	  >:</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026209"
+	    ><span class="hs-identifier hs-type"
+	      >xs</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	><span class="hs-identifier hs-type"
+	  >Lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026208"
+	><span class="hs-identifier hs-type"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#-"
+	><span class="hs-glyph hs-type"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026209"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Get the name at the @i@th position in the list of default names. We could use @a_0@, @a_1@,
+@a_2@ etc instead, but @a@, @b@, @c@ etc are nicer. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#GetName"
+	><span class="hs-identifier hs-type"
+	  >GetName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Symbol"
+	><span class="hs-identifier hs-type"
+	  >Symbol</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="GetName"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#GetName"
+	  ><span class="hs-identifier hs-var"
+	    >GetName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026210"
+      ><span class="annot"
+	><a href="#local-6989586621682026210"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026211"
+      ><span class="annot"
+	><a href="#local-6989586621682026211"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span id="GetName"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#GetName"
+	  ><span class="hs-identifier hs-var"
+	    >GetName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026212"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.Type</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682026212"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	><span class="hs-identifier hs-type"
+	  >Lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026212"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;a&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;b&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;c&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;d&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;e&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;i&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;j&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;k&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;l&quot;</span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span id="GetName"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#GetName"
+	  ><span class="hs-identifier hs-var"
+	    >GetName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026213"
+      ><span class="annot"
+	><span class="hs-identifier"
+	  >_</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682026213"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#Lookup"
+	><span class="hs-identifier hs-type"
+	  >Lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026213"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;f&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;g&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;h&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;m&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;n&quot;</span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- For higher-kinded types.</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Apply the function stored in the provided 'Maybe' if there's one.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#MaybeApply"
+	><span class="hs-identifier hs-type"
+	  >MaybeApply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026214"
+      ><span class="annot"
+	><a href="#local-6989586621682026214"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026214"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026214"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026214"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026214"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="MaybeApply"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#MaybeApply"
+	  ><span class="hs-identifier hs-var"
+	    >MaybeApply</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026215"
+      ><span class="annot"
+	><a href="#local-6989586621682026215"
+	  ><span class="hs-identifier hs-type"
+	    >mayVal</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026216"
+      ><span class="annot"
+	><a href="#local-6989586621682026216"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="MaybeApply"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#MaybeApply"
+	  ><span class="hs-identifier hs-var"
+	    >MaybeApply</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026217"
+      ><span class="hs-special"
+	>'</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	  ><span class="hs-identifier hs-type"
+	    >Nothing</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682026217"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026217"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span id="MaybeApply"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#MaybeApply"
+	  ><span class="hs-identifier hs-var"
+	    >MaybeApply</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026218"
+      ><span id="local-6989586621682026219"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	    ><span class="hs-identifier hs-type"
+	      >Just</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026218"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026219"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026218"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026219"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Try to specialize @a@ as a type representing a PLC type variable.
+@i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
+specialization attempt is successful or not).
+@mw@ is for wrapping 'TyVarRep', if there's a wrapper inside (see 'HandleHole' for how it's
+used). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsVar"
+	><span class="hs-identifier hs-type"
+	  >TrySpecializeAsVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026002"
+      ><span class="annot"
+	><a href="#local-6989586621682026002"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026002"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026002"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026002"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="TrySpecializeAsVar"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsVar"
+	  ><span class="hs-identifier hs-var"
+	    >TrySpecializeAsVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026003"
+      ><span class="annot"
+	><a href="#local-6989586621682026003"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026004"
+      ><span class="annot"
+	><a href="#local-6989586621682026004"
+	  ><span class="hs-identifier hs-type"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026005"
+      ><span class="annot"
+	><a href="#local-6989586621682026005"
+	  ><span class="hs-identifier hs-type"
+	    >mw</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026006"
+      ><span class="annot"
+	><a href="#local-6989586621682026006"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026003"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026005"
+	><span class="hs-identifier hs-type"
+	  >mw</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026006"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026004"
+	><span class="hs-identifier hs-type"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026014"
+      ><span id="local-6989586621682026015"
+	><span id="local-6989586621682026016"
+	  ><span id="local-6989586621682026017"
+	    ><span id="local-6989586621682026018"
+	      ><span id="local-6989586621682026019"
+		><span class="hs-special"
+		  >(</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026015"
+		    ><span class="hs-identifier hs-type"
+		      >var</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		    ><span class="hs-operator hs-type"
+		      >~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#MaybeApply"
+		    ><span class="hs-identifier hs-type"
+		      >MaybeApply</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026016"
+		    ><span class="hs-identifier hs-type"
+		      >mw</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Polymorphism.html#TyVarRep"
+		    ><span class="hs-identifier hs-type"
+		      >TyVarRep</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >@</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026014"
+		    ><span class="hs-identifier hs-type"
+		      >k</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >'</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Polymorphism.html#TyNameRep"
+		    ><span class="hs-identifier hs-type"
+		      >TyNameRep</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#GetName"
+		    ><span class="hs-identifier hs-type"
+		      >GetName</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026014"
+		    ><span class="hs-identifier hs-type"
+		      >k</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026017"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026017"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-81"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="hs-comment"
+		  >-- Try to unify @a@ with a freshly created @var@.</span
+		  ><span
+		  >
+</span
+		  ><span id="line-82"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026018"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#~%3F~"
+		    ><span class="hs-operator hs-type"
+		      >~?~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026015"
+		    ><span class="hs-identifier hs-type"
+		      >var</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-83"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="hs-comment"
+		  >-- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and</span
+		  ><span
+		  >
+</span
+		  ><span id="line-84"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-comment"
+		  >-- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.</span
+		  ><span
+		  >
+</span
+		  ><span id="line-85"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-comment"
+		  >-- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.</span
+		  ><span
+		  >
+</span
+		  ><span id="line-86"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026019"
+		    ><span class="hs-identifier hs-type"
+		      >j</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		    ><span class="hs-operator hs-type"
+		      >~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Type.Bool.html#If"
+		    ><span class="hs-identifier hs-type"
+		      >If</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026018"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#%3D%3D%3D"
+		    ><span class="hs-operator hs-type"
+		      >===</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026015"
+		    ><span class="hs-identifier hs-type"
+		      >var</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026017"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#%2B"
+		    ><span class="hs-operator hs-type"
+		      >+</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><span class="hs-number"
+		    >1</span
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026017"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-87"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-88"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsVar"
+		    ><span class="hs-identifier hs-type"
+		      >TrySpecializeAsVar</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026017"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026019"
+		    ><span class="hs-identifier hs-type"
+		      >j</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026016"
+		    ><span class="hs-identifier hs-type"
+		      >mw</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026018"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026014"
+		    ><span class="hs-identifier hs-type"
+		      >k</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="NoAppliedVarsHeader"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#NoAppliedVarsHeader"
+	  ><span class="hs-identifier hs-var"
+	    >NoAppliedVarsHeader</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;A built-in function is not allowed to have applied type variables in its type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Rep vs Type context].</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Throw an error telling the user not to apply type variables to anything.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#ThrowNoAppliedVars"
+	><span class="hs-identifier hs-type"
+	  >ThrowNoAppliedVars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="ThrowNoAppliedVars"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowNoAppliedVars"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowNoAppliedVars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026226"
+      ><span class="annot"
+	><a href="#local-6989586621682026226"
+	  ><span class="hs-identifier hs-type"
+	    >hole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- In the Rep context higher-kinded type variables are allowed, but need to be applied via</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- 'TyAppRep', hence the error message.</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowNoAppliedVars"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowNoAppliedVars"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowNoAppliedVars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html#RepHole"
+	><span class="hs-identifier hs-type"
+	  >RepHole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier hs-type"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#NoAppliedVarsHeader"
+	><span class="hs-identifier hs-type"
+	  >NoAppliedVarsHeader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;To fix this error apply type variables via explicit &#8216;TyAppRep&#8217;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- In the Type context no higher-kinded type variables are allowed.</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowNoAppliedVars"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowNoAppliedVars"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowNoAppliedVars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html#TypeHole"
+	><span class="hs-identifier hs-type"
+	  >TypeHole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier hs-type"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#NoAppliedVarsHeader"
+	><span class="hs-identifier hs-type"
+	  >NoAppliedVarsHeader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;To fix this error specialize all higher-kinded type variables&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- In case we add more contexts.</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowNoAppliedVars"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowNoAppliedVars"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowNoAppliedVars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier hs-type"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#NoAppliedVarsHeader"
+	><span class="hs-identifier hs-type"
+	  >NoAppliedVarsHeader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;Internal error: the context is not recognized. Please report&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Check that the higher-kinded type does not represent a PLC type variable and if it does.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#CheckNotAppliedVar"
+	><span class="hs-identifier hs-type"
+	  >CheckNotAppliedVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026227"
+      ><span class="annot"
+	><a href="#local-6989586621682026227"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026227"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="CheckNotAppliedVar"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#CheckNotAppliedVar"
+	  ><span class="hs-identifier hs-var"
+	    >CheckNotAppliedVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026228"
+      ><span class="annot"
+	><a href="#local-6989586621682026228"
+	  ><span class="hs-identifier hs-type"
+	    >hole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026229"
+      ><span class="annot"
+	><a href="#local-6989586621682026229"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span id="CheckNotAppliedVar"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#CheckNotAppliedVar"
+	  ><span class="hs-identifier hs-var"
+	    >CheckNotAppliedVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026230"
+      ><span class="annot"
+	><a href="#local-6989586621682026230"
+	  ><span class="hs-identifier hs-type"
+	    >hole</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Polymorphism.html#TyVarRep"
+	  ><span class="hs-identifier hs-type"
+	    >TyVarRep</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier"
+	  >_</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#ThrowNoAppliedVars"
+	><span class="hs-identifier hs-type"
+	  >ThrowNoAppliedVars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026230"
+	><span class="hs-identifier hs-type"
+	  >hole</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span id="CheckNotAppliedVar"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#CheckNotAppliedVar"
+	  ><span class="hs-identifier hs-var"
+	    >CheckNotAppliedVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Try to specialize the head of a (possibly nullary) type application to a type representing a
+PLC variable and throw if that succeeds or if it already was one. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeHeadAsVar"
+	><span class="hs-identifier hs-type"
+	  >TrySpecializeHeadAsVar</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026028"
+      ><span class="annot"
+	><a href="#local-6989586621682026028"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026029"
+      ><span class="annot"
+	><a href="#local-6989586621682026029"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026028"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026029"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="TrySpecializeHeadAsVar"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeHeadAsVar"
+	  ><span class="hs-identifier hs-var"
+	    >TrySpecializeHeadAsVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026030"
+      ><span class="annot"
+	><a href="#local-6989586621682026030"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026031"
+      ><span class="annot"
+	><a href="#local-6989586621682026031"
+	  ><span class="hs-identifier hs-type"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026032"
+      ><span class="annot"
+	><a href="#local-6989586621682026032"
+	  ><span class="hs-identifier hs-type"
+	    >hole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026033"
+      ><span class="annot"
+	><a href="#local-6989586621682026033"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026030"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026033"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026031"
+	><span class="hs-identifier hs-type"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Recurse to reach the head.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# OVERLAPPABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026038"
+      ><span id="local-6989586621682026039"
+	><span id="local-6989586621682026040"
+	  ><span id="local-6989586621682026041"
+	    ><span id="local-6989586621682026042"
+	      ><span class="annot"
+		><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeHeadAsVar"
+		  ><span class="hs-identifier hs-type"
+		    >TrySpecializeHeadAsVar</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026038"
+		  ><span class="hs-identifier hs-type"
+		    >i</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026039"
+		  ><span class="hs-identifier hs-type"
+		    >j</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026040"
+		  ><span class="hs-identifier hs-type"
+		    >hole</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026041"
+		  ><span class="hs-identifier hs-type"
+		    >f</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeHeadAsVar"
+		  ><span class="hs-identifier hs-type"
+		    >TrySpecializeHeadAsVar</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026038"
+		  ><span class="hs-identifier hs-type"
+		    >i</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026039"
+		  ><span class="hs-identifier hs-type"
+		    >j</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026040"
+		  ><span class="hs-identifier hs-type"
+		    >hole</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="#local-6989586621682026041"
+		  ><span class="hs-identifier hs-type"
+		    >f</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026042"
+		  ><span class="hs-identifier hs-type"
+		    >x</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Reached the head, it's a 'TyVarRep', throwing. Mostly to ensure that a 'TyVarRep' doesn't slip
+in via user input, but also out of pure paranoia (GHC seems to occasionally solve constraints
+for the same type multiple times by racing through different routes in the presence of
+@INCOHERENT@ pragmas, but this is not confirmed. It wouldn't be unreasonable, though). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# OVERLAPPING</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026053"
+      ><span id="local-6989586621682026054"
+	><span id="local-6989586621682026055"
+	  ><span id="local-6989586621682026056"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Elaborate.html#ThrowNoAppliedVars"
+		><span class="hs-identifier hs-type"
+		  >ThrowNoAppliedVars</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026053"
+		><span class="hs-identifier hs-type"
+		  >hole</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026054"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		><span class="hs-operator hs-type"
+		  >~</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026055"
+		><span class="hs-identifier hs-type"
+		  >j</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeHeadAsVar"
+		><span class="hs-identifier hs-type"
+		  >TrySpecializeHeadAsVar</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026054"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026055"
+		><span class="hs-identifier hs-type"
+		  >j</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026053"
+		><span class="hs-identifier hs-type"
+		  >hole</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Polymorphism.html#TyVarRep"
+		><span class="hs-identifier hs-type"
+		  >TyVarRep</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026056"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Reached the head, try to specialize it as a variable and throw if that succeeds.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INCOHERENT</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026066"
+      ><span id="local-6989586621682026067"
+	><span id="local-6989586621682026068"
+	  ><span id="local-6989586621682026069"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsVar"
+		><span class="hs-identifier hs-type"
+		  >TrySpecializeAsVar</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026066"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026067"
+		><span class="hs-identifier hs-type"
+		  >j</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >'</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+		><span class="hs-identifier hs-type"
+		  >Nothing</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026068"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-142"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Elaborate.html#CheckNotAppliedVar"
+		><span class="hs-identifier hs-type"
+		  >CheckNotAppliedVar</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026069"
+		><span class="hs-identifier hs-type"
+		  >hole</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026068"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-143"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-144"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeHeadAsVar"
+		><span class="hs-identifier hs-type"
+		  >TrySpecializeHeadAsVar</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026066"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026067"
+		><span class="hs-identifier hs-type"
+		  >j</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026069"
+		><span class="hs-identifier hs-type"
+		  >hole</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026068"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Try to specialize @a@ as a type representing a PLC type variable.
+Same as 'TrySpecializeAsVar' (in particular, the parameters are the same), except this one also
+checks if the given type is a type application, in which case it tries to specialize the head of the
+application to a type representing a PLC type variable and throws if that succeeds.
+
+We need this because blindly specializing an @f A@ (where @f@ is a type variable and @A@ is an
+arbitrary type) in the Type context would give us @Opaque val A@ (by @f ~ Opaque val@) instead of
+@Opaque val (f' A)@, which would be very confusing to the user: the only reasonable way to elaborate
+an application of a type variable in Haskell is to make an application of a type variable in PLC,
+not to randomly drop the type variable.
+
+There's no way we could elaborate an applied type variable without surprising the user, because no
+instantiation of @f@ could turn @f A@ into @Opaque val (f' A)@, hence we simply forbid applied type
+variables and throw upon encountering one. It would be a pain to handle an iterated application of a
+type representing a PLC type variable anyway.
+
+It's not possible to determine if @Opaque val A@ is a specialization of @f a@ or @a@ (for a type
+variable @a@), hence we have to make this whole check during elaboration and not any later.
+
+Regardless of whether the given argument is a type application or not, it's attempted to be
+specialized as a type representing a PLC type variable, because such a type is a type application
+itself. Unifying an already known type variable with a fresh one is useful when the name part
+of the former is unknown. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsUnappliedVar"
+	><span class="hs-identifier hs-type"
+	  >TrySpecializeAsUnappliedVar</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026078"
+      ><span class="annot"
+	><a href="#local-6989586621682026078"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026078"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026078"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026078"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="TrySpecializeAsUnappliedVar"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsUnappliedVar"
+	  ><span class="hs-identifier hs-var"
+	    >TrySpecializeAsUnappliedVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026079"
+      ><span class="annot"
+	><a href="#local-6989586621682026079"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026080"
+      ><span class="annot"
+	><a href="#local-6989586621682026080"
+	  ><span class="hs-identifier hs-type"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026081"
+      ><span class="annot"
+	><a href="#local-6989586621682026081"
+	  ><span class="hs-identifier hs-type"
+	    >hole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026082"
+      ><span class="annot"
+	><a href="#local-6989586621682026082"
+	  ><span class="hs-identifier hs-type"
+	    >mw</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026083"
+      ><span class="annot"
+	><a href="#local-6989586621682026083"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026079"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026082"
+	><span class="hs-identifier hs-type"
+	  >mw</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026083"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026080"
+	><span class="hs-identifier hs-type"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026088"
+      ><span id="local-6989586621682026089"
+	><span id="local-6989586621682026090"
+	  ><span id="local-6989586621682026091"
+	    ><span id="local-6989586621682026092"
+	      ><span id="local-6989586621682026093"
+		><span id="local-6989586621682026094"
+		  ><span class="hs-special"
+		    >(</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeHeadAsVar"
+		      ><span class="hs-identifier hs-type"
+			>TrySpecializeHeadAsVar</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026088"
+		      ><span class="hs-identifier hs-type"
+			>i</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026089"
+		      ><span class="hs-identifier hs-type"
+			>j</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026090"
+		      ><span class="hs-identifier hs-type"
+			>hole</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026091"
+		      ><span class="hs-identifier hs-type"
+			>f</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-175"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsVar"
+		      ><span class="hs-identifier hs-type"
+			>TrySpecializeAsVar</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026089"
+		      ><span class="hs-identifier hs-type"
+			>j</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026092"
+		      ><span class="hs-identifier hs-type"
+			>k</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026093"
+		      ><span class="hs-identifier hs-type"
+			>mw</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026091"
+		      ><span class="hs-identifier hs-type"
+			>f</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026094"
+		      ><span class="hs-identifier hs-type"
+			>x</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    >
+</span
+		    ><span id="line-176"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    >
+</span
+		    ><span id="line-177"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsUnappliedVar"
+		      ><span class="hs-identifier hs-type"
+			>TrySpecializeAsUnappliedVar</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026088"
+		      ><span class="hs-identifier hs-type"
+			>i</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026092"
+		      ><span class="hs-identifier hs-type"
+			>k</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026090"
+		      ><span class="hs-identifier hs-type"
+			>hole</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026093"
+		      ><span class="hs-identifier hs-type"
+			>mw</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026091"
+		      ><span class="hs-identifier hs-type"
+			>f</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026094"
+		      ><span class="hs-identifier hs-type"
+			>x</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# INCOHERENT</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026102"
+      ><span id="local-6989586621682026103"
+	><span id="local-6989586621682026104"
+	  ><span id="local-6989586621682026105"
+	    ><span id="local-6989586621682026106"
+	      ><span class="annot"
+		><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsVar"
+		  ><span class="hs-identifier hs-type"
+		    >TrySpecializeAsVar</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026102"
+		  ><span class="hs-identifier hs-type"
+		    >i</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026103"
+		  ><span class="hs-identifier hs-type"
+		    >j</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026104"
+		  ><span class="hs-identifier hs-type"
+		    >mw</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026105"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsUnappliedVar"
+		  ><span class="hs-identifier hs-type"
+		    >TrySpecializeAsUnappliedVar</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026102"
+		  ><span class="hs-identifier hs-type"
+		    >i</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026103"
+		  ><span class="hs-identifier hs-type"
+		    >j</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026106"
+		  ><span class="hs-identifier hs-type"
+		    >hole</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026104"
+		  ><span class="hs-identifier hs-type"
+		    >mw</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682026105"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Rep vs Type context]</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| First try to specialize the hole using 'TrySpecializeAsVar' and then recurse on the result of
+that using 'HandleHoles'.
+@i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
+specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#HandleHole"
+	><span class="hs-identifier hs-type"
+	  >HandleHole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html#Hole"
+	><span class="hs-identifier hs-type"
+	  >Hole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="HandleHole"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#HandleHole"
+	  ><span class="hs-identifier hs-var"
+	    >HandleHole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026116"
+      ><span class="annot"
+	><a href="#local-6989586621682026116"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026117"
+      ><span class="annot"
+	><a href="#local-6989586621682026117"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026118"
+      ><span class="annot"
+	><a href="#local-6989586621682026118"
+	  ><span class="hs-identifier hs-type"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026119"
+      ><span class="annot"
+	><a href="#local-6989586621682026119"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026120"
+      ><span class="annot"
+	><a href="#local-6989586621682026120"
+	  ><span class="hs-identifier hs-type"
+	    >hole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026116"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026117"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026119"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026120"
+	><span class="hs-identifier hs-type"
+	  >hole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026118"
+	><span class="hs-identifier hs-type"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span class="hs-comment"
+      >-- In the Rep context @x@ is attempted to be specialized as a 'TyVarRep'.</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026124"
+      ><span id="local-6989586621682026125"
+	><span id="local-6989586621682026126"
+	  ><span id="local-6989586621682026127"
+	    ><span id="local-6989586621682026128"
+	      ><span id="local-6989586621682026129"
+		><span class="hs-special"
+		  >(</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsUnappliedVar"
+		    ><span class="hs-identifier hs-type"
+		      >TrySpecializeAsUnappliedVar</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026124"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026125"
+		    ><span class="hs-identifier hs-type"
+		      >j</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.KnownTypeAst.html#RepHole"
+		    ><span class="hs-identifier hs-type"
+		      >RepHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >'</span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+		    ><span class="hs-identifier hs-type"
+		      >Nothing</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026126"
+		    ><span class="hs-identifier hs-type"
+		      >x</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-191"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#HandleHoles"
+		    ><span class="hs-identifier hs-type"
+		      >HandleHoles</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026127"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026125"
+		    ><span class="hs-identifier hs-type"
+		      >j</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026128"
+		    ><span class="hs-identifier hs-type"
+		      >k</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026129"
+		    ><span class="hs-identifier hs-type"
+		      >val</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.KnownTypeAst.html#RepHole"
+		    ><span class="hs-identifier hs-type"
+		      >RepHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026126"
+		    ><span class="hs-identifier hs-type"
+		      >x</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-192"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-193"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#HandleHole"
+		    ><span class="hs-identifier hs-type"
+		      >HandleHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026127"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026124"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026128"
+		    ><span class="hs-identifier hs-type"
+		      >k</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026129"
+		    ><span class="hs-identifier hs-type"
+		      >val</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.KnownTypeAst.html#RepHole"
+		    ><span class="hs-identifier hs-type"
+		      >RepHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026126"
+		    ><span class="hs-identifier hs-type"
+		      >x</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span class="hs-comment"
+      >-- In the Type context @a@ is attempted to be specialized as a 'TyVarRep' wrapped in @Opaque val@.</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026138"
+      ><span id="local-6989586621682026139"
+	><span id="local-6989586621682026140"
+	  ><span id="local-6989586621682026141"
+	    ><span id="local-6989586621682026142"
+	      ><span id="local-6989586621682026143"
+		><span class="hs-special"
+		  >(</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#TrySpecializeAsUnappliedVar"
+		    ><span class="hs-identifier hs-type"
+		      >TrySpecializeAsUnappliedVar</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026138"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026139"
+		    ><span class="hs-identifier hs-type"
+		      >j</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.KnownTypeAst.html#TypeHole"
+		    ><span class="hs-identifier hs-type"
+		      >TypeHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >'</span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+		    ><span class="hs-identifier hs-type"
+		      >Just</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Polymorphism.html#Opaque"
+		    ><span class="hs-identifier hs-type"
+		      >Opaque</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026140"
+		    ><span class="hs-identifier hs-type"
+		      >val</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026141"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-198"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#HandleHoles"
+		    ><span class="hs-identifier hs-type"
+		      >HandleHoles</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026142"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026139"
+		    ><span class="hs-identifier hs-type"
+		      >j</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026143"
+		    ><span class="hs-identifier hs-type"
+		      >k</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026140"
+		    ><span class="hs-identifier hs-type"
+		      >val</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.KnownTypeAst.html#TypeHole"
+		    ><span class="hs-identifier hs-type"
+		      >TypeHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026141"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-199"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-200"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.Elaborate.html#HandleHole"
+		    ><span class="hs-identifier hs-type"
+		      >HandleHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026142"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026138"
+		    ><span class="hs-identifier hs-type"
+		      >i</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026143"
+		    ><span class="hs-identifier hs-type"
+		      >k</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026140"
+		    ><span class="hs-identifier hs-type"
+		      >val</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Builtin.KnownTypeAst.html#TypeHole"
+		    ><span class="hs-identifier hs-type"
+		      >TypeHole</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682026141"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Call 'HandleHole' over each hole from the list, threading the state (the fresh unique) through
+the calls. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#HandleHolesGo"
+	><span class="hs-identifier hs-type"
+	  >HandleHolesGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html#Hole"
+	><span class="hs-identifier hs-type"
+	  >Hole</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="HandleHolesGo"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#HandleHolesGo"
+	  ><span class="hs-identifier hs-var"
+	    >HandleHolesGo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026149"
+      ><span class="annot"
+	><a href="#local-6989586621682026149"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026150"
+      ><span class="annot"
+	><a href="#local-6989586621682026150"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026151"
+      ><span class="annot"
+	><a href="#local-6989586621682026151"
+	  ><span class="hs-identifier hs-type"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026152"
+      ><span class="annot"
+	><a href="#local-6989586621682026152"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026153"
+      ><span class="annot"
+	><a href="#local-6989586621682026153"
+	  ><span class="hs-identifier hs-type"
+	    >holes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026149"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026150"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026152"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026153"
+	><span class="hs-identifier hs-type"
+	  >holes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026151"
+	><span class="hs-identifier hs-type"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026154"
+      ><span id="local-6989586621682026155"
+	><span id="local-6989586621682026156"
+	  ><span id="local-6989586621682026157"
+	    ><span class="annot"
+	      ><a href="#local-6989586621682026154"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		><span class="hs-operator hs-type"
+		  >~</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026155"
+		><span class="hs-identifier hs-type"
+		  >j</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Elaborate.html#HandleHolesGo"
+		><span class="hs-identifier hs-type"
+		  >HandleHolesGo</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026156"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026154"
+		><span class="hs-identifier hs-type"
+		  >i</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026155"
+		><span class="hs-identifier hs-type"
+		  >j</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682026157"
+		><span class="hs-identifier hs-type"
+		  >val</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >'</span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="hs-special"
+	      >]</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682026165"
+      ><span id="local-6989586621682026166"
+	><span id="local-6989586621682026167"
+	  ><span id="local-6989586621682026168"
+	    ><span id="local-6989586621682026169"
+	      ><span id="local-6989586621682026170"
+		><span id="local-6989586621682026171"
+		  ><span class="hs-special"
+		    >(</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Elaborate.html#HandleHole"
+		      ><span class="hs-identifier hs-type"
+			>HandleHole</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026165"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026166"
+		      ><span class="hs-identifier hs-type"
+			>i</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026167"
+		      ><span class="hs-identifier hs-type"
+			>j</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026168"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026169"
+		      ><span class="hs-identifier hs-type"
+			>hole</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-210"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Elaborate.html#HandleHolesGo"
+		      ><span class="hs-identifier hs-type"
+			>HandleHolesGo</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026165"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026167"
+		      ><span class="hs-identifier hs-type"
+			>j</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026170"
+		      ><span class="hs-identifier hs-type"
+			>k</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026168"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026171"
+		      ><span class="hs-identifier hs-type"
+			>holes</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-211"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    >
+</span
+		    ><span id="line-212"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Builtin.Elaborate.html#HandleHolesGo"
+		      ><span class="hs-identifier hs-type"
+			>HandleHolesGo</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026165"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026166"
+		      ><span class="hs-identifier hs-type"
+			>i</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026170"
+		      ><span class="hs-identifier hs-type"
+			>k</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026168"
+		      ><span class="hs-identifier hs-type"
+			>val</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026169"
+		      ><span class="hs-identifier hs-type"
+			>hole</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-glyph"
+		    >:</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682026171"
+		      ><span class="hs-identifier hs-type"
+			>holes</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| If the outermost constructor of the second argument is known and happens to be one of the
+constructors of the list data type, then the second argument is returned back. Otherwise the
+first one is returned, which is meant to be a custom type error. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#ThrowOnStuckList"
+	><span class="hs-identifier hs-type"
+	  >ThrowOnStuckList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026260"
+      ><span class="annot"
+	><a href="#local-6989586621682026260"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026260"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026260"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621682026260"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="ThrowOnStuckList"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowOnStuckList"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnStuckList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026261"
+      ><span class="annot"
+	><a href="#local-6989586621682026261"
+	  ><span class="hs-identifier hs-type"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026262"
+      ><span class="annot"
+	><a href="#local-6989586621682026262"
+	  ><span class="hs-identifier hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowOnStuckList"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowOnStuckList"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnStuckList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowOnStuckList"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowOnStuckList"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnStuckList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026263"
+      ><span id="local-6989586621682026264"
+	><span class="annot"
+	  ><span class="hs-identifier"
+	    >_</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026263"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="hs-glyph"
+	  >:</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026264"
+	    ><span class="hs-identifier hs-type"
+	      >xs</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026263"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026264"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >  </span
+      ><span id="ThrowOnStuckList"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ThrowOnStuckList"
+	  ><span class="hs-identifier hs-var"
+	    >ThrowOnStuckList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026265"
+      ><span class="annot"
+	><a href="#local-6989586621682026265"
+	  ><span class="hs-identifier hs-type"
+	    >err</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier"
+	  >_</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026265"
+	><span class="hs-identifier hs-type"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#UnknownTypeError"
+	><span class="hs-identifier hs-type"
+	  >UnknownTypeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026267"
+      ><span class="annot"
+	><a href="#local-6989586621682026267"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026268"
+      ><span class="annot"
+	><a href="#local-6989586621682026268"
+	  ><span class="hs-identifier hs-type"
+	    >any</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026267"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026268"
+	><span class="hs-identifier hs-type"
+	  >any</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="UnknownTypeError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#UnknownTypeError"
+	  ><span class="hs-identifier hs-var"
+	    >UnknownTypeError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026269"
+      ><span class="annot"
+	><a href="#local-6989586621682026269"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026270"
+      ><span class="annot"
+	><a href="#local-6989586621682026270"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >  </span
+      ><span id="UnknownTypeError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#UnknownTypeError"
+	  ><span class="hs-identifier hs-var"
+	    >UnknownTypeError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026271"
+      ><span id="local-6989586621682026272"
+	><span class="annot"
+	  ><a href="#local-6989586621682026271"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682026272"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#TypeError"
+	><span class="hs-identifier hs-type"
+	  >TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;No instance for &#8216;KnownTypeAst &quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#ShowType"
+	><span class="hs-identifier hs-type"
+	  >ShowType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#UniOf"
+	><span class="hs-identifier hs-type"
+	  >UniOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026271"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot; (&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#ShowType"
+	><span class="hs-identifier hs-type"
+	  >ShowType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026272"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;)&#8217;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;Which means&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;  &#8216;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#ShowType"
+	><span class="hs-identifier hs-type"
+	  >ShowType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026272"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:&lt;&gt;:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;&#8217;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;is neither a built-in type, nor one of the control types.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;If it can be represented in terms of one of the built-in types&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;  then go add the instance (you may need a few others too)&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;  alongside the instance for the built-in type.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;Otherwise you may need to add a new built-in type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-operator"
+      >:$$:</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeError.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;  (provided you're doing something that can be supported in principle)&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the holes of @x@ and recurse into them.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#HandleHoles"
+	><span class="hs-identifier hs-type"
+	  >HandleHoles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682026274"
+      ><span class="annot"
+	><a href="#local-6989586621682026274"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026274"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="HandleHoles"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#HandleHoles"
+	  ><span class="hs-identifier hs-var"
+	    >HandleHoles</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026275"
+      ><span class="annot"
+	><a href="#local-6989586621682026275"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026276"
+      ><span class="annot"
+	><a href="#local-6989586621682026276"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026277"
+      ><span class="annot"
+	><a href="#local-6989586621682026277"
+	  ><span class="hs-identifier hs-type"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026278"
+      ><span class="annot"
+	><a href="#local-6989586621682026278"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026279"
+      ><span class="annot"
+	><a href="#local-6989586621682026279"
+	  ><span class="hs-identifier hs-type"
+	    >hole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026280"
+      ><span class="annot"
+	><a href="#local-6989586621682026280"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Here we detect a stuck application of 'ToHoles' and throw 'UnknownTypeError' on it.</span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- See https://blog.csongor.co.uk/report-stuck-families for a detailed description of how</span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- detection of stuck type families works.</span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#HandleHolesGo"
+	><span class="hs-identifier hs-type"
+	  >HandleHolesGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026275"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026276"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026277"
+	><span class="hs-identifier hs-type"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026278"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#ThrowOnStuckList"
+	><span class="hs-identifier hs-type"
+	  >ThrowOnStuckList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#UnknownTypeError"
+	><span class="hs-identifier hs-type"
+	  >UnknownTypeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026278"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026280"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html#ToHoles"
+	><span class="hs-identifier hs-type"
+	  >ToHoles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026275"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026279"
+	><span class="hs-identifier hs-type"
+	  >hole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026280"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span class="hs-comment"
+      >-- Check out the following for a detailed explanation of the idea (after learning about 'TryUnify'):</span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span class="hs-comment"
+      >-- https://github.com/effectfully-ou/sketches/tree/cbf3ee9d11e0e3d4fc397ce7bf419418224122e2/poly-type-of-saga/part2-enumerate-type-vars</span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
+@i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
+specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#ElaborateFromTo"
+	><span class="hs-identifier hs-type"
+	  >ElaborateFromTo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.TypeNats.html#Nat"
+	><span class="hs-identifier hs-type"
+	  >Nat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >GHC.Constraint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="ElaborateFromTo"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Elaborate.html#ElaborateFromTo"
+	  ><span class="hs-identifier hs-var"
+	    >ElaborateFromTo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026282"
+      ><span class="annot"
+	><a href="#local-6989586621682026282"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026283"
+      ><span class="annot"
+	><a href="#local-6989586621682026283"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026284"
+      ><span class="annot"
+	><a href="#local-6989586621682026284"
+	  ><span class="hs-identifier hs-type"
+	    >j</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026285"
+      ><span class="annot"
+	><a href="#local-6989586621682026285"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682026286"
+      ><span class="annot"
+	><a href="#local-6989586621682026286"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Elaborate.html#HandleHole"
+	><span class="hs-identifier hs-type"
+	  >HandleHole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026282"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026283"
+	><span class="hs-identifier hs-type"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026284"
+	><span class="hs-identifier hs-type"
+	  >j</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026285"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownTypeAst.html#TypeHole"
+	><span class="hs-identifier hs-type"
+	  >TypeHole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682026286"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

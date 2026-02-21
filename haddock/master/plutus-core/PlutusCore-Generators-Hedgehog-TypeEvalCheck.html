@@ -1,0 +1,736 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.Hedgehog.TypeEvalCheck</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.Hedgehog.TypeEvalCheck.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.Hedgehog.TypeEvalCheck</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >This module defines types and functions related to &quot;type-eval checking&quot;.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TypeEvalCheckError"
+	      >TypeEvalCheckError</a
+	      > uni fun<ul class="subs"
+	      ><li
+		>= <a href="#v:TypeEvalCheckErrorIllFormed"
+		  >TypeEvalCheckErrorIllFormed</a
+		  > !(<a href="../plutus-core/PlutusCore-Error.html#t:Error" title="PlutusCore.Error"
+		  >Error</a
+		  > uni fun ())</li
+		><li
+		>| <a href="#v:TypeEvalCheckErrorIllTyped"
+		  >TypeEvalCheckErrorIllTyped</a
+		  > !(<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ())) !(<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ()))</li
+		><li
+		>| <a href="#v:TypeEvalCheckErrorException"
+		  >TypeEvalCheckErrorException</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		><li
+		>| <a href="#v:TypeEvalCheckErrorIllEvaled"
+		  >TypeEvalCheckErrorIllEvaled</a
+		  > !(<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+		  >EvaluationResult</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())) !(<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+		  >EvaluationResult</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ()))</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TypeEvalCheckResult"
+	      >TypeEvalCheckResult</a
+	      > uni fun = <a href="#v:TypeEvalCheckResult"
+	      >TypeEvalCheckResult</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_termCheckResultType"
+		  >_termCheckResultType</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ())</li
+		><li
+		><a href="#v:_termCheckResultValue"
+		  >_termCheckResultValue</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+		  >EvaluationResult</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TypeEvalCheckM"
+	      >TypeEvalCheckM</a
+	      > uni fun = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckError" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+	      >TypeEvalCheckError</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:typeEvalCheckBy"
+	      >typeEvalCheckBy</a
+	      > &#8759; (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >, <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	      >KnownTypeAst</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	      >MakeKnown</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) a, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > structural) &#8658; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/PlutusCore-Evaluation-Machine-Exception.html#t:EvaluationException" title="PlutusCore.Evaluation.Machine.Exception"
+	      >EvaluationException</a
+	      > structural operational (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ())) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ())) &#8594; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TermOf</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) a &#8594; <a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckM" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+	      >TypeEvalCheckM</a
+	      > uni fun (<a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TermOf</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) (<a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckResult" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+	      >TypeEvalCheckResult</a
+	      > uni fun))</li
+	    ><li class="src short"
+	    ><a href="#v:unsafeTypeEvalCheck"
+	      >unsafeTypeEvalCheck</a
+	      > &#8759; (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >, <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	      >KnownTypeAst</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	      >MakeKnown</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) a) &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TermOf</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) a &#8594; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	      >TermOf</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	      >EvaluationResult</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()))</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TypeEvalCheckError" class="def"
+	    >TypeEvalCheckError</a
+	    > uni fun <a href="src/PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckError" class="link"
+	    >Source</a
+	    > <a href="#t:TypeEvalCheckError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of errors that can occur during type-eval checking.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TypeEvalCheckErrorIllFormed" class="def"
+		  >TypeEvalCheckErrorIllFormed</a
+		  > !(<a href="../plutus-core/PlutusCore-Error.html#t:Error" title="PlutusCore.Error"
+		  >Error</a
+		  > uni fun ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TypeEvalCheckErrorIllTyped" class="def"
+		  >TypeEvalCheckErrorIllTyped</a
+		  > !(<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ())) !(<a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ()))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TypeEvalCheckErrorException" class="def"
+		  >TypeEvalCheckErrorException</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TypeEvalCheckErrorIllEvaled" class="def"
+		  >TypeEvalCheckErrorIllEvaled</a
+		  > !(<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+		  >EvaluationResult</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())) !(<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+		  >EvaluationResult</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ()))</td
+		><td class="doc"
+		><p
+		  >The former is an expected result of evaluation, the latter -- is an actual one.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TypeEvalCheckError"
+	    >Instances</h4
+	    ><details id="i:TypeEvalCheckError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeEvalCheckError:PrettyBy:1"
+		      ></span
+		      > (<a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		      >Type</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > uni ()), <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun ()), <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="../plutus-core/PlutusCore-Error.html#t:Error" title="PlutusCore.Error"
+		      >Error</a
+		      > uni fun ())) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckError" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+		      >TypeEvalCheckError</a
+		      > uni fun)</span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:TypeEvalCheckError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeEvalCheckError:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html"
+			>PlutusCore.Generators.Hedgehog.TypeEvalCheck</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckError" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+			  >TypeEvalCheckError</a
+			  > uni fun &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckError" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+			  >TypeEvalCheckError</a
+			  > uni fun] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TypeEvalCheckResult" class="def"
+	    >TypeEvalCheckResult</a
+	    > uni fun <a href="src/PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckResult" class="link"
+	    >Source</a
+	    > <a href="#t:TypeEvalCheckResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type-eval checking of a term results in a value of this type.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TypeEvalCheckResult" class="def"
+		  >TypeEvalCheckResult</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_termCheckResultType" class="def"
+			  >_termCheckResultType</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+			  >Normalized</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ())</dfn
+			><div class="doc"
+			><p
+			  >The type of the term.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_termCheckResultValue" class="def"
+			  >_termCheckResultValue</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+			  >EvaluationResult</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ())</dfn
+			><div class="doc"
+			><p
+			  >The result of evaluation of the term.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TypeEvalCheckM" class="def"
+	    >TypeEvalCheckM</a
+	    > uni fun = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckError" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+	    >TypeEvalCheckError</a
+	    > uni fun) <a href="src/PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckM" class="link"
+	    >Source</a
+	    > <a href="#t:TypeEvalCheckM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad type-eval checking runs in.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeEvalCheckBy" class="def"
+	    >typeEvalCheckBy</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#typeEvalCheckBy" class="link"
+	    >Source</a
+	    > <a href="#v:typeEvalCheckBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  >, <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		  >KnownTypeAst</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+		  >MakeKnown</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ()) a, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		  >PrettyPlc</a
+		  > structural)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > (<a href="../plutus-core/PlutusCore-Evaluation-Machine-Exception.html#t:EvaluationException" title="PlutusCore.Evaluation.Machine.Exception"
+		  >EvaluationException</a
+		  > structural operational (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ()))</td
+		><td class="doc"
+		><p
+		  >An evaluator.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+		  >TermOf</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ()) a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckM" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+		  >TypeEvalCheckM</a
+		  > uni fun (<a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+		  >TermOf</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ()) (<a href="PlutusCore-Generators-Hedgehog-TypeEvalCheck.html#t:TypeEvalCheckResult" title="PlutusCore.Generators.Hedgehog.TypeEvalCheck"
+		  >TypeEvalCheckResult</a
+		  > uni fun))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Type check and evaluate a term and check that the expected result is equal to the actual one.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeTypeEvalCheck" class="def"
+	    >unsafeTypeEvalCheck</a
+	    > &#8759; (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >, <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+	    >KnownTypeAst</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni a, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:MakeKnown" title="PlutusCore.Builtin.KnownType"
+	    >MakeKnown</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) a) &#8658; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	    >TermOf</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) a &#8594; <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.TypedBuiltinGen"
+	    >TermOf</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	    >EvaluationResult</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ())) <a href="src/PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#unsafeTypeEvalCheck" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeTypeEvalCheck" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type check and evaluate a term and check that the expected result is equal to the actual one.
+Throw an error in case something goes wrong. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

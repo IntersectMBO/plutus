@@ -1,0 +1,216 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Sum.Base where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Function.Base qualified
+<span class="lineno">   18 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   19 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   20 </span>                    word64ToNat)
+<span class="lineno">   21 </span>import MAlonzo.RTE qualified
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- Data.Sum.Base._⊎_
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">d__'8846'__30 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">   25 </span>data T__'8846'__30
+<span class="lineno">   26 </span>  = C_inj'8321'_38 AgdaAny | C_inj'8322'_42 AgdaAny
+<span class="lineno">   27 </span>-- Data.Sum.Base.[_,_]
+<span class="lineno">   28 </span>d_'91'_'44'_'93'_52 ::
+<span class="lineno">   29 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   30 </span>  () -&gt;
+<span class="lineno">   31 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   32 </span>  () -&gt;
+<span class="lineno">   33 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   34 </span>  (T__'8846'__30 -&gt; ()) -&gt;
+<span class="lineno">   35 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   36 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">d_'91'_'44'_'93'_52 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 v7 v8</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">= du_'91'_'44'_'93'_52 v6 v7 v8</span></span>
+<span class="lineno">   39 </span>du_'91'_'44'_'93'_52 ::
+<span class="lineno">   40 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   41 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">du_'91'_'44'_'93'_52 v0 v1 v2</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">C_inj'8321'_38 v3 -&gt; coe v0 v3</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">C_inj'8322'_42 v3 -&gt; coe v1 v3</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">_                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   47 </span>-- Data.Sum.Base.[_,_]′
+<span class="lineno">   48 </span>d_'91'_'44'_'93''8242'_66 ::
+<span class="lineno">   49 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   50 </span>  () -&gt;
+<span class="lineno">   51 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   52 </span>  () -&gt;
+<span class="lineno">   53 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   54 </span>  () -&gt;
+<span class="lineno">   55 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   56 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">d_'91'_'44'_'93''8242'_66 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">= du_'91'_'44'_'93''8242'_66</span></span>
+<span class="lineno">   59 </span>du_'91'_'44'_'93''8242'_66 ::
+<span class="lineno">   60 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   61 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">du_'91'_'44'_'93''8242'_66 = coe du_'91'_'44'_'93'_52</span></span>
+<span class="lineno">   63 </span>-- Data.Sum.Base.fromInj₁
+<span class="lineno">   64 </span>d_fromInj'8321'_68 ::
+<span class="lineno">   65 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   66 </span>  () -&gt;
+<span class="lineno">   67 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   68 </span>  () -&gt; (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">d_fromInj'8321'_68 ~v0 ~v1 ~v2 ~v3 = du_fromInj'8321'_68</span></span>
+<span class="lineno">   70 </span>du_fromInj'8321'_68 ::
+<span class="lineno">   71 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">du_fromInj'8321'_68 = coe du_'91'_'44'_'93''8242'_66 (\ v0 -&gt; v0)</span></span>
+<span class="lineno">   73 </span>-- Data.Sum.Base.fromInj₂
+<span class="lineno">   74 </span>d_fromInj'8322'_72 ::
+<span class="lineno">   75 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   76 </span>  () -&gt;
+<span class="lineno">   77 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   78 </span>  () -&gt; (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">d_fromInj'8322'_72 ~v0 ~v1 ~v2 ~v3 v4 = du_fromInj'8322'_72 v4</span></span>
+<span class="lineno">   80 </span>du_fromInj'8322'_72 ::
+<span class="lineno">   81 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">du_fromInj'8322'_72 v0</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'91'_'44'_'93''8242'_66 v0 (\ v1 -&gt; v1)</span></span>
+<span class="lineno">   84 </span>-- Data.Sum.Base.reduce
+<span class="lineno">   85 </span>d_reduce_76 ::
+<span class="lineno">   86 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   87 </span>  () -&gt; T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">d_reduce_76 ~v0 ~v1 = du_reduce_76</span></span>
+<span class="lineno">   89 </span>du_reduce_76 :: T__'8846'__30 -&gt; AgdaAny
+<span class="lineno">   90 </span><span class="decl"><span class="nottickedoff">du_reduce_76</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_'91'_'44'_'93''8242'_66 (\ v0 -&gt; v0) (\ v0 -&gt; v0)</span></span>
+<span class="lineno">   92 </span>-- Data.Sum.Base.swap
+<span class="lineno">   93 </span>d_swap_78 ::
+<span class="lineno">   94 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   95 </span>  () -&gt;
+<span class="lineno">   96 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   97 </span>  () -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">d_swap_78 ~v0 ~v1 ~v2 ~v3 v4 = du_swap_78 v4</span></span>
+<span class="lineno">   99 </span>du_swap_78 :: T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">du_swap_78 v0</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  102 </span><span class="spaces">      </span><span class="nottickedoff">C_inj'8321'_38 v1 -&gt; coe C_inj'8322'_42 (coe v1)</span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="nottickedoff">C_inj'8322'_42 v1 -&gt; coe C_inj'8321'_38 (coe v1)</span>
+<span class="lineno">  104 </span><span class="spaces">      </span><span class="nottickedoff">_                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  105 </span>-- Data.Sum.Base.map
+<span class="lineno">  106 </span>d_map_84 ::
+<span class="lineno">  107 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  108 </span>  () -&gt;
+<span class="lineno">  109 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  110 </span>  () -&gt;
+<span class="lineno">  111 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  112 </span>  () -&gt;
+<span class="lineno">  113 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  114 </span>  () -&gt;
+<span class="lineno">  115 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  116 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">d_map_84 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 = du_map_84 v8 v9</span></span>
+<span class="lineno">  118 </span>du_map_84 ::
+<span class="lineno">  119 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  120 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">du_map_84 v0 v1</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">du_'91'_'44'_'93''8242'_66 (\ v2 -&gt; coe C_inj'8321'_38 (coe v0 v2))</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="nottickedoff">(\ v2 -&gt; coe C_inj'8322'_42 (coe v1 v2))</span></span>
+<span class="lineno">  125 </span>-- Data.Sum.Base.map₁
+<span class="lineno">  126 </span>d_map'8321'_90 ::
+<span class="lineno">  127 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  128 </span>  () -&gt;
+<span class="lineno">  129 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  130 </span>  () -&gt;
+<span class="lineno">  131 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  132 </span>  () -&gt; (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  133 </span><span class="decl"><span class="nottickedoff">d_map'8321'_90 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_map'8321'_90 v6</span></span>
+<span class="lineno">  134 </span>du_map'8321'_90 ::
+<span class="lineno">  135 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  136 </span><span class="decl"><span class="nottickedoff">du_map'8321'_90 v0 = coe du_map_84 (coe v0) (coe (\ v1 -&gt; v1))</span></span>
+<span class="lineno">  137 </span>-- Data.Sum.Base.map₂
+<span class="lineno">  138 </span>d_map'8322'_94 ::
+<span class="lineno">  139 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  140 </span>  () -&gt;
+<span class="lineno">  141 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  142 </span>  () -&gt;
+<span class="lineno">  143 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  144 </span>  () -&gt; (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">d_map'8322'_94 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 = du_map'8322'_94</span></span>
+<span class="lineno">  146 </span>du_map'8322'_94 ::
+<span class="lineno">  147 </span>  (AgdaAny -&gt; AgdaAny) -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  148 </span><span class="decl"><span class="nottickedoff">du_map'8322'_94 = coe du_map_84 (coe (\ v0 -&gt; v0))</span></span>
+<span class="lineno">  149 </span>-- Data.Sum.Base.assocʳ
+<span class="lineno">  150 </span>d_assoc'691'_96 ::
+<span class="lineno">  151 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  152 </span>  () -&gt;
+<span class="lineno">  153 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  154 </span>  () -&gt;
+<span class="lineno">  155 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  156 </span>  () -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">d_assoc'691'_96 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 = du_assoc'691'_96</span></span>
+<span class="lineno">  158 </span>du_assoc'691'_96 :: T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  159 </span><span class="decl"><span class="nottickedoff">du_assoc'691'_96</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  161 </span><span class="spaces">      </span><span class="nottickedoff">du_'91'_'44'_'93''8242'_66</span>
+<span class="lineno">  162 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_map'8322'_94 (coe C_inj'8321'_38))</span>
+<span class="lineno">  163 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  164 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">  165 </span><span class="spaces">         </span><span class="nottickedoff">(coe C_inj'8322'_42) (coe C_inj'8322'_42))</span></span>
+<span class="lineno">  166 </span>-- Data.Sum.Base.assocˡ
+<span class="lineno">  167 </span>d_assoc'737'_98 ::
+<span class="lineno">  168 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  169 </span>  () -&gt;
+<span class="lineno">  170 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  171 </span>  () -&gt;
+<span class="lineno">  172 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  173 </span>  () -&gt; T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  174 </span><span class="decl"><span class="nottickedoff">d_assoc'737'_98 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 = du_assoc'737'_98</span></span>
+<span class="lineno">  175 </span>du_assoc'737'_98 :: T__'8846'__30 -&gt; T__'8846'__30
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">du_assoc'737'_98</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  178 </span><span class="spaces">      </span><span class="nottickedoff">du_'91'_'44'_'93''8242'_66</span>
+<span class="lineno">  179 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  180 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">  181 </span><span class="spaces">         </span><span class="nottickedoff">(coe C_inj'8321'_38) (coe C_inj'8321'_38))</span>
+<span class="lineno">  182 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_map'8321'_90 (coe C_inj'8322'_42))</span></span>
+<span class="lineno">  183 </span>-- Data.Sum.Base._-⊎-_
+<span class="lineno">  184 </span>d__'45''8846''45'__100 ::
+<span class="lineno">  185 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  186 </span>  () -&gt;
+<span class="lineno">  187 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  188 </span>  () -&gt;
+<span class="lineno">  189 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  190 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  191 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  192 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  193 </span><span class="decl"><span class="nottickedoff">d__'45''8846''45'__100 = erased</span></span>
+
+</pre>
+</body>
+</html>

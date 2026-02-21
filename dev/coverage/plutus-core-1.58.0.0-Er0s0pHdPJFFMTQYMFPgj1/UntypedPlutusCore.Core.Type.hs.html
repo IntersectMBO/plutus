@@ -1,0 +1,241 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DerivingStrategies #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    5 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    6 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    9 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>module UntypedPlutusCore.Core.Type
+<span class="lineno">   12 </span>  ( TPLC.UniOf
+<span class="lineno">   13 </span>  , TPLC.Version (..)
+<span class="lineno">   14 </span>  , TPLC.Binder (..)
+<span class="lineno">   15 </span>  , Term (..)
+<span class="lineno">   16 </span>  , Program (..)
+<span class="lineno">   17 </span>  , progAnn
+<span class="lineno">   18 </span>  , progVer
+<span class="lineno">   19 </span>  , progTerm
+<span class="lineno">   20 </span>  , bindFunM
+<span class="lineno">   21 </span>  , bindFun
+<span class="lineno">   22 </span>  , mapFun
+<span class="lineno">   23 </span>  , termAnn
+<span class="lineno">   24 </span>  , modifyTermAnn
+<span class="lineno">   25 </span>  , UVarDecl (..)
+<span class="lineno">   26 </span>  , uvarDeclName
+<span class="lineno">   27 </span>  , uvarDeclAnn
+<span class="lineno">   28 </span>  ) where
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>import Control.Lens
+<span class="lineno">   31 </span>import Control.Monad.Except
+<span class="lineno">   32 </span>import PlutusPrelude
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>import Data.Vector
+<span class="lineno">   35 </span>import PlutusCore.Builtin qualified as TPLC
+<span class="lineno">   36 </span>import PlutusCore.Core qualified as TPLC
+<span class="lineno">   37 </span>import PlutusCore.MkPlc
+<span class="lineno">   38 </span>import PlutusCore.Name.Unique qualified as TPLC
+<span class="lineno">   39 </span>import Universe
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>{- Note [Term constructor ordering and numbers]
+<span class="lineno">   42 </span>Ordering of constructors has a small but real effect on efficiency.
+<span class="lineno">   43 </span>It's slightly more efficient to hit the earlier constructors, so it's better to put the more
+<span class="lineno">   44 </span>common ones first.
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>The current ordering is based on their *empirically observed* frequency. We should check this
+<span class="lineno">   47 </span>occasionally.
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>Additionally, the first 7 (or 3 on 32-bit systems) constructors will get *pointer tags*, which allows
+<span class="lineno">   50 </span>more efficient access when casing on them. So we ideally want to keep the number of constructors
+<span class="lineno">   51 </span>at 7 or fewer.
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>We've got 8 constructors, *but* the last one is Error, which is only going to be seen at most
+<span class="lineno">   54 </span>once per program, so it's not too big a deal if it doesn't get a tag.
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>See the GHC Notes &quot;Tagging big families&quot; and &quot;Double switching for big families&quot; in
+<span class="lineno">   57 </span>GHC.StgToCmm.Expr for more details.
+<span class="lineno">   58 </span>-}
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>{- Note [Supported case-expressions]
+<span class="lineno">   61 </span>Originally 'Case' was introduced to only work with 'Constr', which together create the
+<span class="lineno">   62 </span>sums-of-products approach to representing data types.
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>However in https://github.com/IntersectMBO/plutus/issues/6602 we decided that the best way to
+<span class="lineno">   65 </span>speed up processing values of built-in types is to extend 'Case' such that it supports pattern
+<span class="lineno">   66 </span>matching on those.
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>Currently, 'Case' only supports booleans and integers, but we plan to extend it to lists and data.
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>See the @CaseBuiltin DefaultUni@ instance for how casing behaves for supported built-in types.
+<span class="lineno">   71 </span>-}
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>{-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>1. all types are removed
+<span class="lineno">   76 </span>2. 'IWrap' and 'Unwrap' are removed
+<span class="lineno">   77 </span>3. type abstractions are replaced with 'Delay'
+<span class="lineno">   78 </span>4. type instantiations are replaced with 'Force'
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>The latter two are due to the fact that we don't have value restriction in Typed Plutus Core
+<span class="lineno">   81 </span>and hence a computation can be stuck expecting only a single type argument for the computation
+<span class="lineno">   82 </span>to become unstuck. Therefore we can't just silently remove type abstractions and instantiations and
+<span class="lineno">   83 </span>need to replace them with something else that also blocks evaluation (in order for the semantics
+<span class="lineno">   84 </span>of an erased program to match with the semantics of the original typed one). 'Delay' and 'Force'
+<span class="lineno">   85 </span>serve exactly this purpose. -}
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>-- Making all the fields strict gives us a couple of percent in benchmarks
+<span class="lineno">   88 </span>-- See Note [Term constructor ordering and numbers]
+<span class="lineno">   89 </span>data Term name uni fun ann
+<span class="lineno">   90 </span>  = Var !ann !name
+<span class="lineno">   91 </span>  | LamAbs !ann !name !(Term name uni fun ann)
+<span class="lineno">   92 </span>  | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
+<span class="lineno">   93 </span>  | Force !ann !(Term name uni fun ann)
+<span class="lineno">   94 </span>  | Delay !ann !(Term name uni fun ann)
+<span class="lineno">   95 </span>  | Constant !ann !(Some (ValueOf uni))
+<span class="lineno">   96 </span>  | Builtin !ann !fun
+<span class="lineno">   97 </span>  | -- This is the cutoff at which constructors won't get pointer tags
+<span class="lineno">   98 </span>    -- See Note [Term constructor ordering and numbers]
+<span class="lineno">   99 </span>    Error !ann
+<span class="lineno">  100 </span>  | -- TODO: worry about overflow, maybe use an Integer
+<span class="lineno">  101 </span>    -- See Note [Constr tag type]
+<span class="lineno">  102 </span>    Constr !ann !Word64 ![Term name uni fun ann]
+<span class="lineno">  103 </span>  | -- See Note [Supported case-expressions].
+<span class="lineno">  104 </span>    Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+<span class="lineno">  105 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Functor</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving stock instance</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">(Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">=&gt; Show (Term name uni fun ann)</span></span></span></span></span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span><span class="decl"><span class="nottickedoff">deriving anyclass instance</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">(NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; NFData (Term name uni fun ann)</span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>-- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
+<span class="lineno">  116 </span>data Program name uni fun ann = Program
+<span class="lineno">  117 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_progAnn</span></span></span> :: ann
+<span class="lineno">  118 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_progVer</span></span></span> :: TPLC.Version
+<span class="lineno">  119 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_progTerm</span></span></span> :: Term name uni fun ann
+<span class="lineno">  120 </span>  }
+<span class="lineno">  121 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">makeLenses ''Program</span></span></span></span></span></span></span></span></span>
+<span class="lineno">  124 </span>
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="nottickedoff">(Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Show (Program name uni fun ann)</span></span></span></span></span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span><span class="decl"><span class="nottickedoff">deriving anyclass instance</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="nottickedoff">(NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; NFData (Program name uni fun ann)</span></span>
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>type instance TPLC.UniOf (Term name uni fun ann) = uni
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">TermLike (Term name uni fun) TPLC.TyName name uni fun</span></span></span></span> where
+<span class="lineno">  136 </span>  <span class="decl"><span class="nottickedoff">var = Var</span></span>
+<span class="lineno">  137 </span>  <span class="decl"><span class="nottickedoff">tyAbs = \ann _ _ -&gt; Delay ann</span></span>
+<span class="lineno">  138 </span>  <span class="decl"><span class="nottickedoff">lamAbs = \ann name _ -&gt; LamAbs ann name</span></span>
+<span class="lineno">  139 </span>  <span class="decl"><span class="istickedoff">apply = Apply</span></span>
+<span class="lineno">  140 </span>  <span class="decl"><span class="istickedoff">constant = Constant</span></span>
+<span class="lineno">  141 </span>  <span class="decl"><span class="istickedoff">builtin = Builtin</span></span>
+<span class="lineno">  142 </span>  <span class="decl"><span class="nottickedoff">tyInst = \ann term _ -&gt; Force ann term</span></span>
+<span class="lineno">  143 </span>  <span class="decl"><span class="nottickedoff">unwrap = const id</span></span>
+<span class="lineno">  144 </span>  <span class="decl"><span class="nottickedoff">iWrap = \_ _ _ -&gt; id</span></span>
+<span class="lineno">  145 </span>  <span class="decl"><span class="nottickedoff">error = \ann _ -&gt; Error ann</span></span>
+<span class="lineno">  146 </span>  <span class="decl"><span class="nottickedoff">constr = \ann _ i es -&gt; Constr ann i es</span></span>
+<span class="lineno">  147 </span>  <span class="decl"><span class="nottickedoff">kase = \ann _ arg cs -&gt; Case ann arg (fromList cs)</span></span>
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span>instance TPLC.HasConstant (Term name uni fun ()) where
+<span class="lineno">  150 </span>  <span class="decl"><span class="istickedoff">asConstant (Constant _ val) = pure val</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff">asConstant _ = <span class="nottickedoff">throwError TPLC.notAConstant</span></span></span>
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>  <span class="decl"><span class="istickedoff">fromConstant = Constant ()</span></span>
+<span class="lineno">  154 </span>
+<span class="lineno">  155 </span>type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
+<span class="lineno">  156 </span>type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span>-- | An untyped &quot;variable declaration&quot;, i.e. a name for a variable.
+<span class="lineno">  159 </span>data UVarDecl name ann = UVarDecl
+<span class="lineno">  160 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_uvarDeclAnn</span></span></span> :: ann
+<span class="lineno">  161 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_uvarDeclName</span></span></span> :: name
+<span class="lineno">  162 </span>  }
+<span class="lineno">  163 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  164 </span>
+<span class="lineno">  165 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">makeLenses ''UVarDecl</span></span></span></span></span>
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>-- | Return the outermost annotation of a 'Term'.
+<span class="lineno">  168 </span>termAnn :: Term name uni fun ann -&gt; ann
+<span class="lineno">  169 </span><span class="decl"><span class="istickedoff">termAnn (Constant ann _) = ann</span>
+<span class="lineno">  170 </span><span class="spaces"></span><span class="istickedoff">termAnn (Builtin ann _) = ann</span>
+<span class="lineno">  171 </span><span class="spaces"></span><span class="istickedoff">termAnn (Var ann _) = ann</span>
+<span class="lineno">  172 </span><span class="spaces"></span><span class="istickedoff">termAnn (LamAbs ann _ _) = ann</span>
+<span class="lineno">  173 </span><span class="spaces"></span><span class="istickedoff">termAnn (Apply ann _ _) = ann</span>
+<span class="lineno">  174 </span><span class="spaces"></span><span class="istickedoff">termAnn (Delay ann _) = ann</span>
+<span class="lineno">  175 </span><span class="spaces"></span><span class="istickedoff">termAnn (Force ann _) = ann</span>
+<span class="lineno">  176 </span><span class="spaces"></span><span class="istickedoff">termAnn (Error ann) = ann</span>
+<span class="lineno">  177 </span><span class="spaces"></span><span class="istickedoff">termAnn (Constr ann _ _) = ann</span>
+<span class="lineno">  178 </span><span class="spaces"></span><span class="istickedoff">termAnn (Case ann _ _) = ann</span></span>
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>modifyTermAnn :: (ann -&gt; ann) -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+<span class="lineno">  181 </span><span class="decl"><span class="istickedoff">modifyTermAnn f = \case</span>
+<span class="lineno">  182 </span><span class="spaces">  </span><span class="istickedoff">Constant ann c -&gt; Constant (f ann) c</span>
+<span class="lineno">  183 </span><span class="spaces">  </span><span class="istickedoff">Builtin ann b -&gt; Builtin (f ann) b</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">Var ann v -&gt; Var (f ann) v</span>
+<span class="lineno">  185 </span><span class="spaces">  </span><span class="istickedoff">LamAbs ann x body -&gt; LamAbs (f ann) x body</span>
+<span class="lineno">  186 </span><span class="spaces">  </span><span class="istickedoff">Apply ann fun arg -&gt; Apply (f ann) fun arg</span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="istickedoff">Delay ann body -&gt; Delay (f ann) body</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="istickedoff">Force ann body -&gt; Force (f ann) body</span>
+<span class="lineno">  189 </span><span class="spaces">  </span><span class="istickedoff">Error ann -&gt; Error (f ann)</span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="istickedoff">Constr ann i args -&gt; Constr (f ann) i args</span>
+<span class="lineno">  191 </span><span class="spaces">  </span><span class="istickedoff">Case ann scrut alts -&gt; Case (f ann) scrut alts</span></span>
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>bindFunM
+<span class="lineno">  194 </span>  :: Monad m
+<span class="lineno">  195 </span>  =&gt; (ann -&gt; fun -&gt; m (Term name uni fun' ann))
+<span class="lineno">  196 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  197 </span>  -&gt; m (Term name uni fun' ann)
+<span class="lineno">  198 </span><span class="decl"><span class="nottickedoff">bindFunM f = go</span>
+<span class="lineno">  199 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  200 </span><span class="spaces">    </span><span class="nottickedoff">go (Constant ann val) = pure $ Constant ann val</span>
+<span class="lineno">  201 </span><span class="spaces">    </span><span class="nottickedoff">go (Builtin ann fun) = f ann fun</span>
+<span class="lineno">  202 </span><span class="spaces">    </span><span class="nottickedoff">go (Var ann name) = pure $ Var ann name</span>
+<span class="lineno">  203 </span><span class="spaces">    </span><span class="nottickedoff">go (LamAbs ann name body) = LamAbs ann name &lt;$&gt; go body</span>
+<span class="lineno">  204 </span><span class="spaces">    </span><span class="nottickedoff">go (Apply ann fun arg) = Apply ann &lt;$&gt; go fun &lt;*&gt; go arg</span>
+<span class="lineno">  205 </span><span class="spaces">    </span><span class="nottickedoff">go (Delay ann term) = Delay ann &lt;$&gt; go term</span>
+<span class="lineno">  206 </span><span class="spaces">    </span><span class="nottickedoff">go (Force ann term) = Force ann &lt;$&gt; go term</span>
+<span class="lineno">  207 </span><span class="spaces">    </span><span class="nottickedoff">go (Error ann) = pure $ Error ann</span>
+<span class="lineno">  208 </span><span class="spaces">    </span><span class="nottickedoff">go (Constr ann i args) = Constr ann i &lt;$&gt; traverse go args</span>
+<span class="lineno">  209 </span><span class="spaces">    </span><span class="nottickedoff">go (Case ann arg cs) = Case ann &lt;$&gt; go arg &lt;*&gt; traverse go cs</span></span>
+<span class="lineno">  210 </span>
+<span class="lineno">  211 </span>bindFun
+<span class="lineno">  212 </span>  :: (ann -&gt; fun -&gt; Term name uni fun' ann)
+<span class="lineno">  213 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  214 </span>  -&gt; Term name uni fun' ann
+<span class="lineno">  215 </span><span class="decl"><span class="nottickedoff">bindFun f = runIdentity . bindFunM (coerce f)</span></span>
+<span class="lineno">  216 </span>
+<span class="lineno">  217 </span>mapFun :: (ann -&gt; fun -&gt; fun') -&gt; Term name uni fun ann -&gt; Term name uni fun' ann
+<span class="lineno">  218 </span><span class="decl"><span class="nottickedoff">mapFun f = bindFun $ \ann fun -&gt; Builtin ann (f ann fun)</span></span>
+
+</pre>
+</body>
+</html>

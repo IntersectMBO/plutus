@@ -1,0 +1,162 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    6 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>{-| The global pretty-printing config used to pretty-print everything in the PLC world.
+<span class="lineno">    9 </span>This module also defines custom pretty-printing functions for PLC types as a convenience. -}
+<span class="lineno">   10 </span>module PlutusCore.Pretty.Plc
+<span class="lineno">   11 </span>  ( -- * Global configuration
+<span class="lineno">   12 </span>    CondensedErrors (..)
+<span class="lineno">   13 </span>  , PrettyConfigPlcOptions (..)
+<span class="lineno">   14 </span>  , PrettyConfigPlcStrategy (..)
+<span class="lineno">   15 </span>  , PrettyConfigPlc (..)
+<span class="lineno">   16 </span>  , PrettyPlc
+<span class="lineno">   17 </span>  , DefaultPrettyPlcStrategy
+<span class="lineno">   18 </span>  , prettyConfigPlcOptions
+<span class="lineno">   19 </span>  , prettyConfigPlcClassic
+<span class="lineno">   20 </span>  , prettyConfigPlcClassicSimple
+<span class="lineno">   21 </span>  , prettyConfigPlcReadable
+<span class="lineno">   22 </span>  , prettyConfigPlcReadableSimple
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>    -- * Custom functions for PLC types.
+<span class="lineno">   25 </span>  , prettyPlcClassic
+<span class="lineno">   26 </span>  , prettyPlcClassicSimple
+<span class="lineno">   27 </span>  , prettyPlcReadable
+<span class="lineno">   28 </span>  , prettyPlcReadableSimple
+<span class="lineno">   29 </span>  , prettyPlcCondensedErrorBy
+<span class="lineno">   30 </span>  ) where
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import PlutusPrelude
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>import PlutusCore.Pretty.Classic
+<span class="lineno">   35 </span>import PlutusCore.Pretty.ConfigName
+<span class="lineno">   36 </span>import PlutusCore.Pretty.Readable
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>-- | Whether to pretty-print PLC errors in full or with some information omitted.
+<span class="lineno">   39 </span>data CondensedErrors
+<span class="lineno">   40 </span>  = CondensedErrorsYes
+<span class="lineno">   41 </span>  | CondensedErrorsNo
+<span class="lineno">   42 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>-- | Options for pretty-printing PLC entities.
+<span class="lineno">   45 </span>newtype PrettyConfigPlcOptions = PrettyConfigPlcOptions
+<span class="lineno">   46 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_pcpoCondensedErrors</span></span></span> :: CondensedErrors
+<span class="lineno">   47 </span>  }
+<span class="lineno">   48 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>-- | Strategy for pretty-printing PLC entities.
+<span class="lineno">   51 </span>data PrettyConfigPlcStrategy
+<span class="lineno">   52 </span>  = PrettyConfigPlcClassic (PrettyConfigClassic PrettyConfigName)
+<span class="lineno">   53 </span>  | PrettyConfigPlcReadable (PrettyConfigReadable PrettyConfigName)
+<span class="lineno">   54 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- | Global configuration used for pretty-printing PLC entities.
+<span class="lineno">   57 </span>data PrettyConfigPlc = PrettyConfigPlc
+<span class="lineno">   58 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_pcpOptions</span></span></span> :: PrettyConfigPlcOptions
+<span class="lineno">   59 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_pcpStrategy</span></span></span> :: PrettyConfigPlcStrategy
+<span class="lineno">   60 </span>  }
+<span class="lineno">   61 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>type instance HasPrettyDefaults PrettyConfigPlc = 'True
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>-- | The &quot;pretty-printable PLC entity&quot; constraint.
+<span class="lineno">   66 </span>type PrettyPlc = PrettyBy PrettyConfigPlc
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>-- | A constraint that allows to derive @PrettyBy PrettyConfigPlc@ instances, see below.
+<span class="lineno">   69 </span>type DefaultPrettyPlcStrategy a =
+<span class="lineno">   70 </span>  ( PrettyClassic a
+<span class="lineno">   71 </span>  , PrettyReadable a
+<span class="lineno">   72 </span>  )
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>instance HasPrettyConfigName PrettyConfigPlcStrategy where
+<span class="lineno">   75 </span>  <span class="decl"><span class="istickedoff">toPrettyConfigName (PrettyConfigPlcClassic configClassic) = toPrettyConfigName configClassic</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">toPrettyConfigName (PrettyConfigPlcReadable configReadable) = toPrettyConfigName configReadable</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>instance HasPrettyConfigName PrettyConfigPlc where
+<span class="lineno">   79 </span>  <span class="decl"><span class="istickedoff">toPrettyConfigName = toPrettyConfigName . _pcpStrategy</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>instance <span class="decl"><span class="nottickedoff">DefaultPrettyPlcStrategy a =&gt; PrettyBy PrettyConfigPlcStrategy (PrettyAny a)</span></span> where
+<span class="lineno">   82 </span>  <span class="decl"><span class="istickedoff">prettyBy (PrettyConfigPlcClassic configClassic) = prettyBy configClassic . unPrettyAny</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unPrettyAny</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>instance <span class="decl"><span class="nottickedoff">DefaultPrettyPlcStrategy a =&gt; PrettyBy PrettyConfigPlc (PrettyAny a)</span></span> where
+<span class="lineno">   86 </span>  <span class="decl"><span class="istickedoff">prettyBy = prettyBy . _pcpStrategy</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>{-| The 'PrettyConfigPlcOptions' used by default:
+<span class="lineno">   89 </span>print errors in full. -}
+<span class="lineno">   90 </span>prettyConfigPlcOptions :: PrettyConfigPlcOptions
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">prettyConfigPlcOptions = PrettyConfigPlcOptions CondensedErrorsNo</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>{-| The 'PrettyConfigPlc' used by default:
+<span class="lineno">   94 </span>use the classic view and print neither 'Unique's, nor name attachments. -}
+<span class="lineno">   95 </span>prettyConfigPlcClassic :: PrettyConfigPlcOptions -&gt; PrettyConfigPlc
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">prettyConfigPlcClassic opts =</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">PrettyConfigPlc opts $ PrettyConfigPlcClassic prettyConfigClassic</span></span>
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>{-| The 'PrettyConfigPlc' used for debugging:
+<span class="lineno">  100 </span>use the classic view and print 'Unique's, but not name attachments. -}
+<span class="lineno">  101 </span>prettyConfigPlcClassicSimple :: PrettyConfigPlcOptions -&gt; PrettyConfigPlc
+<span class="lineno">  102 </span><span class="decl"><span class="istickedoff">prettyConfigPlcClassicSimple opts =</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="istickedoff">PrettyConfigPlc opts $ PrettyConfigPlcClassic prettyConfigClassicSimple</span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>{-| The 'PrettyConfigPlc' used by default and for readability:
+<span class="lineno">  106 </span>use the refined view and print 'Unique's but not name attachments. -}
+<span class="lineno">  107 </span>prettyConfigPlcReadable :: PrettyConfigPlcOptions -&gt; PrettyConfigPlc
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">prettyConfigPlcReadable opts =</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">PrettyConfigPlc <span class="nottickedoff">opts</span> . PrettyConfigPlcReadable $</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="istickedoff">botPrettyConfigReadable prettyConfigName def</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>{-| The 'PrettyConfigPlc' used for debugging and readability:
+<span class="lineno">  113 </span>use the refined view and print neither 'Unique's nor name attachments. -}
+<span class="lineno">  114 </span>prettyConfigPlcReadableSimple :: PrettyConfigPlcOptions -&gt; PrettyConfigPlc
+<span class="lineno">  115 </span><span class="decl"><span class="istickedoff">prettyConfigPlcReadableSimple opts =</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="istickedoff">PrettyConfigPlc <span class="nottickedoff">opts</span> . PrettyConfigPlcReadable $</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">botPrettyConfigReadable prettyConfigNameSimple def</span></span>
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>-- | Pretty-print a PLC value in the default mode using the classic view.
+<span class="lineno">  120 </span>prettyPlcClassic :: PrettyPlc a =&gt; a -&gt; Doc ann
+<span class="lineno">  121 </span><span class="decl"><span class="istickedoff">prettyPlcClassic = prettyBy $ prettyConfigPlcClassic prettyConfigPlcOptions</span></span>
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>-- | Pretty-print a PLC value without unique indices using the classic view.
+<span class="lineno">  124 </span>prettyPlcClassicSimple :: PrettyPlc a =&gt; a -&gt; Doc ann
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff">prettyPlcClassicSimple = prettyBy $ prettyConfigPlcClassicSimple prettyConfigPlcOptions</span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>-- | Pretty-print a PLC value in the default mode using the readable view.
+<span class="lineno">  128 </span>prettyPlcReadable :: PrettyPlc a =&gt; a -&gt; Doc ann
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">prettyPlcReadable = prettyBy $ prettyConfigPlcReadable <span class="nottickedoff">prettyConfigPlcOptions</span></span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>-- | Pretty-print a PLC value without unique indices using the readable view.
+<span class="lineno">  132 </span>prettyPlcReadableSimple :: PrettyPlc a =&gt; a -&gt; Doc ann
+<span class="lineno">  133 </span><span class="decl"><span class="istickedoff">prettyPlcReadableSimple = prettyBy $ prettyConfigPlcReadableSimple <span class="nottickedoff">prettyConfigPlcOptions</span></span></span>
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>{-| Pretty-print a PLC value using the condensed way (see 'CondensedErrors')
+<span class="lineno">  136 </span>of pretty-printing PLC errors (in case there are any). -}
+<span class="lineno">  137 </span>prettyPlcCondensedErrorBy
+<span class="lineno">  138 </span>  :: PrettyPlc a =&gt; (PrettyConfigPlcOptions -&gt; PrettyConfigPlc) -&gt; a -&gt; Doc ann
+<span class="lineno">  139 </span><span class="decl"><span class="nottickedoff">prettyPlcCondensedErrorBy toConfig = prettyBy . toConfig $ PrettyConfigPlcOptions CondensedErrorsYes</span></span>
+
+</pre>
+</body>
+</html>

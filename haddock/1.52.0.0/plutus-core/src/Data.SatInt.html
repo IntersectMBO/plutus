@@ -1,0 +1,5896 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- |
+Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max or min bounds) instead of throwing on overflow.
+
+This is not quite as fast as using 'Int' or 'Int64' directly, but we need the safety.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MagicHash      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UnboxedTuples  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Data.SatInt</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- Not exporting the constructor, so that 'coerce' doesn't work, see 'unsafeToSatInt'.</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#unSatInt"
+	><span class="hs-identifier"
+	  >unSatInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#unsafeToSatInt"
+	><span class="hs-identifier"
+	  >unsafeToSatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#dividedBy"
+	><span class="hs-identifier"
+	  >dividedBy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.html"
+	><span class="hs-identifier"
+	  >Codec.Serialise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	><span class="hs-identifier"
+	  >Serialise</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>FromJSON</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSON</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bits.html"
+	><span class="hs-identifier"
+	  >Data.Bits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Csv</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.html"
+	><span class="hs-identifier"
+	  >Data.Primitive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.Types.html#Prim"
+	><span class="hs-identifier"
+	  >Prim</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html"
+	><span class="hs-identifier"
+	  >GHC.Base</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Natural.html"
+	><span class="hs-identifier"
+	  >GHC.Natural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html"
+	><span class="hs-identifier"
+	  >GHC.Real</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="SatInt"
+      ><span class="annot"
+	><a href="Data.SatInt.html#SatInt"
+	  ><span class="hs-identifier hs-var"
+	    >SatInt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SI"
+      ><span class="annot"
+	><a href="Data.SatInt.html#SI"
+	  ><span class="hs-identifier hs-var"
+	    >SI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unSatInt"
+      ><span class="annot"
+	><span class="annottext"
+	  >SatInt -&gt; Int
+</span
+	  ><a href="Data.SatInt.html#unSatInt"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unSatInt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679092319"
+      ><span id="local-6989586621679092324"
+	><span id="local-6989586621679092328"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SatInt -&gt; ShowS
+[SatInt] -&gt; ShowS
+SatInt -&gt; String
+(Int -&gt; SatInt -&gt; ShowS)
+-&gt; (SatInt -&gt; String) -&gt; ([SatInt] -&gt; ShowS) -&gt; Show SatInt
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SatInt -&gt; ShowS
+showsPrec :: Int -&gt; SatInt -&gt; ShowS
+$cshow :: SatInt -&gt; String
+show :: SatInt -&gt; String
+$cshowList :: [SatInt] -&gt; ShowS
+showList :: [SatInt] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092334"
+      ><span id="local-6989586621679092339"
+	><span id="local-6989586621679092343"
+	  ><span id="local-6989586621679092347"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>ReadPrec [SatInt]
+ReadPrec SatInt
+Int -&gt; ReadS SatInt
+ReadS [SatInt]
+(Int -&gt; ReadS SatInt)
+-&gt; ReadS [SatInt]
+-&gt; ReadPrec SatInt
+-&gt; ReadPrec [SatInt]
+-&gt; Read SatInt
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS SatInt
+readsPrec :: Int -&gt; ReadS SatInt
+$creadList :: ReadS [SatInt]
+readList :: ReadS [SatInt]
+$creadPrec :: ReadPrec SatInt
+readPrec :: ReadPrec SatInt
+$creadListPrec :: ReadPrec [SatInt]
+readListPrec :: ReadPrec [SatInt]
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Read.html#Read"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Read</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092353"
+      ><span id="local-6989586621679092357"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SatInt -&gt; SatInt -&gt; Bool
+(SatInt -&gt; SatInt -&gt; Bool)
+-&gt; (SatInt -&gt; SatInt -&gt; Bool) -&gt; Eq SatInt
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SatInt -&gt; SatInt -&gt; Bool
+== :: SatInt -&gt; SatInt -&gt; Bool
+$c/= :: SatInt -&gt; SatInt -&gt; Bool
+/= :: SatInt -&gt; SatInt -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092365"
+      ><span id="local-6989586621679092370"
+	><span id="local-6989586621679092374"
+	  ><span id="local-6989586621679092378"
+	    ><span id="local-6989586621679092382"
+	      ><span id="local-6989586621679092386"
+		><span id="local-6989586621679092390"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq SatInt
+Eq SatInt =&gt;
+(SatInt -&gt; SatInt -&gt; Ordering)
+-&gt; (SatInt -&gt; SatInt -&gt; Bool)
+-&gt; (SatInt -&gt; SatInt -&gt; Bool)
+-&gt; (SatInt -&gt; SatInt -&gt; Bool)
+-&gt; (SatInt -&gt; SatInt -&gt; Bool)
+-&gt; (SatInt -&gt; SatInt -&gt; SatInt)
+-&gt; (SatInt -&gt; SatInt -&gt; SatInt)
+-&gt; Ord SatInt
+SatInt -&gt; SatInt -&gt; Bool
+SatInt -&gt; SatInt -&gt; Ordering
+SatInt -&gt; SatInt -&gt; SatInt
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: SatInt -&gt; SatInt -&gt; Ordering
+compare :: SatInt -&gt; SatInt -&gt; Ordering
+$c&lt; :: SatInt -&gt; SatInt -&gt; Bool
+&lt; :: SatInt -&gt; SatInt -&gt; Bool
+$c&lt;= :: SatInt -&gt; SatInt -&gt; Bool
+&lt;= :: SatInt -&gt; SatInt -&gt; Bool
+$c&gt; :: SatInt -&gt; SatInt -&gt; Bool
+&gt; :: SatInt -&gt; SatInt -&gt; Bool
+$c&gt;= :: SatInt -&gt; SatInt -&gt; Bool
+&gt;= :: SatInt -&gt; SatInt -&gt; Bool
+$cmax :: SatInt -&gt; SatInt -&gt; SatInt
+max :: SatInt -&gt; SatInt -&gt; SatInt
+$cmin :: SatInt -&gt; SatInt -&gt; SatInt
+min :: SatInt -&gt; SatInt -&gt; SatInt
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092396"
+      ><span id="local-6989586621679092400"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SatInt
+SatInt -&gt; SatInt -&gt; Bounded SatInt
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: SatInt
+minBound :: SatInt
+$cmaxBound :: SatInt
+maxBound :: SatInt
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092405"
+      ><span class="annot"
+	><span class="annottext"
+	  >SatInt -&gt; ()
+(SatInt -&gt; ()) -&gt; NFData SatInt
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: SatInt -&gt; ()
+rnf :: SatInt -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092414"
+      ><span id="local-6989586621679092419"
+	><span id="local-6989586621679092423"
+	  ><span id="local-6989586621679092427"
+	    ><span id="local-6989586621679092431"
+	      ><span id="local-6989586621679092435"
+		><span id="local-6989586621679092439"
+		  ><span id="local-6989586621679092443"
+		    ><span id="local-6989586621679092447"
+		      ><span id="local-6989586621679092451"
+			><span id="local-6989586621679092455"
+			  ><span id="local-6989586621679092459"
+			    ><span id="local-6989586621679092463"
+			      ><span id="local-6989586621679092467"
+				><span id="local-6989586621679092471"
+				  ><span id="local-6989586621679092475"
+				    ><span id="local-6989586621679092479"
+				      ><span id="local-6989586621679092483"
+					><span id="local-6989586621679092487"
+					  ><span id="local-6989586621679092491"
+					    ><span id="local-6989586621679092495"
+					      ><span id="local-6989586621679092499"
+						><span class="annot"
+						  ><span class="annottext"
+						    >Eq SatInt
+SatInt
+Eq SatInt =&gt;
+(SatInt -&gt; SatInt -&gt; SatInt)
+-&gt; (SatInt -&gt; SatInt -&gt; SatInt)
+-&gt; (SatInt -&gt; SatInt -&gt; SatInt)
+-&gt; (SatInt -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; SatInt
+-&gt; (Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; Bool)
+-&gt; (SatInt -&gt; Maybe Int)
+-&gt; (SatInt -&gt; Int)
+-&gt; (SatInt -&gt; Bool)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int -&gt; SatInt)
+-&gt; (SatInt -&gt; Int)
+-&gt; Bits SatInt
+Int -&gt; SatInt
+SatInt -&gt; Bool
+SatInt -&gt; Int
+SatInt -&gt; Maybe Int
+SatInt -&gt; SatInt
+SatInt -&gt; Int -&gt; Bool
+SatInt -&gt; Int -&gt; SatInt
+SatInt -&gt; SatInt -&gt; SatInt
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; a
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; Bool)
+-&gt; (a -&gt; Maybe Int)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; Bool)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; Bits a
+$c.&amp;. :: SatInt -&gt; SatInt -&gt; SatInt
+.&amp;. :: SatInt -&gt; SatInt -&gt; SatInt
+$c.|. :: SatInt -&gt; SatInt -&gt; SatInt
+.|. :: SatInt -&gt; SatInt -&gt; SatInt
+$cxor :: SatInt -&gt; SatInt -&gt; SatInt
+xor :: SatInt -&gt; SatInt -&gt; SatInt
+$ccomplement :: SatInt -&gt; SatInt
+complement :: SatInt -&gt; SatInt
+$cshift :: SatInt -&gt; Int -&gt; SatInt
+shift :: SatInt -&gt; Int -&gt; SatInt
+$crotate :: SatInt -&gt; Int -&gt; SatInt
+rotate :: SatInt -&gt; Int -&gt; SatInt
+$czeroBits :: SatInt
+zeroBits :: SatInt
+$cbit :: Int -&gt; SatInt
+bit :: Int -&gt; SatInt
+$csetBit :: SatInt -&gt; Int -&gt; SatInt
+setBit :: SatInt -&gt; Int -&gt; SatInt
+$cclearBit :: SatInt -&gt; Int -&gt; SatInt
+clearBit :: SatInt -&gt; Int -&gt; SatInt
+$ccomplementBit :: SatInt -&gt; Int -&gt; SatInt
+complementBit :: SatInt -&gt; Int -&gt; SatInt
+$ctestBit :: SatInt -&gt; Int -&gt; Bool
+testBit :: SatInt -&gt; Int -&gt; Bool
+$cbitSizeMaybe :: SatInt -&gt; Maybe Int
+bitSizeMaybe :: SatInt -&gt; Maybe Int
+$cbitSize :: SatInt -&gt; Int
+bitSize :: SatInt -&gt; Int
+$cisSigned :: SatInt -&gt; Bool
+isSigned :: SatInt -&gt; Bool
+$cshiftL :: SatInt -&gt; Int -&gt; SatInt
+shiftL :: SatInt -&gt; Int -&gt; SatInt
+$cunsafeShiftL :: SatInt -&gt; Int -&gt; SatInt
+unsafeShiftL :: SatInt -&gt; Int -&gt; SatInt
+$cshiftR :: SatInt -&gt; Int -&gt; SatInt
+shiftR :: SatInt -&gt; Int -&gt; SatInt
+$cunsafeShiftR :: SatInt -&gt; Int -&gt; SatInt
+unsafeShiftR :: SatInt -&gt; Int -&gt; SatInt
+$crotateL :: SatInt -&gt; Int -&gt; SatInt
+rotateL :: SatInt -&gt; Int -&gt; SatInt
+$crotateR :: SatInt -&gt; Int -&gt; SatInt
+rotateR :: SatInt -&gt; Int -&gt; SatInt
+$cpopCount :: SatInt -&gt; Int
+popCount :: SatInt -&gt; Int
+</span
+						    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#Bits"
+						    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+						      >Bits</span
+						      ></a
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092507"
+      ><span id="local-6989586621679092512"
+	><span id="local-6989586621679092516"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Bits SatInt
+Bits SatInt =&gt;
+(SatInt -&gt; Int)
+-&gt; (SatInt -&gt; Int) -&gt; (SatInt -&gt; Int) -&gt; FiniteBits SatInt
+SatInt -&gt; Int
+forall b.
+Bits b =&gt;
+(b -&gt; Int) -&gt; (b -&gt; Int) -&gt; (b -&gt; Int) -&gt; FiniteBits b
+$cfiniteBitSize :: SatInt -&gt; Int
+finiteBitSize :: SatInt -&gt; Int
+$ccountLeadingZeros :: SatInt -&gt; Int
+countLeadingZeros :: SatInt -&gt; Int
+$ccountTrailingZeros :: SatInt -&gt; Int
+countTrailingZeros :: SatInt -&gt; Int
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#FiniteBits"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>FiniteBits</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092522"
+      ><span id="local-6989586621679092527"
+	><span id="local-6989586621679092531"
+	  ><span id="local-6989586621679092535"
+	    ><span id="local-6989586621679092539"
+	      ><span id="local-6989586621679092543"
+		><span id="local-6989586621679092547"
+		  ><span id="local-6989586621679092551"
+		    ><span id="local-6989586621679092555"
+		      ><span id="local-6989586621679092559"
+			><span id="local-6989586621679092563"
+			  ><span id="local-6989586621679092567"
+			    ><span class="annot"
+			      ><span class="annottext"
+				>Addr# -&gt; Int# -&gt; SatInt
+ByteArray# -&gt; Int# -&gt; SatInt
+Proxy SatInt -&gt; Int#
+SatInt -&gt; Int#
+(Proxy SatInt -&gt; Int#)
+-&gt; (SatInt -&gt; Int#)
+-&gt; (Proxy SatInt -&gt; Int#)
+-&gt; (SatInt -&gt; Int#)
+-&gt; (ByteArray# -&gt; Int# -&gt; SatInt)
+-&gt; (forall s.
+    MutableByteArray# s -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #))
+-&gt; (forall s.
+    MutableByteArray# s -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s)
+-&gt; (forall s.
+    MutableByteArray# s
+    -&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s)
+-&gt; (Addr# -&gt; Int# -&gt; SatInt)
+-&gt; (forall s. Addr# -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #))
+-&gt; (forall s. Addr# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s)
+-&gt; (forall s.
+    Addr# -&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s)
+-&gt; Prim SatInt
+forall s. Addr# -&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+forall s. Addr# -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #)
+forall s. Addr# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+forall s.
+MutableByteArray# s
+-&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+forall s.
+MutableByteArray# s -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #)
+forall s.
+MutableByteArray# s -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+forall a.
+(Proxy a -&gt; Int#)
+-&gt; (a -&gt; Int#)
+-&gt; (Proxy a -&gt; Int#)
+-&gt; (a -&gt; Int#)
+-&gt; (ByteArray# -&gt; Int# -&gt; a)
+-&gt; (forall s.
+    MutableByteArray# s -&gt; Int# -&gt; State# s -&gt; (# State# s, a #))
+-&gt; (forall s.
+    MutableByteArray# s -&gt; Int# -&gt; a -&gt; State# s -&gt; State# s)
+-&gt; (forall s.
+    MutableByteArray# s -&gt; Int# -&gt; Int# -&gt; a -&gt; State# s -&gt; State# s)
+-&gt; (Addr# -&gt; Int# -&gt; a)
+-&gt; (forall s. Addr# -&gt; Int# -&gt; State# s -&gt; (# State# s, a #))
+-&gt; (forall s. Addr# -&gt; Int# -&gt; a -&gt; State# s -&gt; State# s)
+-&gt; (forall s. Addr# -&gt; Int# -&gt; Int# -&gt; a -&gt; State# s -&gt; State# s)
+-&gt; Prim a
+$csizeOfType# :: Proxy SatInt -&gt; Int#
+sizeOfType# :: Proxy SatInt -&gt; Int#
+$csizeOf# :: SatInt -&gt; Int#
+sizeOf# :: SatInt -&gt; Int#
+$calignmentOfType# :: Proxy SatInt -&gt; Int#
+alignmentOfType# :: Proxy SatInt -&gt; Int#
+$calignment# :: SatInt -&gt; Int#
+alignment# :: SatInt -&gt; Int#
+$cindexByteArray# :: ByteArray# -&gt; Int# -&gt; SatInt
+indexByteArray# :: ByteArray# -&gt; Int# -&gt; SatInt
+$creadByteArray# :: forall s.
+MutableByteArray# s -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #)
+readByteArray# :: forall s.
+MutableByteArray# s -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #)
+$cwriteByteArray# :: forall s.
+MutableByteArray# s -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+writeByteArray# :: forall s.
+MutableByteArray# s -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+$csetByteArray# :: forall s.
+MutableByteArray# s
+-&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+setByteArray# :: forall s.
+MutableByteArray# s
+-&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+$cindexOffAddr# :: Addr# -&gt; Int# -&gt; SatInt
+indexOffAddr# :: Addr# -&gt; Int# -&gt; SatInt
+$creadOffAddr# :: forall s. Addr# -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #)
+readOffAddr# :: forall s. Addr# -&gt; Int# -&gt; State# s -&gt; (# State# s, SatInt #)
+$cwriteOffAddr# :: forall s. Addr# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+writeOffAddr# :: forall s. Addr# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+$csetOffAddr# :: forall s. Addr# -&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+setOffAddr# :: forall s. Addr# -&gt; Int# -&gt; Int# -&gt; SatInt -&gt; State# s -&gt; State# s
+</span
+				><a href="https://hackage.haskell.org/package/primitive-0.9.1.0/docs/src/Data.Primitive.Types.html#Prim"
+				><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				  >Prim</span
+				  ></a
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679092573"
+      ><span id="local-6989586621679092580"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; Code m SatInt)
+-&gt; Lift SatInt
+forall t.
+(forall (m :: * -&gt; *). Quote m =&gt; t -&gt; m Exp)
+-&gt; (forall (m :: * -&gt; *). Quote m =&gt; t -&gt; Code m t) -&gt; Lift t
+forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; m Exp
+forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; Code m SatInt
+$clift :: forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; m Exp
+lift :: forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; m Exp
+$cliftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; Code m SatInt
+liftTyped :: forall (m :: * -&gt; *). Quote m =&gt; SatInt -&gt; Code m SatInt
+</span
+	    ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092588"
+      ><span id="local-6989586621679092590"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. SatInt -&gt; Rep SatInt x)
+-&gt; (forall x. Rep SatInt x -&gt; SatInt) -&gt; Generic SatInt
+forall x. Rep SatInt x -&gt; SatInt
+forall x. SatInt -&gt; Rep SatInt x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. SatInt -&gt; Rep SatInt x
+from :: forall x. SatInt -&gt; Rep SatInt x
+$cto :: forall x. Rep SatInt x -&gt; SatInt
+to :: forall x. Rep SatInt x -&gt; SatInt
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679092594"
+      ><span id="local-6989586621679092599"
+	><span id="local-6989586621679092603"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Maybe SatInt
+Value -&gt; Parser [SatInt]
+Value -&gt; Parser SatInt
+(Value -&gt; Parser SatInt)
+-&gt; (Value -&gt; Parser [SatInt]) -&gt; Maybe SatInt -&gt; FromJSON SatInt
+forall a.
+(Value -&gt; Parser a)
+-&gt; (Value -&gt; Parser [a]) -&gt; Maybe a -&gt; FromJSON a
+$cparseJSON :: Value -&gt; Parser SatInt
+parseJSON :: Value -&gt; Parser SatInt
+$cparseJSONList :: Value -&gt; Parser [SatInt]
+parseJSONList :: Value -&gt; Parser [SatInt]
+$comittedField :: Maybe SatInt
+omittedField :: Maybe SatInt
+</span
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >FromJSON</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092609"
+      ><span id="local-6989586621679092614"
+	><span id="local-6989586621679092618"
+	  ><span id="local-6989586621679092622"
+	    ><span id="local-6989586621679092626"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[SatInt] -&gt; Encoding
+[SatInt] -&gt; Value
+SatInt -&gt; Bool
+SatInt -&gt; Encoding
+SatInt -&gt; Value
+(SatInt -&gt; Value)
+-&gt; (SatInt -&gt; Encoding)
+-&gt; ([SatInt] -&gt; Value)
+-&gt; ([SatInt] -&gt; Encoding)
+-&gt; (SatInt -&gt; Bool)
+-&gt; ToJSON SatInt
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: SatInt -&gt; Value
+toJSON :: SatInt -&gt; Value
+$ctoEncoding :: SatInt -&gt; Encoding
+toEncoding :: SatInt -&gt; Encoding
+$ctoJSONList :: [SatInt] -&gt; Value
+toJSONList :: [SatInt] -&gt; Value
+$ctoEncodingList :: [SatInt] -&gt; Encoding
+toEncodingList :: [SatInt] -&gt; Encoding
+$comitField :: SatInt -&gt; Bool
+omitField :: SatInt -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092632"
+      ><span class="annot"
+	><span class="annottext"
+	  >Field -&gt; Parser SatInt
+(Field -&gt; Parser SatInt) -&gt; FromField SatInt
+forall a. (Field -&gt; Parser a) -&gt; FromField a
+$cparseField :: Field -&gt; Parser SatInt
+parseField :: Field -&gt; Parser SatInt
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >FromField</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- For reading cost model data from CSV input</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092639"
+      ><span id="local-6989586621679092644"
+	><span id="local-6989586621679092648"
+	  ><span id="local-6989586621679092652"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>[SatInt] -&gt; Encoding
+SatInt -&gt; Encoding
+(SatInt -&gt; Encoding)
+-&gt; (forall s. Decoder s SatInt)
+-&gt; ([SatInt] -&gt; Encoding)
+-&gt; (forall s. Decoder s [SatInt])
+-&gt; Serialise SatInt
+forall s. Decoder s [SatInt]
+forall s. Decoder s SatInt
+forall a.
+(a -&gt; Encoding)
+-&gt; (forall s. Decoder s a)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (forall s. Decoder s [a])
+-&gt; Serialise a
+$cencode :: SatInt -&gt; Encoding
+encode :: SatInt -&gt; Encoding
+$cdecode :: forall s. Decoder s SatInt
+decode :: forall s. Decoder s SatInt
+$cencodeList :: [SatInt] -&gt; Encoding
+encodeList :: [SatInt] -&gt; Encoding
+$cdecodeList :: forall s. Decoder s [SatInt]
+decodeList :: forall s. Decoder s [SatInt]
+</span
+		><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Serialise</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092658"
+      ><span id="local-6989586621679092662"
+	><span id="local-6989586621679092668"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Context -&gt; SatInt -&gt; IO (Maybe ThunkInfo)
+Proxy SatInt -&gt; String
+(Context -&gt; SatInt -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; SatInt -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy SatInt -&gt; String)
+-&gt; NoThunks SatInt
+forall a.
+(Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy a -&gt; String)
+-&gt; NoThunks a
+$cnoThunks :: Context -&gt; SatInt -&gt; IO (Maybe ThunkInfo)
+noThunks :: Context -&gt; SatInt -&gt; IO (Maybe ThunkInfo)
+$cwNoThunks :: Context -&gt; SatInt -&gt; IO (Maybe ThunkInfo)
+wNoThunks :: Context -&gt; SatInt -&gt; IO (Maybe ThunkInfo)
+$cshowTypeOf :: Proxy SatInt -&gt; String
+showTypeOf :: Proxy SatInt -&gt; String
+</span
+	      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>NoThunks</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-comment"
+      >-- | Wrap an 'Int' as a 'SatInt'. This is unsafe because the 'Int' can be a result of an arbitrary</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- potentially underflowing/overflowing operation.</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#unsafeToSatInt"
+	><span class="hs-identifier hs-type"
+	  >unsafeToSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="unsafeToSatInt"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsafeToSatInt :: Int -&gt; SatInt
+</span
+	  ><a href="Data.SatInt.html#unsafeToSatInt"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsafeToSatInt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-var"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#unsafeToSatInt"
+	><span class="hs-pragma hs-type"
+	  >unsafeToSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | An optimized version of @fromIntegral . unSatInt@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier hs-type"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092268"
+      ><span class="annot"
+	><a href="#local-6989586621679092268"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+	><span class="hs-identifier hs-type"
+	  >Num</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679092268"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679092268"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="fromSatInt"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromSatInt :: forall a. Num a =&gt; SatInt -&gt; a
+</span
+	  ><a href="Data.SatInt.html#fromSatInt"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromSatInt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; a) -&gt; SatInt -&gt; a
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; a
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679092268"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#fromSatInt"
+	><span class="hs-pragma hs-type"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-comment"
+      >-- | In the `Num' instance, we plug in our own addition, multiplication</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-comment"
+      >-- and subtraction function that perform overflow-checking.</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+	><span class="hs-identifier hs-type"
+	  >Num</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >+</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679092708"
+      ><span class="annot"
+	><span class="annottext"
+	  >+ :: SatInt -&gt; SatInt -&gt; SatInt
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(+)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt -&gt; SatInt -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#plusSI"
+	><span class="hs-identifier hs-var"
+	  >plusSI</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >*</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679092711"
+      ><span class="annot"
+	><span class="annottext"
+	  >* :: SatInt -&gt; SatInt -&gt; SatInt
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2A"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(*)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt -&gt; SatInt -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#timesSI"
+	><span class="hs-identifier hs-var"
+	  >timesSI</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >-</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679092713"
+      ><span class="hs-special"
+	>(</span
+	><span class="hs-glyph"
+	>-</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt -&gt; SatInt -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#minusSI"
+	><span class="hs-identifier hs-var"
+	  >minusSI</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#negate"
+	><span class="hs-pragma hs-type"
+	  >negate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679092719"
+      ><span class="annot"
+	><span class="annottext"
+	  >negate :: SatInt -&gt; SatInt
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#negate"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >negate</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092720"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679092720"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679092720"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#minBound"
+	><span class="hs-identifier hs-var"
+	  >minBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-var"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#negate"
+	><span class="hs-identifier hs-var"
+	  >negate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679092720"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#abs"
+	><span class="hs-pragma hs-type"
+	  >abs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679092727"
+      ><span class="annot"
+	><span class="annottext"
+	  >abs :: SatInt -&gt; SatInt
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#abs"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >abs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092728"
+      ><span class="annot"
+	><span class="annottext"
+	  >SatInt
+</span
+	  ><a href="#local-6989586621679092728"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><a href="#local-6989586621679092728"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt -&gt; SatInt -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><a href="#local-6989586621679092728"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt -&gt; SatInt
+forall a. Num a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#negate"
+	><span class="hs-identifier hs-var"
+	  >negate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><a href="#local-6989586621679092728"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#signum"
+	><span class="hs-pragma hs-type"
+	  >signum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679092732"
+      ><span class="annot"
+	><span class="annottext"
+	  >signum :: SatInt -&gt; SatInt
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#signum"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >signum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Int) -&gt; SatInt -&gt; SatInt
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#signum"
+	><span class="hs-identifier hs-var"
+	  >signum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#fromInteger"
+	><span class="hs-pragma hs-type"
+	  >fromInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679092739"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromInteger :: Integer -&gt; SatInt
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#fromInteger"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >fromInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092740"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679092740"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679092740"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="Data.SatInt.html#maxBoundInteger"
+	><span class="hs-identifier hs-var"
+	  >maxBoundInteger</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679092740"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="Data.SatInt.html#minBoundInteger"
+	><span class="hs-identifier hs-var"
+	  >minBoundInteger</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#minBound"
+	><span class="hs-identifier hs-var"
+	  >minBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-var"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Int
+forall a. Num a =&gt; Integer -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#fromInteger"
+	><span class="hs-identifier hs-var"
+	  >fromInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679092740"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-comment"
+      >-- | Divide a `SatInt` by a natural number.  If the natural number is zero,</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="hs-comment"
+      >-- return `maxBound`; if we're at the maximum or minimum value then leave the</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="hs-comment"
+      >-- input unaltered. This should never throw.</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#dividedBy"
+	><span class="hs-identifier hs-type"
+	  >dividedBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="dividedBy"
+      ><span class="annot"
+	><span class="annottext"
+	  >dividedBy :: SatInt -&gt; Natural -&gt; SatInt
+</span
+	  ><a href="Data.SatInt.html#dividedBy"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dividedBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#dividedBy"
+	><span class="hs-identifier hs-var"
+	  >dividedBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092745"
+      ><span class="annot"
+	><span class="annottext"
+	  >x :: SatInt
+</span
+	  ><a href="#local-6989586621679092745"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092746"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679092746"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092747"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621679092747"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679092746"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679092746"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#minBound"
+	><span class="hs-identifier hs-var"
+	  >minBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><a href="#local-6989586621679092745"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-var"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679092746"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#div"
+	><span class="hs-operator hs-var"
+	  >`div`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621679092747"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#dividedBy"
+	><span class="hs-pragma hs-type"
+	  >dividedBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#maxBoundInteger"
+	><span class="hs-identifier hs-type"
+	  >maxBoundInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span id="maxBoundInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >maxBoundInteger :: Integer
+</span
+	  ><a href="Data.SatInt.html#maxBoundInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maxBoundInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Integer
+forall a. Integral a =&gt; a -&gt; Integer
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#toInteger"
+	><span class="hs-identifier hs-var"
+	  >toInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#maxInt"
+	><span class="hs-identifier hs-var"
+	  >maxInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#maxBoundInteger"
+	><span class="hs-pragma hs-type"
+	  >maxBoundInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#minBoundInteger"
+	><span class="hs-identifier hs-type"
+	  >minBoundInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="minBoundInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >minBoundInteger :: Integer
+</span
+	  ><a href="Data.SatInt.html#minBoundInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >minBoundInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Integer
+forall a. Integral a =&gt; a -&gt; Integer
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#toInteger"
+	><span class="hs-identifier hs-var"
+	  >toInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#minInt"
+	><span class="hs-identifier hs-var"
+	  >minInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#minBoundInteger"
+	><span class="hs-pragma hs-type"
+	  >minBoundInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-comment"
+      >{-
+'addIntC#', 'subIntC#', and 'mulIntMayOflow#' have tricky returns:
+all of them return non-zero (*not* necessarily 1) in the case of an overflow,
+so we can't use 'isTrue#'; and the first two return a truncated value in
+case of overflow, but this is *not* the same as the saturating result,
+but rather a bitwise truncation that is typically not what we want.
+
+So we have to case on the result, and then do some logic to work out what
+kind of overflow we're facing, and pick the correct result accordingly.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#plusSI"
+	><span class="hs-identifier hs-type"
+	  >plusSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="plusSI"
+      ><span class="annot"
+	><span class="annottext"
+	  >plusSI :: SatInt -&gt; SatInt -&gt; SatInt
+</span
+	  ><a href="Data.SatInt.html#plusSI"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plusSI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-type"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092752"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092752"
+	  ><span class="hs-identifier hs-var"
+	    >x#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-type"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092753"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092753"
+	  ><span class="hs-identifier hs-var"
+	    >y#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; (# Int#, Int# #)
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#addIntC%23"
+	><span class="hs-identifier hs-var"
+	  >addIntC#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092752"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092753"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(#</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092754"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092754"
+	  ><span class="hs-identifier hs-var"
+	    >r#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >#)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-var"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-var"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092754"
+	><span class="hs-identifier hs-var"
+	  >r#</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Overflow</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(# Int#, Int# #)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092752"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%23"
+	><span class="hs-operator hs-var"
+	  >&gt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092753"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%23"
+	><span class="hs-operator hs-var"
+	  >&gt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092752"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%23"
+	><span class="hs-operator hs-var"
+	  >&lt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092753"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%23"
+	><span class="hs-operator hs-var"
+	  >&lt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#minBound"
+	><span class="hs-identifier hs-var"
+	  >minBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- x and y have opposite signs, and yet we've overflowed, should</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- be impossible</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#overflowError"
+	><span class="hs-identifier hs-var"
+	  >overflowError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#plusSI"
+	><span class="hs-pragma hs-type"
+	  >plusSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#minusSI"
+	><span class="hs-identifier hs-type"
+	  >minusSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span id="minusSI"
+      ><span class="annot"
+	><span class="annottext"
+	  >minusSI :: SatInt -&gt; SatInt -&gt; SatInt
+</span
+	  ><a href="Data.SatInt.html#minusSI"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >minusSI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-type"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092757"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092757"
+	  ><span class="hs-identifier hs-var"
+	    >x#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-type"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092758"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092758"
+	  ><span class="hs-identifier hs-var"
+	    >y#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; (# Int#, Int# #)
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#subIntC%23"
+	><span class="hs-identifier hs-var"
+	  >subIntC#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092757"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092758"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(#</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092759"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092759"
+	  ><span class="hs-identifier hs-var"
+	    >r#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >#)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-var"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-var"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092759"
+	><span class="hs-identifier hs-var"
+	  >r#</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Overflow</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(# Int#, Int# #)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092757"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%3D%23"
+	><span class="hs-operator hs-var"
+	  >&gt;=#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092758"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%23"
+	><span class="hs-operator hs-var"
+	  >&lt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092757"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%3D%23"
+	><span class="hs-operator hs-var"
+	  >&lt;=#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092758"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%23"
+	><span class="hs-operator hs-var"
+	  >&gt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#minBound"
+	><span class="hs-identifier hs-var"
+	  >minBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- x and y have the same sign, and yet we've overflowed, should</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- be impossible</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#overflowError"
+	><span class="hs-identifier hs-var"
+	  >overflowError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#minusSI"
+	><span class="hs-pragma hs-type"
+	  >minusSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#timesSI"
+	><span class="hs-identifier hs-type"
+	  >timesSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span id="timesSI"
+      ><span class="annot"
+	><span class="annottext"
+	  >timesSI :: SatInt -&gt; SatInt -&gt; SatInt
+</span
+	  ><a href="Data.SatInt.html#timesSI"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >timesSI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-type"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092760"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092760"
+	  ><span class="hs-identifier hs-var"
+	    >x#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-type"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-type"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092761"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int#
+</span
+	  ><a href="#local-6989586621679092761"
+	  ><span class="hs-identifier hs-var"
+	    >y#</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#mulIntMayOflo%23"
+	><span class="hs-identifier hs-var"
+	  >mulIntMayOflo#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092760"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092761"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SatInt
+</span
+	><a href="Data.SatInt.html#SI"
+	><span class="hs-identifier hs-var"
+	  >SI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-var"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092760"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%2A%23"
+	><span class="hs-operator hs-var"
+	  >*#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092761"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Overflow</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092760"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%23"
+	><span class="hs-operator hs-var"
+	  >&gt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092761"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%23"
+	><span class="hs-operator hs-var"
+	  >&gt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092760"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%23"
+	><span class="hs-operator hs-var"
+	  >&gt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092761"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%23"
+	><span class="hs-operator hs-var"
+	  >&lt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#minBound"
+	><span class="hs-identifier hs-var"
+	  >minBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092760"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%23"
+	><span class="hs-operator hs-var"
+	  >&lt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092761"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3E%23"
+	><span class="hs-operator hs-var"
+	  >&gt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#minBound"
+	><span class="hs-identifier hs-var"
+	  >minBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#isTrue%23"
+	><span class="hs-identifier hs-var"
+	  >isTrue#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092760"
+	><span class="hs-identifier hs-var"
+	  >x#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%23"
+	><span class="hs-operator hs-var"
+	  >&lt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#andI%23"
+	><span class="hs-operator hs-var"
+	  >`andI#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><a href="#local-6989586621679092761"
+	><span class="hs-identifier hs-var"
+	  >y#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#%3C%23"
+	><span class="hs-operator hs-var"
+	  >&lt;#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int#
+</span
+	><span class="hs-number"
+	>0#</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- Logically unreachable unless x or y is 0, in which case</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- it should be impossible to overflow</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+forall a. a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#overflowError"
+	><span class="hs-identifier hs-var"
+	  >overflowError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#timesSI"
+	><span class="hs-pragma hs-type"
+	  >timesSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span class="hs-comment"
+      >-- Specialized versions of several functions. They're specialized for</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span class="hs-comment"
+      >-- Int in the GHC base libraries. We try to get the same effect by</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span class="hs-comment"
+      >-- including specialized code and adding a rewrite rule.</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#sumSI"
+	><span class="hs-identifier hs-type"
+	  >sumSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span id="sumSI"
+      ><span class="annot"
+	><span class="annottext"
+	  >sumSI :: [SatInt] -&gt; SatInt
+</span
+	  ><a href="Data.SatInt.html#sumSI"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sumSI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span id="local-6989586621679092763"
+      ><span class="annot"
+	><span class="annottext"
+	  >[SatInt]
+</span
+	  ><a href="#local-6989586621679092763"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[SatInt] -&gt; SatInt -&gt; SatInt
+forall {a}. Num a =&gt; [a] -&gt; a -&gt; a
+</span
+	><a href="#local-6989586621679092764"
+	><span class="hs-identifier hs-var"
+	  >sum'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[SatInt]
+</span
+	><a href="#local-6989586621679092763"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679092764"
+      ><span class="annot"
+	><span class="annottext"
+	  >sum' :: [a] -&gt; a -&gt; a
+</span
+	  ><a href="#local-6989586621679092764"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sum'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >     </span
+      ><span id="local-6989586621679092767"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679092767"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679092767"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679092764"
+	><span class="hs-identifier hs-var"
+	  >sum'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679092768"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679092768"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621679092769"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621679092769"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092770"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679092770"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; a -&gt; a
+</span
+	><a href="#local-6989586621679092764"
+	><span class="hs-identifier hs-var"
+	  >sum'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679092769"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; a) -&gt; a -&gt; a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24%21"
+	><span class="hs-operator hs-var"
+	  >$!</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679092770"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; a
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679092768"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#productSI"
+	><span class="hs-identifier hs-type"
+	  >productSI</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#SatInt"
+	><span class="hs-identifier hs-type"
+	  >SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span id="productSI"
+      ><span class="annot"
+	><span class="annottext"
+	  >productSI :: [SatInt] -&gt; SatInt
+</span
+	  ><a href="Data.SatInt.html#productSI"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >productSI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679092773"
+      ><span class="annot"
+	><span class="annottext"
+	  >[SatInt]
+</span
+	  ><a href="#local-6989586621679092773"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[SatInt] -&gt; SatInt -&gt; SatInt
+forall {a}. Num a =&gt; [a] -&gt; a -&gt; a
+</span
+	><a href="#local-6989586621679092774"
+	><span class="hs-identifier hs-var"
+	  >prod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[SatInt]
+</span
+	><a href="#local-6989586621679092773"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SatInt
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679092774"
+      ><span class="annot"
+	><span class="annottext"
+	  >prod :: [a] -&gt; a -&gt; a
+</span
+	  ><a href="#local-6989586621679092774"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prod</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >     </span
+      ><span id="local-6989586621679092777"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679092777"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679092777"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679092774"
+	><span class="hs-identifier hs-var"
+	  >prod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679092778"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679092778"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621679092779"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621679092779"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679092780"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679092780"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; a -&gt; a
+</span
+	><a href="#local-6989586621679092774"
+	><span class="hs-identifier hs-var"
+	  >prod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679092779"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; a) -&gt; a -&gt; a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24%21"
+	><span class="hs-operator hs-var"
+	  >$!</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679092780"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; a
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2A"
+	><span class="hs-operator hs-var"
+	  >*</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679092778"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span class="hs-pragma"
+      >{-# RULES</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;sum/SatInt&quot;</span
+	></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#sum"
+	><span class="hs-pragma hs-type"
+	  >sum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#sumSI"
+	><span class="hs-pragma hs-type"
+	  >sumSI</span
+	  ></a
+	></span
+      ><span class="hs-pragma"
+      >;</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;product/SatInt&quot;</span
+	></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#product"
+	><span class="hs-pragma hs-type"
+	  >product</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.SatInt.html#productSI"
+	><span class="hs-pragma hs-type"
+	  >productSI</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

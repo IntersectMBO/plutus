@@ -1,0 +1,538 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Integer.Base where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Bool qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Nat qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Agda.Builtin.Unit qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Algebra.Bundles.Raw qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Data.Irrelevant qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Data.Nat.Base qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Data.Sign.Base qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Relation.Nullary.Negation.Core qualified
+<span class="lineno">   25 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   26 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   27 </span>                    word64ToNat)
+<span class="lineno">   28 </span>import MAlonzo.RTE qualified
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>-- Data.Integer.Base.0ℤ
+<span class="lineno">   31 </span>d_0ℤ_12 :: Integer
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">d_0ℤ_12 = coe (0 :: Integer)</span></span>
+<span class="lineno">   33 </span>-- Data.Integer.Base.-1ℤ
+<span class="lineno">   34 </span>d_'45'1ℤ_14 :: Integer
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">d_'45'1ℤ_14 = coe (-1 :: Integer)</span></span>
+<span class="lineno">   36 </span>-- Data.Integer.Base.1ℤ
+<span class="lineno">   37 </span>d_1ℤ_16 :: Integer
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">d_1ℤ_16 = coe (1 :: Integer)</span></span>
+<span class="lineno">   39 </span>-- Data.Integer.Base.∣_∣
+<span class="lineno">   40 </span>d_'8739'_'8739'_18 :: Integer -&gt; Integer
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">d_'8739'_'8739'_18 v0</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">= case <span class="nottickedoff">coe v0</span> of</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt; coe v0</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff">_                                            -&gt; coe subInt (coe (0 :: Integer)) (coe v0)</span></span>
+<span class="lineno">   45 </span>-- Data.Integer.Base.sign
+<span class="lineno">   46 </span>d_sign_24 :: Integer -&gt; MAlonzo.Code.Data.Sign.Base.T_Sign_6
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">d_sign_24 v0</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">= case <span class="nottickedoff">coe v0</span> of</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">   50 </span><span class="spaces">          </span><span class="istickedoff">coe MAlonzo.Code.Data.Sign.Base.C_'43'_10</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; coe MAlonzo.Code.Data.Sign.Base.C_'45'_8</span></span>
+<span class="lineno">   52 </span>-- Data.Integer.Base._≤_
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">d__'8804'__26 a0 a1 = ()</span></span>
+<span class="lineno">   54 </span>data T__'8804'__26
+<span class="lineno">   55 </span>  = C_'45''8804''45'_34 MAlonzo.Code.Data.Nat.Base.T__'8804'__22 |
+<span class="lineno">   56 </span>    C_'45''8804''43'_40 |
+<span class="lineno">   57 </span>    C_'43''8804''43'_48 MAlonzo.Code.Data.Nat.Base.T__'8804'__22
+<span class="lineno">   58 </span>-- Data.Integer.Base._&lt;_
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">d__'60'__50 a0 a1 = ()</span></span>
+<span class="lineno">   60 </span>data T__'60'__50
+<span class="lineno">   61 </span>  = C_'45''60''45'_58 MAlonzo.Code.Data.Nat.Base.T__'8804'__22 |
+<span class="lineno">   62 </span>    C_'45''60''43'_64 |
+<span class="lineno">   63 </span>    C_'43''60''43'_72 MAlonzo.Code.Data.Nat.Base.T__'8804'__22
+<span class="lineno">   64 </span>-- Data.Integer.Base._≥_
+<span class="lineno">   65 </span>d__'8805'__74 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">d__'8805'__74 = erased</span></span>
+<span class="lineno">   67 </span>-- Data.Integer.Base._&gt;_
+<span class="lineno">   68 </span>d__'62'__80 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">d__'62'__80 = erased</span></span>
+<span class="lineno">   70 </span>-- Data.Integer.Base._≰_
+<span class="lineno">   71 </span>d__'8816'__86 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">d__'8816'__86 = erased</span></span>
+<span class="lineno">   73 </span>-- Data.Integer.Base._≱_
+<span class="lineno">   74 </span>d__'8817'__92 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">d__'8817'__92 = erased</span></span>
+<span class="lineno">   76 </span>-- Data.Integer.Base._≮_
+<span class="lineno">   77 </span>d__'8814'__98 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">d__'8814'__98 = erased</span></span>
+<span class="lineno">   79 </span>-- Data.Integer.Base._≯_
+<span class="lineno">   80 </span>d__'8815'__104 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">d__'8815'__104 = erased</span></span>
+<span class="lineno">   82 </span>-- Data.Integer.Base._≤ᵇ_
+<span class="lineno">   83 </span>d__'8804''7495'__110 :: Integer -&gt; Integer -&gt; Bool
+<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">d__'8804''7495'__110 v0 v1</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">   87 </span><span class="spaces">          </span><span class="nottickedoff">case coe v1 of</span>
+<span class="lineno">   88 </span><span class="spaces">            </span><span class="nottickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">   89 </span><span class="spaces">                </span><span class="nottickedoff">coe</span>
+<span class="lineno">   90 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14 (coe v0) (coe v1)</span>
+<span class="lineno">   91 </span><span class="spaces">            </span><span class="nottickedoff">_ -&gt; coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8</span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; let v2 = subInt (coe (-1 :: Integer)) (coe v0) in</span>
+<span class="lineno">   93 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno">   94 </span><span class="spaces">             </span><span class="nottickedoff">(case coe v1 of</span>
+<span class="lineno">   95 </span><span class="spaces">                </span><span class="nottickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">   96 </span><span class="spaces">                    </span><span class="nottickedoff">coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10</span>
+<span class="lineno">   97 </span><span class="spaces">                </span><span class="nottickedoff">_ -&gt; let v3 = subInt (coe (-1 :: Integer)) (coe v1) in</span>
+<span class="lineno">   98 </span><span class="spaces">                     </span><span class="nottickedoff">coe</span>
+<span class="lineno">   99 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  100 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14 (coe v3) (coe v2)))</span></span>
+<span class="lineno">  101 </span>-- Data.Integer.Base.NonZero
+<span class="lineno">  102 </span>d_NonZero_128 :: Integer -&gt; ()
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">d_NonZero_128 = erased</span></span>
+<span class="lineno">  104 </span>-- Data.Integer.Base.Positive
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">d_Positive_134 a0 = ()</span></span>
+<span class="lineno">  106 </span>newtype T_Positive_134 = C_Positive'46'constructor_1399 AgdaAny
+<span class="lineno">  107 </span>-- Data.Integer.Base.Positive.pos
+<span class="lineno">  108 </span>d_pos_140 :: T_Positive_134 -&gt; AgdaAny
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">d_pos_140 v0</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  111 </span><span class="spaces">      </span><span class="nottickedoff">C_Positive'46'constructor_1399 v1 -&gt; coe v1</span>
+<span class="lineno">  112 </span><span class="spaces">      </span><span class="nottickedoff">_                                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  113 </span>-- Data.Integer.Base.NonNegative
+<span class="lineno">  114 </span><span class="decl"><span class="nottickedoff">d_NonNegative_144 a0 = ()</span></span>
+<span class="lineno">  115 </span>newtype T_NonNegative_144
+<span class="lineno">  116 </span>  = C_NonNegative'46'constructor_1457 AgdaAny
+<span class="lineno">  117 </span>-- Data.Integer.Base.NonNegative.nonNeg
+<span class="lineno">  118 </span>d_nonNeg_150 :: T_NonNegative_144 -&gt; AgdaAny
+<span class="lineno">  119 </span><span class="decl"><span class="nottickedoff">d_nonNeg_150 v0</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="nottickedoff">C_NonNegative'46'constructor_1457 v1 -&gt; coe v1</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="nottickedoff">_                                    -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  123 </span>-- Data.Integer.Base.NonPositive
+<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">d_NonPositive_154 a0 = ()</span></span>
+<span class="lineno">  125 </span>newtype T_NonPositive_154
+<span class="lineno">  126 </span>  = C_NonPositive'46'constructor_1515 AgdaAny
+<span class="lineno">  127 </span>-- Data.Integer.Base.NonPositive.nonPos
+<span class="lineno">  128 </span>d_nonPos_160 :: T_NonPositive_154 -&gt; AgdaAny
+<span class="lineno">  129 </span><span class="decl"><span class="nottickedoff">d_nonPos_160 v0</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="nottickedoff">C_NonPositive'46'constructor_1515 v1 -&gt; coe v1</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="nottickedoff">_                                    -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  133 </span>-- Data.Integer.Base.Negative
+<span class="lineno">  134 </span><span class="decl"><span class="nottickedoff">d_Negative_164 a0 = ()</span></span>
+<span class="lineno">  135 </span>newtype T_Negative_164 = C_Negative'46'constructor_1573 AgdaAny
+<span class="lineno">  136 </span>-- Data.Integer.Base.Negative.neg
+<span class="lineno">  137 </span>d_neg_170 :: T_Negative_164 -&gt; AgdaAny
+<span class="lineno">  138 </span><span class="decl"><span class="nottickedoff">d_neg_170 v0</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="nottickedoff">C_Negative'46'constructor_1573 v1 -&gt; coe v1</span>
+<span class="lineno">  141 </span><span class="spaces">      </span><span class="nottickedoff">_                                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  142 </span>-- Data.Integer.Base.pos
+<span class="lineno">  143 </span>d_pos_174 :: Integer -&gt; T_Positive_134
+<span class="lineno">  144 </span><span class="decl"><span class="nottickedoff">d_pos_174 ~v0 = du_pos_174</span></span>
+<span class="lineno">  145 </span>du_pos_174 :: T_Positive_134
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">du_pos_174</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="nottickedoff">C_Positive'46'constructor_1399</span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span></span>
+<span class="lineno">  150 </span>-- Data.Integer.Base.nonNeg
+<span class="lineno">  151 </span>d_nonNeg_178 :: Integer -&gt; T_NonNegative_144
+<span class="lineno">  152 </span><span class="decl"><span class="nottickedoff">d_nonNeg_178 ~v0 = du_nonNeg_178</span></span>
+<span class="lineno">  153 </span>du_nonNeg_178 :: T_NonNegative_144
+<span class="lineno">  154 </span><span class="decl"><span class="nottickedoff">du_nonNeg_178</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  156 </span><span class="spaces">      </span><span class="nottickedoff">C_NonNegative'46'constructor_1457</span>
+<span class="lineno">  157 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span></span>
+<span class="lineno">  158 </span>-- Data.Integer.Base.nonPos0
+<span class="lineno">  159 </span>d_nonPos0_180 :: T_NonPositive_154
+<span class="lineno">  160 </span><span class="decl"><span class="nottickedoff">d_nonPos0_180</span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  162 </span><span class="spaces">      </span><span class="nottickedoff">C_NonPositive'46'constructor_1515</span>
+<span class="lineno">  163 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span></span>
+<span class="lineno">  164 </span>-- Data.Integer.Base.nonPos
+<span class="lineno">  165 </span>d_nonPos_184 :: Integer -&gt; T_NonPositive_154
+<span class="lineno">  166 </span><span class="decl"><span class="nottickedoff">d_nonPos_184 ~v0 = du_nonPos_184</span></span>
+<span class="lineno">  167 </span>du_nonPos_184 :: T_NonPositive_154
+<span class="lineno">  168 </span><span class="decl"><span class="nottickedoff">du_nonPos_184</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  170 </span><span class="spaces">      </span><span class="nottickedoff">C_NonPositive'46'constructor_1515</span>
+<span class="lineno">  171 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span></span>
+<span class="lineno">  172 </span>-- Data.Integer.Base.neg
+<span class="lineno">  173 </span>d_neg_188 :: Integer -&gt; T_Negative_164
+<span class="lineno">  174 </span><span class="decl"><span class="nottickedoff">d_neg_188 ~v0 = du_neg_188</span></span>
+<span class="lineno">  175 </span>du_neg_188 :: T_Negative_164
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">du_neg_188</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  178 </span><span class="spaces">      </span><span class="nottickedoff">C_Negative'46'constructor_1573</span>
+<span class="lineno">  179 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span></span>
+<span class="lineno">  180 </span>-- Data.Integer.Base.≢-nonZero
+<span class="lineno">  181 </span>d_'8802''45'nonZero_192 ::
+<span class="lineno">  182 </span>  Integer -&gt;
+<span class="lineno">  183 </span>  (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  184 </span>   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  185 </span>  MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">  186 </span><span class="decl"><span class="nottickedoff">d_'8802''45'nonZero_192 v0 ~v1 = du_'8802''45'nonZero_192 v0</span></span>
+<span class="lineno">  187 </span>du_'8802''45'nonZero_192 ::
+<span class="lineno">  188 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">  189 </span><span class="decl"><span class="nottickedoff">du_'8802''45'nonZero_192 v0</span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  191 </span><span class="spaces">      </span><span class="nottickedoff">0 -&gt; coe</span>
+<span class="lineno">  192 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Negation.Core.du_contradiction_44</span>
+<span class="lineno">  193 </span><span class="spaces">             </span><span class="nottickedoff">erased</span>
+<span class="lineno">  194 </span><span class="spaces">      </span><span class="nottickedoff">_ | coe geqInt (coe v0) (coe (1 :: Integer)) -&gt;</span>
+<span class="lineno">  195 </span><span class="spaces">          </span><span class="nottickedoff">coe</span>
+<span class="lineno">  196 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.C_NonZero'46'constructor_3575</span>
+<span class="lineno">  197 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span>
+<span class="lineno">  198 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; coe</span>
+<span class="lineno">  199 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.C_NonZero'46'constructor_3575</span>
+<span class="lineno">  200 </span><span class="spaces">             </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span></span>
+<span class="lineno">  201 </span>-- Data.Integer.Base.&gt;-nonZero
+<span class="lineno">  202 </span>d_'62''45'nonZero_202 ::
+<span class="lineno">  203 </span>  Integer -&gt; T__'60'__50 -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">  204 </span><span class="decl"><span class="nottickedoff">d_'62''45'nonZero_202 ~v0 v1 = du_'62''45'nonZero_202 v1</span></span>
+<span class="lineno">  205 </span>du_'62''45'nonZero_202 ::
+<span class="lineno">  206 </span>  T__'60'__50 -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">  207 </span><span class="decl"><span class="nottickedoff">du_'62''45'nonZero_202 v0</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  209 </span><span class="spaces">      </span><span class="nottickedoff">C_'43''60''43'_72 v3</span>
+<span class="lineno">  210 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  211 </span><span class="spaces">             </span><span class="nottickedoff">seq (coe v3)</span>
+<span class="lineno">  212 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  213 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.C_NonZero'46'constructor_3575</span>
+<span class="lineno">  214 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))</span>
+<span class="lineno">  215 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  216 </span>-- Data.Integer.Base.&lt;-nonZero
+<span class="lineno">  217 </span>d_'60''45'nonZero_208 ::
+<span class="lineno">  218 </span>  Integer -&gt; T__'60'__50 -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">  219 </span><span class="decl"><span class="nottickedoff">d_'60''45'nonZero_208 ~v0 v1 = du_'60''45'nonZero_208 v1</span></span>
+<span class="lineno">  220 </span>du_'60''45'nonZero_208 ::
+<span class="lineno">  221 </span>  T__'60'__50 -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112
+<span class="lineno">  222 </span><span class="decl"><span class="nottickedoff">du_'60''45'nonZero_208 v0</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  224 </span><span class="spaces">      </span><span class="nottickedoff">seq (coe v0)</span>
+<span class="lineno">  225 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  226 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.C_NonZero'46'constructor_3575</span>
+<span class="lineno">  227 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))</span></span>
+<span class="lineno">  228 </span>-- Data.Integer.Base.positive
+<span class="lineno">  229 </span>d_positive_212 :: Integer -&gt; T__'60'__50 -&gt; T_Positive_134
+<span class="lineno">  230 </span><span class="decl"><span class="nottickedoff">d_positive_212 ~v0 v1 = du_positive_212 v1</span></span>
+<span class="lineno">  231 </span>du_positive_212 :: T__'60'__50 -&gt; T_Positive_134
+<span class="lineno">  232 </span><span class="decl"><span class="nottickedoff">du_positive_212 v0</span>
+<span class="lineno">  233 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  234 </span><span class="spaces">      </span><span class="nottickedoff">C_'43''60''43'_72 v3</span>
+<span class="lineno">  235 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  236 </span><span class="spaces">             </span><span class="nottickedoff">seq (coe v3)</span>
+<span class="lineno">  237 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  238 </span><span class="spaces">                </span><span class="nottickedoff">C_Positive'46'constructor_1399</span>
+<span class="lineno">  239 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))</span>
+<span class="lineno">  240 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  241 </span>-- Data.Integer.Base.negative
+<span class="lineno">  242 </span>d_negative_218 :: Integer -&gt; T__'60'__50 -&gt; T_Negative_164
+<span class="lineno">  243 </span><span class="decl"><span class="nottickedoff">d_negative_218 ~v0 v1 = du_negative_218 v1</span></span>
+<span class="lineno">  244 </span>du_negative_218 :: T__'60'__50 -&gt; T_Negative_164
+<span class="lineno">  245 </span><span class="decl"><span class="nottickedoff">du_negative_218 v0</span>
+<span class="lineno">  246 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  247 </span><span class="spaces">      </span><span class="nottickedoff">seq (coe v0)</span>
+<span class="lineno">  248 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  249 </span><span class="spaces">         </span><span class="nottickedoff">C_Negative'46'constructor_1573</span>
+<span class="lineno">  250 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))</span></span>
+<span class="lineno">  251 </span>-- Data.Integer.Base.nonPositive
+<span class="lineno">  252 </span>d_nonPositive_222 :: Integer -&gt; T__'8804'__26 -&gt; T_NonPositive_154
+<span class="lineno">  253 </span><span class="decl"><span class="nottickedoff">d_nonPositive_222 ~v0 v1 = du_nonPositive_222 v1</span></span>
+<span class="lineno">  254 </span>du_nonPositive_222 :: T__'8804'__26 -&gt; T_NonPositive_154
+<span class="lineno">  255 </span><span class="decl"><span class="nottickedoff">du_nonPositive_222 v0</span>
+<span class="lineno">  256 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  257 </span><span class="spaces">      </span><span class="nottickedoff">C_'45''8804''43'_40</span>
+<span class="lineno">  258 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  259 </span><span class="spaces">             </span><span class="nottickedoff">C_NonPositive'46'constructor_1515</span>
+<span class="lineno">  260 </span><span class="spaces">             </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span>
+<span class="lineno">  261 </span><span class="spaces">      </span><span class="nottickedoff">C_'43''8804''43'_48 v3</span>
+<span class="lineno">  262 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  263 </span><span class="spaces">             </span><span class="nottickedoff">seq (coe v3)</span>
+<span class="lineno">  264 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  265 </span><span class="spaces">                </span><span class="nottickedoff">C_NonPositive'46'constructor_1515</span>
+<span class="lineno">  266 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))</span>
+<span class="lineno">  267 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  268 </span>-- Data.Integer.Base.nonNegative
+<span class="lineno">  269 </span>d_nonNegative_226 :: Integer -&gt; T__'8804'__26 -&gt; T_NonNegative_144
+<span class="lineno">  270 </span><span class="decl"><span class="nottickedoff">d_nonNegative_226 v0 ~v1 = du_nonNegative_226 v0</span></span>
+<span class="lineno">  271 </span>du_nonNegative_226 :: Integer -&gt; T_NonNegative_144
+<span class="lineno">  272 </span><span class="decl"><span class="nottickedoff">du_nonNegative_226 v0</span>
+<span class="lineno">  273 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  274 </span><span class="spaces">      </span><span class="nottickedoff">seq (coe v0)</span>
+<span class="lineno">  275 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  276 </span><span class="spaces">         </span><span class="nottickedoff">C_NonNegative'46'constructor_1457</span>
+<span class="lineno">  277 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))</span></span>
+<span class="lineno">  278 </span>-- Data.Integer.Base._◃_
+<span class="lineno">  279 </span>d__'9667'__230 ::
+<span class="lineno">  280 </span>  MAlonzo.Code.Data.Sign.Base.T_Sign_6 -&gt; Integer -&gt; Integer
+<span class="lineno">  281 </span><span class="decl"><span class="istickedoff">d__'9667'__230 v0 v1</span>
+<span class="lineno">  282 </span><span class="spaces">  </span><span class="istickedoff">= case coe v1 of</span>
+<span class="lineno">  283 </span><span class="spaces">      </span><span class="istickedoff">0 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">  284 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; case coe v0 of</span>
+<span class="lineno">  285 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Data.Sign.Base.C_'45'_8</span>
+<span class="lineno">  286 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe subInt (coe (0 :: Integer)) (coe v1)</span>
+<span class="lineno">  287 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Data.Sign.Base.C_'43'_10 -&gt; coe v1</span>
+<span class="lineno">  288 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  289 </span>-- Data.Integer.Base.SignAbs
+<span class="lineno">  290 </span><span class="decl"><span class="nottickedoff">d_SignAbs_236 a0 = ()</span></span>
+<span class="lineno">  291 </span>data T_SignAbs_236
+<span class="lineno">  292 </span>  = C__'9666'__242 MAlonzo.Code.Data.Sign.Base.T_Sign_6 Integer
+<span class="lineno">  293 </span>-- Data.Integer.Base.signAbs
+<span class="lineno">  294 </span>d_signAbs_246 :: Integer -&gt; T_SignAbs_236
+<span class="lineno">  295 </span><span class="decl"><span class="nottickedoff">d_signAbs_246 v0</span>
+<span class="lineno">  296 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  297 </span><span class="spaces">      </span><span class="nottickedoff">0 -&gt; coe</span>
+<span class="lineno">  298 </span><span class="spaces">             </span><span class="nottickedoff">C__'9666'__242 (coe MAlonzo.Code.Data.Sign.Base.C_'43'_10)</span>
+<span class="lineno">  299 </span><span class="spaces">             </span><span class="nottickedoff">(coe (0 :: Integer))</span>
+<span class="lineno">  300 </span><span class="spaces">      </span><span class="nottickedoff">_ | coe geqInt (coe v0) (coe (1 :: Integer)) -&gt;</span>
+<span class="lineno">  301 </span><span class="spaces">          </span><span class="nottickedoff">coe</span>
+<span class="lineno">  302 </span><span class="spaces">            </span><span class="nottickedoff">C__'9666'__242 (coe MAlonzo.Code.Data.Sign.Base.C_'43'_10) (coe v0)</span>
+<span class="lineno">  303 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; coe</span>
+<span class="lineno">  304 </span><span class="spaces">             </span><span class="nottickedoff">C__'9666'__242 (coe MAlonzo.Code.Data.Sign.Base.C_'45'_8)</span>
+<span class="lineno">  305 </span><span class="spaces">             </span><span class="nottickedoff">(coe subInt (coe (0 :: Integer)) (coe v0))</span></span>
+<span class="lineno">  306 </span>-- Data.Integer.Base.-_
+<span class="lineno">  307 </span>d_'45'__252 :: Integer -&gt; Integer
+<span class="lineno">  308 </span><span class="decl"><span class="istickedoff">d_'45'__252 v0 = coe subInt (coe (0 :: Integer)) (coe v0)</span></span>
+<span class="lineno">  309 </span>-- Data.Integer.Base._⊖_
+<span class="lineno">  310 </span>d__'8854'__258 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  311 </span><span class="decl"><span class="istickedoff">d__'8854'__258 v0 v1</span>
+<span class="lineno">  312 </span><span class="spaces">  </span><span class="istickedoff">= let v2 = ltInt (coe v0) (coe v1) in</span>
+<span class="lineno">  313 </span><span class="spaces">    </span><span class="istickedoff">coe</span>
+<span class="lineno">  314 </span><span class="spaces">      </span><span class="istickedoff">(if coe v2</span>
+<span class="lineno">  315 </span><span class="spaces">         </span><span class="istickedoff">then coe d_'45'__252 (coe subInt (coe v1) (coe v0))</span>
+<span class="lineno">  316 </span><span class="spaces">         </span><span class="istickedoff">else coe subInt (coe v0) (coe v1))</span></span>
+<span class="lineno">  317 </span>-- Data.Integer.Base._+_
+<span class="lineno">  318 </span>d__'43'__276 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  319 </span><span class="decl"><span class="istickedoff">d__'43'__276 v0 v1</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="istickedoff">= case <span class="nottickedoff">coe v0</span> of</span>
+<span class="lineno">  321 </span><span class="spaces">      </span><span class="istickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  322 </span><span class="spaces">          </span><span class="istickedoff">case <span class="nottickedoff">coe v1</span> of</span>
+<span class="lineno">  323 </span><span class="spaces">            </span><span class="istickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  324 </span><span class="spaces">                </span><span class="istickedoff">coe addInt (coe v0) (coe v1)</span>
+<span class="lineno">  325 </span><span class="spaces">            </span><span class="istickedoff">_ -&gt; coe</span>
+<span class="lineno">  326 </span><span class="spaces">                   </span><span class="istickedoff">d__'8854'__258 (coe v0) (coe subInt (coe (0 :: Integer)) (coe v1))</span>
+<span class="lineno">  327 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; case <span class="nottickedoff">coe v1</span> of</span>
+<span class="lineno">  328 </span><span class="spaces">             </span><span class="istickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  329 </span><span class="spaces">                 </span><span class="istickedoff">coe</span>
+<span class="lineno">  330 </span><span class="spaces">                   </span><span class="istickedoff">d__'8854'__258 (coe v1) (coe subInt (coe (0 :: Integer)) (coe v0))</span>
+<span class="lineno">  331 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; coe addInt (coe v0) (coe v1)</span></span>
+<span class="lineno">  332 </span>-- Data.Integer.Base._-_
+<span class="lineno">  333 </span>d__'45'__294 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  334 </span><span class="decl"><span class="istickedoff">d__'45'__294 v0 v1</span>
+<span class="lineno">  335 </span><span class="spaces">  </span><span class="istickedoff">= coe d__'43'__276 (coe v0) (coe d_'45'__252 (coe v1))</span></span>
+<span class="lineno">  336 </span>-- Data.Integer.Base.suc
+<span class="lineno">  337 </span>d_suc_300 :: Integer -&gt; Integer
+<span class="lineno">  338 </span><span class="decl"><span class="nottickedoff">d_suc_300 v0 = coe d__'43'__276 (coe d_1ℤ_16) (coe v0)</span></span>
+<span class="lineno">  339 </span>-- Data.Integer.Base.pred
+<span class="lineno">  340 </span>d_pred_304 :: Integer -&gt; Integer
+<span class="lineno">  341 </span><span class="decl"><span class="nottickedoff">d_pred_304 v0 = coe d__'43'__276 (coe d_'45'1ℤ_14) (coe v0)</span></span>
+<span class="lineno">  342 </span>-- Data.Integer.Base._*_
+<span class="lineno">  343 </span>d__'42'__308 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  344 </span><span class="decl"><span class="istickedoff">d__'42'__308 v0 v1</span>
+<span class="lineno">  345 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  346 </span><span class="spaces">      </span><span class="istickedoff">d__'9667'__230</span>
+<span class="lineno">  347 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  348 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Data.Sign.Base.d__'42'__14 (coe d_sign_24 (coe v0))</span>
+<span class="lineno">  349 </span><span class="spaces">         </span><span class="istickedoff">(coe d_sign_24 (coe v1)))</span>
+<span class="lineno">  350 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  351 </span><span class="spaces">         </span><span class="istickedoff">mulInt (coe d_'8739'_'8739'_18 (coe v0))</span>
+<span class="lineno">  352 </span><span class="spaces">         </span><span class="istickedoff">(coe d_'8739'_'8739'_18 (coe v1)))</span></span>
+<span class="lineno">  353 </span>-- Data.Integer.Base._^_
+<span class="lineno">  354 </span>d__'94'__314 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  355 </span><span class="decl"><span class="nottickedoff">d__'94'__314 v0 v1</span>
+<span class="lineno">  356 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  357 </span><span class="spaces">      </span><span class="nottickedoff">0 -&gt; coe d_1ℤ_16</span>
+<span class="lineno">  358 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; let v2 = subInt (coe v1) (coe (1 :: Integer)) in</span>
+<span class="lineno">  359 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno">  360 </span><span class="spaces">             </span><span class="nottickedoff">(coe d__'42'__308 (coe v0) (coe d__'94'__314 (coe v0) (coe v2)))</span></span>
+<span class="lineno">  361 </span>-- Data.Integer.Base._⊔_
+<span class="lineno">  362 </span>d__'8852'__322 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  363 </span><span class="decl"><span class="nottickedoff">d__'8852'__322 v0 v1</span>
+<span class="lineno">  364 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  365 </span><span class="spaces">      </span><span class="nottickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  366 </span><span class="spaces">          </span><span class="nottickedoff">case coe v1 of</span>
+<span class="lineno">  367 </span><span class="spaces">            </span><span class="nottickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  368 </span><span class="spaces">                </span><span class="nottickedoff">coe MAlonzo.Code.Data.Nat.Base.d__'8852'__204 (coe v0) (coe v1)</span>
+<span class="lineno">  369 </span><span class="spaces">            </span><span class="nottickedoff">_ -&gt; coe v0</span>
+<span class="lineno">  370 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; let v2 = subInt (coe (-1 :: Integer)) (coe v0) in</span>
+<span class="lineno">  371 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno">  372 </span><span class="spaces">             </span><span class="nottickedoff">(case coe v1 of</span>
+<span class="lineno">  373 </span><span class="spaces">                </span><span class="nottickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt; coe v1</span>
+<span class="lineno">  374 </span><span class="spaces">                </span><span class="nottickedoff">_ -&gt; let v3 = subInt (coe (-1 :: Integer)) (coe v1) in</span>
+<span class="lineno">  375 </span><span class="spaces">                     </span><span class="nottickedoff">coe</span>
+<span class="lineno">  376 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  377 </span><span class="spaces">                          </span><span class="nottickedoff">subInt (coe (-1 :: Integer))</span>
+<span class="lineno">  378 </span><span class="spaces">                          </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.d__'8851'__232 (coe v2) (coe v3))))</span></span>
+<span class="lineno">  379 </span>-- Data.Integer.Base._⊓_
+<span class="lineno">  380 </span>d__'8851'__340 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  381 </span><span class="decl"><span class="nottickedoff">d__'8851'__340 v0 v1</span>
+<span class="lineno">  382 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  383 </span><span class="spaces">      </span><span class="nottickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  384 </span><span class="spaces">          </span><span class="nottickedoff">case coe v1 of</span>
+<span class="lineno">  385 </span><span class="spaces">            </span><span class="nottickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  386 </span><span class="spaces">                </span><span class="nottickedoff">coe MAlonzo.Code.Data.Nat.Base.d__'8851'__232 (coe v0) (coe v1)</span>
+<span class="lineno">  387 </span><span class="spaces">            </span><span class="nottickedoff">_ -&gt; coe v1</span>
+<span class="lineno">  388 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; let v2 = subInt (coe (-1 :: Integer)) (coe v0) in</span>
+<span class="lineno">  389 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno">  390 </span><span class="spaces">             </span><span class="nottickedoff">(case coe v1 of</span>
+<span class="lineno">  391 </span><span class="spaces">                </span><span class="nottickedoff">_ | coe geqInt (coe v1) (coe (0 :: Integer)) -&gt; coe v0</span>
+<span class="lineno">  392 </span><span class="spaces">                </span><span class="nottickedoff">_ -&gt; let v3 = subInt (coe (-1 :: Integer)) (coe v1) in</span>
+<span class="lineno">  393 </span><span class="spaces">                     </span><span class="nottickedoff">coe</span>
+<span class="lineno">  394 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  395 </span><span class="spaces">                          </span><span class="nottickedoff">subInt (coe (-1 :: Integer))</span>
+<span class="lineno">  396 </span><span class="spaces">                          </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Nat.Base.d__'8852'__204 (coe v2) (coe v3))))</span></span>
+<span class="lineno">  397 </span>-- Data.Integer.Base._/ℕ_
+<span class="lineno">  398 </span>d__'47'ℕ__364 ::
+<span class="lineno">  399 </span>  Integer -&gt;
+<span class="lineno">  400 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt; Integer
+<span class="lineno">  401 </span><span class="decl"><span class="nottickedoff">d__'47'ℕ__364 v0 v1 ~v2 = du__'47'ℕ__364 v0 v1</span></span>
+<span class="lineno">  402 </span>du__'47'ℕ__364 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  403 </span><span class="decl"><span class="nottickedoff">du__'47'ℕ__364 v0 v1</span>
+<span class="lineno">  404 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  405 </span><span class="spaces">      </span><span class="nottickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  406 </span><span class="spaces">          </span><span class="nottickedoff">coe MAlonzo.Code.Data.Nat.Base.du__'47'__314 (coe v0) (coe v1)</span>
+<span class="lineno">  407 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; let v2</span>
+<span class="lineno">  408 </span><span class="spaces">                 </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  409 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'37'__326</span>
+<span class="lineno">  410 </span><span class="spaces">                     </span><span class="nottickedoff">(coe subInt (coe (0 :: Integer)) (coe v0)) (coe v1) in</span>
+<span class="lineno">  411 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno">  412 </span><span class="spaces">             </span><span class="nottickedoff">(case coe v2 of</span>
+<span class="lineno">  413 </span><span class="spaces">                </span><span class="nottickedoff">0 -&gt; coe</span>
+<span class="lineno">  414 </span><span class="spaces">                       </span><span class="nottickedoff">d_'45'__252</span>
+<span class="lineno">  415 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  416 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'47'__314</span>
+<span class="lineno">  417 </span><span class="spaces">                          </span><span class="nottickedoff">(coe subInt (coe (0 :: Integer)) (coe v0)) (coe v1))</span>
+<span class="lineno">  418 </span><span class="spaces">                </span><span class="nottickedoff">_ -&gt; coe</span>
+<span class="lineno">  419 </span><span class="spaces">                       </span><span class="nottickedoff">subInt (coe (-1 :: Integer))</span>
+<span class="lineno">  420 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  421 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'47'__314</span>
+<span class="lineno">  422 </span><span class="spaces">                          </span><span class="nottickedoff">(coe subInt (coe (0 :: Integer)) (coe v0)) (coe v1)))</span></span>
+<span class="lineno">  423 </span>-- Data.Integer.Base._/_
+<span class="lineno">  424 </span>d__'47'__394 ::
+<span class="lineno">  425 </span>  Integer -&gt;
+<span class="lineno">  426 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt; Integer
+<span class="lineno">  427 </span><span class="decl"><span class="nottickedoff">d__'47'__394 v0 v1 ~v2 = du__'47'__394 v0 v1</span></span>
+<span class="lineno">  428 </span>du__'47'__394 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  429 </span><span class="decl"><span class="nottickedoff">du__'47'__394 v0 v1</span>
+<span class="lineno">  430 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  431 </span><span class="spaces">      </span><span class="nottickedoff">d__'42'__308</span>
+<span class="lineno">  432 </span><span class="spaces">      </span><span class="nottickedoff">(coe d__'9667'__230 (coe d_sign_24 (coe v1)) (coe (1 :: Integer)))</span>
+<span class="lineno">  433 </span><span class="spaces">      </span><span class="nottickedoff">(coe du__'47'ℕ__364 (coe v0) (coe d_'8739'_'8739'_18 (coe v1)))</span></span>
+<span class="lineno">  434 </span>-- Data.Integer.Base._%ℕ_
+<span class="lineno">  435 </span>d__'37'ℕ__406 ::
+<span class="lineno">  436 </span>  Integer -&gt;
+<span class="lineno">  437 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt; Integer
+<span class="lineno">  438 </span><span class="decl"><span class="nottickedoff">d__'37'ℕ__406 v0 v1 ~v2 = du__'37'ℕ__406 v0 v1</span></span>
+<span class="lineno">  439 </span>du__'37'ℕ__406 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  440 </span><span class="decl"><span class="nottickedoff">du__'37'ℕ__406 v0 v1</span>
+<span class="lineno">  441 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  442 </span><span class="spaces">      </span><span class="nottickedoff">_ | coe geqInt (coe v0) (coe (0 :: Integer)) -&gt;</span>
+<span class="lineno">  443 </span><span class="spaces">          </span><span class="nottickedoff">coe MAlonzo.Code.Data.Nat.Base.du__'37'__326 (coe v0) (coe v1)</span>
+<span class="lineno">  444 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; let v2</span>
+<span class="lineno">  445 </span><span class="spaces">                 </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  446 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.du__'37'__326</span>
+<span class="lineno">  447 </span><span class="spaces">                     </span><span class="nottickedoff">(coe subInt (coe (0 :: Integer)) (coe v0)) (coe v1) in</span>
+<span class="lineno">  448 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno">  449 </span><span class="spaces">             </span><span class="nottickedoff">(case coe v2 of</span>
+<span class="lineno">  450 </span><span class="spaces">                </span><span class="nottickedoff">0 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">  451 </span><span class="spaces">                </span><span class="nottickedoff">_ -&gt; coe MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22 v1 v2)</span></span>
+<span class="lineno">  452 </span>-- Data.Integer.Base._%_
+<span class="lineno">  453 </span>d__'37'__436 ::
+<span class="lineno">  454 </span>  Integer -&gt;
+<span class="lineno">  455 </span>  Integer -&gt; MAlonzo.Code.Data.Nat.Base.T_NonZero_112 -&gt; Integer
+<span class="lineno">  456 </span><span class="decl"><span class="nottickedoff">d__'37'__436 v0 v1 ~v2 = du__'37'__436 v0 v1</span></span>
+<span class="lineno">  457 </span>du__'37'__436 :: Integer -&gt; Integer -&gt; Integer
+<span class="lineno">  458 </span><span class="decl"><span class="nottickedoff">du__'37'__436 v0 v1</span>
+<span class="lineno">  459 </span><span class="spaces">  </span><span class="nottickedoff">= coe du__'37'ℕ__406 (coe v0) (coe d_'8739'_'8739'_18 (coe v1))</span></span>
+<span class="lineno">  460 </span>-- Data.Integer.Base.+-rawMagma
+<span class="lineno">  461 </span>d_'43''45'rawMagma_442 ::
+<span class="lineno">  462 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawMagma_36
+<span class="lineno">  463 </span><span class="decl"><span class="nottickedoff">d_'43''45'rawMagma_442</span>
+<span class="lineno">  464 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  465 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawMagma'46'constructor_341</span>
+<span class="lineno">  466 </span><span class="spaces">      </span><span class="nottickedoff">d__'43'__276</span></span>
+<span class="lineno">  467 </span>-- Data.Integer.Base.+-0-rawMonoid
+<span class="lineno">  468 </span>d_'43''45'0'45'rawMonoid_444 ::
+<span class="lineno">  469 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawMonoid_64
+<span class="lineno">  470 </span><span class="decl"><span class="nottickedoff">d_'43''45'0'45'rawMonoid_444</span>
+<span class="lineno">  471 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  472 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawMonoid'46'constructor_745</span>
+<span class="lineno">  473 </span><span class="spaces">      </span><span class="nottickedoff">d__'43'__276 d_0ℤ_12</span></span>
+<span class="lineno">  474 </span>-- Data.Integer.Base.+-0-rawGroup
+<span class="lineno">  475 </span>d_'43''45'0'45'rawGroup_446 ::
+<span class="lineno">  476 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawGroup_96
+<span class="lineno">  477 </span><span class="decl"><span class="nottickedoff">d_'43''45'0'45'rawGroup_446</span>
+<span class="lineno">  478 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  479 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawGroup'46'constructor_1207</span>
+<span class="lineno">  480 </span><span class="spaces">      </span><span class="nottickedoff">d__'43'__276 d_0ℤ_12 d_'45'__252</span></span>
+<span class="lineno">  481 </span>-- Data.Integer.Base.*-rawMagma
+<span class="lineno">  482 </span>d_'42''45'rawMagma_448 ::
+<span class="lineno">  483 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawMagma_36
+<span class="lineno">  484 </span><span class="decl"><span class="nottickedoff">d_'42''45'rawMagma_448</span>
+<span class="lineno">  485 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  486 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawMagma'46'constructor_341</span>
+<span class="lineno">  487 </span><span class="spaces">      </span><span class="nottickedoff">d__'42'__308</span></span>
+<span class="lineno">  488 </span>-- Data.Integer.Base.*-1-rawMonoid
+<span class="lineno">  489 </span>d_'42''45'1'45'rawMonoid_450 ::
+<span class="lineno">  490 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawMonoid_64
+<span class="lineno">  491 </span><span class="decl"><span class="nottickedoff">d_'42''45'1'45'rawMonoid_450</span>
+<span class="lineno">  492 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  493 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawMonoid'46'constructor_745</span>
+<span class="lineno">  494 </span><span class="spaces">      </span><span class="nottickedoff">d__'42'__308 d_1ℤ_16</span></span>
+<span class="lineno">  495 </span>-- Data.Integer.Base.+-*-rawNearSemiring
+<span class="lineno">  496 </span>d_'43''45''42''45'rawNearSemiring_452 ::
+<span class="lineno">  497 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawNearSemiring_134
+<span class="lineno">  498 </span><span class="decl"><span class="nottickedoff">d_'43''45''42''45'rawNearSemiring_452</span>
+<span class="lineno">  499 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  500 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawNearSemiring'46'constructor_1729</span>
+<span class="lineno">  501 </span><span class="spaces">      </span><span class="nottickedoff">d__'43'__276 d__'42'__308 d_0ℤ_12</span></span>
+<span class="lineno">  502 </span>-- Data.Integer.Base.+-*-rawSemiring
+<span class="lineno">  503 </span>d_'43''45''42''45'rawSemiring_454 ::
+<span class="lineno">  504 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawSemiring_174
+<span class="lineno">  505 </span><span class="decl"><span class="nottickedoff">d_'43''45''42''45'rawSemiring_454</span>
+<span class="lineno">  506 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  507 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawSemiring'46'constructor_2353</span>
+<span class="lineno">  508 </span><span class="spaces">      </span><span class="nottickedoff">d__'43'__276 d__'42'__308 d_0ℤ_12 d_1ℤ_16</span></span>
+<span class="lineno">  509 </span>-- Data.Integer.Base.+-*-rawRing
+<span class="lineno">  510 </span>d_'43''45''42''45'rawRing_456 ::
+<span class="lineno">  511 </span>  MAlonzo.Code.Algebra.Bundles.Raw.T_RawRing_268
+<span class="lineno">  512 </span><span class="decl"><span class="nottickedoff">d_'43''45''42''45'rawRing_456</span>
+<span class="lineno">  513 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  514 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Bundles.Raw.C_RawRing'46'constructor_3857</span>
+<span class="lineno">  515 </span><span class="spaces">      </span><span class="nottickedoff">d__'43'__276 d__'42'__308 d_'45'__252 d_0ℤ_12 d_1ℤ_16</span></span>
+
+</pre>
+</body>
+</html>

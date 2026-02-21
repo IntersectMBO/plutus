@@ -1,0 +1,1185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Crypto.BLS12_381.Pairing</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Crypto.BLS12_381.Pairing</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:MlResult"
+	      >MlResult</a
+	      > = <a href="#v:MlResult"
+	      >MlResult</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unMlResult"
+		  >unMlResult</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/Cardano-Crypto-EllipticCurve-BLS12_381-Internal.html#t:PT" title="Cardano.Crypto.EllipticCurve.BLS12_381.Internal"
+		  >PT</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:millerLoop"
+	      >millerLoop</a
+	      > &#8759; <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+	      >Element</a
+	      > &#8594; <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+	      >Element</a
+	      > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	      >MlResult</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mulMlResult"
+	      >mulMlResult</a
+	      > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	      >MlResult</a
+	      > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	      >MlResult</a
+	      > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	      >MlResult</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:finalVerify"
+	      >finalVerify</a
+	      > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	      >MlResult</a
+	      > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	      >MlResult</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mlResultMemSizeBytes"
+	      >mlResultMemSizeBytes</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:identityMlResult"
+	      >identityMlResult</a
+	      > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	      >MlResult</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:MlResult" class="def"
+	    >MlResult</a
+	    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#MlResult" class="link"
+	    >Source</a
+	    > <a href="#t:MlResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This type represents the result of computing a pairing using the Miller
+   loop.  Values of this type are ephemeral, only created during script
+   execution.  We do not provide any means of serialising, deserialising,
+   printing, or parsing MlResult values. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MlResult" class="def"
+		  >MlResult</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unMlResult" class="def"
+			  >unMlResult</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cardano-crypto-class-2.2.3.0/docs/Cardano-Crypto-EllipticCurve-BLS12_381-Internal.html#t:PT" title="Cardano.Crypto.EllipticCurve.BLS12_381.Internal"
+			  >PT</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MlResult"
+	    >Instances</h4
+	    ><details id="i:MlResult" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:MlResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:NFData:2"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:MlResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:NFData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:MlResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:Hashable:4"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Hashable" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Hashable</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:MlResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:Hashable:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:hashWithSalt"
+			  >hashWithSalt</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hashWithSalt" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:hash"
+			  >hash</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hash" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:ExMemoryUsage:5"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-457" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:ExMemoryUsage:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:Flat:6"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-45" class="link"
+		    >Source</a
+		    > <a href="#t:MlResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:Flat:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:Pretty:7"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:MlResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:Pretty:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:PrettyBy:8"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:MlResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:PrettyBy:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:MakeKnownIn:9"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-465" class="link"
+		    >Source</a
+		    > <a href="#t:MakeKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:MakeKnownIn:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > term <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:ReadKnownIn:10"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-425" class="link"
+		    >Source</a
+		    > <a href="#t:ReadKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:ReadKnownIn:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readKnown"
+			  >readKnown</a
+			  > &#8759; term &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+			  >Source</a
+			  > <a href="#v:readKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:Contains:11"
+		      ></span
+		      > <a href="Universe-Core.html#t:Contains" title="Universe.Core"
+		      >Contains</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-348" class="link"
+		    >Source</a
+		    > <a href="#t:Contains" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:Contains:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:knownUni"
+			  >knownUni</a
+			  > &#8759; <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+			  >Esc</a
+			  > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  >) <a href="src/Universe.Core.html#knownUni" class="link"
+			  >Source</a
+			  > <a href="#v:knownUni" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:KnownTypeAst:12"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownBuiltinTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownBuiltinTypeAst</a
+		      > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-385" class="link"
+		    >Source</a
+		    > <a href="#t:KnownTypeAst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:KnownTypeAst:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > hole <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > acc <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:IsBuiltin:13"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-384" class="link"
+		    >Source</a
+		    > <a href="#t:IsBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:IsBuiltin:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			>MlResult</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> (<a href="PlutusCore-Builtin-Polymorphism.html#t:ElaborateBuiltin" title="PlutusCore.Builtin.Polymorphism"
+			>ElaborateBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			>MlResult</a
+			>)</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:ToBinds:14"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > acc <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-384" class="link"
+		    >Source</a
+		    > <a href="#t:ToBinds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:ToBinds:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			>MlResult</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc (<a href="PlutusCore-Builtin-Polymorphism.html#t:ElaborateBuiltin" title="PlutusCore.Builtin.Polymorphism"
+			>ElaborateBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			>MlResult</a
+			>)</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MlResult:ToHoles:15"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > hole <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-384" class="link"
+		    >Source</a
+		    > <a href="#t:ToHoles" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MlResult:ToHoles:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			>MlResult</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole (<a href="PlutusCore-Builtin-Polymorphism.html#t:ElaborateBuiltin" title="PlutusCore.Builtin.Polymorphism"
+			>ElaborateBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			>MlResult</a
+			>)</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:millerLoop" class="def"
+	    >millerLoop</a
+	    > &#8759; <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+	    >Element</a
+	    > &#8594; <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+	    >Element</a
+	    > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#millerLoop" class="link"
+	    >Source</a
+	    > <a href="#v:millerLoop" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mulMlResult" class="def"
+	    >mulMlResult</a
+	    > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#mulMlResult" class="link"
+	    >Source</a
+	    > <a href="#v:mulMlResult" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:finalVerify" class="def"
+	    >finalVerify</a
+	    > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#finalVerify" class="link"
+	    >Source</a
+	    > <a href="#v:finalVerify" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mlResultMemSizeBytes" class="def"
+	    >mlResultMemSizeBytes</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#mlResultMemSizeBytes" class="link"
+	    >Source</a
+	    > <a href="#v:mlResultMemSizeBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Memory usage of an MlResult point (576 bytes)</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:identityMlResult" class="def"
+	    >identityMlResult</a
+	    > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#identityMlResult" class="link"
+	    >Source</a
+	    > <a href="#v:identityMlResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For some of the tests we need a small element of the MlResult type.  We can
+get the identity element by pairing the zero elements of G1 and G2. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

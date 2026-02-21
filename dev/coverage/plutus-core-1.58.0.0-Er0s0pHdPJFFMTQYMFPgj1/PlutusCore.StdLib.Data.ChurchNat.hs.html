@@ -1,0 +1,83 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>-- | Church-encoded @nat@ and related functions.
+<span class="lineno">    4 </span>module PlutusCore.StdLib.Data.ChurchNat
+<span class="lineno">    5 </span>  ( churchNat
+<span class="lineno">    6 </span>  , churchZero
+<span class="lineno">    7 </span>  , churchSucc
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import PlutusCore.Core
+<span class="lineno">   11 </span>import PlutusCore.MkPlc
+<span class="lineno">   12 </span>import PlutusCore.Name.Unique
+<span class="lineno">   13 </span>import PlutusCore.Quote
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>{-| Church-encoded @Nat@ as a PLC type.
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>&gt; all (r :: *). r -&gt; (r -&gt; r) -&gt; r -}
+<span class="lineno">   18 </span>churchNat :: Type TyName uni ()
+<span class="lineno">   19 </span><span class="decl"><span class="istickedoff">churchNat = runQuote $ do</span>
+<span class="lineno">   20 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   21 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   22 </span><span class="spaces">    </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   23 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> r</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>{-| Church-encoded '0' as a PLC term.
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>&gt; /\(r :: *) -&gt; \(z : r) (f : r -&gt; r) -&gt; z -}
+<span class="lineno">   30 </span>churchZero :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">churchZero = runQuote $ do</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs <span class="nottickedoff">()</span> z (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs <span class="nottickedoff">()</span> f (TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">$ var <span class="nottickedoff">()</span> z</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>{-| Church-encoded 'succ' as a PLC term.
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>&gt; \(n : nat) -&gt; /\(r :: *) -&gt; \(z : r) (f : r -&gt; r) -&gt; f (n {r} z f) -}
+<span class="lineno">   44 </span>churchSucc :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">   45 </span><span class="decl"><span class="istickedoff">churchSucc = runQuote $ do</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshName &quot;n&quot;</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs <span class="nottickedoff">()</span> n churchNat</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs <span class="nottickedoff">()</span> z (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs <span class="nottickedoff">()</span> f (TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff">. apply <span class="nottickedoff">()</span> (var <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff">(tyInst <span class="nottickedoff">()</span> (var <span class="nottickedoff">()</span> n) $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">[ var <span class="nottickedoff">()</span> z</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="istickedoff">, var <span class="nottickedoff">()</span> f</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

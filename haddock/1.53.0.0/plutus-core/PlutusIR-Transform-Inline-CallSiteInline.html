@@ -1,0 +1,255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.Inline.CallSiteInline</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.Inline.CallSiteInline.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.Inline.CallSiteInline</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Call site inlining machinery. We inline if the size of the inlined result is not larger.
+See Note [Inlining and beta reduction of functions].</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:applyAndBetaReduce"
+	      >applyAndBetaReduce</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))</li
+	    ><li class="src short"
+	    ><a href="#v:callSiteInline"
+	      >callSiteInline</a
+	      > &#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >InliningConstraints</a
+	      > tyname name uni fun &#8658; <a href="PlutusIR-Analysis-Size.html#t:Size" title="PlutusIR.Analysis.Size"
+	      >Size</a
+	      > &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineVarInfo</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+	      >InlineM</a
+	      > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:applyAndBetaReduce" class="def"
+	    >applyAndBetaReduce</a
+	    > <a href="src/PlutusIR.Transform.Inline.CallSiteInline.html#applyAndBetaReduce" class="link"
+	    >Source</a
+	    > <a href="#v:applyAndBetaReduce" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+		  >InliningConstraints</a
+		  > tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann</td
+		><td class="doc"
+		><p
+		  >The rhs of the variable, should have been renamed already</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun ann</td
+		><td class="doc"
+		><p
+		  >The arguments, already processed</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineM</a
+		  > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Apply the RHS of the given variable to the given arguments, and beta-reduce
+the application, if possible.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:callSiteInline" class="def"
+	    >callSiteInline</a
+	    > <a href="src/PlutusIR.Transform.Inline.CallSiteInline.html#callSiteInline" class="link"
+	    >Source</a
+	    > <a href="#v:callSiteInline" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; tyname name uni fun ann. <a href="PlutusIR-Transform-Inline-Utils.html#t:InliningConstraints" title="PlutusIR.Transform.Inline.Utils"
+		  >InliningConstraints</a
+		  > tyname name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusIR-Analysis-Size.html#t:Size" title="PlutusIR.Analysis.Size"
+		  >Size</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term size if it were not inlined.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineVarInfo" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineVarInfo</a
+		  > tyname name uni fun ann</td
+		><td class="doc"
+		><p
+		  >The <code
+		    ><a href="Utils.html#v:VarInfo" title="Utils"
+		      >VarInfo</a
+		      ></code
+		    > of the variable (the head of the term).</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun ann</td
+		><td class="doc"
+		><p
+		  >The application context of the term, already processed.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Utils.html#t:InlineM" title="PlutusIR.Transform.Inline.Utils"
+		  >InlineM</a
+		  > tyname name uni fun ann (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Consider inlining a variable. For applications, consider whether to apply and beta reduce.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

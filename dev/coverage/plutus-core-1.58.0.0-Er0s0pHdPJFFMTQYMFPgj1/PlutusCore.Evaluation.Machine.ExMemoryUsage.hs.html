@@ -1,0 +1,508 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    6 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>module PlutusCore.Evaluation.Machine.ExMemoryUsage
+<span class="lineno">    9 </span>  ( CostRose (..)
+<span class="lineno">   10 </span>  , singletonRose
+<span class="lineno">   11 </span>  , ExMemoryUsage (..)
+<span class="lineno">   12 </span>  , flattenCostRose
+<span class="lineno">   13 </span>  , NumBytesCostedAsNumWords (..)
+<span class="lineno">   14 </span>  , IntegerCostedLiterally (..)
+<span class="lineno">   15 </span>  , ValueTotalSize (..)
+<span class="lineno">   16 </span>  , ValueMaxDepth (..)
+<span class="lineno">   17 </span>  , DataNodeCount (..)
+<span class="lineno">   18 </span>  ) where
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
+<span class="lineno">   21 </span>import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
+<span class="lineno">   22 </span>import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
+<span class="lineno">   23 </span>import PlutusCore.Data
+<span class="lineno">   24 </span>import PlutusCore.Evaluation.Machine.CostStream
+<span class="lineno">   25 </span>import PlutusCore.Evaluation.Machine.ExMemory
+<span class="lineno">   26 </span>import PlutusCore.Unroll (dropN)
+<span class="lineno">   27 </span>import PlutusCore.Value (Value)
+<span class="lineno">   28 </span>import PlutusCore.Value qualified as Value
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>import Data.ByteString qualified as BS
+<span class="lineno">   31 </span>import Data.Functor
+<span class="lineno">   32 </span>import Data.Map.Strict qualified as Map
+<span class="lineno">   33 </span>import Data.Proxy
+<span class="lineno">   34 </span>import Data.SatInt
+<span class="lineno">   35 </span>import Data.Text qualified as T
+<span class="lineno">   36 </span>import Data.Vector.Strict (Vector)
+<span class="lineno">   37 </span>import Data.Vector.Strict qualified as Vector
+<span class="lineno">   38 </span>import Data.Word
+<span class="lineno">   39 </span>import GHC.Natural
+<span class="lineno">   40 </span>import GHC.Num.Integer (integerLog2)
+<span class="lineno">   41 </span>import Universe
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>{-
+<span class="lineno">   44 </span> ************************************************************************************
+<span class="lineno">   45 </span> *  WARNING: exercise caution when altering the ExMemoryUsage instances here.       *
+<span class="lineno">   46 </span> *                                                                                  *
+<span class="lineno">   47 </span> *  The instances defined in this file will be used to calculate script validation  *
+<span class="lineno">   48 </span> *  costs, and if an instance is changed then any scripts which were deployed when  *
+<span class="lineno">   49 </span> *  a previous instance was in effect MUST STILL VALIDATE using the new instance.   *
+<span class="lineno">   50 </span> *  It is unsafe to increase the memory usage of a type because that may increase   *
+<span class="lineno">   51 </span> *  the resource usage of existing scripts beyond the limits set (and paid for)     *
+<span class="lineno">   52 </span> *  when they were uploaded to the chain, but because our costing functions are all *
+<span class="lineno">   53 </span> *  monotone it is safe to decrease memory usage, as long it decreases for *all*    *
+<span class="lineno">   54 </span> *  possible values of the type.                                                    *
+<span class="lineno">   55 </span> ************************************************************************************
+<span class="lineno">   56 </span>-}
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>{- Note [ExMemoryUsage instances for non-constants]
+<span class="lineno">   59 </span>In order to calculate the cost of a built-in function we need to feed the 'ExMemory' of each
+<span class="lineno">   60 </span>argument to the costing function associated with the builtin. For a polymorphic builtin this means
+<span class="lineno">   61 </span>that we need to be able to compute the 'ExMemory' of the AST provided as an argument to the builtin.
+<span class="lineno">   62 </span>How do we do that? Our strategy is:
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>1. if the AST is a wrapped constant, then calculate the 'ExMemory' of the constant
+<span class="lineno">   65 </span>2. if the AST is something else, return 1
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>This is pretty reasonable: a polymorphic builtin *is* allowed to check if the AST that it got as an
+<span class="lineno">   68 </span>argument is a constant or not, and if it happens to be a constant, the builtin *is* allowed to use
+<span class="lineno">   69 </span>it whatever way it wishes (see Note [Builtins and Plutus type checking] for details). Hence a
+<span class="lineno">   70 </span>builtin may in fact do something ad hoc for constants and we need to account for this possibility in
+<span class="lineno">   71 </span>the costing machinery.
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>But if the given AST is not a constant, the builtin can't do anything else with it, hence we simply
+<span class="lineno">   74 </span>return 1, meaning &quot;the costing function can't use this 'ExMemory' in any non-vacuous way&quot;.
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>See 'HasMeaningIn' for a full list of constraints determining what a builtin can do with values.
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>However for all types of values, except the one used by the production evaluator, we implement
+<span class="lineno">   79 </span>'ExMemoryUsage' as a call to 'error'. Not because other evaluators don't compute costs during
+<span class="lineno">   80 </span>evaluation -- the CK machine for example does in fact compute them (because we share the same
+<span class="lineno">   81 </span>builtins machinery between all the evaluators and we want it to be efficient on the production path,
+<span class="lineno">   82 </span>hence it's easier to optimize it for all evaluators than just for the single production evaluator).
+<span class="lineno">   83 </span>And not because the resulting 'ExBudget' is not forced by an evaluator that doesn't care about
+<span class="lineno">   84 </span>costing -- it still gets forced (for the same reason).
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>The actual reason why we call 'error' is because at the moment no builtin is supposed to have a
+<span class="lineno">   87 </span>costing function that actually computes the 'ExMemory' of the given AST. Currently, if the builtin
+<span class="lineno">   88 </span>takes an 'Opaque', it's not supposed to actually look inside of it (unlike with 'SomeConstant') and
+<span class="lineno">   89 </span>hence the costing function is supposed to ignore that argument. It is possible that we'll eventually
+<span class="lineno">   90 </span>decide to add such a builtin, so the current approach of throwing an 'error' is a precaution
+<span class="lineno">   91 </span>ensuring that we won't add any weirdness by accident.
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>We don't call 'error' on the production path, because we don't want this risk in there. A failing
+<span class="lineno">   94 </span>test is fine, a failing reasonable transaction is not and we don't want to risk it, even if it seems
+<span class="lineno">   95 </span>very unlikely that such a failure could slip in.
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>The way we ignore arguments in costing functions is by computing the 'ExMemory' of each of those
+<span class="lineno">   98 </span>arguments lazily. I.e. a call to 'memoryUsage' can only be forced within a costing function and
+<span class="lineno">   99 </span>never outside of one. We have to do this regardless of all the reasoning above: if we compute
+<span class="lineno">  100 </span>the 'ExMemory' of, say, a list strictly, then a builtin prepending an element to a list will
+<span class="lineno">  101 </span>have the complexity of O(length_of_the_list) (because computing the 'ExMemory' of a list requires
+<span class="lineno">  102 </span>traversing the list), while we of course want it to be O(1).
+<span class="lineno">  103 </span>-}
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>{-| A lazy tree of costs. Convenient for calculating the costs of values of built-in types, because
+<span class="lineno">  106 </span>they may have arbitrary branching (in particular a 'Data' object can contain a list of 'Data'
+<span class="lineno">  107 </span>objects inside of it).
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>'CostRose' gets collapsed to a lazy linear structure down the pipeline, so that we can
+<span class="lineno">  110 </span>stream the costs to the outside where, say, the CEK machine picks them up one by one and handles
+<span class="lineno">  111 </span>somehow (in particular, subtracts from the remaining budget). -}
+<span class="lineno">  112 </span>data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
+<span class="lineno">  113 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>-- | Create a 'CostRose' containing a single cost.
+<span class="lineno">  116 </span>singletonRose :: CostingInteger -&gt; CostRose
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">singletonRose cost = CostRose cost []</span></span>
+<span class="lineno">  118 </span>{-# INLINE singletonRose #-}
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>-- See Note [Global local functions].
+<span class="lineno">  121 </span>-- This is one way to define the worker. There are many more, see
+<span class="lineno">  122 </span>-- https://github.com/IntersectMBO/plutus/pull/5239#discussion_r1151197471
+<span class="lineno">  123 </span>-- We chose this one, because it's the simplest (no CPS shenanigans) among the safest (retrieving
+<span class="lineno">  124 </span>-- the next element takes O(1) time in the worst case).
+<span class="lineno">  125 </span>--
+<span class="lineno">  126 </span>-- The algorithm is a variation of the defunctionalization technique (see this post in particular:
+<span class="lineno">  127 </span>-- https://www.joachim-breitner.de/blog/778-Don%e2%80%99t_think,_just_defunctionalize), except we
+<span class="lineno">  128 </span>-- don't want a tail-recursive loop and instead emit costs lazily to the outside (as it's the whole
+<span class="lineno">  129 </span>-- point of the lazy costing approach)
+<span class="lineno">  130 </span>flattenCostRoseGo :: CostRose -&gt; [CostRose] -&gt; CostStream
+<span class="lineno">  131 </span><span class="decl"><span class="istickedoff">flattenCostRoseGo (CostRose cost1 forest1) forest2 =</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="istickedoff">case forest1 of</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="istickedoff">-- The current subtree doesn't have its own subtrees.</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="istickedoff">[] -&gt; case forest2 of</span>
+<span class="lineno">  135 </span><span class="spaces">      </span><span class="istickedoff">-- No more elements in the entire tree, emit the last cost.</span>
+<span class="lineno">  136 </span><span class="spaces">      </span><span class="istickedoff">[] -&gt; CostLast cost1</span>
+<span class="lineno">  137 </span><span class="spaces">      </span><span class="istickedoff">-- There's at least one unhandled subtree encountered earlier, emit the current cost</span>
+<span class="lineno">  138 </span><span class="spaces">      </span><span class="istickedoff">-- and collapse the unhandled subtree.</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="istickedoff">rose2' : forest2' -&gt; CostCons cost1 $ flattenCostRoseGo rose2' forest2'</span>
+<span class="lineno">  140 </span><span class="spaces">    </span><span class="istickedoff">-- The current subtree has at least one its own subtree.</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">rose1' : forest1' -&gt;</span>
+<span class="lineno">  142 </span><span class="spaces">      </span><span class="istickedoff">-- Emit the current cost and handle the list of subtrees of the current subtree.</span>
+<span class="lineno">  143 </span><span class="spaces">      </span><span class="istickedoff">CostCons cost1 $ case forest1' of</span>
+<span class="lineno">  144 </span><span class="spaces">        </span><span class="istickedoff">-- Same as the case below, except this one avoids creating a chain of</span>
+<span class="lineno">  145 </span><span class="spaces">        </span><span class="istickedoff">-- @[] ++ ([] ++ ([] ++ &lt;...&gt;))@, which would make retrieving the next element an</span>
+<span class="lineno">  146 </span><span class="spaces">        </span><span class="istickedoff">-- O(depth_of_the_tree) operation in the worst case.</span>
+<span class="lineno">  147 </span><span class="spaces">        </span><span class="istickedoff">[] -&gt; flattenCostRoseGo rose1' forest2</span>
+<span class="lineno">  148 </span><span class="spaces">        </span><span class="istickedoff">-- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of</span>
+<span class="lineno">  149 </span><span class="spaces">        </span><span class="istickedoff">-- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).</span>
+<span class="lineno">  150 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; flattenCostRoseGo rose1' $ forest1' ++ forest2</span></span>
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>{-| Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
+<span class="lineno">  153 </span>time in the worst case regardless of the recursion pattern of the given 'CostRose'. -}
+<span class="lineno">  154 </span>flattenCostRose :: CostRose -&gt; CostStream
+<span class="lineno">  155 </span><span class="decl"><span class="istickedoff">flattenCostRose (CostRose cost []) = CostLast cost</span>
+<span class="lineno">  156 </span><span class="spaces"></span><span class="istickedoff">flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest</span></span>
+<span class="lineno">  157 </span>{-# INLINE flattenCostRose #-}
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>class ExMemoryUsage a where
+<span class="lineno">  160 </span>  -- Inlining the implementations of this method gave us a 1-2% speedup.
+<span class="lineno">  161 </span>  memoryUsage :: a -&gt; CostRose
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>{- Note [Alternative memory usage instances].  The `memoryUsage` function provides
+<span class="lineno">  164 </span> a measure of the size of an object for costing purposes, the idea being that
+<span class="lineno">  165 </span> the time taken to execute a builtin, and the memory used to contain its result,
+<span class="lineno">  166 </span> will depend on the size of the inputs.  The name `memoryUsage` is perhaps a
+<span class="lineno">  167 </span> misnomer: it was originally supposed to measure (in 64-bit words) the heap
+<span class="lineno">  168 </span> space required to store an object, but this is not always the correct measure
+<span class="lineno">  169 </span> to use.  For example, the time taken by `AddInteger` or `MultiplyInteger` will
+<span class="lineno">  170 </span> depend on the logarithms of the inputs (and the logarithm is proportional to
+<span class="lineno">  171 </span> the memory occupied by the inputs), and the memory occupied by the result will
+<span class="lineno">  172 </span> be some function of the memory occupied by the inputs, so for these functions
+<span class="lineno">  173 </span> the actual memory usage is a sensible size measure.  However, calling
+<span class="lineno">  174 </span> `replicateByte n b` function allocates a number of bytes which is equal to the
+<span class="lineno">  175 </span> actual value of `n`, which will be exponentially greater than the memory
+<span class="lineno">  176 </span> occupied by `n`, so this case the memory usage is not a sensible size measure.
+<span class="lineno">  177 </span> In most cases the default `memoryUsage` function returns the actual memory
+<span class="lineno">  178 </span> usage, but to deal with cases like `replicateByte` we occasionally use newtype
+<span class="lineno">  179 </span> wrappers which define a different size measure (see `IntegerCostedLiterally`
+<span class="lineno">  180 </span> below).  Polymorphic types require some care though: see Note [ExMemoryUsage
+<span class="lineno">  181 </span> for polymorphic types].
+<span class="lineno">  182 </span>-}
+<span class="lineno">  183 </span>
+<span class="lineno">  184 </span>{- Note [ExMemoryUsage for polymorphic types].  For polymorphic types such as
+<span class="lineno">  185 </span> `pair, `list`, and `array` DO NOT use newtype wrappers to define alternative
+<span class="lineno">  186 </span> size measures.  The denotations of functions which take polymorphic arguments
+<span class="lineno">  187 </span> use `SomeConstant` and this will ignore newtype wrappers and will only use the
+<span class="lineno">  188 </span> default `memoryUsage` function, which could lead to unexpected results.
+<span class="lineno">  189 </span> Furthermore, actual memory usage is typically not a good size measure for
+<span class="lineno">  190 </span> polymorphic arguments: the time taken to process a list, for example, will
+<span class="lineno">  191 </span> typically depend only on the length of the list and not the size of the
+<span class="lineno">  192 </span> contents.  Currently all such functions are parametrically polymorphic and only
+<span class="lineno">  193 </span> manipulate pointers without inspecting the contents of their polymorphic
+<span class="lineno">  194 </span> arguments, so it is reasonable to use size measures which depend only on the
+<span class="lineno">  195 </span> surface structure of polymorphic objects. -}
+<span class="lineno">  196 </span>
+<span class="lineno">  197 </span>{- We expect that all builtins which involve pairs will be constant cost and so
+<span class="lineno">  198 </span>   their memory usage will never be involved in any computations.  The memory
+<span class="lineno">  199 </span>   usage is set to maxBound so that we'll notice if this assumption is ever
+<span class="lineno">  200 </span>   violated -}
+<span class="lineno">  201 </span>instance ExMemoryUsage (a, b) where
+<span class="lineno">  202 </span>  <span class="decl"><span class="istickedoff">memoryUsage _ = singletonRose maxBound</span></span>
+<span class="lineno">  203 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>{- Note the the `memoryUsage` of an empty list is zero.  This shouldn't cause any
+<span class="lineno">  206 </span> problems, but be sure to check that no costing function involving lists can
+<span class="lineno">  207 </span> return zero for an empty list (or any other input).
+<span class="lineno">  208 </span>-}
+<span class="lineno">  209 </span>{- Calculating the memory usage by processing the spine of the list in batches.
+<span class="lineno">  210 </span> This avoids forcing the entire list upfront just to compute the length, instead
+<span class="lineno">  211 </span> producing costs incrementally as CostRose children. Each batch of 100 elements
+<span class="lineno">  212 </span> produces one cost node, which is more efficient than per-element costing while
+<span class="lineno">  213 </span> still avoiding full spine traversal before the builtin executes.
+<span class="lineno">  214 </span>
+<span class="lineno">  215 </span> We use 'dropN' which is statically unrolled at compile time via type-level
+<span class="lineno">  216 </span> programming (see Note [Static loop unrolling] in PlutusCore.Unroll). This
+<span class="lineno">  217 </span> avoids the overhead of 'splitAt' which allocates a tuple and a new list for
+<span class="lineno">  218 </span> the prefix. The statically unrolled pattern matching is significantly faster. -}
+<span class="lineno">  219 </span>instance ExMemoryUsage [a] where
+<span class="lineno">  220 </span>  <span class="decl"><span class="istickedoff">memoryUsage = go</span>
+<span class="lineno">  221 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  222 </span><span class="spaces">      </span><span class="istickedoff">go xs = case dropN @100 xs of</span>
+<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">Just rest -&gt; CostRose 100 [go rest]</span>
+<span class="lineno">  224 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt; singletonRose (fromIntegral (length xs))</span></span>
+<span class="lineno">  225 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  226 </span>
+<span class="lineno">  227 </span>{- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
+<span class="lineno">  228 </span> problems, but be sure to check that no costing function involving arrays can
+<span class="lineno">  229 </span> return zero for an empty array (or any other input).
+<span class="lineno">  230 </span>-}
+<span class="lineno">  231 </span>instance ExMemoryUsage (Vector a) where
+<span class="lineno">  232 </span>  <span class="decl"><span class="istickedoff">memoryUsage l = singletonRose . fromIntegral $ Vector.length l</span></span>
+<span class="lineno">  233 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  234 </span>
+<span class="lineno">  235 </span>instance (Closed uni, uni `Everywhere` ExMemoryUsage) =&gt; ExMemoryUsage (Some (ValueOf uni)) where
+<span class="lineno">  236 </span>  <span class="decl"><span class="istickedoff">memoryUsage (Some (ValueOf uni x)) = bring <span class="nottickedoff">(Proxy @ExMemoryUsage)</span> uni (memoryUsage x)</span></span>
+<span class="lineno">  237 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  238 </span>
+<span class="lineno">  239 </span>instance ExMemoryUsage () where
+<span class="lineno">  240 </span>  <span class="decl"><span class="istickedoff">memoryUsage () = singletonRose 1</span></span>
+<span class="lineno">  241 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  242 </span>
+<span class="lineno">  243 </span>{-| Calculate a 'CostingInteger' for the size of the given 'Integer', measured in
+<span class="lineno">  244 </span>64-bit words.  This is the default size measure for `Integer`s. -}
+<span class="lineno">  245 </span>memoryUsageInteger :: Integer -&gt; CostingInteger
+<span class="lineno">  246 </span>-- integerLog2 is unspecified for 0 (but in practice returns -1)
+<span class="lineno">  247 </span>{-^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
+<span class="lineno">  248 </span>keep this special case for the time being though. -}
+<span class="lineno">  249 </span><span class="decl"><span class="istickedoff">memoryUsageInteger 0 = 1</span>
+<span class="lineno">  250 </span><span class="spaces"></span><span class="istickedoff">-- Assume 64-bit words</span>
+<span class="lineno">  251 </span><span class="spaces"></span><span class="istickedoff">memoryUsageInteger i = fromIntegral (integerLog2 (abs i) `div` 64 + 1)</span></span>
+<span class="lineno">  252 </span>-- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
+<span class="lineno">  253 </span>-- function anyway.
+<span class="lineno">  254 </span>{-# OPAQUE memoryUsageInteger #-}
+<span class="lineno">  255 </span>
+<span class="lineno">  256 </span>instance ExMemoryUsage Integer where
+<span class="lineno">  257 </span>  <span class="decl"><span class="istickedoff">memoryUsage i = singletonRose $ memoryUsageInteger i</span></span>
+<span class="lineno">  258 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  259 </span>
+<span class="lineno">  260 </span>instance ExMemoryUsage Natural where
+<span class="lineno">  261 </span>  -- Same as Integer since we are going via Integer
+<span class="lineno">  262 </span>  <span class="decl"><span class="nottickedoff">memoryUsage n = memoryUsage $ toInteger n</span></span>
+<span class="lineno">  263 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  264 </span>
+<span class="lineno">  265 </span>instance ExMemoryUsage Word8 where
+<span class="lineno">  266 </span>  <span class="decl"><span class="istickedoff">memoryUsage _ = singletonRose 1</span></span>
+<span class="lineno">  267 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  268 </span>
+<span class="lineno">  269 </span>instance ExMemoryUsage Word64 where
+<span class="lineno">  270 </span>  <span class="decl"><span class="nottickedoff">memoryUsage _ = singletonRose 1</span></span>
+<span class="lineno">  271 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  272 </span>
+<span class="lineno">  273 </span>{-| When invoking a built-in function, a value of type `NumBytesCostedAsNumWords`
+<span class="lineno">  274 </span>   can be used transparently as a built-in Integer but with a different size
+<span class="lineno">  275 </span>   measure: see Note [Integral types as Integer].  This is required by the
+<span class="lineno">  276 </span>   `integerToByteString` builtin, which takes an argument `w` specifying the
+<span class="lineno">  277 </span>   width (in bytes) of the output bytestring (zero-padded to the desired size).
+<span class="lineno">  278 </span>   The memory consumed by the function is given by `w`, *not* the size of `w`.
+<span class="lineno">  279 </span>   The `NumBytesCostedAsNumWords` type wraps an Int `w` in a newtype whose
+<span class="lineno">  280 </span>   `ExMemoryUsage` is equal to the number of eight-byte words required to
+<span class="lineno">  281 </span>   contain `w` bytes, allowing its costing function to work properly.  We also
+<span class="lineno">  282 </span>   use this for `replicateByte`.  If this is used to wrap an argument in the
+<span class="lineno">  283 </span>   denotation of a builtin then it *MUST* also be used to wrap the same argument
+<span class="lineno">  284 </span>   in the relevant budgeting benchmark. -}
+<span class="lineno">  285 </span>newtype NumBytesCostedAsNumWords = NumBytesCostedAsNumWords {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">unNumBytesCostedAsNumWords</span></span></span> :: Integer}
+<span class="lineno">  286 </span>
+<span class="lineno">  287 </span>instance ExMemoryUsage NumBytesCostedAsNumWords where
+<span class="lineno">  288 </span>  <span class="decl"><span class="istickedoff">memoryUsage (NumBytesCostedAsNumWords n) = singletonRose . fromIntegral $ ((abs n - 1) `div` 8) + 1</span></span>
+<span class="lineno">  289 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  290 </span>
+<span class="lineno">  291 </span>-- Note that this uses `fromIntegral`, which will narrow large values to
+<span class="lineno">  292 </span>-- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
+<span class="lineno">  293 </span>-- realistic input should be that large; however if you're going to use this then be
+<span class="lineno">  294 </span>-- sure to convince yourself that it's safe.
+<span class="lineno">  295 </span>
+<span class="lineno">  296 </span>{-| A wrapper for `Integer`s whose &quot;memory usage&quot; for costing purposes is the
+<span class="lineno">  297 </span>   absolute value of the `Integer`.  This is used for costing built-in functions
+<span class="lineno">  298 </span>   such as `shiftByteString` and `rotateByteString`, where the cost may depend
+<span class="lineno">  299 </span>   on the actual value of the shift argument, not its size.  If this is used to
+<span class="lineno">  300 </span>   wrap an argument in the denotation of a builtin then it *MUST* also be used
+<span class="lineno">  301 </span>   to wrap the same argument in the relevant budgeting benchmark. -}
+<span class="lineno">  302 </span>newtype IntegerCostedLiterally = IntegerCostedLiterally {<span class="istickedoff"><span class="decl"><span class="istickedoff">unIntegerCostedLiterally</span></span></span> :: Integer}
+<span class="lineno">  303 </span>
+<span class="lineno">  304 </span>instance ExMemoryUsage IntegerCostedLiterally where
+<span class="lineno">  305 </span>  <span class="decl"><span class="istickedoff">memoryUsage (IntegerCostedLiterally n) = singletonRose . fromIntegral $ abs n</span></span>
+<span class="lineno">  306 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  307 </span>
+<span class="lineno">  308 </span>-- Note that this uses `fromIntegral`, which will narrow large values to
+<span class="lineno">  309 </span>-- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
+<span class="lineno">  310 </span>-- realistic input should be that large; however if you're going to use this then be
+<span class="lineno">  311 </span>-- sure to convince yourself that it's safe.
+<span class="lineno">  312 </span>
+<span class="lineno">  313 </span>{- Bytestrings: we want the empty bytestring and bytestrings of length 1-8 to have
+<span class="lineno">  314 </span>   size 1, bytestrings of length 9-16 to have size 2, etc.  Note that (-1)
+<span class="lineno">  315 </span>   `quot` 8 == 0, so the code below gives the correct answer for the empty
+<span class="lineno">  316 </span>   bytestring.  -}
+<span class="lineno">  317 </span>instance ExMemoryUsage BS.ByteString where
+<span class="lineno">  318 </span>  -- Don't use `div` here!  That gives 0 instead of 1 for the empty bytestring.
+<span class="lineno">  319 </span>  <span class="decl"><span class="istickedoff">memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1</span>
+<span class="lineno">  320 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  321 </span><span class="spaces">      </span><span class="istickedoff">n = BS.length bs</span></span>
+<span class="lineno">  322 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  323 </span>
+<span class="lineno">  324 </span>instance ExMemoryUsage T.Text where
+<span class="lineno">  325 </span>  -- This says that @Text@ allocates 1 'CostingInteger' worth of memory (i.e. 8 bytes) per
+<span class="lineno">  326 </span>  -- character, which is a conservative overestimate (i.e. is safe) regardless of whether @Text@
+<span class="lineno">  327 </span>  -- is UTF16-based (like it used to when we implemented this instance) or UTF8-based (like it is
+<span class="lineno">  328 </span>  -- now).
+<span class="lineno">  329 </span>  --
+<span class="lineno">  330 </span>  -- Note that the @ExMemoryUsage Char@ instance does not affect this one, this is for performance
+<span class="lineno">  331 </span>  -- reasons, since @T.length@ is O(1) unlike @sum . map (memoryUsage @Char) . T.unpack@. We used
+<span class="lineno">  332 </span>  -- to have the latter, but changed it to the former for easy performance gains.
+<span class="lineno">  333 </span>  --
+<span class="lineno">  334 </span>  -- We may want to make this a bit less of an overestimate in future just not to overcharge
+<span class="lineno">  335 </span>  -- users.
+<span class="lineno">  336 </span>  <span class="decl"><span class="istickedoff">memoryUsage = singletonRose . fromIntegral . T.length</span></span>
+<span class="lineno">  337 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  338 </span>
+<span class="lineno">  339 </span>instance ExMemoryUsage Int where
+<span class="lineno">  340 </span>  <span class="decl"><span class="nottickedoff">memoryUsage _ = singletonRose 1</span></span>
+<span class="lineno">  341 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  342 </span>
+<span class="lineno">  343 </span>-- If you ever change this, also change @ExMemoryUsage T.Text@.
+<span class="lineno">  344 </span>instance ExMemoryUsage Char where
+<span class="lineno">  345 </span>  <span class="decl"><span class="nottickedoff">memoryUsage _ = singletonRose 1</span></span>
+<span class="lineno">  346 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  347 </span>
+<span class="lineno">  348 </span>instance ExMemoryUsage Bool where
+<span class="lineno">  349 </span>  <span class="decl"><span class="istickedoff">memoryUsage _ = singletonRose 1</span></span>
+<span class="lineno">  350 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  351 </span>
+<span class="lineno">  352 </span>{-| Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
+<span class="lineno">  353 </span>different ways to add two 'CostRose's (e.g. we could optimize the case when one of the roses
+<span class="lineno">  354 </span>contains only one element or we can make the function lazy in the second argument). Here we chose
+<span class="lineno">  355 </span>the version that is most efficient when the first argument is a statically known constant (we
+<span class="lineno">  356 </span>didn't do any benchmarking though, so it may not be the most efficient one) as we need this
+<span class="lineno">  357 </span>below. -}
+<span class="lineno">  358 </span>addConstantRose :: CostRose -&gt; CostRose -&gt; CostRose
+<span class="lineno">  359 </span><span class="decl"><span class="istickedoff">addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =</span>
+<span class="lineno">  360 </span><span class="spaces">  </span><span class="istickedoff">CostRose (cost1 + cost2) (forest1 ++ forest2)</span></span>
+<span class="lineno">  361 </span>{-# INLINE addConstantRose #-}
+<span class="lineno">  362 </span>
+<span class="lineno">  363 </span>{- A naive traversal for size.  This accounts for the number of nodes in a Data
+<span class="lineno">  364 </span>   object and also the sizes of the contents of the nodes.  This is not ideal,
+<span class="lineno">  365 </span>   but it seems to be the best we can do.  At present this only comes into play
+<span class="lineno">  366 </span>   for 'equalsData', which is implemented using the derived implementation of
+<span class="lineno">  367 </span>   '==' (fortunately the costing functions are lazy, so this won't be called for
+<span class="lineno">  368 </span>   things like 'unBData' which have constant costing functions because they only
+<span class="lineno">  369 </span>   have to look at the top node).  The problem is that when we call 'equalsData'
+<span class="lineno">  370 </span>   the comparison will take place entirely in Haskell, so the costing functions
+<span class="lineno">  371 </span>   for the contents of 'I' and 'B' nodes won't be called.  Thus if we just
+<span class="lineno">  372 </span>   counted the number of nodes the sizes of 'I 2' and 'B &lt;huge bytestring&gt;'
+<span class="lineno">  373 </span>   would be the same but they'd take different amounts of time to compare.  It's
+<span class="lineno">  374 </span>   not clear how to trade off the costs of processing a node and processing the
+<span class="lineno">  375 </span>   contents of nodes: the implementation below compromises by charging four
+<span class="lineno">  376 </span>   units per node, but we may wish to revise this after experimentation.
+<span class="lineno">  377 </span>-}
+<span class="lineno">  378 </span>instance ExMemoryUsage Data where
+<span class="lineno">  379 </span>  <span class="decl"><span class="istickedoff">memoryUsage = sizeData</span>
+<span class="lineno">  380 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  381 </span><span class="spaces">      </span><span class="istickedoff">dataNodeRose = singletonRose 4</span>
+<span class="lineno">  382 </span><span class="spaces">      </span><span class="istickedoff">{-# INLINE dataNodeRose #-}</span>
+<span class="lineno">  383 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  384 </span><span class="spaces">      </span><span class="istickedoff">sizeData d = addConstantRose dataNodeRose $ case d of</span>
+<span class="lineno">  385 </span><span class="spaces">        </span><span class="istickedoff">-- TODO: include the size of the tag, but not just yet. See PLT-1176.</span>
+<span class="lineno">  386 </span><span class="spaces">        </span><span class="istickedoff">Constr _ l -&gt; CostRose 0 $ l &lt;&amp;&gt; sizeData</span>
+<span class="lineno">  387 </span><span class="spaces">        </span><span class="istickedoff">Map l -&gt; CostRose 0 $ l &gt;&gt;= \(d1, d2) -&gt; [d1, d2] &lt;&amp;&gt; sizeData</span>
+<span class="lineno">  388 </span><span class="spaces">        </span><span class="istickedoff">List l -&gt; CostRose 0 $ l &lt;&amp;&gt; sizeData</span>
+<span class="lineno">  389 </span><span class="spaces">        </span><span class="istickedoff">I n -&gt; memoryUsage n</span>
+<span class="lineno">  390 </span><span class="spaces">        </span><span class="istickedoff">B b -&gt; memoryUsage b</span></span>
+<span class="lineno">  391 </span>
+<span class="lineno">  392 </span>{-| A wrapper for 'Data' whose 'ExMemoryUsage' counts nodes via lazy traversal.
+<span class="lineno">  393 </span>Used by UnValueData builtin: measures INPUT Data node count.  The actual memory
+<span class="lineno">  394 </span>formula (slope × nodeCount + intercept) is applied in the JSON cost model. -}
+<span class="lineno">  395 </span>newtype DataNodeCount = DataNodeCount Data
+<span class="lineno">  396 </span>
+<span class="lineno">  397 </span>instance ExMemoryUsage DataNodeCount where
+<span class="lineno">  398 </span>  <span class="decl"><span class="istickedoff">memoryUsage (DataNodeCount dat) = go dat</span>
+<span class="lineno">  399 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  400 </span><span class="spaces">      </span><span class="istickedoff">go d = CostRose 1 $</span>
+<span class="lineno">  401 </span><span class="spaces">        </span><span class="istickedoff">case d of</span>
+<span class="lineno">  402 </span><span class="spaces">          </span><span class="istickedoff">Constr _ ds -&gt; ds &lt;&amp;&gt; <span class="nottickedoff">go</span></span>
+<span class="lineno">  403 </span><span class="spaces">          </span><span class="istickedoff">Map pairs -&gt; pairs &gt;&gt;= \(d1, d2) -&gt; [d1, d2] &lt;&amp;&gt; go</span>
+<span class="lineno">  404 </span><span class="spaces">          </span><span class="istickedoff">List ds -&gt; ds &lt;&amp;&gt; <span class="nottickedoff">go</span></span>
+<span class="lineno">  405 </span><span class="spaces">          </span><span class="istickedoff">I _ -&gt; []</span>
+<span class="lineno">  406 </span><span class="spaces">          </span><span class="istickedoff">B _ -&gt; []</span>
+<span class="lineno">  407 </span><span class="spaces">      </span><span class="istickedoff">{-# INLINE go #-}</span></span>
+<span class="lineno">  408 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  409 </span>
+<span class="lineno">  410 </span>instance ExMemoryUsage Value where
+<span class="lineno">  411 </span>  <span class="decl"><span class="istickedoff">memoryUsage = singletonRose . fromIntegral . Value.totalSize</span></span>
+<span class="lineno">  412 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  413 </span>
+<span class="lineno">  414 </span>-- | Measure the size of a `Value` by its `Value.totalSize`.
+<span class="lineno">  415 </span>newtype ValueTotalSize = ValueTotalSize {<span class="istickedoff"><span class="decl"><span class="istickedoff">unValueTotalSize</span></span></span> :: Value}
+<span class="lineno">  416 </span>
+<span class="lineno">  417 </span>instance ExMemoryUsage ValueTotalSize where
+<span class="lineno">  418 </span>  <span class="decl"><span class="istickedoff">memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize</span></span>
+<span class="lineno">  419 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  420 </span>
+<span class="lineno">  421 </span>{- Note [ValueMaxDepth]
+<span class="lineno">  422 </span>This newtype wrapper measures the sum of logarithms of outer and max inner sizes
+<span class="lineno">  423 </span>for two-level map structures like Value.
+<span class="lineno">  424 </span>
+<span class="lineno">  425 </span>For a Value (Map PolicyId (Map TokenName Quantity)), the lookup cost is:
+<span class="lineno">  426 </span>O(log m + log k) where:
+<span class="lineno">  427 </span>  - m is the number of policies (outer map size)
+<span class="lineno">  428 </span>  - k is the maximum number of tokens in any policy (max inner map size)
+<span class="lineno">  429 </span>
+<span class="lineno">  430 </span>This is based on experimental evidence showing that two-level map lookup time
+<span class="lineno">  431 </span>scales linearly with the sum of depths (log m + log k), not their maximum.
+<span class="lineno">  432 </span>
+<span class="lineno">  433 </span>Used for builtins like lookupCoin where worst-case performance requires
+<span class="lineno">  434 </span>traversing both the outer map to find the policy AND the largest inner map
+<span class="lineno">  435 </span>to find the token.
+<span class="lineno">  436 </span>
+<span class="lineno">  437 </span>If this is used to wrap an argument in the denotation of a builtin then it *MUST* also
+<span class="lineno">  438 </span>be used to wrap the same argument in the relevant budgeting benchmark.
+<span class="lineno">  439 </span>-}
+<span class="lineno">  440 </span>newtype ValueMaxDepth
+<span class="lineno">  441 </span>  = ValueMaxDepth {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">unValueMaxDepth</span></span></span> :: Value}
+<span class="lineno">  442 </span>
+<span class="lineno">  443 </span>instance ExMemoryUsage ValueMaxDepth where
+<span class="lineno">  444 </span>  <span class="decl"><span class="istickedoff">memoryUsage (ValueMaxDepth v) =</span>
+<span class="lineno">  445 </span><span class="spaces">    </span><span class="istickedoff">let outerSize = Map.size (Value.unpack v)</span>
+<span class="lineno">  446 </span><span class="spaces">        </span><span class="istickedoff">innerSize = Value.maxInnerSize v</span>
+<span class="lineno">  447 </span><span class="spaces">        </span><span class="istickedoff">logOuter = if outerSize &gt; 0 then integerLog2 (toInteger outerSize) + 1 else 0</span>
+<span class="lineno">  448 </span><span class="spaces">        </span><span class="istickedoff">logInner = if innerSize &gt; 0 then integerLog2 (toInteger innerSize) + 1 else 0</span>
+<span class="lineno">  449 </span><span class="spaces">     </span><span class="istickedoff">in singletonRose $ fromIntegral (logOuter + logInner)</span></span>
+<span class="lineno">  450 </span>  {-# INLINE memoryUsage #-}
+<span class="lineno">  451 </span>
+<span class="lineno">  452 </span>{- Note [Costing constant-size types]
+<span class="lineno">  453 </span>The memory usage of each of the BLS12-381 types is constant, so we may be able
+<span class="lineno">  454 </span>to optimise things a little by ensuring that we don't re-compute the size of
+<span class="lineno">  455 </span>(say) a G1 element every time one is used. GHC will probably do this anyway, but
+<span class="lineno">  456 </span>we make sure by defining a top level function for each of the size measures and
+<span class="lineno">  457 </span>getting the memoryUsage instances to call those.
+<span class="lineno">  458 </span>-}
+<span class="lineno">  459 </span>
+<span class="lineno">  460 </span>g1ElementCost :: CostRose
+<span class="lineno">  461 </span><span class="decl"><span class="istickedoff">g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8</span></span>
+<span class="lineno">  462 </span>{-# OPAQUE g1ElementCost #-}
+<span class="lineno">  463 </span>
+<span class="lineno">  464 </span>instance ExMemoryUsage BLS12_381.G1.Element where
+<span class="lineno">  465 </span>  <span class="decl"><span class="istickedoff">memoryUsage _ = g1ElementCost</span></span>
+<span class="lineno">  466 </span>
+<span class="lineno">  467 </span>-- Should be 18
+<span class="lineno">  468 </span>
+<span class="lineno">  469 </span>g2ElementCost :: CostRose
+<span class="lineno">  470 </span><span class="decl"><span class="istickedoff">g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8</span></span>
+<span class="lineno">  471 </span>{-# OPAQUE g2ElementCost #-}
+<span class="lineno">  472 </span>
+<span class="lineno">  473 </span>instance ExMemoryUsage BLS12_381.G2.Element where
+<span class="lineno">  474 </span>  <span class="decl"><span class="istickedoff">memoryUsage _ = g2ElementCost</span></span>
+<span class="lineno">  475 </span>
+<span class="lineno">  476 </span>-- Should be 36
+<span class="lineno">  477 </span>
+<span class="lineno">  478 </span>mlResultElementCost :: CostRose
+<span class="lineno">  479 </span><span class="decl"><span class="istickedoff">mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8</span></span>
+<span class="lineno">  480 </span>{-# OPAQUE mlResultElementCost #-}
+<span class="lineno">  481 </span>
+<span class="lineno">  482 </span>instance ExMemoryUsage BLS12_381.Pairing.MlResult where
+<span class="lineno">  483 </span>  <span class="decl"><span class="istickedoff">memoryUsage _ = mlResultElementCost</span></span>
+<span class="lineno">  484 </span>
+<span class="lineno">  485 </span>-- Should be 72
+
+</pre>
+</body>
+</html>

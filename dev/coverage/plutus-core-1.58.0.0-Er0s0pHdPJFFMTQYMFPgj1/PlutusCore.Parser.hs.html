@@ -1,0 +1,176 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TupleSections #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>-- | Parsers for PLC terms in DefaultUni.
+<span class="lineno">    5 </span>module PlutusCore.Parser
+<span class="lineno">    6 </span>  ( module Export
+<span class="lineno">    7 </span>  , program
+<span class="lineno">    8 </span>  , parseProgram
+<span class="lineno">    9 </span>  , parseTerm
+<span class="lineno">   10 </span>  , parseType
+<span class="lineno">   11 </span>  , SourcePos
+<span class="lineno">   12 </span>  , ParserError (..)
+<span class="lineno">   13 </span>  ) where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Annotation
+<span class="lineno">   16 </span>import PlutusCore.Core (Program (..), Term (..), Type)
+<span class="lineno">   17 </span>import PlutusCore.Default
+<span class="lineno">   18 </span>import PlutusCore.Error (ParserError (..), ParserErrorBundle)
+<span class="lineno">   19 </span>import PlutusCore.MkPlc (mkIterApp, mkIterInst)
+<span class="lineno">   20 </span>import PlutusCore.Name.Unique (Name, TyName)
+<span class="lineno">   21 </span>import PlutusCore.Parser.Builtin as Export
+<span class="lineno">   22 </span>import PlutusCore.Parser.ParserCommon as Export
+<span class="lineno">   23 </span>import PlutusCore.Parser.Type as Export
+<span class="lineno">   24 </span>import PlutusCore.Quote (MonadQuote)
+<span class="lineno">   25 </span>import PlutusCore.Version
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>import Control.Monad (when)
+<span class="lineno">   28 </span>import Control.Monad.Except (MonadError)
+<span class="lineno">   29 </span>import Data.Text (Text)
+<span class="lineno">   30 </span>import Data.Word (Word64)
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import Text.Megaparsec (MonadParsec (notFollowedBy), anySingle, choice, many, some, try)
+<span class="lineno">   33 </span>import Text.Megaparsec.Char.Lexer qualified as Lex
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- | A parsable PLC term.
+<span class="lineno">   36 </span>type PTerm = Term TyName Name DefaultUni DefaultFun SrcSpan
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>varTerm :: Parser PTerm
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">varTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">Var sp &lt;$&gt; name</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>tyAbsTerm :: Parser PTerm
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">tyAbsTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">inParens $ TyAbs sp &lt;$&gt; (symbol &quot;abs&quot; *&gt; trailingWhitespace tyName) &lt;*&gt; kind &lt;*&gt; term</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>lamTerm :: Parser PTerm
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">lamTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">inParens $ LamAbs sp &lt;$&gt; (symbol &quot;lam&quot; *&gt; trailingWhitespace name) &lt;*&gt; pType &lt;*&gt; term</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>appTerm :: Parser PTerm
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">appTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">-- TODO: should not use the same `sp` for all arguments.</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">inBrackets $ mkIterApp &lt;$&gt; term &lt;*&gt; (fmap (sp,) &lt;$&gt; some term)</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>conTerm :: Parser PTerm
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">conTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">inParens $ Constant sp &lt;$&gt; (symbol &quot;con&quot; *&gt; constant)</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>builtinTerm :: Parser PTerm
+<span class="lineno">   60 </span><span class="decl"><span class="istickedoff">builtinTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">inParens $ Builtin sp &lt;$&gt; (symbol &quot;builtin&quot; *&gt; builtinFunction)</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>tyInstTerm :: Parser PTerm
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">tyInstTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">-- TODO: should not use the same `sp` for all arguments.</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">inBraces $ mkIterInst &lt;$&gt; term &lt;*&gt; (fmap (sp,) &lt;$&gt; many pType)</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>unwrapTerm :: Parser PTerm
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">unwrapTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">inParens $ Unwrap sp &lt;$&gt; (symbol &quot;unwrap&quot; *&gt; term)</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>iwrapTerm :: Parser PTerm
+<span class="lineno">   73 </span><span class="decl"><span class="istickedoff">iwrapTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">inParens $ IWrap sp &lt;$&gt; (symbol &quot;iwrap&quot; *&gt; pType) &lt;*&gt; pType &lt;*&gt; term</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>errorTerm :: Parser PTerm
+<span class="lineno">   77 </span><span class="decl"><span class="istickedoff">errorTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">inParens $ Error sp &lt;$&gt; (symbol &quot;error&quot; *&gt; pType)</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>constrTerm :: Parser PTerm
+<span class="lineno">   81 </span><span class="decl"><span class="istickedoff">constrTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">inParens $ do</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">let maxTag = fromIntegral (maxBound :: Word64)</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="istickedoff">ty &lt;- symbol &quot;constr&quot; *&gt; pType</span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="istickedoff">tag :: Integer &lt;- lexeme Lex.decimal</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff">args &lt;- many term</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff">whenVersion (\v -&gt; v &lt; plcVersion110) $ <span class="nottickedoff">fail &quot;'constr' is not allowed before version 1.1.0&quot;</span></span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">when (tag &gt; maxTag) $ <span class="nottickedoff">fail &quot;constr tag too large: must be a legal Word64 value&quot;</span></span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">pure $ Constr sp ty (fromIntegral tag) args</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>caseTerm :: Parser PTerm
+<span class="lineno">   92 </span><span class="decl"><span class="istickedoff">caseTerm = withSpan $ \sp -&gt;</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="istickedoff">inParens $ do</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">res &lt;- Case sp &lt;$&gt; (symbol &quot;case&quot; *&gt; pType) &lt;*&gt; term &lt;*&gt; many term</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="istickedoff">whenVersion (\v -&gt; v &lt; plcVersion110) $ <span class="nottickedoff">fail &quot;'case' is not allowed before version 1.1.0&quot;</span></span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">pure res</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>-- | Parser for all PLC terms.
+<span class="lineno">   99 </span>term :: Parser PTerm
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">term = leadingWhitespace go</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="istickedoff">go =</span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="istickedoff">choice $</span>
+<span class="lineno">  104 </span><span class="spaces">        </span><span class="istickedoff">map</span>
+<span class="lineno">  105 </span><span class="spaces">          </span><span class="istickedoff">try</span>
+<span class="lineno">  106 </span><span class="spaces">          </span><span class="istickedoff">[ tyAbsTerm</span>
+<span class="lineno">  107 </span><span class="spaces">          </span><span class="istickedoff">, lamTerm</span>
+<span class="lineno">  108 </span><span class="spaces">          </span><span class="istickedoff">, appTerm</span>
+<span class="lineno">  109 </span><span class="spaces">          </span><span class="istickedoff">, conTerm</span>
+<span class="lineno">  110 </span><span class="spaces">          </span><span class="istickedoff">, builtinTerm</span>
+<span class="lineno">  111 </span><span class="spaces">          </span><span class="istickedoff">, tyInstTerm</span>
+<span class="lineno">  112 </span><span class="spaces">          </span><span class="istickedoff">, unwrapTerm</span>
+<span class="lineno">  113 </span><span class="spaces">          </span><span class="istickedoff">, iwrapTerm</span>
+<span class="lineno">  114 </span><span class="spaces">          </span><span class="istickedoff">, errorTerm</span>
+<span class="lineno">  115 </span><span class="spaces">          </span><span class="istickedoff">, varTerm</span>
+<span class="lineno">  116 </span><span class="spaces">          </span><span class="istickedoff">, constrTerm</span>
+<span class="lineno">  117 </span><span class="spaces">          </span><span class="istickedoff">, caseTerm</span>
+<span class="lineno">  118 </span><span class="spaces">          </span><span class="istickedoff">]</span></span>
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>{-| Parse a PLC program. The resulting program will have fresh names. The
+<span class="lineno">  121 </span>underlying monad must be capable of handling any parse errors.  This passes
+<span class="lineno">  122 </span>&quot;test&quot; to the parser as the name of the input stream; to supply a name
+<span class="lineno">  123 </span>explicity, use `parse program &lt;name&gt; &lt;input&gt;`. -}
+<span class="lineno">  124 </span>parseProgram
+<span class="lineno">  125 </span>  :: (MonadError ParserErrorBundle m, MonadQuote m)
+<span class="lineno">  126 </span>  =&gt; Text
+<span class="lineno">  127 </span>  -&gt; m (Program TyName Name DefaultUni DefaultFun SrcSpan)
+<span class="lineno">  128 </span><span class="decl"><span class="istickedoff">parseProgram = parseGen program</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>-- | Parser for PLC programs.
+<span class="lineno">  131 </span>program :: Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+<span class="lineno">  132 </span><span class="decl"><span class="istickedoff">program = leadingWhitespace go</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="istickedoff">go = do</span>
+<span class="lineno">  135 </span><span class="spaces">      </span><span class="istickedoff">prog &lt;- withSpan $ \sp -&gt; inParens $ do</span>
+<span class="lineno">  136 </span><span class="spaces">        </span><span class="istickedoff">v &lt;- symbol &quot;program&quot; *&gt; version</span>
+<span class="lineno">  137 </span><span class="spaces">        </span><span class="istickedoff">withVersion v $ Program <span class="nottickedoff">sp</span> v &lt;$&gt; term</span>
+<span class="lineno">  138 </span><span class="spaces">      </span><span class="istickedoff">notFollowedBy anySingle</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="istickedoff">pure prog</span></span>
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>{-| Parse a PLC term. The resulting program will have fresh names. The underlying monad
+<span class="lineno">  142 </span>must be capable of handling any parse errors. -}
+<span class="lineno">  143 </span>parseTerm
+<span class="lineno">  144 </span>  :: (MonadError ParserErrorBundle m, MonadQuote m)
+<span class="lineno">  145 </span>  =&gt; Text -&gt; m (Term TyName Name DefaultUni DefaultFun SrcSpan)
+<span class="lineno">  146 </span><span class="decl"><span class="istickedoff">parseTerm = parseGen term</span></span>
+<span class="lineno">  147 </span>
+<span class="lineno">  148 </span>{-| Parse a PLC type. The resulting program will have fresh names. The underlying monad
+<span class="lineno">  149 </span>must be capable of handling any parse errors. -}
+<span class="lineno">  150 </span>parseType
+<span class="lineno">  151 </span>  :: (MonadError ParserErrorBundle m, MonadQuote m)
+<span class="lineno">  152 </span>  =&gt; Text -&gt; m (Type TyName DefaultUni SrcSpan)
+<span class="lineno">  153 </span><span class="decl"><span class="nottickedoff">parseType = parseGen pType</span></span>
+
+</pre>
+</body>
+</html>

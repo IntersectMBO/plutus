@@ -1,0 +1,543 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Data.Vector.Orphans</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.html"
+	><span class="hs-identifier"
+	  >Data.Hashable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	><span class="hs-identifier"
+	  >Hashable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#hashWithSalt"
+	><span class="hs-identifier"
+	  >hashWithSalt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html"
+	><span class="hs-identifier"
+	  >Data.Vector.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Strict</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Flat.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Flat.Instances.Vector.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Vector</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682061722"
+      ><span id="local-6989586621682061748"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-type"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682061722"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-type"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#Vector"
+	    ><span class="hs-identifier hs-type"
+	      >Strict.Vector</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682061722"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682061754"
+      ><span class="annot"
+	><span class="annottext"
+	  >hashWithSalt :: Int -&gt; Vector a -&gt; Int
+</span
+	  ><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#hashWithSalt"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >hashWithSalt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; a -&gt; Int) -&gt; Int -&gt; Vector a -&gt; Int
+forall a b. (a -&gt; b -&gt; a) -&gt; a -&gt; Vector b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#foldl%27"
+	><span class="hs-identifier hs-var"
+	  >Strict.foldl'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; a -&gt; Int
+forall a. Hashable a =&gt; Int -&gt; a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/hashable-1.5.1.0/docs/src/Data.Hashable.Class.html#hashWithSalt"
+	><span class="hs-identifier hs-var"
+	  >hashWithSalt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-comment"
+      >{- The `flat` library does not provide a `Flat` instance for
+`Vector.Strict.Vector`.  We could encode and decode strict vectors by converting
+them to and from lazy vectors (for which there is a `Flat` instance), but
+experiments show that deserialisation is actually faster by about 5-10% if we
+encode vectors as lists.  This incurs a slight size penalty (lists require one
+bit of overhead per entry whereas vectors can be encoded with an overhead of one
+byte per 255 elements), but this is offset by the decoding speedup.  Encoding
+vectors as lists also simplifies maintenance and specification. -}</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682061730"
+      ><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682061730"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#Vector"
+	  ><span class="hs-identifier hs-type"
+	    >Strict.Vector</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682061730"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682061764"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: Vector a -&gt; Int -&gt; Int
+</span
+	  ><a href="#local-6989586621682061764"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; Int -&gt; Int
+forall a. Flat a =&gt; a -&gt; Int -&gt; Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; Int -&gt; Int) -&gt; (Vector a -&gt; [a]) -&gt; Vector a -&gt; Int -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; [a]
+forall a. Vector a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Strict.toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682061769"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Vector a -&gt; Encoding
+</span
+	  ><a href="#local-6989586621682061769"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; Encoding
+forall a. Flat a =&gt; a -&gt; Encoding
+</span
+	><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; Encoding) -&gt; (Vector a -&gt; [a]) -&gt; Vector a -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; [a]
+forall a. Vector a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Strict.toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682061774"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (Vector a)
+</span
+	  ><a href="#local-6989586621682061774"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; Vector a
+forall a. [a] -&gt; Vector a
+</span
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Strict.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; Vector a) -&gt; Get [a] -&gt; Get (Vector a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get [a]
+forall a. Flat a =&gt; Get a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

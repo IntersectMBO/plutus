@@ -1,0 +1,593 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE BlockArguments #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    5 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TupleSections #-}
+<span class="lineno">    7 </span>{-# LANGUAGE ViewPatterns #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>module PlutusCore.Value
+<span class="lineno">   10 </span>  ( Value -- Do not expose data constructor
+<span class="lineno">   11 </span>  , K -- Do not expose data constructor
+<span class="lineno">   12 </span>  , k
+<span class="lineno">   13 </span>  , unK
+<span class="lineno">   14 </span>  , maxKeyLen
+<span class="lineno">   15 </span>  , Quantity -- Do not expose data constructor
+<span class="lineno">   16 </span>  , quantity
+<span class="lineno">   17 </span>  , unQuantity
+<span class="lineno">   18 </span>  , zeroQuantity
+<span class="lineno">   19 </span>  , addQuantity
+<span class="lineno">   20 </span>  , negativeAmounts
+<span class="lineno">   21 </span>  , NestedMap
+<span class="lineno">   22 </span>  , unpack
+<span class="lineno">   23 </span>  , pack
+<span class="lineno">   24 </span>  , empty
+<span class="lineno">   25 </span>  , fromList
+<span class="lineno">   26 </span>  , toList
+<span class="lineno">   27 </span>  , toFlatList
+<span class="lineno">   28 </span>  , totalSize
+<span class="lineno">   29 </span>  , maxInnerSize
+<span class="lineno">   30 </span>  , insertCoin
+<span class="lineno">   31 </span>  , deleteCoin
+<span class="lineno">   32 </span>  , scaleValue
+<span class="lineno">   33 </span>  , lookupCoin
+<span class="lineno">   34 </span>  , valueContains
+<span class="lineno">   35 </span>  , unionValue
+<span class="lineno">   36 </span>  , valueData
+<span class="lineno">   37 </span>  , unValueData
+<span class="lineno">   38 </span>  ) where
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>import Codec.Serialise qualified as CBOR
+<span class="lineno">   41 </span>import Control.DeepSeq (NFData)
+<span class="lineno">   42 </span>import Control.Monad.Extra (unless, when, whenJust)
+<span class="lineno">   43 </span>import Data.Bifunctor
+<span class="lineno">   44 </span>import Data.ByteString (ByteString)
+<span class="lineno">   45 </span>import Data.ByteString qualified as B
+<span class="lineno">   46 </span>import Data.ByteString.Base64 qualified as Base64
+<span class="lineno">   47 </span>import Data.Foldable (find)
+<span class="lineno">   48 </span>import Data.Hashable (Hashable (..))
+<span class="lineno">   49 </span>import Data.IntMap.Strict (IntMap)
+<span class="lineno">   50 </span>import Data.IntMap.Strict qualified as IntMap
+<span class="lineno">   51 </span>import Data.Map.Merge.Strict qualified as M
+<span class="lineno">   52 </span>import Data.Map.Strict (Map)
+<span class="lineno">   53 </span>import Data.Map.Strict qualified as Map
+<span class="lineno">   54 </span>import Data.Text.Encoding qualified as Text
+<span class="lineno">   55 </span>import GHC.Generics
+<span class="lineno">   56 </span>import GHC.Stack
+<span class="lineno">   57 </span>  ( HasCallStack
+<span class="lineno">   58 </span>  , callStack
+<span class="lineno">   59 </span>  , getCallStack
+<span class="lineno">   60 </span>  )
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>import PlutusCore.Builtin.Result
+<span class="lineno">   63 </span>import PlutusCore.Data (Data (..))
+<span class="lineno">   64 </span>import PlutusCore.Flat qualified as Flat
+<span class="lineno">   65 </span>import PlutusPrelude (Pretty (..))
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>-- Max length (in bytes) for currency symbols and token names in `Value`,
+<span class="lineno">   68 </span>-- both of which cannot exceed 32 bytes. Currency symbols are in fact either
+<span class="lineno">   69 </span>-- empty or 28 bytes, but for simplicity we allow anything between 0 and 32 bytes.
+<span class="lineno">   70 </span>maxKeyLen :: Int
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">maxKeyLen = 32</span></span>
+<span class="lineno">   72 </span>{-# INLINE maxKeyLen #-}
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>----------------------------------------------------------------------------------------------------
+<span class="lineno">   75 </span>-- Newtype-wrapper for keys used in the nested maps ------------------------------------------------
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>-- | A `ByteString` with maximum length of `maxKeyLen` bytes.
+<span class="lineno">   78 </span>newtype K = UnsafeK {<span class="istickedoff"><span class="decl"><span class="istickedoff">unK</span></span></span> :: ByteString}
+<span class="lineno">   79 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   80 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>k :: ByteString -&gt; Maybe K
+<span class="lineno">   83 </span><span class="decl"><span class="istickedoff">k b = if B.length b &lt;= maxKeyLen then Just (UnsafeK b) else Nothing</span></span>
+<span class="lineno">   84 </span>{-# INLINEABLE k #-}
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>instance <span class="decl"><span class="istickedoff">Flat.Flat K</span></span> where
+<span class="lineno">   87 </span>  <span class="decl"><span class="istickedoff">encode (UnsafeK b) = Flat.encode b</span></span>
+<span class="lineno">   88 </span>  {-# INLINE encode #-}
+<span class="lineno">   89 </span>  <span class="decl"><span class="istickedoff">decode = do</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">b &lt;- Flat.decode</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">maybe (fail $ <span class="nottickedoff">&quot;Invalid Value key: &quot; &lt;&gt; show (B.unpack b)</span>) pure (k b)</span></span>
+<span class="lineno">   92 </span>  {-# INLINEABLE decode #-}
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">CBOR.Serialise K</span></span></span></span> where
+<span class="lineno">   95 </span>  <span class="decl"><span class="nottickedoff">encode (UnsafeK b) = CBOR.encode b</span></span>
+<span class="lineno">   96 </span>  {-# INLINE encode #-}
+<span class="lineno">   97 </span>  <span class="decl"><span class="nottickedoff">decode = do</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- CBOR.decode</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">maybe (fail $ &quot;Invalid Value key: &quot; &lt;&gt; show (B.unpack b)) pure (k b)</span></span>
+<span class="lineno">  100 </span>  {-# INLINEABLE decode #-}
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>----------------------------------------------------------------------------------------------------
+<span class="lineno">  103 </span>-- Quantity: Signed 128-bit Integer ----------------------------------------------------------------
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>-- | A signed 128-bit integer quantity.
+<span class="lineno">  106 </span>newtype Quantity = UnsafeQuantity {<span class="istickedoff"><span class="decl"><span class="istickedoff">unQuantity</span></span></span> :: Integer}
+<span class="lineno">  107 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">  108 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">CBOR.Serialise Quantity</span></span></span></span> where
+<span class="lineno">  111 </span>  <span class="decl"><span class="nottickedoff">encode (UnsafeQuantity i) = CBOR.encode i</span></span>
+<span class="lineno">  112 </span>  {-# INLINE encode #-}
+<span class="lineno">  113 </span>  <span class="decl"><span class="nottickedoff">decode = do</span>
+<span class="lineno">  114 </span><span class="spaces">    </span><span class="nottickedoff">i &lt;- CBOR.decode</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="nottickedoff">case quantity i of</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">Just q -&gt; pure q</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="nottickedoff">Nothing -&gt; fail $ &quot;Quantity out of signed 128-bit integer bounds: &quot; &lt;&gt; show i</span></span>
+<span class="lineno">  118 </span>  {-# INLINEABLE decode #-}
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>instance <span class="decl"><span class="istickedoff">Flat.Flat Quantity</span></span> where
+<span class="lineno">  121 </span>  <span class="decl"><span class="istickedoff">encode (UnsafeQuantity i) = Flat.encode i</span></span>
+<span class="lineno">  122 </span>  {-# INLINE encode #-}
+<span class="lineno">  123 </span>  <span class="decl"><span class="istickedoff">decode = do</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="istickedoff">i &lt;- Flat.decode</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="istickedoff">case quantity i of</span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="istickedoff">Just q -&gt; pure q</span>
+<span class="lineno">  127 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; fail $ <span class="nottickedoff">&quot;Quantity out of signed 128-bit integer bounds: &quot; &lt;&gt; show i</span></span></span>
+<span class="lineno">  128 </span>  {-# INLINEABLE decode #-}
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>instance <span class="decl"><span class="nottickedoff">Pretty Quantity</span></span> where
+<span class="lineno">  131 </span>  <span class="decl"><span class="nottickedoff">pretty (UnsafeQuantity i) = pretty i</span></span>
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>instance Bounded Quantity where
+<span class="lineno">  134 </span>  <span class="decl"><span class="istickedoff">minBound = UnsafeQuantity (-(2 ^ (127 :: Integer)))</span></span>
+<span class="lineno">  135 </span>  {-# INLINE minBound #-}
+<span class="lineno">  136 </span>  <span class="decl"><span class="istickedoff">maxBound = UnsafeQuantity (2 ^ (127 :: Integer) - 1)</span></span>
+<span class="lineno">  137 </span>  {-# INLINE maxBound #-}
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>-- | Smart constructor for Quantity that validates bounds.
+<span class="lineno">  140 </span>quantity :: Integer -&gt; Maybe Quantity
+<span class="lineno">  141 </span><span class="decl"><span class="istickedoff">quantity i</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">| i &gt;= unQuantity minBound &amp;&amp; i &lt;= unQuantity maxBound = Just (UnsafeQuantity i)</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Nothing</span></span>
+<span class="lineno">  144 </span>{-# INLINEABLE quantity #-}
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>-- | The zero quantity.
+<span class="lineno">  147 </span>zeroQuantity :: Quantity
+<span class="lineno">  148 </span><span class="decl"><span class="istickedoff">zeroQuantity = UnsafeQuantity 0</span></span>
+<span class="lineno">  149 </span>{-# INLINE zeroQuantity #-}
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>-- | Safely add two quantities, checking for overflow.
+<span class="lineno">  152 </span>addQuantity :: Quantity -&gt; Quantity -&gt; Maybe Quantity
+<span class="lineno">  153 </span><span class="decl"><span class="istickedoff">addQuantity (UnsafeQuantity x) (UnsafeQuantity y) = quantity (x + y)</span></span>
+<span class="lineno">  154 </span>{-# INLINEABLE addQuantity #-}
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>-- | Safely scale a quantity with given integer, checking for overflow.
+<span class="lineno">  157 </span>scaleQuantity :: Integer -&gt; Quantity -&gt; Maybe Quantity
+<span class="lineno">  158 </span><span class="decl"><span class="istickedoff">scaleQuantity x (UnsafeQuantity y) = quantity (x * y)</span></span>
+<span class="lineno">  159 </span>{-# INLINEABLE scaleQuantity #-}
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>----------------------------------------------------------------------------------------------------
+<span class="lineno">  162 </span>-- Builtin Value definition ------------------------------------------------------------------------
+<span class="lineno">  163 </span>
+<span class="lineno">  164 </span>type NestedMap = Map K (Map K Quantity)
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>-- | The underlying type of the UPLC built-in type @Value@.
+<span class="lineno">  167 </span>data Value
+<span class="lineno">  168 </span>  = Value
+<span class="lineno">  169 </span>      !NestedMap
+<span class="lineno">  170 </span>      {-^ Map from (currency symbol, token name) to quantity.
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>      Invariants: no empty inner map, and no zero quantity. -}
+<span class="lineno">  173 </span>      !(IntMap Int)
+<span class="lineno">  174 </span>      {-^ Map from size to the number of inner maps that have that size.
+<span class="lineno">  175 </span>      This allows efficient retrieval of the size of the largest inner map,
+<span class="lineno">  176 </span>      which is useful for costing of operations like `lookupCoin`.
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>      Invariant: all values are positive. -}
+<span class="lineno">  179 </span>      {-# UNPACK #-} !Int
+<span class="lineno">  180 </span>      {-^ Total size, i.e., sum total of inner map sizes. This avoids recomputing
+<span class="lineno">  181 </span>      the total size during the costing of operations like `unionValue`. -}
+<span class="lineno">  182 </span>      {-# UNPACK #-} !Int
+<span class="lineno">  183 </span>      -- ^ The number of negative amounts it contains.
+<span class="lineno">  184 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  185 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">  186 </span>
+<span class="lineno">  187 </span>instance Hashable Value where
+<span class="lineno">  188 </span>  <span class="decl"><span class="nottickedoff">hash = hash . unpack</span></span>
+<span class="lineno">  189 </span>  {-# INLINE hash #-}
+<span class="lineno">  190 </span>  <span class="decl"><span class="istickedoff">hashWithSalt salt = hashWithSalt salt . unpack</span></span>
+<span class="lineno">  191 </span>  {-# INLINE hashWithSalt #-}
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">CBOR.Serialise Value</span></span></span></span> where
+<span class="lineno">  194 </span>  <span class="decl"><span class="nottickedoff">encode (Value v _ _ _) = CBOR.encode v</span></span>
+<span class="lineno">  195 </span>  {-# INLINE encode #-}
+<span class="lineno">  196 </span>  <span class="decl"><span class="nottickedoff">decode = pack &lt;$&gt; CBOR.decode</span></span>
+<span class="lineno">  197 </span>  {-# INLINE decode #-}
+<span class="lineno">  198 </span>
+<span class="lineno">  199 </span>instance <span class="decl"><span class="istickedoff">Flat.Flat Value</span></span> where
+<span class="lineno">  200 </span>  <span class="decl"><span class="istickedoff">encode (Value v _ _ _) = Flat.encode v</span></span>
+<span class="lineno">  201 </span>  {-# INLINE encode #-}
+<span class="lineno">  202 </span>  <span class="decl"><span class="istickedoff">decode = pack &lt;$&gt; Flat.decode</span></span>
+<span class="lineno">  203 </span>  {-# INLINE decode #-}
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>{-| Unpack a `Value` into a map from (currency symbol, token name) to quantity.
+<span class="lineno">  206 </span>
+<span class="lineno">  207 </span>The map is guaranteed to not contain empty inner map or zero quantity. -}
+<span class="lineno">  208 </span>unpack :: Value -&gt; NestedMap
+<span class="lineno">  209 </span><span class="decl"><span class="istickedoff">unpack (Value v _ _ _) = v</span></span>
+<span class="lineno">  210 </span>{-# INLINE unpack #-}
+<span class="lineno">  211 </span>
+<span class="lineno">  212 </span>{-| Pack a map from (currency symbol, token name) to quantity into a `Value`.
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>The map will be filtered so that it does not contain empty inner map or zero quantity. -}
+<span class="lineno">  215 </span>pack :: NestedMap -&gt; Value
+<span class="lineno">  216 </span><span class="decl"><span class="istickedoff">pack = pack' . normalize</span></span>
+<span class="lineno">  217 </span>{-# INLINE pack #-}
+<span class="lineno">  218 </span>
+<span class="lineno">  219 </span>-- | Like `pack` but does not normalize.
+<span class="lineno">  220 </span>pack' :: NestedMap -&gt; Value
+<span class="lineno">  221 </span><span class="decl"><span class="istickedoff">pack' v = Value v sizes total neg</span>
+<span class="lineno">  222 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  223 </span><span class="spaces">    </span><span class="istickedoff">(sizes, total, neg) = Map.foldl' alg (mempty, 0, 0) v</span>
+<span class="lineno">  224 </span><span class="spaces">    </span><span class="istickedoff">alg (ss, t, n) inner =</span>
+<span class="lineno">  225 </span><span class="spaces">      </span><span class="istickedoff">( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss</span>
+<span class="lineno">  226 </span><span class="spaces">      </span><span class="istickedoff">, t + Map.size inner</span>
+<span class="lineno">  227 </span><span class="spaces">      </span><span class="istickedoff">, n + Map.size (Map.filter (&lt; zeroQuantity) inner)</span>
+<span class="lineno">  228 </span><span class="spaces">      </span><span class="istickedoff">)</span></span>
+<span class="lineno">  229 </span>{-# INLINEABLE pack' #-}
+<span class="lineno">  230 </span>
+<span class="lineno">  231 </span>{-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
+<span class="lineno">  232 </span>contained in the `Value`. -}
+<span class="lineno">  233 </span>totalSize :: Value -&gt; Int
+<span class="lineno">  234 </span><span class="decl"><span class="istickedoff">totalSize (Value _ _ total _) = total</span></span>
+<span class="lineno">  235 </span>{-# INLINE totalSize #-}
+<span class="lineno">  236 </span>
+<span class="lineno">  237 </span>-- | Size of the largest inner map.
+<span class="lineno">  238 </span>maxInnerSize :: Value -&gt; Int
+<span class="lineno">  239 </span><span class="decl"><span class="istickedoff">maxInnerSize (Value _ sizes _ _) = maybe 0 fst (IntMap.lookupMax sizes)</span></span>
+<span class="lineno">  240 </span>{-# INLINE maxInnerSize #-}
+<span class="lineno">  241 </span>
+<span class="lineno">  242 </span>negativeAmounts :: Value -&gt; Int
+<span class="lineno">  243 </span><span class="decl"><span class="istickedoff">negativeAmounts (Value _ _ _ neg) = neg</span></span>
+<span class="lineno">  244 </span>{-# INLINE negativeAmounts #-}
+<span class="lineno">  245 </span>
+<span class="lineno">  246 </span>empty :: Value
+<span class="lineno">  247 </span><span class="decl"><span class="istickedoff">empty = Value mempty mempty 0 0</span></span>
+<span class="lineno">  248 </span>{-# INLINE empty #-}
+<span class="lineno">  249 </span>
+<span class="lineno">  250 </span>toList :: Value -&gt; [(K, [(K, Quantity)])]
+<span class="lineno">  251 </span><span class="decl"><span class="istickedoff">toList = Map.toList . Map.map Map.toList . unpack</span></span>
+<span class="lineno">  252 </span>{-# INLINEABLE toList #-}
+<span class="lineno">  253 </span>
+<span class="lineno">  254 </span>toFlatList :: Value -&gt; [(K, K, Quantity)]
+<span class="lineno">  255 </span><span class="decl"><span class="istickedoff">toFlatList (toList -&gt; xs) = [(c, t, a) | (c, ys) &lt;- xs, (t, a) &lt;- ys]</span></span>
+<span class="lineno">  256 </span>{-# INLINEABLE toFlatList #-}
+<span class="lineno">  257 </span>
+<span class="lineno">  258 </span>fromList :: [(K, [(K, Quantity)])] -&gt; BuiltinResult Value
+<span class="lineno">  259 </span><span class="decl"><span class="istickedoff">fromList xs = do</span>
+<span class="lineno">  260 </span><span class="spaces">  </span><span class="istickedoff">-- Use unchecked addition during construction</span>
+<span class="lineno">  261 </span><span class="spaces">  </span><span class="istickedoff">let outerMap =</span>
+<span class="lineno">  262 </span><span class="spaces">        </span><span class="istickedoff">Map.fromListWith</span>
+<span class="lineno">  263 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">(Map.unionWith unsafeAddQuantity)</span> -- combine inner maps with unchecked addition</span>
+<span class="lineno">  264 </span><span class="spaces">          </span><span class="istickedoff">(second (Map.fromListWith unsafeAddQuantity) &lt;$&gt; xs)</span>
+<span class="lineno">  265 </span><span class="spaces">  </span><span class="istickedoff">-- Validate all quantities are within bounds</span>
+<span class="lineno">  266 </span><span class="spaces">  </span><span class="istickedoff">pack &lt;$&gt; validateQuantities outerMap</span></span>
+<span class="lineno">  267 </span>{-# INLINEABLE fromList #-}
+<span class="lineno">  268 </span>
+<span class="lineno">  269 </span>-- | Unsafe addition of quantities without bounds checking.
+<span class="lineno">  270 </span>unsafeAddQuantity :: Quantity -&gt; Quantity -&gt; Quantity
+<span class="lineno">  271 </span><span class="decl"><span class="istickedoff">unsafeAddQuantity (UnsafeQuantity x) (UnsafeQuantity y) = UnsafeQuantity (x + y)</span></span>
+<span class="lineno">  272 </span>{-# INLINE unsafeAddQuantity #-}
+<span class="lineno">  273 </span>
+<span class="lineno">  274 </span>-- | Validate all quantities in a nested map are within bounds.
+<span class="lineno">  275 </span>validateQuantities :: HasCallStack =&gt; NestedMap -&gt; BuiltinResult NestedMap
+<span class="lineno">  276 </span><span class="decl"><span class="istickedoff">validateQuantities nestedMap =</span>
+<span class="lineno">  277 </span><span class="spaces">  </span><span class="istickedoff">case find isOutOfBounds allQuantities of</span>
+<span class="lineno">  278 </span><span class="spaces">    </span><span class="istickedoff">Just (UnsafeQuantity i) -&gt; <span class="nottickedoff">fail $ context &lt;&gt; &quot;: quantity out of bounds: &quot; &lt;&gt; show i</span></span>
+<span class="lineno">  279 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; pure nestedMap</span>
+<span class="lineno">  280 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  281 </span><span class="spaces">    </span><span class="istickedoff">allQuantities = concatMap Map.elems $ Map.elems nestedMap</span>
+<span class="lineno">  282 </span><span class="spaces">    </span><span class="istickedoff">isOutOfBounds (UnsafeQuantity i) =</span>
+<span class="lineno">  283 </span><span class="spaces">      </span><span class="istickedoff">i &lt; unQuantity minBound || i &gt; unQuantity maxBound</span>
+<span class="lineno">  284 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">context = case getCallStack callStack of</span></span>
+<span class="lineno">  285 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(fnName, _) : _ -&gt; fnName</span></span>
+<span class="lineno">  286 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">[] -&gt; &quot;&lt;unknown&gt;&quot;</span></span></span>
+<span class="lineno">  287 </span>{-# INLINEABLE validateQuantities #-}
+<span class="lineno">  288 </span>
+<span class="lineno">  289 </span>normalize :: NestedMap -&gt; NestedMap
+<span class="lineno">  290 </span><span class="decl"><span class="istickedoff">normalize = Map.filter (not . Map.null) . Map.map (Map.filter (/= zeroQuantity))</span></span>
+<span class="lineno">  291 </span>{-# INLINEABLE normalize #-}
+<span class="lineno">  292 </span>
+<span class="lineno">  293 </span>instance <span class="decl"><span class="nottickedoff">Pretty Value</span></span> where
+<span class="lineno">  294 </span>  <span class="decl"><span class="nottickedoff">pretty = pretty . fmap (bimap toText (fmap (first toText))) . toList</span>
+<span class="lineno">  295 </span><span class="spaces">    </span><span class="nottickedoff">where</span>
+<span class="lineno">  296 </span><span class="spaces">      </span><span class="nottickedoff">toText = Text.decodeLatin1 . Base64.encode . unK</span></span>
+<span class="lineno">  297 </span>
+<span class="lineno">  298 </span>{-| \(O(\log \max(m, k))\), where \(m\) is the size of the outer map, and \(k\) is
+<span class="lineno">  299 </span>the size of the largest inner map. -}
+<span class="lineno">  300 </span>insertCoin :: ByteString -&gt; ByteString -&gt; Integer -&gt; Value -&gt; BuiltinResult Value
+<span class="lineno">  301 </span><span class="decl"><span class="istickedoff">insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes total neg)</span>
+<span class="lineno">  302 </span><span class="spaces">  </span><span class="istickedoff">| unsafeAmount == 0 = pure $ deleteCoin unsafeCurrency unsafeToken v</span>
+<span class="lineno">  303 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = case (k unsafeCurrency, k unsafeToken, quantity unsafeAmount) of</span>
+<span class="lineno">  304 </span><span class="spaces">      </span><span class="istickedoff">(Nothing, _, _) -&gt; fail $ <span class="nottickedoff">&quot;insertCoin: invalid currency: &quot; &lt;&gt; show (B.unpack unsafeCurrency)</span></span>
+<span class="lineno">  305 </span><span class="spaces">      </span><span class="istickedoff">(_, Nothing, _) -&gt; fail $ <span class="nottickedoff">&quot;insertCoin: invalid token: &quot; &lt;&gt; show (B.unpack unsafeToken)</span></span>
+<span class="lineno">  306 </span><span class="spaces">      </span><span class="istickedoff">(_, _, Nothing) -&gt; fail $ <span class="nottickedoff">&quot;insertCoin: quantity out of bounds: &quot; &lt;&gt; show unsafeAmount</span></span>
+<span class="lineno">  307 </span><span class="spaces">      </span><span class="istickedoff">(Just currency, Just token, Just qty) -&gt;</span>
+<span class="lineno">  308 </span><span class="spaces">        </span><span class="istickedoff">let f</span>
+<span class="lineno">  309 </span><span class="spaces">              </span><span class="istickedoff">:: Maybe (Map K Quantity)</span>
+<span class="lineno">  310 </span><span class="spaces">              </span><span class="istickedoff">-&gt; ( -- Left (old size of inner map) if the total size grows by 1,</span>
+<span class="lineno">  311 </span><span class="spaces">                   </span><span class="istickedoff">-- otherwise, Right (old quantity)</span>
+<span class="lineno">  312 </span><span class="spaces">                   </span><span class="istickedoff">Either Int Quantity</span>
+<span class="lineno">  313 </span><span class="spaces">                 </span><span class="istickedoff">, Maybe (Map K Quantity)</span>
+<span class="lineno">  314 </span><span class="spaces">                 </span><span class="istickedoff">)</span>
+<span class="lineno">  315 </span><span class="spaces">            </span><span class="istickedoff">f = \case</span>
+<span class="lineno">  316 </span><span class="spaces">              </span><span class="istickedoff">Nothing -&gt; (Left 0, Just (Map.singleton token qty))</span>
+<span class="lineno">  317 </span><span class="spaces">              </span><span class="istickedoff">Just inner -&gt;</span>
+<span class="lineno">  318 </span><span class="spaces">                </span><span class="istickedoff">let (mOldQuantity, inner') =</span>
+<span class="lineno">  319 </span><span class="spaces">                      </span><span class="istickedoff">Map.insertLookupWithKey (\_ _ _ -&gt; qty) token qty inner</span>
+<span class="lineno">  320 </span><span class="spaces">                 </span><span class="istickedoff">in (maybe (Left (Map.size inner)) Right mOldQuantity, Just inner')</span>
+<span class="lineno">  321 </span><span class="spaces">            </span><span class="istickedoff">(res, outer') = Map.alterF f currency outer</span>
+<span class="lineno">  322 </span><span class="spaces">            </span><span class="istickedoff">(sizes', total', neg') = case res of</span>
+<span class="lineno">  323 </span><span class="spaces">              </span><span class="istickedoff">Left oldSize -&gt;</span>
+<span class="lineno">  324 </span><span class="spaces">                </span><span class="istickedoff">( updateSizes oldSize (oldSize + 1) sizes</span>
+<span class="lineno">  325 </span><span class="spaces">                </span><span class="istickedoff">, total + 1</span>
+<span class="lineno">  326 </span><span class="spaces">                </span><span class="istickedoff">, if qty &lt; zeroQuantity then neg + 1 else neg</span>
+<span class="lineno">  327 </span><span class="spaces">                </span><span class="istickedoff">)</span>
+<span class="lineno">  328 </span><span class="spaces">              </span><span class="istickedoff">Right oldQuantity -&gt;</span>
+<span class="lineno">  329 </span><span class="spaces">                </span><span class="istickedoff">( sizes</span>
+<span class="lineno">  330 </span><span class="spaces">                </span><span class="istickedoff">, total</span>
+<span class="lineno">  331 </span><span class="spaces">                </span><span class="istickedoff">, if oldQuantity &lt; zeroQuantity &amp;&amp; qty &gt; zeroQuantity</span>
+<span class="lineno">  332 </span><span class="spaces">                    </span><span class="istickedoff">then neg - 1</span>
+<span class="lineno">  333 </span><span class="spaces">                    </span><span class="istickedoff">else</span>
+<span class="lineno">  334 </span><span class="spaces">                      </span><span class="istickedoff">if oldQuantity &gt; zeroQuantity &amp;&amp; qty &lt; zeroQuantity</span>
+<span class="lineno">  335 </span><span class="spaces">                        </span><span class="istickedoff">then neg + 1</span>
+<span class="lineno">  336 </span><span class="spaces">                        </span><span class="istickedoff">else neg</span>
+<span class="lineno">  337 </span><span class="spaces">                </span><span class="istickedoff">)</span>
+<span class="lineno">  338 </span><span class="spaces">         </span><span class="istickedoff">in pure $ Value outer' sizes' total' neg'</span></span>
+<span class="lineno">  339 </span>{-# INLINEABLE insertCoin #-}
+<span class="lineno">  340 </span>
+<span class="lineno">  341 </span>-- | \(O(\log \max(m, k))\)
+<span class="lineno">  342 </span>deleteCoin :: ByteString -&gt; ByteString -&gt; Value -&gt; Value
+<span class="lineno">  343 </span><span class="decl"><span class="istickedoff">deleteCoin (UnsafeK -&gt; currency) (UnsafeK -&gt; token) (Value outer sizes total neg) =</span>
+<span class="lineno">  344 </span><span class="spaces">  </span><span class="istickedoff">Value outer' sizes' total' neg'</span>
+<span class="lineno">  345 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  346 </span><span class="spaces">    </span><span class="istickedoff">(mold, outer') = Map.alterF f currency outer</span>
+<span class="lineno">  347 </span><span class="spaces">    </span><span class="istickedoff">(sizes', total', neg') = case mold of</span>
+<span class="lineno">  348 </span><span class="spaces">      </span><span class="istickedoff">Just (oldSize, oldQuantity) -&gt;</span>
+<span class="lineno">  349 </span><span class="spaces">        </span><span class="istickedoff">( updateSizes oldSize (oldSize - 1) sizes</span>
+<span class="lineno">  350 </span><span class="spaces">        </span><span class="istickedoff">, total - 1</span>
+<span class="lineno">  351 </span><span class="spaces">        </span><span class="istickedoff">, if oldQuantity &lt; zeroQuantity then neg - 1 else neg</span>
+<span class="lineno">  352 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  353 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; (sizes, total, neg)</span>
+<span class="lineno">  354 </span><span class="spaces">    </span><span class="istickedoff">f</span>
+<span class="lineno">  355 </span><span class="spaces">      </span><span class="istickedoff">:: Maybe (Map K Quantity)</span>
+<span class="lineno">  356 </span><span class="spaces">      </span><span class="istickedoff">-&gt; ( -- Just (old size of inner map, old quantity) if the total size shrinks by 1,</span>
+<span class="lineno">  357 </span><span class="spaces">           </span><span class="istickedoff">-- otherwise Nothing</span>
+<span class="lineno">  358 </span><span class="spaces">           </span><span class="istickedoff">Maybe (Int, Quantity)</span>
+<span class="lineno">  359 </span><span class="spaces">         </span><span class="istickedoff">, Maybe (Map K Quantity)</span>
+<span class="lineno">  360 </span><span class="spaces">         </span><span class="istickedoff">)</span>
+<span class="lineno">  361 </span><span class="spaces">    </span><span class="istickedoff">f = \case</span>
+<span class="lineno">  362 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; (Nothing, Nothing)</span>
+<span class="lineno">  363 </span><span class="spaces">      </span><span class="istickedoff">Just inner -&gt;</span>
+<span class="lineno">  364 </span><span class="spaces">        </span><span class="istickedoff">let (qty, inner') = Map.updateLookupWithKey (\_ _ -&gt; Nothing) token inner</span>
+<span class="lineno">  365 </span><span class="spaces">         </span><span class="istickedoff">in ((Map.size inner,) &lt;$&gt; qty, if Map.null inner' then Nothing else Just inner')</span></span>
+<span class="lineno">  366 </span>
+<span class="lineno">  367 </span>-- | \(O(\log \max(m, k))\)
+<span class="lineno">  368 </span>lookupCoin :: ByteString -&gt; ByteString -&gt; Value -&gt; Integer
+<span class="lineno">  369 </span><span class="decl"><span class="istickedoff">lookupCoin (UnsafeK -&gt; currency) (UnsafeK -&gt; token) (unpack -&gt; outer) =</span>
+<span class="lineno">  370 </span><span class="spaces">  </span><span class="istickedoff">case Map.lookup currency outer of</span>
+<span class="lineno">  371 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; 0</span>
+<span class="lineno">  372 </span><span class="spaces">    </span><span class="istickedoff">Just inner -&gt; unQuantity $ Map.findWithDefault zeroQuantity token inner</span></span>
+<span class="lineno">  373 </span>
+<span class="lineno">  374 </span>{-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
+<span class="lineno">  375 </span>`Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is
+<span class="lineno">  376 </span>the size of the largest inner map in the first `Value`.
+<span class="lineno">  377 </span>
+<span class="lineno">  378 </span>@a@ contains @b@ if for each @(currency, token, quantity)@ in @b@,
+<span class="lineno">  379 </span>@lookup currency token a &gt;= quantity@.
+<span class="lineno">  380 </span>
+<span class="lineno">  381 </span>Both values must not contain negative amounts. -}
+<span class="lineno">  382 </span>valueContains :: Value -&gt; Value -&gt; BuiltinResult Bool
+<span class="lineno">  383 </span><span class="decl"><span class="istickedoff">valueContains v1 v2</span>
+<span class="lineno">  384 </span><span class="spaces">  </span><span class="istickedoff">| negativeAmounts v1 &gt; 0 = fail <span class="nottickedoff">&quot;valueContains: first value contains negative amounts&quot;</span></span>
+<span class="lineno">  385 </span><span class="spaces">  </span><span class="istickedoff">| negativeAmounts v2 &gt; 0 = fail <span class="nottickedoff">&quot;valueContains: second value contains negative amounts&quot;</span></span>
+<span class="lineno">  386 </span><span class="spaces">  </span><span class="istickedoff">| totalSize v1 &lt; totalSize v2 = BuiltinSuccess False</span>
+<span class="lineno">  387 </span><span class="spaces">  </span><span class="istickedoff">-- \^ v2 is too big to be contained in v1: `isSubmapOfBy` has a similar check,</span>
+<span class="lineno">  388 </span><span class="spaces">  </span><span class="istickedoff">-- but that only applies to the top-level structure of the map, so v1 can</span>
+<span class="lineno">  389 </span><span class="spaces">  </span><span class="istickedoff">-- have a larger outer map than v2 but a smaller number of total entries, and</span>
+<span class="lineno">  390 </span><span class="spaces">  </span><span class="istickedoff">-- without this check the outer call of `isSubmapOfBy` would carry on and</span>
+<span class="lineno">  391 </span><span class="spaces">  </span><span class="istickedoff">-- compare the inner maps even though v2 can't fit inside v1.</span>
+<span class="lineno">  392 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = BuiltinSuccess $ Map.isSubmapOfBy (Map.isSubmapOfBy (&lt;=)) (unpack v2) (unpack v1)</span></span>
+<span class="lineno">  393 </span>{-# INLINEABLE valueContains #-}
+<span class="lineno">  394 </span>
+<span class="lineno">  395 </span>{-| \(O(n_{1}) + O(n_{2})\), where \(n_{1}\) and \(n_{2}\) are the total sizes
+<span class="lineno">  396 </span>(i.e., sum of inner map sizes) of the two maps.
+<span class="lineno">  397 </span>
+<span class="lineno">  398 </span>Shortcircuits if either value is empty.
+<span class="lineno">  399 </span>
+<span class="lineno">  400 </span>Since 'unionValue' is commutative, we switch the arguments whenever the second
+<span class="lineno">  401 </span>value is larger in total size than the first one. We have found through experimentation
+<span class="lineno">  402 </span>that this results in better performance in practice. -}
+<span class="lineno">  403 </span>unionValue :: Value -&gt; Value -&gt; BuiltinResult Value
+<span class="lineno">  404 </span><span class="decl"><span class="istickedoff">unionValue vA vB</span>
+<span class="lineno">  405 </span><span class="spaces">  </span><span class="istickedoff">| totalSize vA == 0 = BuiltinSuccess vB</span>
+<span class="lineno">  406 </span><span class="spaces">  </span><span class="istickedoff">| totalSize vB == 0 = BuiltinSuccess vA</span>
+<span class="lineno">  407 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> =</span>
+<span class="lineno">  408 </span><span class="spaces">      </span><span class="istickedoff">pack'</span>
+<span class="lineno">  409 </span><span class="spaces">        </span><span class="istickedoff">&lt;$&gt; M.mergeA</span>
+<span class="lineno">  410 </span><span class="spaces">          </span><span class="istickedoff">M.preserveMissing</span>
+<span class="lineno">  411 </span><span class="spaces">          </span><span class="istickedoff">M.preserveMissing</span>
+<span class="lineno">  412 </span><span class="spaces">          </span><span class="istickedoff">( M.zipWithMaybeAMatched \_ innerA innerB -&gt;</span>
+<span class="lineno">  413 </span><span class="spaces">              </span><span class="istickedoff">fmap (\inner -&gt; if Map.null inner then Nothing else Just inner) $</span>
+<span class="lineno">  414 </span><span class="spaces">                </span><span class="istickedoff">M.mergeA</span>
+<span class="lineno">  415 </span><span class="spaces">                  </span><span class="istickedoff">M.preserveMissing</span>
+<span class="lineno">  416 </span><span class="spaces">                  </span><span class="istickedoff">M.preserveMissing</span>
+<span class="lineno">  417 </span><span class="spaces">                  </span><span class="istickedoff">( M.zipWithMaybeAMatched \_ x y -&gt;</span>
+<span class="lineno">  418 </span><span class="spaces">                      </span><span class="istickedoff">case addQuantity x y of</span>
+<span class="lineno">  419 </span><span class="spaces">                        </span><span class="istickedoff">Just z -&gt; pure if z == zeroQuantity then Nothing else Just z</span>
+<span class="lineno">  420 </span><span class="spaces">                        </span><span class="istickedoff">Nothing -&gt;</span>
+<span class="lineno">  421 </span><span class="spaces">                          </span><span class="istickedoff">fail <span class="nottickedoff">&quot;unionValue: quantity is out of the signed 128-bit integer bounds&quot;</span></span>
+<span class="lineno">  422 </span><span class="spaces">                  </span><span class="istickedoff">)</span>
+<span class="lineno">  423 </span><span class="spaces">                  </span><span class="istickedoff">innerA</span>
+<span class="lineno">  424 </span><span class="spaces">                  </span><span class="istickedoff">innerB</span>
+<span class="lineno">  425 </span><span class="spaces">          </span><span class="istickedoff">)</span>
+<span class="lineno">  426 </span><span class="spaces">          </span><span class="istickedoff">v1</span>
+<span class="lineno">  427 </span><span class="spaces">          </span><span class="istickedoff">v2</span>
+<span class="lineno">  428 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  429 </span><span class="spaces">    </span><span class="istickedoff">(v1, v2) =</span>
+<span class="lineno">  430 </span><span class="spaces">      </span><span class="istickedoff">if totalSize vB &gt; totalSize vA</span>
+<span class="lineno">  431 </span><span class="spaces">        </span><span class="istickedoff">then (unpack vB, unpack vA)</span>
+<span class="lineno">  432 </span><span class="spaces">        </span><span class="istickedoff">else (unpack vA, unpack vB)</span></span>
+<span class="lineno">  433 </span>{-# INLINEABLE unionValue #-}
+<span class="lineno">  434 </span>
+<span class="lineno">  435 </span>valueDataMaxSize :: Int
+<span class="lineno">  436 </span><span class="decl"><span class="istickedoff">valueDataMaxSize = 40000</span></span>
+<span class="lineno">  437 </span>
+<span class="lineno">  438 </span>{-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
+<span class="lineno">  439 </span>This is the denotation of @ValueData@ in Plutus V1, V2 and V3. -}
+<span class="lineno">  440 </span>valueData :: Value -&gt; BuiltinResult Data
+<span class="lineno">  441 </span><span class="decl"><span class="istickedoff">valueData v =</span>
+<span class="lineno">  442 </span><span class="spaces">  </span><span class="istickedoff">if <span class="tickonlytrue">totalSize v &lt;= valueDataMaxSize</span></span>
+<span class="lineno">  443 </span><span class="spaces">    </span><span class="istickedoff">then pure $ Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack $ v</span>
+<span class="lineno">  444 </span><span class="spaces">    </span><span class="istickedoff">else <span class="nottickedoff">fail $ &quot;valueData: maximum input size (&quot; ++ show valueDataMaxSize ++ &quot;) exceeded&quot;</span></span>
+<span class="lineno">  445 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  446 </span><span class="spaces">    </span><span class="istickedoff">tokensData :: Map K Quantity -&gt; Data</span>
+<span class="lineno">  447 </span><span class="spaces">    </span><span class="istickedoff">tokensData = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList</span></span>
+<span class="lineno">  448 </span>{-# INLINEABLE valueData #-}
+<span class="lineno">  449 </span>
+<span class="lineno">  450 </span>{-| \(O(n)\). Decodes `Data` into `Value`.
+<span class="lineno">  451 </span>This is the denotation of @UnValueData@ in Plutus V1, V2 and V3. -}
+<span class="lineno">  452 </span>unValueData :: Data -&gt; BuiltinResult Value
+<span class="lineno">  453 </span><span class="decl"><span class="istickedoff">unValueData = \case</span>
+<span class="lineno">  454 </span><span class="spaces">  </span><span class="istickedoff">Map cs -&gt; do</span>
+<span class="lineno">  455 </span><span class="spaces">    </span><span class="istickedoff">(outerList, sizes, total, neg) &lt;- goCurrencies cs</span>
+<span class="lineno">  456 </span><span class="spaces">    </span><span class="istickedoff">pure $ Value (Map.fromDistinctDescList outerList) sizes total neg</span>
+<span class="lineno">  457 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; fail <span class="nottickedoff">&quot;unValueData: non-Map constructor&quot;</span></span>
+<span class="lineno">  458 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  459 </span><span class="spaces">    </span><span class="istickedoff">unB :: Data -&gt; BuiltinResult K</span>
+<span class="lineno">  460 </span><span class="spaces">    </span><span class="istickedoff">unB = \case</span>
+<span class="lineno">  461 </span><span class="spaces">      </span><span class="istickedoff">B b -&gt; maybe (fail $ <span class="nottickedoff">&quot;unValueData: invalid key: &quot; &lt;&gt; show (B.unpack b)</span>) pure (k b)</span>
+<span class="lineno">  462 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; fail <span class="nottickedoff">&quot;unValueData: non-B constructor&quot;</span></span>
+<span class="lineno">  463 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINEABLE unB #-}</span>
+<span class="lineno">  464 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  465 </span><span class="spaces">    </span><span class="istickedoff">unQ :: Data -&gt; BuiltinResult Quantity</span>
+<span class="lineno">  466 </span><span class="spaces">    </span><span class="istickedoff">unQ = \case</span>
+<span class="lineno">  467 </span><span class="spaces">      </span><span class="istickedoff">I i</span>
+<span class="lineno">  468 </span><span class="spaces">        </span><span class="istickedoff">| i == 0 || i &lt; unQuantity minBound || i &gt; unQuantity maxBound -&gt;</span>
+<span class="lineno">  469 </span><span class="spaces">            </span><span class="istickedoff">fail <span class="nottickedoff">&quot;unValueData: invalid quantity&quot;</span></span>
+<span class="lineno">  470 </span><span class="spaces">        </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> -&gt; pure (UnsafeQuantity i)</span>
+<span class="lineno">  471 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; fail <span class="nottickedoff">&quot;unValueData: non-I constructor&quot;</span></span>
+<span class="lineno">  472 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINEABLE unQ #-}</span>
+<span class="lineno">  473 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  474 </span><span class="spaces">    </span><span class="istickedoff">-- Returns the inner map and the number of negative quantities in it.</span>
+<span class="lineno">  475 </span><span class="spaces">    </span><span class="istickedoff">unTokens :: Data -&gt; BuiltinResult (Map K Quantity, Int)</span>
+<span class="lineno">  476 </span><span class="spaces">    </span><span class="istickedoff">unTokens = \case</span>
+<span class="lineno">  477 </span><span class="spaces">      </span><span class="istickedoff">Map ts -&gt; do</span>
+<span class="lineno">  478 </span><span class="spaces">        </span><span class="istickedoff">when (null ts) $ fail <span class="nottickedoff">&quot;unValueData: empty inner map&quot;</span></span>
+<span class="lineno">  479 </span><span class="spaces">        </span><span class="istickedoff">(innerList, neg) &lt;- goTokens ts</span>
+<span class="lineno">  480 </span><span class="spaces">        </span><span class="istickedoff">pure (Map.fromDistinctDescList innerList, neg)</span>
+<span class="lineno">  481 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; fail <span class="nottickedoff">&quot;unValueData: non-Map constructor&quot;</span></span>
+<span class="lineno">  482 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINEABLE unTokens #-}</span>
+<span class="lineno">  483 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  484 </span><span class="spaces">    </span><span class="istickedoff">-- Returns outer map's list, plus stats (sizes, total, neg).</span>
+<span class="lineno">  485 </span><span class="spaces">    </span><span class="istickedoff">goCurrencies</span>
+<span class="lineno">  486 </span><span class="spaces">      </span><span class="istickedoff">:: [(Data, Data)]</span>
+<span class="lineno">  487 </span><span class="spaces">      </span><span class="istickedoff">-&gt; BuiltinResult ([(K, Map K Quantity)], IntMap Int, Int, Int)</span>
+<span class="lineno">  488 </span><span class="spaces">    </span><span class="istickedoff">goCurrencies = go Nothing mempty mempty 0 0</span>
+<span class="lineno">  489 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">  490 </span><span class="spaces">        </span><span class="istickedoff">go !prev !acc !sizes !total !neg = \case</span>
+<span class="lineno">  491 </span><span class="spaces">          </span><span class="istickedoff">[] -&gt; pure (acc, sizes, total, neg)</span>
+<span class="lineno">  492 </span><span class="spaces">          </span><span class="istickedoff">(cData, tsData) : rest -&gt; do</span>
+<span class="lineno">  493 </span><span class="spaces">            </span><span class="istickedoff">!c &lt;- unB cData</span>
+<span class="lineno">  494 </span><span class="spaces">            </span><span class="istickedoff">-- Verify that currencies are strictly ascending</span>
+<span class="lineno">  495 </span><span class="spaces">            </span><span class="istickedoff">whenJust</span>
+<span class="lineno">  496 </span><span class="spaces">              </span><span class="istickedoff">prev</span>
+<span class="lineno">  497 </span><span class="spaces">              </span><span class="istickedoff">( \p -&gt;</span>
+<span class="lineno">  498 </span><span class="spaces">                  </span><span class="istickedoff">unless</span>
+<span class="lineno">  499 </span><span class="spaces">                    </span><span class="istickedoff">(p &lt; c)</span>
+<span class="lineno">  500 </span><span class="spaces">                    </span><span class="istickedoff">(fail <span class="nottickedoff">&quot;unValueData: currency symbols not strictly ascending&quot;</span>)</span>
+<span class="lineno">  501 </span><span class="spaces">              </span><span class="istickedoff">)</span>
+<span class="lineno">  502 </span><span class="spaces">            </span><span class="istickedoff">(!inner, !innerNeg) &lt;- unTokens tsData</span>
+<span class="lineno">  503 </span><span class="spaces">            </span><span class="istickedoff">let sizes' = IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) sizes</span>
+<span class="lineno">  504 </span><span class="spaces">                </span><span class="istickedoff">total' = total + Map.size inner</span>
+<span class="lineno">  505 </span><span class="spaces">                </span><span class="istickedoff">neg' = neg + innerNeg</span>
+<span class="lineno">  506 </span><span class="spaces">                </span><span class="istickedoff">acc' = (c, inner) : acc</span>
+<span class="lineno">  507 </span><span class="spaces">            </span><span class="istickedoff">go (Just c) acc' sizes' total' neg' rest</span>
+<span class="lineno">  508 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  509 </span><span class="spaces">    </span><span class="istickedoff">-- Returns inner map's list, plus the number of negative quantities in the inner map.</span>
+<span class="lineno">  510 </span><span class="spaces">    </span><span class="istickedoff">goTokens :: [(Data, Data)] -&gt; BuiltinResult ([(K, Quantity)], Int)</span>
+<span class="lineno">  511 </span><span class="spaces">    </span><span class="istickedoff">goTokens = go Nothing mempty 0</span>
+<span class="lineno">  512 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">  513 </span><span class="spaces">        </span><span class="istickedoff">go !prev !acc !neg = \case</span>
+<span class="lineno">  514 </span><span class="spaces">          </span><span class="istickedoff">[] -&gt; pure (acc, neg)</span>
+<span class="lineno">  515 </span><span class="spaces">          </span><span class="istickedoff">(tData, qData) : rest -&gt; do</span>
+<span class="lineno">  516 </span><span class="spaces">            </span><span class="istickedoff">!t &lt;- unB tData</span>
+<span class="lineno">  517 </span><span class="spaces">            </span><span class="istickedoff">-- Verify that token names within an inner map are strictly ascending</span>
+<span class="lineno">  518 </span><span class="spaces">            </span><span class="istickedoff">whenJust</span>
+<span class="lineno">  519 </span><span class="spaces">              </span><span class="istickedoff">prev</span>
+<span class="lineno">  520 </span><span class="spaces">              </span><span class="istickedoff">( \p -&gt;</span>
+<span class="lineno">  521 </span><span class="spaces">                  </span><span class="istickedoff">unless</span>
+<span class="lineno">  522 </span><span class="spaces">                    </span><span class="istickedoff">(p &lt; t)</span>
+<span class="lineno">  523 </span><span class="spaces">                    </span><span class="istickedoff">(fail <span class="nottickedoff">&quot;unValueData: token names not strictly ascending&quot;</span>)</span>
+<span class="lineno">  524 </span><span class="spaces">              </span><span class="istickedoff">)</span>
+<span class="lineno">  525 </span><span class="spaces">            </span><span class="istickedoff">!q &lt;- unQ qData</span>
+<span class="lineno">  526 </span><span class="spaces">            </span><span class="istickedoff">let neg' = if q &lt; zeroQuantity then neg + 1 else neg</span>
+<span class="lineno">  527 </span><span class="spaces">                </span><span class="istickedoff">acc' = (t, q) : acc</span>
+<span class="lineno">  528 </span><span class="spaces">            </span><span class="istickedoff">go (Just t) acc' neg' rest</span></span>
+<span class="lineno">  529 </span>{-# INLINEABLE unValueData #-}
+<span class="lineno">  530 </span>
+<span class="lineno">  531 </span>-- | Decrement bucket @old@, and increment bucket @new@.
+<span class="lineno">  532 </span>updateSizes :: Int -&gt; Int -&gt; IntMap Int -&gt; IntMap Int
+<span class="lineno">  533 </span><span class="decl"><span class="istickedoff">updateSizes old new = dec . inc</span>
+<span class="lineno">  534 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  535 </span><span class="spaces">    </span><span class="istickedoff">inc =</span>
+<span class="lineno">  536 </span><span class="spaces">      </span><span class="istickedoff">if new == 0</span>
+<span class="lineno">  537 </span><span class="spaces">        </span><span class="istickedoff">then id</span>
+<span class="lineno">  538 </span><span class="spaces">        </span><span class="istickedoff">else IntMap.alter (maybe (Just 1) (Just . (+ 1))) new</span>
+<span class="lineno">  539 </span><span class="spaces">    </span><span class="istickedoff">dec =</span>
+<span class="lineno">  540 </span><span class="spaces">      </span><span class="istickedoff">if old == 0</span>
+<span class="lineno">  541 </span><span class="spaces">        </span><span class="istickedoff">then id</span>
+<span class="lineno">  542 </span><span class="spaces">        </span><span class="istickedoff">else IntMap.update (\n -&gt; if n &lt;= 1 then Nothing else Just (n - 1)) old</span></span>
+<span class="lineno">  543 </span>{-# INLINEABLE updateSizes #-}
+<span class="lineno">  544 </span>
+<span class="lineno">  545 </span>-- | \(O(n)\). Scale each token by the given constant factor.
+<span class="lineno">  546 </span>scaleValue :: Integer -&gt; Value -&gt; BuiltinResult Value
+<span class="lineno">  547 </span><span class="decl"><span class="istickedoff">scaleValue c (Value outer sizes size neg)</span>
+<span class="lineno">  548 </span><span class="spaces">  </span><span class="istickedoff">-- When scaling by positive factor, no need to change sizes and number of negative amounts.</span>
+<span class="lineno">  549 </span><span class="spaces">  </span><span class="istickedoff">| c &gt; 0 = do</span>
+<span class="lineno">  550 </span><span class="spaces">      </span><span class="istickedoff">outer' &lt;- go outer</span>
+<span class="lineno">  551 </span><span class="spaces">      </span><span class="istickedoff">BuiltinSuccess $ Value outer' sizes size neg</span>
+<span class="lineno">  552 </span><span class="spaces">  </span><span class="istickedoff">-- When scaling by negative factor, only need to &quot;flip&quot; negative amounts.</span>
+<span class="lineno">  553 </span><span class="spaces">  </span><span class="istickedoff">| c &lt; 0 = do</span>
+<span class="lineno">  554 </span><span class="spaces">      </span><span class="istickedoff">outer' &lt;- go outer</span>
+<span class="lineno">  555 </span><span class="spaces">      </span><span class="istickedoff">BuiltinSuccess $ Value outer' sizes size (size - neg)</span>
+<span class="lineno">  556 </span><span class="spaces">  </span><span class="istickedoff">-- Scaling by 0 is always empty value</span>
+<span class="lineno">  557 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = BuiltinSuccess empty</span>
+<span class="lineno">  558 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  559 </span><span class="spaces">    </span><span class="istickedoff">go :: NestedMap -&gt; BuiltinResult NestedMap</span>
+<span class="lineno">  560 </span><span class="spaces">    </span><span class="istickedoff">go x = traverse (traverse goScale) x</span>
+<span class="lineno">  561 </span><span class="spaces">    </span><span class="istickedoff">goScale :: Quantity -&gt; BuiltinResult Quantity</span>
+<span class="lineno">  562 </span><span class="spaces">    </span><span class="istickedoff">goScale x =</span>
+<span class="lineno">  563 </span><span class="spaces">      </span><span class="istickedoff">case scaleQuantity c x of</span>
+<span class="lineno">  564 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt;</span>
+<span class="lineno">  565 </span><span class="spaces">          </span><span class="istickedoff">fail $</span>
+<span class="lineno">  566 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">&quot;scaleValue: quantity out of bounds: &quot;</span></span>
+<span class="lineno">  567 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">&lt;&gt; show c</span></span>
+<span class="lineno">  568 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">&lt;&gt; &quot; * &quot;</span></span>
+<span class="lineno">  569 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">&lt;&gt; show (unQuantity x)</span></span>
+<span class="lineno">  570 </span><span class="spaces">        </span><span class="istickedoff">Just q -&gt; pure q</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,6295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Generators.QuickCheck.Unification</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Common.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.QuickCheck.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.GenerateTypes.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.QuickCheck.GenerateTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Substitutions.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.QuickCheck.Substitutions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.QuickCheck.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier"
+	  >when</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	><span class="hs-identifier"
+	  >MonadError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier"
+	  >throwError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#ReaderT"
+	><span class="hs-identifier"
+	  >ReaderT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier"
+	  >ask</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier"
+	  >local</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReaderT"
+	><span class="hs-identifier"
+	  >runReaderT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Strict.html"
+	><span class="hs-identifier"
+	  >Control.Monad.State.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Strict.html#StateT"
+	><span class="hs-identifier"
+	  >StateT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Strict.html#execStateT"
+	><span class="hs-identifier"
+	  >execStateT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#get"
+	><span class="hs-identifier"
+	  >get</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#put"
+	><span class="hs-identifier"
+	  >put</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Strict.Internal.html"
+	><span class="hs-identifier"
+	  >Data.Map.Strict.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier"
+	  >Set</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span id="local-6989586621679279549"
+      ><span id="local-6989586621679279550"
+	><span id="local-6989586621679279551"
+	  ><span id="local-6989586621679279552"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Generators.QuickCheck.Unification.html#unificationFailure"
+		><span class="hs-identifier hs-type"
+		  >unificationFailure</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		><span class="hs-identifier hs-type"
+		  >MonadError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+		><span class="hs-identifier hs-type"
+		  >String</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679279549"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679279550"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679279551"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679279550"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679279551"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679279549"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679279552"
+		><span class="hs-identifier hs-type"
+		  >any</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="unificationFailure"
+      ><span class="annot"
+	><span class="annottext"
+	  >unificationFailure :: forall (m :: * -&gt; *) a b any.
+(MonadError String m, Pretty a, Pretty b) =&gt;
+a -&gt; b -&gt; m any
+</span
+	  ><a href="PlutusCore.Generators.QuickCheck.Unification.html#unificationFailure"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unificationFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279769"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679279769"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279770"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679279770"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m any
+forall a. String -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; m any) -&gt; String -&gt; m any
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#concat"
+	><span class="hs-identifier hs-var"
+	  >concat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Failed to unify\n\n  &quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679279769"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;\n\nand\n\n  &quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679279770"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;\n\n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621679279567"
+      ><span id="local-6989586621679279568"
+	><span class="annot"
+	  ><a href="PlutusCore.Generators.QuickCheck.Unification.html#resolutionFailure"
+	    ><span class="hs-identifier hs-type"
+	      >resolutionFailure</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	    ><span class="hs-identifier hs-type"
+	      >MonadError</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679279567"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	    ><span class="hs-identifier hs-type"
+	      >TyName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	    ><span class="hs-identifier hs-type"
+	      >Type</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	    ><span class="hs-identifier hs-type"
+	      >TyName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	    ><span class="hs-identifier hs-type"
+	      >DefaultUni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679279567"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679279568"
+	    ><span class="hs-identifier hs-type"
+	      >any</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span id="resolutionFailure"
+      ><span class="annot"
+	><span class="annottext"
+	  >resolutionFailure :: forall (m :: * -&gt; *) any.
+MonadError String m =&gt;
+TyName -&gt; Type TyName DefaultUni () -&gt; String -&gt; m any
+</span
+	  ><a href="PlutusCore.Generators.QuickCheck.Unification.html#resolutionFailure"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >resolutionFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279781"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279781"
+	  ><span class="hs-identifier hs-var"
+	    >name1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279782"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279782"
+	  ><span class="hs-identifier hs-var"
+	    >ty2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279783"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679279783"
+	  ><span class="hs-identifier hs-var"
+	    >reason</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; m any
+forall a. String -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; m any) -&gt; String -&gt; m any
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#concat"
+	><span class="hs-identifier hs-var"
+	  >concat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Unification failure: cannot resolve '&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279781"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot; as\n\n  &quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni () -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279782"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;\n\n because &quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679279783"
+	><span class="hs-identifier hs-var"
+	  >reason</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [The unification algorithm]
+Type unification expects a context (mapping from type variables to their kinds) and a set of
+flexible type variables, also called metas (those that can get resolved). The context is used for
+kind checking solutions as well as generation of fresh variables.
+
+Internally type unification maintains a set of locals ('TyLam'- or 'TyForall'-bound variables
+encountered during unification). Those are stored in a reader monad, since they depend on the
+current scope and need to be adjusted when the scope changes, which is best modelled by a reader
+monad.
+
+Type unification also maintains a substitution (mapping from a possibly empty subset of metas to
+their instantiations) and eventually that substitution is returned as a result of unification. The
+substitution is passed around in a state monad, since unification results in one part of the
+unification problem are relevant in all the other parts too (this is not in conflict with locals
+being scope-specific, because flexible variable resolution cannot capture a locally bound
+variable). Type unification could take a substitution as an input and extend it instead of always
+making the initial substitution empty, but we didn't need this extra functionality, so we didn't
+implement it for the sake of keeping the interface to the unifier simpler.
+
+Type unification proceeds by recursion on the spines of the two types. We don't attempt to do
+higher-order unification at all, so we don't have the usual unification business like pruning,
+blocking, pattern unification etc. In particular, in our setting two type applications can unify
+only if the functions and the arguments unify separately (with higher-order unification it would be
+possible to unify type applications whose function parts differ, because functions compute and the
+results may unify even if the functions don't).
+
+We handle 'TyIFix' and 'TyFun' the same way as type applications by decomposing them into their
+constituents and unifying them separately. These two would look the same in a higher-order setting.
+
+'TyLam' and 'TyForall' being binders require a bit of special care: we rename the bound variables in
+the bodies of the binders, so that the two sides of the unification equation bind the same variable,
+see Note [Renaming during unification]. We do not attempt to perform unification modulo eta.
+
+Two 'TyBuiltin's unify when they are the same built-in type.
+
+The only remaining case is when one of the sides is a type variable (or both). There's a number of
+checks that we perform in order to ensure that it's fine to resolve the variable as the given type,
+those are documented alongside the code performing the checks.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Renaming during unification]
+When we go under twin binders, we rename the variables that the binders introduce, so that they have
+the same name. This requires travering both the sides of the unification problem before unification
+can proceed. This is inefficient, instead we could do the same thing that we do for checking
+equality and keep two separate maps tracking renamings of local variables. Although the types AST is
+lazy, so maybe it's not a big deal in the end. Although even with laziness, we still have quadratic
+behavior currently.
+
+Note that generating a new name is also a rather expensive operation requiring to traverse the whole
+context, so that's another source of inefficiency.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [The unification algorithm].</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Perform unification. Sound but not complete.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Unification.html#unifyType"
+	><span class="hs-identifier hs-type"
+	  >unifyType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Common.html#TypeCtx"
+	><span class="hs-identifier hs-type"
+	  >TypeCtx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Type context</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ @flex@, the flexible variables (those that can be unified)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ @t1@</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ @t2@</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#TypeSub"
+	><span class="hs-identifier hs-type"
+	  >TypeSub</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Either an error or a substitution (from a subset of @flex@) unifying @t1@ and @t2@</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="unifyType"
+      ><span class="annot"
+	><span class="annottext"
+	  >unifyType :: TypeCtx
+-&gt; Set TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; Either String TypeSub
+</span
+	  ><a href="PlutusCore.Generators.QuickCheck.Unification.html#unifyType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unifyType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279785"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCtx
+</span
+	  ><a href="#local-6989586621679279785"
+	  ><span class="hs-identifier hs-var"
+	    >ctx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279786"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set TyName
+</span
+	  ><a href="#local-6989586621679279786"
+	  ><span class="hs-identifier hs-var"
+	    >flex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279787"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279787"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279788"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279788"
+	  ><span class="hs-identifier hs-var"
+	    >b0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT TypeSub (Either String) ()
+-&gt; TypeSub -&gt; Either String TypeSub
+forall (m :: * -&gt; *) s a. Monad m =&gt; StateT s m a -&gt; s -&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Strict.html#execStateT"
+	><span class="hs-identifier hs-var"
+	  >execStateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; Set TyName -&gt; StateT TypeSub (Either String) ()
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReaderT"
+	><span class="hs-identifier hs-var"
+	  >runReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni () -&gt; Type TyName DefaultUni ()
+</span
+	><a href="PlutusCore.Generators.QuickCheck.GenerateTypes.html#normalizeTy"
+	><span class="hs-identifier hs-var"
+	  >normalizeTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279787"
+	><span class="hs-identifier hs-var"
+	  >a0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni () -&gt; Type TyName DefaultUni ()
+</span
+	><a href="PlutusCore.Generators.QuickCheck.GenerateTypes.html#normalizeTy"
+	><span class="hs-identifier hs-var"
+	  >normalizeTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279788"
+	><span class="hs-identifier hs-var"
+	  >b0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+forall a. Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >Set.empty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeSub
+forall k a. Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >Map.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279793"
+	><span class="hs-identifier hs-type"
+	  >goTyName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#ReaderT"
+	><span class="hs-identifier hs-type"
+	  >ReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Strict.html#StateT"
+	><span class="hs-identifier hs-type"
+	  >StateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#TypeSub"
+	><span class="hs-identifier hs-type"
+	  >TypeSub</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679279793"
+      ><span class="annot"
+	><span class="annottext"
+	  >goTyName :: TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	  ><a href="#local-6989586621679279793"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goTyName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279794"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279794"
+	  ><span class="hs-identifier hs-var"
+	    >name1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279795"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279795"
+	  ><span class="hs-identifier hs-var"
+	    >ty2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- If the variable is unified with itself, we don't need to do anything.</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; TyName -&gt; Type TyName DefaultUni ()
+forall tyname (uni :: * -&gt; *) ann.
+ann -&gt; tyname -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier hs-var"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni () -&gt; Type TyName DefaultUni () -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679279798"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set TyName
+</span
+	  ><a href="#local-6989586621679279798"
+	  ><span class="hs-identifier hs-var"
+	    >locals</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) (Set TyName)
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679279799"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeSub
+</span
+	  ><a href="#local-6989586621679279799"
+	  ><span class="hs-identifier hs-var"
+	    >sub</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) TypeSub
+forall s (m :: * -&gt; *). MonadState s m =&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#get"
+	><span class="hs-identifier hs-var"
+	  >get</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; TypeSub -&gt; Maybe (Type TyName DefaultUni ())
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#lookup"
+	><span class="hs-identifier hs-var"
+	  >Map.lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeSub
+</span
+	><a href="#local-6989586621679279799"
+	><span class="hs-identifier hs-var"
+	  >sub</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- If the meta is already resolved, then look it up in the substitution and continue</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- unification.</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279801"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279801"
+	  ><span class="hs-identifier hs-var"
+	    >ty1'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279801"
+	><span class="hs-identifier hs-var"
+	  >ty1'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Type TyName DefaultUni ())
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- When a meta gets resolved, we do no substitute for all the variables in the solution,</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- i.e. the solution can contain variables that themselves are resolved metas. Hence for</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- computing the free variables of a type we have to look in the substitution to find</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- the free variables of already resolved metas in there.</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- See the definition of 'fvTypeR'.</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679279802"
+      ><span class="annot"
+	><span class="annottext"
+	  >fvs :: Set TyName
+</span
+	  ><a href="#local-6989586621679279802"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fvs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeSub -&gt; Type TyName DefaultUni () -&gt; Set TyName
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#fvTypeR"
+	><span class="hs-identifier hs-var"
+	  >fvTypeR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeSub
+</span
+	><a href="#local-6989586621679279799"
+	><span class="hs-identifier hs-var"
+	  >sub</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Cannot resolve a non-flexible type variable.</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool) -&gt; Bool -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; Set TyName -&gt; Bool
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#member"
+	><span class="hs-identifier hs-var"
+	  >Set.member</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279786"
+	><span class="hs-identifier hs-var"
+	  >flex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; String
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) any.
+MonadError String m =&gt;
+TyName -&gt; Type TyName DefaultUni () -&gt; String -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#resolutionFailure"
+	><span class="hs-identifier hs-var"
+	  >resolutionFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;the variable is not meta&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Cannot resolve a locally bound type variable.</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Covers situations like @(\x -&gt; x) =?= (\x -&gt; integer)@.</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; Set TyName -&gt; Bool
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#member"
+	><span class="hs-identifier hs-var"
+	  >Set.member</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279798"
+	><span class="hs-identifier hs-var"
+	  >locals</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; String
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) any.
+MonadError String m =&gt;
+TyName -&gt; Type TyName DefaultUni () -&gt; String -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#resolutionFailure"
+	><span class="hs-identifier hs-var"
+	  >resolutionFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;the variable is bound&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Occurs check. Covers situations like @_x =?= _x -&gt; integer@.</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Note that our occurs check is pretty naive, e.g. we could've solved @_x =?= _f _x@ as</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- @[_f := \x -&gt; x]@ or @[_f := \_ -&gt; _x]@, but we don't attempt to cover the</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- higher-order case.</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; Set TyName -&gt; Bool
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#member"
+	><span class="hs-identifier hs-var"
+	  >Set.member</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279802"
+	><span class="hs-identifier hs-var"
+	  >fvs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; String
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) any.
+MonadError String m =&gt;
+TyName -&gt; Type TyName DefaultUni () -&gt; String -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#resolutionFailure"
+	><span class="hs-identifier hs-var"
+	  >resolutionFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;the variable appears free in the type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Cannot resolve a meta to an ill-kinded type.</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCtx -&gt; Type TyName DefaultUni () -&gt; Kind () -&gt; Either String ()
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Common.html#checkKind"
+	><span class="hs-identifier hs-var"
+	  >checkKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCtx
+</span
+	><a href="#local-6989586621679279785"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind () -&gt; TyName -&gt; TypeCtx -&gt; Kind ()
+forall k a. Ord k =&gt; a -&gt; k -&gt; Map k a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Strict.Internal.html#findWithDefault"
+	><span class="hs-identifier hs-var"
+	  >Map.findWithDefault</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Kind ()
+forall a. HasCallStack =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;impossible&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCtx
+</span
+	><a href="#local-6989586621679279785"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279809"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679279809"
+	  ><span class="hs-identifier hs-var"
+	    >msg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; String
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) any.
+MonadError String m =&gt;
+TyName -&gt; Type TyName DefaultUni () -&gt; String -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#resolutionFailure"
+	><span class="hs-identifier hs-var"
+	  >resolutionFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; String
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;of kind mismatch:\n\n&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679279809"
+	><span class="hs-identifier hs-var"
+	  >msg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a.
+a -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Cannot capture a locally bound variable.</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Covers situations like @(\x -&gt; _y) =?= (\x -&gt; x)@.</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- As naive as the occurs check.</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#not"
+	><span class="hs-identifier hs-var"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool) -&gt; (Set TyName -&gt; Bool) -&gt; Set TyName -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName -&gt; Bool
+forall a. Set a -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#null"
+	><span class="hs-identifier hs-var"
+	  >null</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Set TyName -&gt; Bool) -&gt; Set TyName -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName -&gt; Set TyName -&gt; Set TyName
+forall a. Ord a =&gt; Set a -&gt; Set a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#intersection"
+	><span class="hs-identifier hs-var"
+	  >Set.intersection</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279802"
+	><span class="hs-identifier hs-var"
+	  >fvs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279798"
+	><span class="hs-identifier hs-var"
+	  >locals</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; String
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) any.
+MonadError String m =&gt;
+TyName -&gt; Type TyName DefaultUni () -&gt; String -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#resolutionFailure"
+	><span class="hs-identifier hs-var"
+	  >resolutionFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; String
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;the type contains bound variables: &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TyName] -&gt; String
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName -&gt; [TyName]
+forall a. Set a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Set.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279798"
+	><span class="hs-identifier hs-var"
+	  >locals</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeSub -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; s -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#put"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeSub
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; TypeSub
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; Type TyName DefaultUni () -&gt; TypeSub -&gt; TypeSub
+forall k a. Ord k =&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Strict.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >Map.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279794"
+	><span class="hs-identifier hs-var"
+	  >name1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279795"
+	><span class="hs-identifier hs-var"
+	  >ty2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeSub
+</span
+	><a href="#local-6989586621679279799"
+	><span class="hs-identifier hs-var"
+	  >sub</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-type"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#ReaderT"
+	><span class="hs-identifier hs-type"
+	  >ReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Strict.html#StateT"
+	><span class="hs-identifier hs-type"
+	  >StateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#TypeSub"
+	><span class="hs-identifier hs-type"
+	  >TypeSub</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679279789"
+      ><span class="annot"
+	><span class="annottext"
+	  >goType :: Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	  ><a href="#local-6989586621679279789"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier hs-type"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279815"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279815"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679279816"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279816"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279793"
+	><span class="hs-identifier hs-var"
+	  >goTyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279815"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279816"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279817"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279817"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier hs-type"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279818"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279818"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279793"
+	><span class="hs-identifier hs-var"
+	  >goTyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279818"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279817"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyFun"
+	><span class="hs-identifier hs-type"
+	  >TyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279820"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279820"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279821"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279821"
+	  ><span class="hs-identifier hs-var"
+	    >a2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyFun"
+	><span class="hs-identifier hs-type"
+	  >TyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279822"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279822"
+	  ><span class="hs-identifier hs-var"
+	    >b1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279823"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279823"
+	  ><span class="hs-identifier hs-var"
+	    >b2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279820"
+	><span class="hs-identifier hs-var"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279822"
+	><span class="hs-identifier hs-var"
+	  >b1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b.
+ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) b
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279821"
+	><span class="hs-identifier hs-var"
+	  >a2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279823"
+	><span class="hs-identifier hs-var"
+	  >b2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- This is only structural recursion, because we don't attempt to do higher-order unification.</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyApp"
+	><span class="hs-identifier hs-type"
+	  >TyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279825"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279825"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279826"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279826"
+	  ><span class="hs-identifier hs-var"
+	    >a2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyApp"
+	><span class="hs-identifier hs-type"
+	  >TyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279827"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279827"
+	  ><span class="hs-identifier hs-var"
+	    >b1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279828"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279828"
+	  ><span class="hs-identifier hs-var"
+	    >b2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279825"
+	><span class="hs-identifier hs-var"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279827"
+	><span class="hs-identifier hs-var"
+	  >b1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b.
+ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) b
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279826"
+	><span class="hs-identifier hs-var"
+	  >a2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279828"
+	><span class="hs-identifier hs-var"
+	  >b2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyBuiltin"
+	><span class="hs-identifier hs-type"
+	  >TyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279830"
+      ><span class="annot"
+	><span class="annottext"
+	  >SomeTypeIn DefaultUni
+</span
+	  ><a href="#local-6989586621679279830"
+	  ><span class="hs-identifier hs-var"
+	    >c1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyBuiltin"
+	><span class="hs-identifier hs-type"
+	  >TyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279831"
+      ><span class="annot"
+	><span class="annottext"
+	  >SomeTypeIn DefaultUni
+</span
+	  ><a href="#local-6989586621679279831"
+	  ><span class="hs-identifier hs-var"
+	    >c2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SomeTypeIn DefaultUni
+</span
+	><a href="#local-6989586621679279830"
+	><span class="hs-identifier hs-var"
+	  >c1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SomeTypeIn DefaultUni -&gt; SomeTypeIn DefaultUni -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SomeTypeIn DefaultUni
+</span
+	><a href="#local-6989586621679279831"
+	><span class="hs-identifier hs-var"
+	  >c2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SomeTypeIn DefaultUni
+-&gt; SomeTypeIn DefaultUni
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) a b any.
+(MonadError String m, Pretty a, Pretty b) =&gt;
+a -&gt; b -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#unificationFailure"
+	><span class="hs-identifier hs-var"
+	  >unificationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SomeTypeIn DefaultUni
+</span
+	><a href="#local-6989586621679279830"
+	><span class="hs-identifier hs-var"
+	  >c1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SomeTypeIn DefaultUni
+</span
+	><a href="#local-6989586621679279831"
+	><span class="hs-identifier hs-var"
+	  >c2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyIFix"
+	><span class="hs-identifier hs-type"
+	  >TyIFix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279833"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279833"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279834"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279834"
+	  ><span class="hs-identifier hs-var"
+	    >a2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyIFix"
+	><span class="hs-identifier hs-type"
+	  >TyIFix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279835"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279835"
+	  ><span class="hs-identifier hs-var"
+	    >b1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279836"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279836"
+	  ><span class="hs-identifier hs-var"
+	    >b2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279833"
+	><span class="hs-identifier hs-var"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279835"
+	><span class="hs-identifier hs-var"
+	  >b1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b.
+ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) b
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279834"
+	><span class="hs-identifier hs-var"
+	  >a2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279836"
+	><span class="hs-identifier hs-var"
+	  >b2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier hs-type"
+	  >TyForall</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279838"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279838"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279839"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ()
+</span
+	  ><a href="#local-6989586621679279839"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279840"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279840"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier hs-type"
+	  >TyForall</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279841"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279841"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279842"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ()
+</span
+	  ><a href="#local-6989586621679279842"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279843"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279843"
+	  ><span class="hs-identifier hs-var"
+	    >b'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279839"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind () -&gt; Kind () -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279842"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+-&gt; Kind ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) a b any.
+(MonadError String m, Pretty a, Pretty b) =&gt;
+a -&gt; b -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#unificationFailure"
+	><span class="hs-identifier hs-var"
+	  >unificationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279839"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279842"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679279844"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set TyName
+</span
+	  ><a href="#local-6989586621679279844"
+	  ><span class="hs-identifier hs-var"
+	    >locals</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) (Set TyName)
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- See Note [Renaming during unification].</span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679279848"
+      ><span class="annot"
+	><span class="annottext"
+	  >z :: TyName
+</span
+	  ><a href="#local-6989586621679279848"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >z</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName -&gt; TyName -&gt; TyName
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Utils.html#freshenTyNameWith"
+	><span class="hs-identifier hs-var"
+	  >freshenTyNameWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279844"
+	><span class="hs-identifier hs-var"
+	  >locals</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName -&gt; Set TyName -&gt; Set TyName
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCtx -&gt; Set TyName
+forall k a. Map k a -&gt; Set k
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#keysSet"
+	><span class="hs-identifier hs-var"
+	  >Map.keysSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCtx
+</span
+	><a href="#local-6989586621679279785"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279838"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Set TyName -&gt; Set TyName)
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a.
+(Set TyName -&gt; Set TyName)
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; Set TyName -&gt; Set TyName
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >Set.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279848"
+	><span class="hs-identifier hs-var"
+	  >z</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; TyName -&gt; Type TyName DefaultUni () -&gt; Type TyName DefaultUni ()
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#renameVar"
+	><span class="hs-identifier hs-var"
+	  >renameVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279838"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279848"
+	><span class="hs-identifier hs-var"
+	  >z</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279840"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; TyName -&gt; Type TyName DefaultUni () -&gt; Type TyName DefaultUni ()
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#renameVar"
+	><span class="hs-identifier hs-var"
+	  >renameVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279841"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279848"
+	><span class="hs-identifier hs-var"
+	  >z</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279843"
+	><span class="hs-identifier hs-var"
+	  >b'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier hs-type"
+	  >TyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279854"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279854"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279855"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ()
+</span
+	  ><a href="#local-6989586621679279855"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279856"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279856"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier hs-type"
+	  >TyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279857"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679279857"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279858"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ()
+</span
+	  ><a href="#local-6989586621679279858"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279859"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279859"
+	  ><span class="hs-identifier hs-var"
+	    >b'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279855"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind () -&gt; Kind () -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279858"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+-&gt; Kind ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) a b any.
+(MonadError String m, Pretty a, Pretty b) =&gt;
+a -&gt; b -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#unificationFailure"
+	><span class="hs-identifier hs-var"
+	  >unificationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279855"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ()
+</span
+	><a href="#local-6989586621679279858"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679279860"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set TyName
+</span
+	  ><a href="#local-6989586621679279860"
+	  ><span class="hs-identifier hs-var"
+	    >locals</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT (Set TyName) (StateT TypeSub (Either String)) (Set TyName)
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- See Note [Renaming during unification].</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679279863"
+      ><span class="annot"
+	><span class="annottext"
+	  >z :: TyName
+</span
+	  ><a href="#local-6989586621679279863"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >z</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName -&gt; TyName -&gt; TyName
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Utils.html#freshenTyNameWith"
+	><span class="hs-identifier hs-var"
+	  >freshenTyNameWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName
+</span
+	><a href="#local-6989586621679279860"
+	><span class="hs-identifier hs-var"
+	  >locals</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set TyName -&gt; Set TyName -&gt; Set TyName
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCtx -&gt; Set TyName
+forall k a. Map k a -&gt; Set k
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#keysSet"
+	><span class="hs-identifier hs-var"
+	  >Map.keysSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCtx
+</span
+	><a href="#local-6989586621679279785"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279854"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Set TyName -&gt; Set TyName)
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a.
+(Set TyName -&gt; Set TyName)
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName -&gt; Set TyName -&gt; Set TyName
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >Set.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279863"
+	><span class="hs-identifier hs-var"
+	  >z</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; TyName -&gt; Type TyName DefaultUni () -&gt; Type TyName DefaultUni ()
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#renameVar"
+	><span class="hs-identifier hs-var"
+	  >renameVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279854"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279863"
+	><span class="hs-identifier hs-var"
+	  >z</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279856"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+-&gt; TyName -&gt; Type TyName DefaultUni () -&gt; Type TyName DefaultUni ()
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Substitutions.html#renameVar"
+	><span class="hs-identifier hs-var"
+	  >renameVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279857"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679279863"
+	><span class="hs-identifier hs-var"
+	  >z</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279859"
+	><span class="hs-identifier hs-var"
+	  >b'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TySOP"
+	><span class="hs-identifier hs-type"
+	  >TySOP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279865"
+      ><span class="annot"
+	><span class="annottext"
+	  >[[Type TyName DefaultUni ()]]
+</span
+	  ><a href="#local-6989586621679279865"
+	  ><span class="hs-identifier hs-var"
+	    >sum1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TySOP"
+	><span class="hs-identifier hs-type"
+	  >TySOP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279866"
+      ><span class="annot"
+	><span class="annottext"
+	  >[[Type TyName DefaultUni ()]]
+</span
+	  ><a href="#local-6989586621679279866"
+	  ><span class="hs-identifier hs-var"
+	    >sum2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Sums must be of the same arity.</span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279867"
+      ><span class="annot"
+	><span class="annottext"
+	  >[([Type TyName DefaultUni ()], [Type TyName DefaultUni ()])]
+</span
+	  ><a href="#local-6989586621679279867"
+	  ><span class="hs-identifier hs-var"
+	    >sum12</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Type TyName DefaultUni ()]]
+-&gt; [[Type TyName DefaultUni ()]]
+-&gt; Maybe
+     [([Type TyName DefaultUni ()], [Type TyName DefaultUni ()])]
+forall a b. [a] -&gt; [b] -&gt; Maybe [(a, b)]
+</span
+	><a href="../../plutus-core/src/PlutusPrelude.html#zipExact"
+	><span class="hs-identifier hs-var"
+	  >zipExact</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Type TyName DefaultUni ()]]
+</span
+	><a href="#local-6989586621679279865"
+	><span class="hs-identifier hs-var"
+	  >sum1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Type TyName DefaultUni ()]]
+</span
+	><a href="#local-6989586621679279866"
+	><span class="hs-identifier hs-var"
+	  >sum2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[([Type TyName DefaultUni ()], [Type TyName DefaultUni ()])]
+-&gt; (([Type TyName DefaultUni ()], [Type TyName DefaultUni ()])
+    -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#for_"
+	><span class="hs-identifier hs-var"
+	  >for_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[([Type TyName DefaultUni ()], [Type TyName DefaultUni ()])]
+</span
+	><a href="#local-6989586621679279867"
+	><span class="hs-identifier hs-var"
+	  >sum12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((([Type TyName DefaultUni ()], [Type TyName DefaultUni ()])
+  -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; (([Type TyName DefaultUni ()], [Type TyName DefaultUni ()])
+    -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679279870"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Type TyName DefaultUni ()]
+</span
+	  ><a href="#local-6989586621679279870"
+	  ><span class="hs-identifier hs-var"
+	    >prod1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679279871"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Type TyName DefaultUni ()]
+</span
+	  ><a href="#local-6989586621679279871"
+	  ><span class="hs-identifier hs-var"
+	    >prod2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Products within sums must be of the same arity.</span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type TyName DefaultUni ()]
+-&gt; [Type TyName DefaultUni ()]
+-&gt; Maybe [(Type TyName DefaultUni (), Type TyName DefaultUni ())]
+forall a b. [a] -&gt; [b] -&gt; Maybe [(a, b)]
+</span
+	><a href="../../plutus-core/src/PlutusPrelude.html#zipExact"
+	><span class="hs-identifier hs-var"
+	  >zipExact</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type TyName DefaultUni ()]
+</span
+	><a href="#local-6989586621679279870"
+	><span class="hs-identifier hs-var"
+	  >prod1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type TyName DefaultUni ()]
+</span
+	><a href="#local-6989586621679279871"
+	><span class="hs-identifier hs-var"
+	  >prod2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe [(Type TyName DefaultUni (), Type TyName DefaultUni ())]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type TyName DefaultUni ()]
+-&gt; [Type TyName DefaultUni ()]
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) a b any.
+(MonadError String m, Pretty a, Pretty b) =&gt;
+a -&gt; b -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#unificationFailure"
+	><span class="hs-identifier hs-var"
+	  >unificationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type TyName DefaultUni ()]
+</span
+	><a href="#local-6989586621679279870"
+	><span class="hs-identifier hs-var"
+	  >prod1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type TyName DefaultUni ()]
+</span
+	><a href="#local-6989586621679279871"
+	><span class="hs-identifier hs-var"
+	  >prod2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-comment"
+      >-- SOPs unify componentwise.</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279872"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Type TyName DefaultUni (), Type TyName DefaultUni ())]
+</span
+	  ><a href="#local-6989586621679279872"
+	  ><span class="hs-identifier hs-var"
+	    >prod12</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Type TyName DefaultUni (), Type TyName DefaultUni ())
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; [(Type TyName DefaultUni (), Type TyName DefaultUni ())]
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#traverse_"
+	><span class="hs-identifier hs-var"
+	  >traverse_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni ()
+ -&gt; Type TyName DefaultUni ()
+ -&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ())
+-&gt; (Type TyName DefaultUni (), Type TyName DefaultUni ())
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#uncurry"
+	><span class="hs-identifier hs-var"
+	  >uncurry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+</span
+	><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Type TyName DefaultUni (), Type TyName DefaultUni ())]
+</span
+	><a href="#local-6989586621679279872"
+	><span class="hs-identifier hs-var"
+	  >prod12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679279789"
+	><span class="hs-identifier hs-var"
+	  >goType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279875"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279875"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679279876"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni ()
+</span
+	  ><a href="#local-6989586621679279876"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+-&gt; Type TyName DefaultUni ()
+-&gt; ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+forall (m :: * -&gt; *) a b any.
+(MonadError String m, Pretty a, Pretty b) =&gt;
+a -&gt; b -&gt; m any
+</span
+	><a href="PlutusCore.Generators.QuickCheck.Unification.html#unificationFailure"
+	><span class="hs-identifier hs-var"
+	  >unificationFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279875"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+</span
+	><a href="#local-6989586621679279876"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

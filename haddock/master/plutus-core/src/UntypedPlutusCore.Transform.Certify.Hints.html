@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Transform.Certify.Hints</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Certifier hints for the inlining pass.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Inline"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	  ><span class="hs-identifier hs-var"
+	    >Inline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="InlVar"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlVar"
+	  ><span class="hs-identifier hs-var"
+	    >InlVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlLam"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlLam"
+	  ><span class="hs-identifier hs-var"
+	    >InlLam</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlApply"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlApply"
+	  ><span class="hs-identifier hs-var"
+	    >InlApply</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlForce"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlForce"
+	  ><span class="hs-identifier hs-var"
+	    >InlForce</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlDelay"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlDelay"
+	  ><span class="hs-identifier hs-var"
+	    >InlDelay</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlCon"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlCon"
+	  ><span class="hs-identifier hs-var"
+	    >InlCon</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlBuiltin"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlBuiltin"
+	  ><span class="hs-identifier hs-var"
+	    >InlBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlError"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlError"
+	  ><span class="hs-identifier hs-var"
+	    >InlError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlConstr"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlConstr"
+	  ><span class="hs-identifier hs-var"
+	    >InlConstr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlCase"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlCase"
+	  ><span class="hs-identifier hs-var"
+	    >InlCase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlExpand"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlExpand"
+	  ><span class="hs-identifier hs-var"
+	    >InlExpand</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlDrop"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlDrop"
+	  ><span class="hs-identifier hs-var"
+	    >InlDrop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Hints for the certifier.
+
+Note that there's a separate and unrelated notion of @InlineHints@. When there's
+ambiguity, this should be referred to as &quot;certifier hints&quot;. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Hints"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Hints"
+	  ><span class="hs-identifier hs-var"
+	    >Hints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Inline"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	  ><span class="hs-identifier hs-var"
+	    >Inline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="NoHints"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#NoHints"
+	  ><span class="hs-identifier hs-var"
+	    >NoHints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

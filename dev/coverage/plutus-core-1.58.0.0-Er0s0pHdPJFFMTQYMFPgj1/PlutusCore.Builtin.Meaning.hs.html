@@ -1,0 +1,486 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE AllowAmbiguousTypes #-}
+<span class="lineno">    2 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    3 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    4 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    5 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    6 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    7 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    8 </span>{-# LANGUAGE PolyKinds #-}
+<span class="lineno">    9 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">   10 </span>{-# LANGUAGE StandaloneKindSignatures #-}
+<span class="lineno">   11 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">   12 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">   13 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">   14 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   15 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>module PlutusCore.Builtin.Meaning where
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusPrelude
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import PlutusCore.Builtin.Elaborate
+<span class="lineno">   22 </span>import PlutusCore.Builtin.HasConstant
+<span class="lineno">   23 </span>import PlutusCore.Builtin.KnownKind
+<span class="lineno">   24 </span>import PlutusCore.Builtin.KnownType
+<span class="lineno">   25 </span>import PlutusCore.Builtin.KnownTypeAst
+<span class="lineno">   26 </span>import PlutusCore.Builtin.Runtime
+<span class="lineno">   27 </span>import PlutusCore.Builtin.TypeScheme
+<span class="lineno">   28 </span>import PlutusCore.Core
+<span class="lineno">   29 </span>import PlutusCore.Evaluation.Machine.ExBudgetStream
+<span class="lineno">   30 </span>import PlutusCore.Evaluation.Machine.ExMemoryUsage
+<span class="lineno">   31 </span>import PlutusCore.Name.Unique
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>import Data.Array
+<span class="lineno">   34 </span>import Data.Kind qualified as GHC
+<span class="lineno">   35 </span>import Data.Proxy
+<span class="lineno">   36 </span>import Data.Some.GADT
+<span class="lineno">   37 </span>import GHC.Exts (inline, lazy, oneShot)
+<span class="lineno">   38 </span>import GHC.TypeLits
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>{-| Turn a list of Haskell types @args@ into a functional type ending in @res@.
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>&gt;&gt;&gt; :set -XDataKinds
+<span class="lineno">   43 </span>&gt;&gt;&gt; :kind! FoldArgs [(), Bool] Integer
+<span class="lineno">   44 </span>FoldArgs [(), Bool] Integer :: *
+<span class="lineno">   45 </span>= () -&gt; Bool -&gt; Integer -}
+<span class="lineno">   46 </span>type family FoldArgs args res where
+<span class="lineno">   47 </span>  FoldArgs '[] res = res
+<span class="lineno">   48 </span>  FoldArgs (arg ': args) res = arg -&gt; FoldArgs args res
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>{-| The meaning of a built-in function consists of its type represented as a 'TypeScheme',
+<span class="lineno">   51 </span>its Haskell denotation and its uninstantiated runtime denotation.
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>The 'TypeScheme' of a built-in function is used for example for
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>1. computing the PLC type of the function to be used during type checking
+<span class="lineno">   56 </span>2. getting arity information
+<span class="lineno">   57 </span>3. generating arbitrary values to apply the function to in tests
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>The denotation is lazy, so that we don't need to worry about a builtin being bottom
+<span class="lineno">   60 </span>(happens in tests). The production path is not affected by that, since only runtime denotations
+<span class="lineno">   61 </span>are used for evaluation. -}
+<span class="lineno">   62 </span>data BuiltinMeaning val cost
+<span class="lineno">   63 </span>  = forall args res. BuiltinMeaning
+<span class="lineno">   64 </span>      (TypeScheme val args res)
+<span class="lineno">   65 </span>      ~(FoldArgs args res)
+<span class="lineno">   66 </span>      (cost -&gt; BuiltinRuntime val)
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>-- | Constraints available when defining a built-in function.
+<span class="lineno">   69 </span>type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>-- | A type class for \&quot;each function from a set of built-in functions has a 'BuiltinMeaning'\&quot;.
+<span class="lineno">   72 </span>class
+<span class="lineno">   73 </span>  ( Typeable uni
+<span class="lineno">   74 </span>  , Typeable fun
+<span class="lineno">   75 </span>  , Bounded fun
+<span class="lineno">   76 </span>  , Enum fun
+<span class="lineno">   77 </span>  , Ix fun
+<span class="lineno">   78 </span>  , Default (BuiltinSemanticsVariant fun)
+<span class="lineno">   79 </span>  ) =&gt;
+<span class="lineno">   80 </span>  ToBuiltinMeaning uni fun
+<span class="lineno">   81 </span>  where
+<span class="lineno">   82 </span>  -- | The @cost@ part of 'BuiltinMeaning'.
+<span class="lineno">   83 </span>  type CostingPart uni fun
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>  -- | See Note [Builtin semantics variants]
+<span class="lineno">   86 </span>  data BuiltinSemanticsVariant fun
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>  -- | Get the 'BuiltinMeaning' of a built-in function.
+<span class="lineno">   89 </span>  toBuiltinMeaning
+<span class="lineno">   90 </span>    :: HasMeaningIn uni val
+<span class="lineno">   91 </span>    =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">   92 </span>    -&gt; fun
+<span class="lineno">   93 </span>    -&gt; BuiltinMeaning val (CostingPart uni fun)
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>-- | Feed the 'TypeScheme' of the given built-in function to the continuation.
+<span class="lineno">   96 </span>withTypeSchemeOfBuiltinFunction
+<span class="lineno">   97 </span>  :: forall val fun r
+<span class="lineno">   98 </span>   . (ToBuiltinMeaning (UniOf val) fun, ExMemoryUsage val, Typeable val, HasConstant val)
+<span class="lineno">   99 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  100 </span>  -&gt; fun
+<span class="lineno">  101 </span>  -&gt; (forall args res. TypeScheme val args res -&gt; r)
+<span class="lineno">  102 </span>  -&gt; r
+<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">withTypeSchemeOfBuiltinFunction semVar fun k =</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="istickedoff">case toBuiltinMeaning semVar fun of</span>
+<span class="lineno">  105 </span><span class="spaces">    </span><span class="istickedoff">BuiltinMeaning sch _ _ -&gt; k sch</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- | Get the type of a built-in function.
+<span class="lineno">  108 </span>typeOfBuiltinFunction
+<span class="lineno">  109 </span>  :: forall uni fun
+<span class="lineno">  110 </span>   . ToBuiltinMeaning uni fun
+<span class="lineno">  111 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  112 </span>  -&gt; fun
+<span class="lineno">  113 </span>  -&gt; Type TyName uni ()
+<span class="lineno">  114 </span><span class="decl"><span class="istickedoff">typeOfBuiltinFunction semVar fun =</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">withTypeSchemeOfBuiltinFunction @(Term TyName Name uni fun ()) semVar fun typeSchemeToType</span></span>
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>{- Note [Builtin semantics variants]
+<span class="lineno">  118 </span>The purpose of the &quot;builtin semantics variant&quot; feature is to provide multiple,
+<span class="lineno">  119 </span>different denotations (implementations) for the same builtin(s).  An example use
+<span class="lineno">  120 </span>of this feature is for &quot;fixing&quot; the behaviour of `ConsByteString` builtin to
+<span class="lineno">  121 </span>throw an error instead of overflowing its first argument.
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>One denotation from each builtin is grouped into a 'BuiltinSemanticsVariant'.
+<span class="lineno">  124 </span>Each Plutus Language version is linked to a specific 'BuiltinSemanticsVariant'
+<span class="lineno">  125 </span>(done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are linked to
+<span class="lineno">  126 </span>'DefaultFunSemanticsVariantA' and 'DefaultFunSemanticsVariantB', whereas
+<span class="lineno">  127 </span>plutus-v3 changes the set of denotations to 'DefaultFunSemanticsVariantC' (thus
+<span class="lineno">  128 </span>fixing 'ConsByteString').
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>Each 'BuiltinSemanticsVariant' (grouping) can change the denotation of one or
+<span class="lineno">  131 </span>more builtins --- or none, but what's the point in that?
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>This 'BuiltinSemanticsVariant' is modelled as a datatype *associated* to the
+<span class="lineno">  134 </span>@fun@. This associated datatype is required to provide an instance of 'Default'
+<span class="lineno">  135 </span>for quality-of-life purpose; the 'def'ault builtin semantics variant is expected
+<span class="lineno">  136 </span>to point to the builtin semantics variant that the plutus-tx/plutus-ir compiler
+<span class="lineno">  137 </span>is currently targeting.
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>Note that (old) denotations of a 'BuiltinSemanticsVariant' cannot be removed or
+<span class="lineno">  140 </span>deprecated once published to the chain.
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span>The way that this feature is implemented buys us more than we currently need:
+<span class="lineno">  143 </span>- allows also a versioned change to a builtin's *type signature*, i.e. type of arguments/result as
+<span class="lineno">  144 </span>  well as number of arguments.
+<span class="lineno">  145 </span>- allows also a versioned change to a builtin's cost model parameters
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>Besides having no need for this currently, it complicates the codebase since the
+<span class="lineno">  148 </span>typechecker now pointlessly wants to know the builtin semantics before
+<span class="lineno">  149 </span>typechecking. To alleviate this, we use the 'Default.def' builtin semantics
+<span class="lineno">  150 </span>variant during typechecking / lifting. @effectfully: the solution to the problem
+<span class="lineno">  151 </span>would be to establish what kind of backwards compatibility we're willing to
+<span class="lineno">  152 </span>maintain and pull all of that into a separate data type and make it a part of
+<span class="lineno">  153 </span>BuiltinMeaning.
+<span class="lineno">  154 </span>-}
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>{- Note [Automatic derivation of type schemes]
+<span class="lineno">  157 </span>We use two type classes for automatic derivation of type/runtime schemes and runtime denotations:
+<span class="lineno">  158 </span>'KnownPolytype' and 'KnownMonotype'.
+<span class="lineno">  159 </span>The terminology is due to
+<span class="lineno">  160 </span>https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system#The_Hindley%E2%80%93Milner_
+<span class="lineno">  161 </span>type_system
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>Check out the source of &quot;PlutusCore.Builtin.Runtime&quot; for an explanation of what a runtime
+<span class="lineno">  164 </span>denotation is.
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>'KnownPolytype' and 'KnownMonotype' are responsible for deriving polymorphic and monomorphic types,
+<span class="lineno">  167 </span>respectively.
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>'KnownPolytype' turns every bound variable into a 'TypeSchemeAll'/'BuiltinExpectForce'. We extract
+<span class="lineno">  170 </span>variables from the type of the Haskell denotation using the 'ToBinds' associated type
+<span class="lineno">  171 </span>family. Variables are collected in the order that they appear in (i.e. just like in Haskell). For
+<span class="lineno">  172 </span>example, processing a type like
+<span class="lineno">  173 </span>
+<span class="lineno">  174 </span>      :: ( a ~ Opaque val (TyVarRep ('TyNameRep &quot;a&quot; 0))
+<span class="lineno">  175 </span>         , b ~ Opaque val (TyVarRep ('TyNameRep &quot;b&quot; 1))
+<span class="lineno">  176 </span>         )
+<span class="lineno">  177 </span>      =&gt; b -&gt; a -&gt; b
+<span class="lineno">  178 </span>
+<span class="lineno">  179 </span>with 'ToBinds' results in the following list of bindings:
+<span class="lineno">  180 </span>
+<span class="lineno">  181 </span>    '[ 'Some ('TyNameRep &quot;b&quot; 1), 'Some ('TyNameRep &quot;a&quot; 0) ]
+<span class="lineno">  182 </span>
+<span class="lineno">  183 </span>'KnownMonotype' turns every argument that the Haskell denotation of a builtin receives into a
+<span class="lineno">  184 </span>'TypeSchemeArrow'/'BuiltinExpectArgument'. We extract the arguments from the type of the Haskell
+<span class="lineno">  185 </span>denotation using the 'GetArgs' type family.
+<span class="lineno">  186 </span>
+<span class="lineno">  187 </span>Higher-kinded type variables are fully supported.
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>At this point in the pipeline the type of the denotation of a builtin is assumed to be fully
+<span class="lineno">  190 </span>elaborated (i.e. monomorphic).
+<span class="lineno">  191 </span>-}
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>-- | Chop a function type to get a list of its argument types.
+<span class="lineno">  194 </span>type GetArgs :: GHC.Type -&gt; [GHC.Type]
+<span class="lineno">  195 </span>type family GetArgs a where
+<span class="lineno">  196 </span>  GetArgs (a -&gt; b) = a ': GetArgs b
+<span class="lineno">  197 </span>  GetArgs _ = '[]
+<span class="lineno">  198 </span>
+<span class="lineno">  199 </span>{- Note [Merging the denotation and the costing function]
+<span class="lineno">  200 </span>The runtime denotation of a builtin computes both the builtin application and its cost
+<span class="lineno">  201 </span>(see the docs of 'BuiltinRuntime' for details). Doing both at the same time has a number of benefits
+<span class="lineno">  202 </span>(see Note [runCostingFun* API]), however in the user-facing API we want to separate the concepts
+<span class="lineno">  203 </span>of the denotation and the costing function. This is because:
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>1. the two are fundamentally distinct and we have loads of documentation for each of them
+<span class="lineno">  206 </span>   separately, so conflating them in the actual API would be unnecessary coupling
+<span class="lineno">  207 </span>2. right now it's clear which bits of the definition of a builtin constitute evaluation and which
+<span class="lineno">  208 </span>   ones constitute costing as the two are different arguments to 'makeBuiltinMeaning'. If evaluation
+<span class="lineno">  209 </span>   and costing were intertwined, it would be much harder to review the definition of a builtin
+<span class="lineno">  210 </span>3. ... and it would also be more boilerplate and less clear type signatures
+<span class="lineno">  211 </span>
+<span class="lineno">  212 </span>Hence we want 'makeBuiltinMeaning' to take evaluation and costing bits separately and intertwine
+<span class="lineno">  213 </span>them behind the scenes. Which is straightforward: we only need to pass the two together in the
+<span class="lineno">  214 </span>methods of the 'KnownMonotype' and 'KnownPolytype' classes and zip them argument by argument
+<span class="lineno">  215 </span>into a single 'BuiltinRuntime'.
+<span class="lineno">  216 </span>-}
+<span class="lineno">  217 </span>
+<span class="lineno">  218 </span>{-| A class that allows us to derive a monotype for a builtin.
+<span class="lineno">  219 </span>We could've computed the runtime denotation from the
+<span class="lineno">  220 </span>'TypeScheme' and the denotation of the builtin, but not statically (due to unfolding not working
+<span class="lineno">  221 </span>for recursive functions and 'TypeScheme' being recursive, i.e. requiring the conversion function
+<span class="lineno">  222 </span>to be recursive), and so it would cause us to retain a lot of evaluation-irrelevant stuff in the
+<span class="lineno">  223 </span>constructors of 'BuiltinRuntime', which has to make evaluation slower (we didn't check) and
+<span class="lineno">  224 </span>certainly makes the generated Core much harder to read. Technically speaking, we could get
+<span class="lineno">  225 </span>a 'RuntimeScheme' from the 'TypeScheme' and the denotation statically if we changed the
+<span class="lineno">  226 </span>definition of 'TypeScheme' and made it a singleton, but then the conversion function would have
+<span class="lineno">  227 </span>to become a class anyway and we'd just replicate what we have here, except in a much more
+<span class="lineno">  228 </span>complicated way. -}
+<span class="lineno">  229 </span>class KnownMonotype val args res where
+<span class="lineno">  230 </span>  knownMonotype :: TypeScheme val args res
+<span class="lineno">  231 </span>
+<span class="lineno">  232 </span>  {-| Convert the denotation of a builtin to its runtime counterpart .
+<span class="lineno">  233 </span>  The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
+<span class="lineno">  234 </span>  passing the action returning the builtin application around until full saturation, which is
+<span class="lineno">  235 </span>  when the action actually gets run. -}
+<span class="lineno">  236 </span>  toMonoF
+<span class="lineno">  237 </span>    :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+<span class="lineno">  238 </span>    -&gt; BuiltinRuntime val
+<span class="lineno">  239 </span>
+<span class="lineno">  240 </span>{-| Once we've run out of term-level arguments, we return a
+<span class="lineno">  241 </span>'TypeSchemeResult'/'RuntimeSchemeResult'. -}
+<span class="lineno">  242 </span>instance
+<span class="lineno">  243 </span>  (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res)
+<span class="lineno">  244 </span>  =&gt; KnownMonotype val '[] res
+<span class="lineno">  245 </span>  where
+<span class="lineno">  246 </span>  <span class="decl"><span class="istickedoff">knownMonotype = TypeSchemeResult</span></span>
+<span class="lineno">  247 </span>
+<span class="lineno">  248 </span>  <span class="decl"><span class="istickedoff">toMonoF =</span>
+<span class="lineno">  249 </span><span class="spaces">    </span><span class="istickedoff">either</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="istickedoff">-- Unlifting has failed and we don't care about costing at this point, since we're about</span>
+<span class="lineno">  251 </span><span class="spaces">      </span><span class="istickedoff">-- to terminate evaluation anyway, hence we put 'mempty' as the cost of the operation.</span>
+<span class="lineno">  252 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  253 </span><span class="spaces">      </span><span class="istickedoff">-- Note that putting the cost inside of 'BuiltinResult' is not an option, since forcing</span>
+<span class="lineno">  254 </span><span class="spaces">      </span><span class="istickedoff">-- the 'BuiltinResult' computation is exactly forcing the builtin application, which we</span>
+<span class="lineno">  255 </span><span class="spaces">      </span><span class="istickedoff">-- can't do before accounting for the cost of the application, i.e. the cost must be</span>
+<span class="lineno">  256 </span><span class="spaces">      </span><span class="istickedoff">-- outside of 'BuiltinResult'.</span>
+<span class="lineno">  257 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  258 </span><span class="spaces">      </span><span class="istickedoff">-- We could introduce a level of indirection and say that a 'BuiltinCostedResult' is</span>
+<span class="lineno">  259 </span><span class="spaces">      </span><span class="istickedoff">-- either a budgeting failure or a budgeting success with a cost and a 'BuiltinResult'</span>
+<span class="lineno">  260 </span><span class="spaces">      </span><span class="istickedoff">-- computation inside, but that would slow things down a bit and the current strategy is</span>
+<span class="lineno">  261 </span><span class="spaces">      </span><span class="istickedoff">-- reasonable enough.</span>
+<span class="lineno">  262 </span><span class="spaces">      </span><span class="istickedoff">builtinRuntimeFailure</span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="istickedoff">(\(x, cost) -&gt; BuiltinCostedResult cost $ makeKnown x)</span></span>
+<span class="lineno">  264 </span>  {-# INLINE toMonoF #-}
+<span class="lineno">  265 </span>
+<span class="lineno">  266 </span>{- Note [One-shotting runtime denotations]
+<span class="lineno">  267 </span>In @KnownMonotype val (arg ': args) res@ we 'oneShot' the runtime denotations. Otherwise GHC creates
+<span class="lineno">  268 </span>let-bindings and lifts them out of some of the lambdas in the runtime denotation, which would speed
+<span class="lineno">  269 </span>up partial applications if they were getting reused, but at some point it was verified that we
+<span class="lineno">  270 </span>didn't have any reusage of partial applications: https://github.com/IntersectMBO/plutus/pull/4629
+<span class="lineno">  271 </span>
+<span class="lineno">  272 </span>One-shotting the runtime denotations alone made certain game contracts slower by ~9%. A lot of time
+<span class="lineno">  273 </span>was spent on the investigation, but we still don't know why that was happening. Plus, basically any
+<span class="lineno">  274 </span>other change to the builtins machinery would cause the same kind of slowdown, so we just admitted
+<span class="lineno">  275 </span>defeat and decided it wasn't worth investigating the issue further.
+<span class="lineno">  276 </span>Relevant thread: https://github.com/IntersectMBO/plutus/pull/4620
+<span class="lineno">  277 </span>
+<span class="lineno">  278 </span>The speedup that adding a call to 'oneShot' gives us, if any, is smaller than our noise threshold,
+<span class="lineno">  279 </span>however it also makes those confusing allocations disappear from the generated Core, which is enough
+<span class="lineno">  280 </span>of a reason to add the call.
+<span class="lineno">  281 </span>-}
+<span class="lineno">  282 </span>
+<span class="lineno">  283 </span>{- Note [Strict application in runtime denotations]
+<span class="lineno">  284 </span>Runtime denotations contain strict let-bindings. Those are important: without them GHC thinks that
+<span class="lineno">  285 </span>the argument may not be needed in the end and so creates a thunk for it, which is not only
+<span class="lineno">  286 </span>unnecessary allocation, but also prevents things from being unboxed. The argument may indeed not be
+<span class="lineno">  287 </span>needed in the end, but in that case we've got an evaluation failure and we're about to terminate
+<span class="lineno">  288 </span>evaluation anyway, hence we care much more about optimizing the happy path.
+<span class="lineno">  289 </span>-}
+<span class="lineno">  290 </span>
+<span class="lineno">  291 </span>-- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.
+<span class="lineno">  292 </span>instance
+<span class="lineno">  293 </span>  ( Typeable arg
+<span class="lineno">  294 </span>  , KnownTypeAst TyName (UniOf val) arg
+<span class="lineno">  295 </span>  , MakeKnown val arg
+<span class="lineno">  296 </span>  , ReadKnown val arg
+<span class="lineno">  297 </span>  , KnownMonotype val args res
+<span class="lineno">  298 </span>  )
+<span class="lineno">  299 </span>  =&gt; KnownMonotype val (arg ': args) res
+<span class="lineno">  300 </span>  where
+<span class="lineno">  301 </span>  <span class="decl"><span class="istickedoff">knownMonotype = TypeSchemeArrow knownMonotype</span></span>
+<span class="lineno">  302 </span>
+<span class="lineno">  303 </span>  -- See Note [One-shotting runtime denotations].
+<span class="lineno">  304 </span>  -- Grow the builtin application within the received action and recurse on the result.
+<span class="lineno">  305 </span>  <span class="decl"><span class="istickedoff">toMonoF getBoth = BuiltinExpectArgument . oneShot $ \arg -&gt;</span>
+<span class="lineno">  306 </span><span class="spaces">    </span><span class="istickedoff">-- The lazy application of 'toMonoF' ensures that unlifting of the argument will happen</span>
+<span class="lineno">  307 </span><span class="spaces">    </span><span class="istickedoff">-- upon full saturation and not before that. This is known as &quot;operationally deferred</span>
+<span class="lineno">  308 </span><span class="spaces">    </span><span class="istickedoff">-- unlifting&quot; (as opposed to &quot;operationally immediate unlifting&quot;) or &quot;call-by-name</span>
+<span class="lineno">  309 </span><span class="spaces">    </span><span class="istickedoff">-- unlifting&quot; (as opposed to &quot;call-by-value unlifting&quot;). We do it this way to guarantee that</span>
+<span class="lineno">  310 </span><span class="spaces">    </span><span class="istickedoff">-- the cost of unlifting will be accounted for before unlifting is performed. If we did</span>
+<span class="lineno">  311 </span><span class="spaces">    </span><span class="istickedoff">-- unlifting eagerly here, this would make the node do work that is not accounted for until</span>
+<span class="lineno">  312 </span><span class="spaces">    </span><span class="istickedoff">-- full saturation is reached, which may never happen if the partial application is thrown</span>
+<span class="lineno">  313 </span><span class="spaces">    </span><span class="istickedoff">-- away.</span>
+<span class="lineno">  314 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  315 </span><span class="spaces">    </span><span class="istickedoff">-- The disadvantage of this approach is that @addInteger 42@ will always unlift @42@ upon</span>
+<span class="lineno">  316 </span><span class="spaces">    </span><span class="istickedoff">-- full saturation even if this partial application is saved to a variable. But the way</span>
+<span class="lineno">  317 </span><span class="spaces">    </span><span class="istickedoff">-- costing calibration benchmarks are set up, we always evaluate a single application, so</span>
+<span class="lineno">  318 </span><span class="spaces">    </span><span class="istickedoff">-- the cost of unlifting is included in the cost of the builtin regardless of whether</span>
+<span class="lineno">  319 </span><span class="spaces">    </span><span class="istickedoff">-- there's caching of unlifting or not. Hence the user pays for unlifting anyway and we can</span>
+<span class="lineno">  320 </span><span class="spaces">    </span><span class="istickedoff">-- prioritize safety over performance here.</span>
+<span class="lineno">  321 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  322 </span><span class="spaces">    </span><span class="istickedoff">-- 'oneShot' ensures that GHC doesn't attempt to pull stuff out of the builtin</span>
+<span class="lineno">  323 </span><span class="spaces">    </span><span class="istickedoff">-- implementation to create thunks. This would give us a &quot;call-by-need&quot; behavior, which may</span>
+<span class="lineno">  324 </span><span class="spaces">    </span><span class="istickedoff">-- sound enticing as it would give us both caching and operationally deferred unlifting, but</span>
+<span class="lineno">  325 </span><span class="spaces">    </span><span class="istickedoff">-- this comes at a cost of creating unnecessary thunks in the most common case where there's</span>
+<span class="lineno">  326 </span><span class="spaces">    </span><span class="istickedoff">-- no benefit from having caching as the builtin application is going to be computed only</span>
+<span class="lineno">  327 </span><span class="spaces">    </span><span class="istickedoff">-- once. So we choose the &quot;call-by-name&quot; behavior and 'oneShot' is what enables that.</span>
+<span class="lineno">  328 </span><span class="spaces">    </span><span class="istickedoff">oneShot (toMonoF @val @args @res) $ do</span>
+<span class="lineno">  329 </span><span class="spaces">      </span><span class="istickedoff">(f, exF) &lt;- getBoth</span>
+<span class="lineno">  330 </span><span class="spaces">      </span><span class="istickedoff">-- Force the argument that gets passed to the denotation. This seems to help performance</span>
+<span class="lineno">  331 </span><span class="spaces">      </span><span class="istickedoff">-- a bit (possibly due to its impact on strictness analysis), plus this way we ensure</span>
+<span class="lineno">  332 </span><span class="spaces">      </span><span class="istickedoff">-- that if computing the argument throws an exception (isn't supposed to happen), we'll</span>
+<span class="lineno">  333 </span><span class="spaces">      </span><span class="istickedoff">-- catch it in tests.</span>
+<span class="lineno">  334 </span><span class="spaces">      </span><span class="istickedoff">!x &lt;- readKnown arg</span>
+<span class="lineno">  335 </span><span class="spaces">      </span><span class="istickedoff">-- See Note [Strict application in runtime denotations].</span>
+<span class="lineno">  336 </span><span class="spaces">      </span><span class="istickedoff">let !exY = exF x</span>
+<span class="lineno">  337 </span><span class="spaces">      </span><span class="istickedoff">pure (f x, exY)</span></span>
+<span class="lineno">  338 </span>  {-# INLINE toMonoF #-}
+<span class="lineno">  339 </span>
+<span class="lineno">  340 </span>-- | A class that allows us to derive a polytype for a builtin.
+<span class="lineno">  341 </span>class KnownMonotype val args res =&gt; KnownPolytype (binds :: [Some TyNameRep]) val args res where
+<span class="lineno">  342 </span>  knownPolytype :: TypeScheme val args res
+<span class="lineno">  343 </span>
+<span class="lineno">  344 </span>  {-| Convert the denotation of a builtin to its runtime counterpart.
+<span class="lineno">  345 </span>  The argument is in 'ReadKnownM', because that's what we need to do:
+<span class="lineno">  346 </span>  passing the action returning the builtin application around until full saturation, which is
+<span class="lineno">  347 </span>  when the action actually gets run. -}
+<span class="lineno">  348 </span>  toPolyF
+<span class="lineno">  349 </span>    :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+<span class="lineno">  350 </span>    -&gt; BuiltinRuntime val
+<span class="lineno">  351 </span>
+<span class="lineno">  352 </span>-- | Once we've run out of type-level arguments, we start handling term-level ones.
+<span class="lineno">  353 </span>instance KnownMonotype val args res =&gt; KnownPolytype '[] val args res where
+<span class="lineno">  354 </span>  <span class="decl"><span class="istickedoff">knownPolytype = knownMonotype</span></span>
+<span class="lineno">  355 </span>
+<span class="lineno">  356 </span>  <span class="decl"><span class="istickedoff">toPolyF = toMonoF @val @args @res</span></span>
+<span class="lineno">  357 </span>  {-# INLINE toPolyF #-}
+<span class="lineno">  358 </span>
+<span class="lineno">  359 </span>-- Here we unpack an existentially packed @kind@ and constrain it afterwards!
+<span class="lineno">  360 </span>-- So promoted existentials are true sigmas! If we were at the term level, we'd have to pack
+<span class="lineno">  361 </span>-- @kind@ along with the @KnownKind kind@ constraint, otherwise when we unpack the existential,
+<span class="lineno">  362 </span>-- all information is lost and we can't do anything with @kind@.
+<span class="lineno">  363 </span>-- | Every type-level argument becomes a 'TypeSchemeAll'.
+<span class="lineno">  364 </span>instance
+<span class="lineno">  365 </span>  (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res)
+<span class="lineno">  366 </span>  =&gt; KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res
+<span class="lineno">  367 </span>  where
+<span class="lineno">  368 </span>  <span class="decl"><span class="istickedoff">knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds</span></span>
+<span class="lineno">  369 </span>
+<span class="lineno">  370 </span>  <span class="decl"><span class="istickedoff">toPolyF = BuiltinExpectForce . toPolyF @binds @val @args @res</span></span>
+<span class="lineno">  371 </span>  {-# INLINE toPolyF #-}
+<span class="lineno">  372 </span>
+<span class="lineno">  373 </span>-- | Ensure a built-in function is not nullary and throw a nice error otherwise.
+<span class="lineno">  374 </span>type ThrowOnBothEmpty :: [Some TyNameRep] -&gt; [GHC.Type] -&gt; Bool -&gt; GHC.Type -&gt; GHC.Constraint
+<span class="lineno">  375 </span>type family ThrowOnBothEmpty binds args isBuiltin a where
+<span class="lineno">  376 </span>  ThrowOnBothEmpty '[] '[] 'True a =
+<span class="lineno">  377 </span>    TypeError
+<span class="lineno">  378 </span>      ( 'Text &quot;A built-in function must take at least one type or term argument&quot;
+<span class="lineno">  379 </span>          ':$$: 'Text &quot;‘&quot;
+<span class="lineno">  380 </span>            ':&lt;&gt;: 'ShowType a
+<span class="lineno">  381 </span>            ':&lt;&gt;: 'Text &quot;’ is a built-in type&quot;
+<span class="lineno">  382 </span>            ':&lt;&gt;: 'Text &quot; so you can embed any of its values as a constant&quot;
+<span class="lineno">  383 </span>          ':$$: 'Text &quot;If you still want a built-in function, add a dummy ‘()’ argument&quot;
+<span class="lineno">  384 </span>      )
+<span class="lineno">  385 </span>  ThrowOnBothEmpty '[] '[] 'False a =
+<span class="lineno">  386 </span>    TypeError
+<span class="lineno">  387 </span>      ( 'Text &quot;A built-in function must take at least one type or term argument&quot;
+<span class="lineno">  388 </span>          ':$$: 'Text &quot;To fix this error add a dummy ‘()’ argument&quot;
+<span class="lineno">  389 </span>      )
+<span class="lineno">  390 </span>  ThrowOnBothEmpty _ _ _ _ = ()
+<span class="lineno">  391 </span>
+<span class="lineno">  392 </span>{-| A function turned into a type class with exactly one fully general instance.
+<span class="lineno">  393 </span>We can't package up the constraints of 'makeBuiltinMeaning' (see the instance) into a type or
+<span class="lineno">  394 </span>class synonym, because they contain a bunch of variables defined by @~@ or determined via
+<span class="lineno">  395 </span>functional dependencies and neither class nor type definitions can handle that
+<span class="lineno">  396 </span>(see https://gitlab.haskell.org/ghc/ghc/-/issues/7100). Inlining three lines of constraints
+<span class="lineno">  397 </span>whenever we need to call 'makeBuiltinMeaning' over a non-concrete type is a bad option and this
+<span class="lineno">  398 </span>abstraction is free anyway, hence its existence.
+<span class="lineno">  399 </span>
+<span class="lineno">  400 </span>The @a@ type variable goes first, because @makeBuiltinMeaning \@A@ is a common pattern. -}
+<span class="lineno">  401 </span>class MakeBuiltinMeaning a val where
+<span class="lineno">  402 </span>  -- See Note [Automatic derivation of type schemes]
+<span class="lineno">  403 </span>  {-| Construct the meaning for a built-in function by automatically deriving its
+<span class="lineno">  404 </span>  'TypeScheme', given
+<span class="lineno">  405 </span>
+<span class="lineno">  406 </span>  1. the denotation of the builtin
+<span class="lineno">  407 </span>  2. an uninstantiated costing function -}
+<span class="lineno">  408 </span>  makeBuiltinMeaning
+<span class="lineno">  409 </span>    :: a
+<span class="lineno">  410 </span>    -&gt; (cost -&gt; FoldArgs (GetArgs a) ExBudgetStream)
+<span class="lineno">  411 </span>    -&gt; BuiltinMeaning val cost
+<span class="lineno">  412 </span>
+<span class="lineno">  413 </span>instance
+<span class="lineno">  414 </span>  ( uni ~ UniOf val
+<span class="lineno">  415 </span>  , binds ~ ToBinds uni '[] a
+<span class="lineno">  416 </span>  , args ~ GetArgs a
+<span class="lineno">  417 </span>  , a ~ FoldArgs args res
+<span class="lineno">  418 </span>  , ThrowOnBothEmpty binds args (IsBuiltin uni a) a
+<span class="lineno">  419 </span>  , ElaborateFromTo uni 0 j val a
+<span class="lineno">  420 </span>  , KnownPolytype binds val args res
+<span class="lineno">  421 </span>  )
+<span class="lineno">  422 </span>  =&gt; MakeBuiltinMeaning a val
+<span class="lineno">  423 </span>  where
+<span class="lineno">  424 </span>  <span class="decl"><span class="istickedoff">makeBuiltinMeaning f toExF =</span>
+<span class="lineno">  425 </span><span class="spaces">    </span><span class="istickedoff">BuiltinMeaning (knownPolytype @binds @val @args @res) <span class="nottickedoff">f</span> $ \cost -&gt;</span>
+<span class="lineno">  426 </span><span class="spaces">      </span><span class="istickedoff">-- In order to make the 'BuiltinRuntime' of a builtin cacheable we need to tell GHC to</span>
+<span class="lineno">  427 </span><span class="spaces">      </span><span class="istickedoff">-- create a thunk for it, which we achieve by applying 'lazy' to the 'BuiltinRuntime'</span>
+<span class="lineno">  428 </span><span class="spaces">      </span><span class="istickedoff">-- here.</span>
+<span class="lineno">  429 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  430 </span><span class="spaces">      </span><span class="istickedoff">-- Those thunks however require a lot of care to be properly shared rather than</span>
+<span class="lineno">  431 </span><span class="spaces">      </span><span class="istickedoff">-- recreated every time a builtin application is evaluated, see 'toBuiltinsRuntime' for</span>
+<span class="lineno">  432 </span><span class="spaces">      </span><span class="istickedoff">-- how we sort it out.</span>
+<span class="lineno">  433 </span><span class="spaces">      </span><span class="istickedoff">lazy $ case toExF cost of</span>
+<span class="lineno">  434 </span><span class="spaces">        </span><span class="istickedoff">-- See Note [Optimizations of runCostingFun*] for why we use strict @case@.</span>
+<span class="lineno">  435 </span><span class="spaces">        </span><span class="istickedoff">!exF -&gt; toPolyF @binds @val @args @res $ pure (f, exF)</span></span>
+<span class="lineno">  436 </span>  {-# INLINE makeBuiltinMeaning #-}
+<span class="lineno">  437 </span>
+<span class="lineno">  438 </span>-- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given a cost model.
+<span class="lineno">  439 </span>toBuiltinRuntime :: cost -&gt; BuiltinMeaning val cost -&gt; BuiltinRuntime val
+<span class="lineno">  440 </span><span class="decl"><span class="istickedoff">toBuiltinRuntime cost (BuiltinMeaning _ _ denot) = denot cost</span></span>
+<span class="lineno">  441 </span>{-# INLINE toBuiltinRuntime #-}
+<span class="lineno">  442 </span>
+<span class="lineno">  443 </span>-- See Note [Inlining meanings of builtins].
+<span class="lineno">  444 </span>{-| Calculate runtime info for all built-in functions given meanings of builtins (as a constraint),
+<span class="lineno">  445 </span>the semantics variant of the set of builtins and a cost model. -}
+<span class="lineno">  446 </span>toBuiltinsRuntime
+<span class="lineno">  447 </span>  :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
+<span class="lineno">  448 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  449 </span>  -&gt; cost
+<span class="lineno">  450 </span>  -&gt; BuiltinsRuntime fun val
+<span class="lineno">  451 </span><span class="decl"><span class="istickedoff">toBuiltinsRuntime semvar cost =</span>
+<span class="lineno">  452 </span><span class="spaces">  </span><span class="istickedoff">-- A call to 'lazy' is to make sure that the returned 'BuiltinsRuntime' is properly cached in a</span>
+<span class="lineno">  453 </span><span class="spaces">  </span><span class="istickedoff">-- 'let'-binding. This makes it easier for GHC to optimize the internals of builtins, because</span>
+<span class="lineno">  454 </span><span class="spaces">  </span><span class="istickedoff">-- without a 'let'-binding GHC would sometimes refuse to cooperate and push 'toBuiltinRuntime'</span>
+<span class="lineno">  455 </span><span class="spaces">  </span><span class="istickedoff">-- to the inside of the inlined 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's</span>
+<span class="lineno">  456 </span><span class="spaces">  </span><span class="istickedoff">-- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a lambda</span>
+<span class="lineno">  457 </span><span class="spaces">  </span><span class="istickedoff">-- binding the @cost@ variable, which makes the optimizations useless.</span>
+<span class="lineno">  458 </span><span class="spaces">  </span><span class="istickedoff">-- By using 'lazy' we tell GHC to create a separate thunk, which it can properly optimize,</span>
+<span class="lineno">  459 </span><span class="spaces">  </span><span class="istickedoff">-- because the other bazillion things don't get in the way. We used to use an explicit</span>
+<span class="lineno">  460 </span><span class="spaces">  </span><span class="istickedoff">-- 'let'-binding marked with @OPAQUE@, but that turned out to be unreliable, because GHC</span>
+<span class="lineno">  461 </span><span class="spaces">  </span><span class="istickedoff">-- feels free to turn it into a join point instead of a proper thunk.</span>
+<span class="lineno">  462 </span><span class="spaces">  </span><span class="istickedoff">lazy . BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar</span></span>
+<span class="lineno">  463 </span>{-# INLINE toBuiltinsRuntime #-}
+
+</pre>
+</body>
+</html>

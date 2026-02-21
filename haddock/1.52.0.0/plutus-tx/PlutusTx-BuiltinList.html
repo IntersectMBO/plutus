@@ -1,0 +1,2642 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.BuiltinList</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.BuiltinList.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.BuiltinList</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Functions operating on <code
+	    ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      ></code
+	    >.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:cons"
+	      >cons</a
+	      > &#8759; &#8704; a. a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:uncons"
+	      >uncons</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > (a, <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:empty"
+	      >empty</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:singleton"
+	      >singleton</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:null"
+	      >null</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:caseList-39-"
+	      >caseList'</a
+	      > &#8759; &#8704; a r. r &#8594; (a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; r) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; r</li
+	    ><li class="src short"
+	    ><a href="#v:caseList"
+	      >caseList</a
+	      > &#8759; &#8704; a r. (() &#8594; r) &#8594; (a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; r) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; r</li
+	    ><li class="src short"
+	    ><a href="#v:map"
+	      >map</a
+	      > &#8759; &#8704; a b. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > b &#8658; (a &#8594; b) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:elem"
+	      >elem</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:find"
+	      >find</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:any"
+	      >any</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:all"
+	      >all</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:-33--33-"
+	      >(!!)</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:-43--43-"
+	      >(++)</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:-60--124-"
+	      >(&lt;|)</a
+	      > &#8759; &#8704; a. a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:append"
+	      >append</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:findIndices"
+	      >findIndices</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:filter"
+	      >filter</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:mapMaybe"
+	      >mapMaybe</a
+	      > &#8759; &#8704; a b. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > b &#8658; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > b) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:length"
+	      >length</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:and"
+	      >and</a
+	      > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:or"
+	      >or</a
+	      > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:notElem"
+	      >notElem</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:foldr"
+	      >foldr</a
+	      > &#8759; &#8704; a b. (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:foldl"
+	      >foldl</a
+	      > &#8759; &#8704; a b. (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:concat"
+	      >concat</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:concatMap"
+	      >concatMap</a
+	      > &#8759; &#8704; a b. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > b &#8658; (a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > b) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:listToMaybe"
+	      >listToMaybe</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:uniqueElement"
+	      >uniqueElement</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:revAppend"
+	      >revAppend</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:reverse"
+	      >reverse</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:replicate"
+	      >replicate</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:findIndex"
+	      >findIndex</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:head"
+	      >head</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:last"
+	      >last</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:tail"
+	      >tail</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:take"
+	      >take</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:drop"
+	      >drop</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:dropWhile"
+	      >dropWhile</a
+	      > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:elemBy"
+	      >elemBy</a
+	      > &#8759; &#8704; a. (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nub"
+	      >nub</a
+	      > &#8759; &#8704; a. (<a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > a, <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a) &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:nubBy"
+	      >nubBy</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > a &#8658; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:zipWith"
+	      >zipWith</a
+	      > &#8759; &#8704; a b c. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	      >MkNil</a
+	      > c &#8658; (a &#8594; b &#8594; c) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > b &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	      >BuiltinList</a
+	      > c</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinList" class="def"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.Builtins.Internal.html#BuiltinList" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinList"
+	    >Instances</h4
+	    ><details id="i:BuiltinList" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:Lift:1"
+		      ></span
+		      > (<a href="PlutusTx-Builtins-HasBuiltin.html#t:HasFromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >HasFromBuiltin</a
+		      > arep, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+		      >HasTermLevel</a
+		      > uni [<a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >FromBuiltin</a
+		      > arep]) &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > uni (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > arep)</span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-191" class="link"
+		    >Source</a
+		    > <a href="#t:Lift" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:Lift:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > arep &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:Data:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Builtins.Internal.html#line-459" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:Data:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-Internal.html"
+			>PlutusTx.Builtins.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; c (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; m (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; m (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; m (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Builtins.Internal.html#line-461" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-Internal.html"
+			>PlutusTx.Builtins.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Builtins.Internal.html#line-463" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-Internal.html"
+			>PlutusTx.Builtins.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Builtins.Internal.html#line-465" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinList" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-Internal.html"
+			>PlutusTx.Builtins.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:HasBlueprintDefinition:6"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > a &#8658; <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#line-120" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintDefinition" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:HasBlueprintDefinition:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Unroll.html"
+			>PlutusTx.Blueprint.Definition.Unroll</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			  >Unroll</a
+			  > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >] <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Unroll" class="link"
+			  >Source</a
+			  > <a href="#t:Unroll" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:definitionId"
+			  >definitionId</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#definitionId" class="link"
+			  >Source</a
+			  > <a href="#v:definitionId" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:HasFromBuiltin:7"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasBuiltin.html#t:HasFromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >HasFromBuiltin</a
+		      > a &#8658; <a href="PlutusTx-Builtins-HasBuiltin.html#t:HasFromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >HasFromBuiltin</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Builtins.HasBuiltin.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:HasFromBuiltin:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasBuiltin.html"
+			>PlutusTx.Builtins.HasBuiltin</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+			  >FromBuiltin</a
+			  > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="src/PlutusTx.Builtins.HasBuiltin.html#FromBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:FromBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltin"
+			  >fromBuiltin</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a &#8594; <a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+			  >FromBuiltin</a
+			  > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="src/PlutusTx.Builtins.HasBuiltin.html#fromBuiltin" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:MkNil:8"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > a &#8658; <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-273" class="link"
+		    >Source</a
+		    > <a href="#t:MkNil" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:MkNil:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mkNil"
+			  >mkNil</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > a) <a href="src/PlutusTx.Builtins.HasOpaque.html#mkNil" class="link"
+			  >Source</a
+			  > <a href="#v:mkNil" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:HasBlueprintSchema:9"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > a referencedTypes &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a) referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:HasBlueprintSchema:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:HasFromOpaque:10"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > arep a &#8658; <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > arep) [a]</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-283" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:HasFromOpaque:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > arep &#8594; [a] <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:HasToOpaque:11"
+		      ></span
+		      > (<a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > a arep, <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > arep) &#8658; <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > [a] (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > arep)</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-276" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:HasToOpaque:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; [a] &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > arep <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:Typeable:12"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+		      >HasTypeLevel</a
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+		      >List</a
+		      > &#8658; <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > uni <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      ></span
+		    > <a href="src/PlutusTx.Lift.Class.html#line-186" class="link"
+		    >Source</a
+		    > <a href="#t:Typeable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:Typeable:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lift-Class.html"
+			>PlutusTx.Lift.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			  >BuiltinList</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > uni fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:Unroll:13"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unroll</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#line-121" class="link"
+		    >Source</a
+		    > <a href="#t:Unroll" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:Unroll:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Unroll.html"
+			>PlutusTx.Blueprint.Definition.Unroll</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			>Unroll</a
+			> (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			>BuiltinList</a
+			> a) = <a href="PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+			>Insert</a
+			> (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			>BuiltinList</a
+			> a) (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unrolled" title="PlutusTx.Blueprint.Definition.Unroll"
+			>Unrolled</a
+			> a)</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinList:FromBuiltin:14"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+		      >FromBuiltin</a
+		      > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		      >BuiltinList</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Builtins.HasBuiltin.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:FromBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinList:FromBuiltin:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasBuiltin.html"
+			>PlutusTx.Builtins.HasBuiltin</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+			>FromBuiltin</a
+			> (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+			>BuiltinList</a
+			> a) = [<a href="PlutusTx-Builtins-HasBuiltin.html#t:FromBuiltin" title="PlutusTx.Builtins.HasBuiltin"
+			>FromBuiltin</a
+			> a]</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cons" class="def"
+	    >cons</a
+	    > &#8759; &#8704; a. a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#cons" class="link"
+	    >Source</a
+	    > <a href="#v:cons" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v::" title="Data.List"
+		>:</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uncons" class="def"
+	    >uncons</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > (a, <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a) <a href="src/PlutusTx.BuiltinList.html#uncons" class="link"
+	    >Source</a
+	    > <a href="#v:uncons" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:uncons" title="Data.List"
+		>uncons</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:empty" class="def"
+	    >empty</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#empty" class="link"
+	    >Source</a
+	    > <a href="#v:empty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of '[]' for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:singleton" class="def"
+	    >singleton</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#singleton" class="link"
+	    >Source</a
+	    > <a href="#v:singleton" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a list with one element.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:null" class="def"
+	    >null</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#null" class="link"
+	    >Source</a
+	    > <a href="#v:null" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:null" title="Data.List"
+		>null</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseList-39-" class="def"
+	    >caseList'</a
+	    > &#8759; &#8704; a r. r &#8594; (a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; r) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; r <a href="src/PlutusTx.BuiltinList.html#caseList%27" class="link"
+	    >Source</a
+	    > <a href="#v:caseList-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseList" class="def"
+	    >caseList</a
+	    > &#8759; &#8704; a r. (() &#8594; r) &#8594; (a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; r) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; r <a href="src/PlutusTx.BuiltinList.html#caseList" class="link"
+	    >Source</a
+	    > <a href="#v:caseList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:map" class="def"
+	    >map</a
+	    > &#8759; &#8704; a b. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > b &#8658; (a &#8594; b) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > b <a href="src/PlutusTx.BuiltinList.html#map" class="link"
+	    >Source</a
+	    > <a href="#v:map" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:map" title="Data.List"
+		>map</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elem" class="def"
+	    >elem</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#elem" class="link"
+	    >Source</a
+	    > <a href="#v:elem" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Does the element occur in the list?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:find" class="def"
+	    >find</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#find" class="link"
+	    >Source</a
+	    > <a href="#v:find" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the leftmost element matching the predicate, or <code
+	      ><a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+		>Nothing</a
+		></code
+	      > if there's no such element.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:any" class="def"
+	    >any</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#any" class="link"
+	    >Source</a
+	    > <a href="#v:any" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Determines whether any element of the structure satisfies the predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:all" class="def"
+	    >all</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#all" class="link"
+	    >Source</a
+	    > <a href="#v:all" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Determines whether all elements of the list satisfy the predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-33--33-" class="def"
+	    >(!!)</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; a <span class="fixity"
+	    >infixl 9</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.BuiltinList.html#%21%21" class="link"
+	    >Source</a
+	    > <a href="#v:-33--33-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the element at a given index.
+This function throws an error if the index is negative or larger than the length
+of the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-43--43-" class="def"
+	    >(++)</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <span class="fixity"
+	    >infixr 5</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.BuiltinList.html#%2B%2B" class="link"
+	    >Source</a
+	    > <a href="#v:-43--43-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:-43--43-" title="Data.List"
+		>(++)</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-60--124-" class="def"
+	    >(&lt;|)</a
+	    > &#8759; &#8704; a. a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <span class="fixity"
+	    >infixr 5</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.BuiltinList.html#%3C%7C" class="link"
+	    >Source</a
+	    > <a href="#v:-60--124-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Infix version of <code
+	      ><a href="PlutusTx-BuiltinList.html#v:cons" title="PlutusTx.BuiltinList"
+		>cons</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:append" class="def"
+	    >append</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#append" class="link"
+	    >Source</a
+	    > <a href="#v:append" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:append" title="Data.List"
+		>append</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:findIndices" class="def"
+	    >findIndices</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.BuiltinList.html#findIndices" class="link"
+	    >Source</a
+	    > <a href="#v:findIndices" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:findIndices" title="Data.List"
+		>findIndices</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:filter" class="def"
+	    >filter</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#filter" class="link"
+	    >Source</a
+	    > <a href="#v:filter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:filter" title="Data.List"
+		>filter</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapMaybe" class="def"
+	    >mapMaybe</a
+	    > &#8759; &#8704; a b. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > b &#8658; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > b) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > b <a href="src/PlutusTx.BuiltinList.html#mapMaybe" class="link"
+	    >Source</a
+	    > <a href="#v:mapMaybe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:mapMaybe" title="Data.List"
+		>mapMaybe</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:length" class="def"
+	    >length</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.BuiltinList.html#length" class="link"
+	    >Source</a
+	    > <a href="#v:length" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:length" title="Data.List"
+		>length</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:and" class="def"
+	    >and</a
+	    > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#and" class="link"
+	    >Source</a
+	    > <a href="#v:and" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the conjunction of a list of Bools.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:or" class="def"
+	    >or</a
+	    > &#8759; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#or" class="link"
+	    >Source</a
+	    > <a href="#v:or" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the disjunction of a list of Bools.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:notElem" class="def"
+	    >notElem</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#notElem" class="link"
+	    >Source</a
+	    > <a href="#v:notElem" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The negation of <code
+	      ><a href="PlutusTx-BuiltinList.html#v:elem" title="PlutusTx.BuiltinList"
+		>elem</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldr" class="def"
+	    >foldr</a
+	    > &#8759; &#8704; a b. (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; b <a href="src/PlutusTx.BuiltinList.html#foldr" class="link"
+	    >Source</a
+	    > <a href="#v:foldr" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:foldr" title="Data.List"
+		>foldr</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldl" class="def"
+	    >foldl</a
+	    > &#8759; &#8704; a b. (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; b <a href="src/PlutusTx.BuiltinList.html#foldl" class="link"
+	    >Source</a
+	    > <a href="#v:foldl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx velsion of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:foldl" title="Data.List"
+		>foldl</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concat" class="def"
+	    >concat</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > (<a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#concat" class="link"
+	    >Source</a
+	    > <a href="#v:concat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:concat" title="Data.List"
+		>concat</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concatMap" class="def"
+	    >concatMap</a
+	    > &#8759; &#8704; a b. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > b &#8658; (a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > b) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > b <a href="src/PlutusTx.BuiltinList.html#concatMap" class="link"
+	    >Source</a
+	    > <a href="#v:concatMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:concatMap" title="Data.List"
+		>concatMap</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:listToMaybe" class="def"
+	    >listToMaybe</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#listToMaybe" class="link"
+	    >Source</a
+	    > <a href="#v:listToMaybe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:listToMaybe" title="Data.List"
+		>listToMaybe</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uniqueElement" class="def"
+	    >uniqueElement</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#uniqueElement" class="link"
+	    >Source</a
+	    > <a href="#v:uniqueElement" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the element in the list, if there is precisely one.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:revAppend" class="def"
+	    >revAppend</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#revAppend" class="link"
+	    >Source</a
+	    > <a href="#v:revAppend" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Cons each element of the first list to the second one in reverse order
+(i.e. the last element of the first list is the head of the result).</p
+	    ><pre
+	    >revAppend xs ys === reverse xs ++ ys</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reverse" class="def"
+	    >reverse</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#reverse" class="link"
+	    >Source</a
+	    > <a href="#v:reverse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:reverse" title="Data.List"
+		>reverse</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:replicate" class="def"
+	    >replicate</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#replicate" class="link"
+	    >Source</a
+	    > <a href="#v:replicate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:replicate" title="Data.List"
+		>replicate</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:findIndex" class="def"
+	    >findIndex</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.BuiltinList.html#findIndex" class="link"
+	    >Source</a
+	    > <a href="#v:findIndex" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:findIndex" title="Data.List"
+		>findIndex</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:head" class="def"
+	    >head</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; a <a href="src/PlutusTx.BuiltinList.html#head" class="link"
+	    >Source</a
+	    > <a href="#v:head" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:head" title="Data.List"
+		>head</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:last" class="def"
+	    >last</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; a <a href="src/PlutusTx.BuiltinList.html#last" class="link"
+	    >Source</a
+	    > <a href="#v:last" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:last" title="Data.List"
+		>last</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tail" class="def"
+	    >tail</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#tail" class="link"
+	    >Source</a
+	    > <a href="#v:tail" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:tail" title="Data.List"
+		>tail</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:take" class="def"
+	    >take</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#take" class="link"
+	    >Source</a
+	    > <a href="#v:take" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:take" title="Data.List"
+		>take</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:drop" class="def"
+	    >drop</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#drop" class="link"
+	    >Source</a
+	    > <a href="#v:drop" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:drop" title="Data.List"
+		>drop</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dropWhile" class="def"
+	    >dropWhile</a
+	    > &#8759; &#8704; a. (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#dropWhile" class="link"
+	    >Source</a
+	    > <a href="#v:dropWhile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:dropWhile" title="Data.List"
+		>dropWhile</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elemBy" class="def"
+	    >elemBy</a
+	    > &#8759; &#8704; a. (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.BuiltinList.html#elemBy" class="link"
+	    >Source</a
+	    > <a href="#v:elemBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:elemBy" title="Data.List"
+		>elemBy</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nub" class="def"
+	    >nub</a
+	    > &#8759; &#8704; a. (<a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > a, <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a) &#8658; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#nub" class="link"
+	    >Source</a
+	    > <a href="#v:nub" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:nub" title="Data.List"
+		>nub</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nubBy" class="def"
+	    >nubBy</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > a &#8658; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.BuiltinList.html#nubBy" class="link"
+	    >Source</a
+	    > <a href="#v:nubBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:nubBy" title="Data.List"
+		>nubBy</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zipWith" class="def"
+	    >zipWith</a
+	    > &#8759; &#8704; a b c. <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+	    >MkNil</a
+	    > c &#8658; (a &#8594; b &#8594; c) &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > a &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > b &#8594; <a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+	    >BuiltinList</a
+	    > c <a href="src/PlutusTx.BuiltinList.html#zipWith" class="link"
+	    >Source</a
+	    > <a href="#v:zipWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List.html#v:zipWith" title="Data.List"
+		>zipWith</a
+		></code
+	      > for <code
+	      ><a href="PlutusTx-BuiltinList.html#t:BuiltinList" title="PlutusTx.BuiltinList"
+		>BuiltinList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

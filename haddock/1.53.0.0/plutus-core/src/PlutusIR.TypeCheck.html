@@ -1,0 +1,2455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Kind/type inference/checking, mirroring PlutusCore.TypeCheck</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.TypeCheck</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Configuration.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.TypeCheck.Internal.html#BuiltinTypes"
+	><span class="hs-identifier"
+	  >BuiltinTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+	><span class="hs-identifier"
+	  >PirTCConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.TypeCheck.Internal.html#tccBuiltinTypes"
+	><span class="hs-identifier"
+	  >tccBuiltinTypes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.html#getDefTypeCheckConfig"
+	><span class="hs-identifier"
+	  >getDefTypeCheckConfig</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Type checking, extending the plc typechecker</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.html#inferType"
+	><span class="hs-identifier"
+	  >inferType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.html#checkType"
+	><span class="hs-identifier"
+	  >checkType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.html#inferTypeOfProgram"
+	><span class="hs-identifier"
+	  >inferTypeOfProgram</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.html#checkTypeOfProgram"
+	><span class="hs-identifier"
+	  >checkTypeOfProgram</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.Internal.html#MonadTypeCheckPir"
+	><span class="hs-identifier"
+	  >MonadTypeCheckPir</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Rename.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Rename</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html"
+	><span class="hs-identifier"
+	  >PlutusCore.TypeCheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Error.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.Rename.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.Rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusIR.TypeCheck.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Goal of PIR typechecker]
+
+The PIR typechecker is an extension  of the PLC typechecker; whereas the PLC typechecker
+works on PLC terms, the PIR typechecker works on the PIR terms. A PIR term
+can be thought of as a superset of the PLC term language: it adds the `LetRec` and
+`LetNonRec` syntactic constructs. Because of this, the PIR typechecker simply extends the
+PLC typechecker by adding checks for these two let constructs of PIR.
+
+Since we already have a PIR-&gt;PLC compiler, some would say that it would suffice to first
+compile the PIR to PLC and then only run the PLC typechecker. While this is mostly true,
+there are some reasons for having also the PIR typechecker as an extra step on the
+compiler pipeline:
+
+- The error-messages can refer to features of PIR syntax which don't exist in PLC,
+  such as let-terms
+
+- Although PIR is an IR and as such is not supposed to be written by humans, we do have
+  some hand-written PIR code in our examples/samples/testcases that we would like to make
+  sure they typecheck.
+
+- Our deadcode eliminator which works on PIR (in `PlutusIR.Optimizer.Deadcode`) may
+  eliminate ill-typed code, which would turn, much to a surprise, an ill-typed program
+  to a well-typed one.
+
+- Some lets of the PIR user may be declared as recursive although they do not *have to*
+  be, e.g. `let (rec) x = 3 in` would be better written as `let (nonrec) x = 3 in`.
+  In such cases we could signal a warning/error (NB: not implemented atm, and probably
+  not the job of the typechecker pass).
+
+- In general, as an extra source of (type) safety.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The default 'TypeCheckConfig'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="local-6989586621679482488"
+      ><span id="local-6989586621679482489"
+	><span id="local-6989586621679482490"
+	  ><span id="local-6989586621679482491"
+	    ><span id="local-6989586621679482493"
+	      ><span class="annot"
+		><a href="PlutusIR.TypeCheck.html#getDefTypeCheckConfig"
+		  ><span class="hs-identifier hs-type"
+		    >getDefTypeCheckConfig</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-63"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.TypeCheck.Internal.html#MonadKindCheck"
+		  ><span class="hs-identifier hs-type"
+		    >MonadKindCheck</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Error.html#TypeError"
+		  ><span class="hs-identifier hs-type"
+		    >TypeError</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482488"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482489"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482490"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482491"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482488"
+		  ><span class="hs-identifier hs-type"
+		    >term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482489"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482490"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482491"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482493"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#Typecheckable"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.Typecheckable</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482489"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482490"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		>
+</span
+		><span id="line-64"
+		></span
+		><span
+		>  </span
+		><span class="annot"
+		><a href="#local-6989586621679482491"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-65"
+		></span
+		><span
+		>  </span
+		><span class="annot"
+		><a href="#local-6989586621679482493"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+		  ><span class="hs-identifier hs-type"
+		    >PirTCConfig</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482489"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679482490"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="getDefTypeCheckConfig"
+      ><span class="annot"
+	><span class="annottext"
+	  >getDefTypeCheckConfig :: forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(MonadKindCheck (TypeError term uni fun ann) term uni fun ann m,
+ Typecheckable uni fun) =&gt;
+ann -&gt; m (PirTCConfig uni fun)
+</span
+	  ><a href="PlutusIR.TypeCheck.html#getDefTypeCheckConfig"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getDefTypeCheckConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482622"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679482622"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679482623"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCheckConfig uni fun
+</span
+	  ><a href="#local-6989586621679482623"
+	  ><span class="hs-identifier hs-var"
+	    >configPlc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; m (TypeCheckConfig uni fun)
+forall term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(MonadKindCheck (TypeError term uni fun ann) term uni fun ann m,
+ Typecheckable uni fun) =&gt;
+ann -&gt; m (TypeCheckConfig uni fun)
+</span
+	><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#getDefTypeCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >PLC.getDefTypeCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679482622"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun -&gt; m (PirTCConfig uni fun)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PirTCConfig uni fun -&gt; m (PirTCConfig uni fun))
+-&gt; PirTCConfig uni fun -&gt; m (PirTCConfig uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun -&gt; AllowEscape -&gt; PirTCConfig uni fun
+forall (uni :: * -&gt; *) fun.
+TypeCheckConfig uni fun -&gt; AllowEscape -&gt; PirTCConfig uni fun
+</span
+	><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+	><span class="hs-identifier hs-var"
+	  >PirTCConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+</span
+	><a href="#local-6989586621679482623"
+	><span class="hs-identifier hs-var"
+	  >configPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AllowEscape
+</span
+	><a href="PlutusIR.Compiler.Types.html#YesEscape"
+	><span class="hs-identifier hs-var"
+	  >YesEscape</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Infer the type of a term.
+Note: The &quot;inferred type&quot; can escape its scope if YesEscape config is passed, see
+[PIR vs Paper Escaping Types Difference]
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="local-6989586621679482523"
+      ><span id="local-6989586621679482524"
+	><span id="local-6989586621679482525"
+	  ><span id="local-6989586621679482526"
+	    ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.html#inferType"
+		><span class="hs-identifier hs-type"
+		  >inferType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-75"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.Internal.html#MonadTypeCheckPir"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPir</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482523"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482524"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482525"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482526"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-76"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+		><span class="hs-identifier hs-type"
+		  >PirTCConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482523"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482524"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-77"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482523"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482524"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482525"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-78"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482526"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482523"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span id="inferType"
+      ><span class="annot"
+	><span class="annottext"
+	  >inferType :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPir uni fun ann m =&gt;
+PirTCConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	  ><a href="PlutusIR.TypeCheck.html#inferType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inferType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482644"
+      ><span class="annot"
+	><span class="annottext"
+	  >PirTCConfig uni fun
+</span
+	  ><a href="#local-6989586621679482644"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+forall a (m :: * -&gt; *). (Rename a, MonadQuote m) =&gt; a -&gt; m a
+forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Rename.html#rename"
+	><span class="hs-identifier hs-var"
+	  >rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann))
+-&gt; (Term TyName Name uni fun ann
+    -&gt; m (Normalized (Type TyName uni ())))
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+-&gt; PirTCEnv uni fun m (Normalized (Type TyName uni ()))
+-&gt; m (Normalized (Type TyName uni ()))
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+PirTCConfig uni fun -&gt; PirTCEnv uni fun m a -&gt; m a
+</span
+	><a href="PlutusIR.TypeCheck.Internal.html#runTypeCheckM"
+	><span class="hs-identifier hs-var"
+	  >runTypeCheckM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+</span
+	><a href="#local-6989586621679482644"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PirTCEnv uni fun m (Normalized (Type TyName uni ()))
+ -&gt; m (Normalized (Type TyName uni ())))
+-&gt; (Term TyName Name uni fun ann
+    -&gt; PirTCEnv uni fun m (Normalized (Type TyName uni ())))
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+-&gt; PirTCEnv uni fun m (Normalized (Type TyName uni ()))
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann.
+MonadTypeCheckPir uni fun ann m =&gt;
+Term TyName Name uni fun ann
+-&gt; PirTCEnv uni fun m (Normalized (Type TyName uni ()))
+</span
+	><a href="PlutusIR.TypeCheck.Internal.html#inferTypeM"
+	><span class="hs-identifier hs-var"
+	  >inferTypeM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Check a term against a type.
+Infers the type of the term and checks that it's equal to the given type
+throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
+Note: this may allow witnessing a type that escapes its scope, see
+[PIR vs Paper Escaping Types Difference]
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="local-6989586621679482571"
+      ><span id="local-6989586621679482572"
+	><span id="local-6989586621679482573"
+	  ><span id="local-6989586621679482574"
+	    ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.html#checkType"
+		><span class="hs-identifier hs-type"
+		  >checkType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-88"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.Internal.html#MonadTypeCheckPir"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPir</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482571"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482572"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482573"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482574"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-89"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+		><span class="hs-identifier hs-type"
+		  >PirTCConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482571"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482572"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-90"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482573"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-91"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482571"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482572"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482573"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-92"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482571"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-93"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482574"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span id="checkType"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkType :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPir uni fun ann m =&gt;
+PirTCConfig uni fun
+-&gt; ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+</span
+	  ><a href="PlutusIR.TypeCheck.html#checkType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482664"
+      ><span class="annot"
+	><span class="annottext"
+	  >PirTCConfig uni fun
+</span
+	  ><a href="#local-6989586621679482664"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482665"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679482665"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482666"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621679482666"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482667"
+      ><span class="annot"
+	><span class="annottext"
+	  >Normalized (Type TyName uni ())
+</span
+	  ><a href="#local-6989586621679482667"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679482668"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621679482668"
+	  ><span class="hs-identifier hs-var"
+	    >termRen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+forall a (m :: * -&gt; *). (Rename a, MonadQuote m) =&gt; a -&gt; m a
+forall (m :: * -&gt; *).
+MonadQuote m =&gt;
+Term TyName Name uni fun ann -&gt; m (Term TyName Name uni fun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Rename.html#rename"
+	><span class="hs-identifier hs-var"
+	  >rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621679482666"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun -&gt; PirTCEnv uni fun m () -&gt; m ()
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+PirTCConfig uni fun -&gt; PirTCEnv uni fun m a -&gt; m a
+</span
+	><a href="PlutusIR.TypeCheck.Internal.html#runTypeCheckM"
+	><span class="hs-identifier hs-var"
+	  >runTypeCheckM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+</span
+	><a href="#local-6989586621679482664"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PirTCEnv uni fun m () -&gt; m ()) -&gt; PirTCEnv uni fun m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; PirTCEnv uni fun m ()
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPir uni fun ann m =&gt;
+ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; PirTCEnv uni fun m ()
+</span
+	><a href="PlutusIR.TypeCheck.Internal.html#checkTypeM"
+	><span class="hs-identifier hs-var"
+	  >checkTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679482665"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621679482668"
+	><span class="hs-identifier hs-var"
+	  >termRen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679482667"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Infer the type of a program.
+Note: The &quot;inferred type&quot; can escape its scope if YesEscape config is passed, see
+[PIR vs Paper Escaping Types Difference]
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="local-6989586621679482583"
+      ><span id="local-6989586621679482584"
+	><span id="local-6989586621679482585"
+	  ><span id="local-6989586621679482586"
+	    ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.html#inferTypeOfProgram"
+		><span class="hs-identifier hs-type"
+		  >inferTypeOfProgram</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-103"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.Internal.html#MonadTypeCheckPir"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPir</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482583"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482584"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482585"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482586"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-104"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+		><span class="hs-identifier hs-type"
+		  >PirTCConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482583"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482584"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-105"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Core.Type.html#Program"
+		><span class="hs-identifier hs-type"
+		  >Program</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482583"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482584"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482585"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-106"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482586"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482583"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span id="inferTypeOfProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >inferTypeOfProgram :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPir uni fun ann m =&gt;
+PirTCConfig uni fun
+-&gt; Program TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	  ><a href="PlutusIR.TypeCheck.html#inferTypeOfProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inferTypeOfProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482672"
+      ><span class="annot"
+	><span class="annottext"
+	  >PirTCConfig uni fun
+</span
+	  ><a href="#local-6989586621679482672"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482674"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621679482674"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPir uni fun ann m =&gt;
+PirTCConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	><a href="PlutusIR.TypeCheck.html#inferType"
+	><span class="hs-identifier hs-var"
+	  >inferType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+</span
+	><a href="#local-6989586621679482672"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621679482674"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Check a program against a type.
+Infers the type of the program and checks that it's equal to the given type
+throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
+Note: this may allow witnessing a type that escapes its scope, see
+[PIR vs Paper Escaping Types Difference]
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="local-6989586621679482593"
+      ><span id="local-6989586621679482594"
+	><span id="local-6989586621679482595"
+	  ><span id="local-6989586621679482596"
+	    ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.html#checkTypeOfProgram"
+		><span class="hs-identifier hs-type"
+		  >checkTypeOfProgram</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-116"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.TypeCheck.Internal.html#MonadTypeCheckPir"
+		><span class="hs-identifier hs-type"
+		  >MonadTypeCheckPir</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482593"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482594"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482595"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482596"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-117"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+		><span class="hs-identifier hs-type"
+		  >PirTCConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482593"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482594"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-118"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482595"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-119"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Core.Type.html#Program"
+		><span class="hs-identifier hs-type"
+		  >Program</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482593"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482594"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482595"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-120"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Normalized"
+		><span class="hs-identifier hs-type"
+		  >Normalized</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482593"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-121"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679482596"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span id="checkTypeOfProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkTypeOfProgram :: forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPir uni fun ann m =&gt;
+PirTCConfig uni fun
+-&gt; ann
+-&gt; Program TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+</span
+	  ><a href="PlutusIR.TypeCheck.html#checkTypeOfProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkTypeOfProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482677"
+      ><span class="annot"
+	><span class="annottext"
+	  >PirTCConfig uni fun
+</span
+	  ><a href="#local-6989586621679482677"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482678"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679482678"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679482679"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ann
+</span
+	  ><a href="#local-6989586621679482679"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+-&gt; ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPir uni fun ann m =&gt;
+PirTCConfig uni fun
+-&gt; ann
+-&gt; Term TyName Name uni fun ann
+-&gt; Normalized (Type TyName uni ())
+-&gt; m ()
+</span
+	><a href="PlutusIR.TypeCheck.html#checkType"
+	><span class="hs-identifier hs-var"
+	  >checkType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+</span
+	><a href="#local-6989586621679482677"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679482678"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ann
+</span
+	><a href="#local-6989586621679482679"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

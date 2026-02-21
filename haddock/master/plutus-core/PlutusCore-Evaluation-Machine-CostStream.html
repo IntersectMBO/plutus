@@ -1,0 +1,463 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.CostStream</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.CostStream.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.CostStream</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CostStream"
+	      >CostStream</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CostLast"
+		  >CostLast</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >CostingInteger</a
+		  ></li
+		><li
+		>| <a href="#v:CostCons"
+		  >CostCons</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >CostingInteger</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		  >CostStream</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unconsCost"
+	      >unconsCost</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; (<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:reconsCost"
+	      >reconsCost</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sumCostStream"
+	      >sumCostStream</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mapCostStream"
+	      >mapCostStream</a
+	      > &#8759; (<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      >) &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addCostStream"
+	      >addCostStream</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:minCostStream"
+	      >minCostStream</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CostStream" class="def"
+	    >CostStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#CostStream" class="link"
+	    >Source</a
+	    > <a href="#t:CostStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A lazy stream of <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		>CostingInteger</a
+		></code
+	      >s. Basically <code
+	      >NonEmpty CostingInteger</code
+	      >, except the elements
+are stored strictly.</p
+	    ><p
+	    >The semantics of a stream are those of the sum of its elements. I.e. a stream that is a reordered
+version of another stream is considered equal to that stream.</p
+	    ><p
+	    >All costs are assumed not to be negative and functions handling <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >s may rely on this
+assumption. Negative costs (a.k.a. allowing the user to forge execution units at runtime)
+wouldn't make sense. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CostLast" class="def"
+		  >CostLast</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >CostingInteger</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CostCons" class="def"
+		  >CostCons</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >CostingInteger</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		  >CostStream</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CostStream"
+	    >Instances</h4
+	    ><details id="i:CostStream" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostStream:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		      >CostStream</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:CostStream" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostStream:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-CostStream.html"
+			>PlutusCore.Evaluation.Machine.CostStream</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+			  >CostStream</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+			  >CostStream</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+			  >CostStream</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unconsCost" class="def"
+	    >unconsCost</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; (<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    >) <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#unconsCost" class="link"
+	    >Source</a
+	    > <a href="#v:unconsCost" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Uncons an element from a <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      > and return the rest of the stream, if not empty.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reconsCost" class="def"
+	    >reconsCost</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#reconsCost" class="link"
+	    >Source</a
+	    > <a href="#v:reconsCost" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Cons an element to a <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >, if given any. Otherwise create a new <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      > using
+<code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#v:CostLast" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostLast</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sumCostStream" class="def"
+	    >sumCostStream</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#sumCostStream" class="link"
+	    >Source</a
+	    > <a href="#v:sumCostStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add up all the costs in a <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapCostStream" class="def"
+	    >mapCostStream</a
+	    > &#8759; (<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    >) &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#mapCostStream" class="link"
+	    >Source</a
+	    > <a href="#v:mapCostStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map a function over a <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addCostStream" class="def"
+	    >addCostStream</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#addCostStream" class="link"
+	    >Source</a
+	    > <a href="#v:addCostStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add two streams by interleaving their elements (as opposed to draining out one of the streams
+before starting to take elements from the other one). No particular reason to prefer
+interleaving over draining out one of the streams first. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:minCostStream" class="def"
+	    >minCostStream</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.CostStream.html#minCostStream" class="link"
+	    >Source</a
+	    > <a href="#v:minCostStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Calculate the minimum of two <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >s. May return a stream that is longer than either of
+the two (but not more than twice). </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,160 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>module PlutusCore.Evaluation.Machine.ExMemory
+<span class="lineno">    8 </span>  ( CostingInteger
+<span class="lineno">    9 </span>  , ExMemory (..)
+<span class="lineno">   10 </span>  , ExCPU (..)
+<span class="lineno">   11 </span>  , dividedBy
+<span class="lineno">   12 </span>  ) where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Codec.Serialise (Serialise)
+<span class="lineno">   15 </span>import Control.DeepSeq
+<span class="lineno">   16 </span>import Data.Aeson
+<span class="lineno">   17 </span>import Data.SatInt
+<span class="lineno">   18 </span>import Data.Semigroup
+<span class="lineno">   19 </span>import GHC.Generics
+<span class="lineno">   20 </span>import Language.Haskell.TH.Syntax (Lift)
+<span class="lineno">   21 </span>import NoThunks.Class
+<span class="lineno">   22 </span>import Text.Pretty
+<span class="lineno">   23 </span>import Text.PrettyBy
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>{- Note [Memory Usage for Plutus]
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>The base unit is 'ExMemory', which corresponds to machine words. For primitives,
+<span class="lineno">   28 </span>we use static values for the size, see the corresponding instances. For
+<span class="lineno">   29 </span>composite data types, the Generic instance is used, + 1 for the constructor tag.
+<span class="lineno">   30 </span>For ADTs, the currently selected branch is counted, not the maximum value.
+<span class="lineno">   31 </span>Memory usage of the annotation is not counted, because this should be
+<span class="lineno">   32 </span>abstractly specifiable. It's an implementation detail.
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>-}
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>{- Note [Integer types for costing]
+<span class="lineno">   37 </span>We care about the speed of our integer operations for costing, this has a significant effect on speed.
+<span class="lineno">   38 </span>But we also need to care about overflow: the cost counters overflowing is a potential attack!
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>We have a few choices here for what to do with an overflow:
+<span class="lineno">   41 </span>- Don't (this is what 'Integer' does, it's unbounded)
+<span class="lineno">   42 </span>- Wrap (this is what 'Int'/'Int64' and friends do)
+<span class="lineno">   43 </span>- Throw an overflow error (this is what 'Data.SafeInt' does)
+<span class="lineno">   44 </span>- Saturate (i.e. return max/min bound, this is what 'Data.SatInt does)
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>In our case
+<span class="lineno">   47 </span>- Not overflowing would be nice, but 'Integer' is significantly slower than the other types.
+<span class="lineno">   48 </span>- Wrapping is quite dangerous, as it could lead to us getting attacked by someone wrapping
+<span class="lineno">   49 </span>their cost around to something that looks below the budget.
+<span class="lineno">   50 </span>- Throwing would be okay, but we'd have to worry about exception catching.
+<span class="lineno">   51 </span>- Saturating is actually quite nice: we care about whether `a op b &lt; budget`. So long as `budget &lt; maxBound`,
+<span class="lineno">   52 </span>  then `a op b &lt; budget` will have the same truth value *regardless* of whether the operation overflows and saturates,
+<span class="lineno">   53 </span>  since saturating implies `a op b &gt;= maxBound &gt; budget`. Plus, it means we don't need to deal with
+<span class="lineno">   54 </span>  exceptions.
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithmetic.
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know
+<span class="lineno">   59 </span>why that would be, apart from maybe just the overflow checks), but the wrapping behaviour
+<span class="lineno">   60 </span>of 'Int64' is unacceptable.
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
+<span class="lineno">   63 </span>with platform-dependent size), rather than an 'Int64' since the primops that we
+<span class="lineno">   64 </span>need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
+<span class="lineno">   65 </span>would have much less headroom.
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>However, we don't build on 32bit platforms anyway, so we can ignore that.
+<span class="lineno">   68 </span>-}
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>-- See Note [Integer types for costing]
+<span class="lineno">   71 </span>-- See also Note [Budgeting units] in ExBudget.hs
+<span class="lineno">   72 </span>type CostingInteger = SatInt
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>-- | Counts size in machine words.
+<span class="lineno">   75 </span>newtype ExMemory = ExMemory CostingInteger
+<span class="lineno">   76 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   77 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Num</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Read</span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Bounded</span></span></span></span>)
+<span class="lineno">   78 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">FromJSON</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">ToJSON</span></span></span></span></span></span></span></span></span></span>) via CostingInteger
+<span class="lineno">   79 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Serialise</span></span></span></span></span></span></span></span>) via CostingInteger
+<span class="lineno">   80 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">NoThunks</span></span></span></span></span></span>)
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>instance <span class="decl"><span class="nottickedoff">Pretty ExMemory</span></span> where
+<span class="lineno">   83 </span>  <span class="decl"><span class="istickedoff">pretty (ExMemory i) = pretty (unSatInt i)</span></span>
+<span class="lineno">   84 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy config ExMemory</span></span> where
+<span class="lineno">   85 </span>  <span class="decl"><span class="nottickedoff">prettyBy _ m = pretty m</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>{- Note [Manual Semigroup and Monoid instances for Sum monoids]
+<span class="lineno">   88 </span>We don't do
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>    deriving via Sum A Semigroup A
+<span class="lineno">   91 </span>    deriving via Sum A Monoid A
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>because the 'Semigroup' and 'Monoid' instances for 'Sum' don't have @INLINE@ pragmas resulting in
+<span class="lineno">   94 </span>'&lt;&gt;' and 'mempty' appearing in the generated Core.
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>So instead we implement @Semigroup A@ and @Monoid A@ instances manually for a 'Sum'-like @A@.
+<span class="lineno">   97 </span>-}
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
+<span class="lineno">  100 </span>instance <span class="decl"><span class="nottickedoff">Semigroup ExMemory</span></span> where
+<span class="lineno">  101 </span>  <span class="decl"><span class="istickedoff">(&lt;&gt;) = (+)</span></span>
+<span class="lineno">  102 </span>  {-# INLINE (&lt;&gt;) #-}
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>  <span class="decl"><span class="nottickedoff">stimes n mem = fromIntegral n * mem</span></span>
+<span class="lineno">  105 </span>  {-# INLINE stimes #-}
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
+<span class="lineno">  108 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid ExMemory</span></span></span></span> where
+<span class="lineno">  109 </span>  <span class="decl"><span class="istickedoff">mempty = ExMemory 0</span></span>
+<span class="lineno">  110 </span>  {-# INLINE mempty #-}
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>{-| Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
+<span class="lineno">  113 </span>appproximately 106 days. -}
+<span class="lineno">  114 </span>newtype ExCPU = ExCPU CostingInteger
+<span class="lineno">  115 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">  116 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Num</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Read</span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Bounded</span></span></span></span>)
+<span class="lineno">  117 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">FromJSON</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">ToJSON</span></span></span></span></span></span></span></span></span></span>) via CostingInteger
+<span class="lineno">  118 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Serialise</span></span></span></span></span></span></span></span>) via CostingInteger
+<span class="lineno">  119 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">NoThunks</span></span></span></span></span></span>)
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>instance <span class="decl"><span class="nottickedoff">Pretty ExCPU</span></span> where
+<span class="lineno">  122 </span>  <span class="decl"><span class="istickedoff">pretty (ExCPU i) = pretty (unSatInt i)</span></span>
+<span class="lineno">  123 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy config ExCPU</span></span> where
+<span class="lineno">  124 </span>  <span class="decl"><span class="nottickedoff">prettyBy _ m = pretty m</span></span>
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
+<span class="lineno">  127 </span>instance <span class="decl"><span class="nottickedoff">Semigroup ExCPU</span></span> where
+<span class="lineno">  128 </span>  <span class="decl"><span class="istickedoff">(&lt;&gt;) = (+)</span></span>
+<span class="lineno">  129 </span>  {-# INLINE (&lt;&gt;) #-}
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>  <span class="decl"><span class="nottickedoff">stimes n mem = fromIntegral n * mem</span></span>
+<span class="lineno">  132 </span>  {-# INLINE stimes #-}
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
+<span class="lineno">  135 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid ExCPU</span></span></span></span> where
+<span class="lineno">  136 </span>  <span class="decl"><span class="istickedoff">mempty = ExCPU 0</span></span>
+<span class="lineno">  137 </span>  {-# INLINE mempty #-}
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,4768 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The monad that the renamer runs in and related infrastructure.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Rename.Monad</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#RenameT"
+	><span class="hs-identifier"
+	  >RenameT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#ScopedRenameT"
+	><span class="hs-identifier"
+	  >ScopedRenameT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#Renaming"
+	><span class="hs-identifier"
+	  >Renaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#TypeRenaming"
+	><span class="hs-identifier"
+	  >TypeRenaming</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+	><span class="hs-identifier"
+	  >HasRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#scopedRenamingTypes"
+	><span class="hs-identifier"
+	  >scopedRenamingTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#scopedRenamingTerms"
+	><span class="hs-identifier"
+	  >scopedRenamingTerms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#runRenameT"
+	><span class="hs-identifier"
+	  >runRenameT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#lookupNameM"
+	><span class="hs-identifier"
+	  >lookupNameM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#renameNameM"
+	><span class="hs-identifier"
+	  >renameNameM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	><span class="hs-identifier"
+	  >withFreshenedName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#withRenamedName"
+	><span class="hs-identifier"
+	  >withRenamedName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Alternative"
+	><span class="hs-identifier"
+	  >Alternative</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	><span class="hs-identifier"
+	  >Coercible</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Lens'</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier"
+	  >coerce</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>over</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>view</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator"
+	  >(&amp;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-operator"
+	>(.~)</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-operator"
+	>(^.)</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	><span class="hs-identifier"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#lookupName"
+	><span class="hs-identifier"
+	  >lookupName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html#MonadQuote"
+	><span class="hs-identifier"
+	  >MonadQuote</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html#freshUnique"
+	><span class="hs-identifier"
+	  >freshUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>makeLenses</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	><span class="hs-identifier"
+	  >MonadReader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier"
+	  >local</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#ReaderT"
+	><span class="hs-identifier"
+	  >ReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#asks"
+	><span class="hs-identifier"
+	  >asks</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The monad the renamer runs in.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="RenameT"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#RenameT"
+	  ><span class="hs-identifier hs-var"
+	    >RenameT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951162"
+      ><span class="annot"
+	><a href="#local-6989586621681951162"
+	  ><span class="hs-identifier hs-type"
+	    >ren</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951163"
+      ><span class="annot"
+	><a href="#local-6989586621681951163"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951164"
+      ><span class="annot"
+	><a href="#local-6989586621681951164"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="RenameT"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#RenameT"
+	  ><span class="hs-identifier hs-var"
+	    >RenameT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unRenameT"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall ren (m :: * -&gt; *) a. RenameT ren m a -&gt; ReaderT ren m a
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#unRenameT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unRenameT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#ReaderT"
+	><span class="hs-identifier hs-type"
+	  >ReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951162"
+	><span class="hs-identifier hs-type"
+	  >ren</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951163"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951164"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951431"
+      ><span id="local-6989586621681951436"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b)
+-&gt; (forall a b. a -&gt; RenameT ren m b -&gt; RenameT ren m a)
+-&gt; Functor (RenameT ren m)
+forall a b. a -&gt; RenameT ren m b -&gt; RenameT ren m a
+forall a b. (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+forall ren (m :: * -&gt; *) a b.
+Functor m =&gt;
+a -&gt; RenameT ren m b -&gt; RenameT ren m a
+forall ren (m :: * -&gt; *) a b.
+Functor m =&gt;
+(a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall ren (m :: * -&gt; *) a b.
+Functor m =&gt;
+(a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+fmap :: forall a b. (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+$c&lt;$ :: forall ren (m :: * -&gt; *) a b.
+Functor m =&gt;
+a -&gt; RenameT ren m b -&gt; RenameT ren m a
+&lt;$ :: forall a b. a -&gt; RenameT ren m b -&gt; RenameT ren m a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951446"
+      ><span id="local-6989586621681951451"
+	><span id="local-6989586621681951455"
+	  ><span id="local-6989586621681951459"
+	    ><span id="local-6989586621681951463"
+	      ><span class="annot"
+		><span class="annottext"
+		  >Functor (RenameT ren m)
+Functor (RenameT ren m) =&gt;
+(forall a. a -&gt; RenameT ren m a)
+-&gt; (forall a b.
+    RenameT ren m (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b)
+-&gt; (forall a b c.
+    (a -&gt; b -&gt; c)
+    -&gt; RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m c)
+-&gt; (forall a b.
+    RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b)
+-&gt; (forall a b.
+    RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m a)
+-&gt; Applicative (RenameT ren m)
+forall a. a -&gt; RenameT ren m a
+forall a b. RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m a
+forall a b. RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+forall a b.
+RenameT ren m (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+forall a b c.
+(a -&gt; b -&gt; c)
+-&gt; RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m c
+forall ren (m :: * -&gt; *). Applicative m =&gt; Functor (RenameT ren m)
+forall ren (m :: * -&gt; *) a. Applicative m =&gt; a -&gt; RenameT ren m a
+forall ren (m :: * -&gt; *) a b.
+Applicative m =&gt;
+RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m a
+forall ren (m :: * -&gt; *) a b.
+Applicative m =&gt;
+RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+forall ren (m :: * -&gt; *) a b.
+Applicative m =&gt;
+RenameT ren m (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+forall ren (m :: * -&gt; *) a b c.
+Applicative m =&gt;
+(a -&gt; b -&gt; c)
+-&gt; RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m c
+forall (f :: * -&gt; *).
+Functor f =&gt;
+(forall a. a -&gt; f a)
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; Applicative f
+$cpure :: forall ren (m :: * -&gt; *) a. Applicative m =&gt; a -&gt; RenameT ren m a
+pure :: forall a. a -&gt; RenameT ren m a
+$c&lt;*&gt; :: forall ren (m :: * -&gt; *) a b.
+Applicative m =&gt;
+RenameT ren m (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+&lt;*&gt; :: forall a b.
+RenameT ren m (a -&gt; b) -&gt; RenameT ren m a -&gt; RenameT ren m b
+$cliftA2 :: forall ren (m :: * -&gt; *) a b c.
+Applicative m =&gt;
+(a -&gt; b -&gt; c)
+-&gt; RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m c
+liftA2 :: forall a b c.
+(a -&gt; b -&gt; c)
+-&gt; RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m c
+$c*&gt; :: forall ren (m :: * -&gt; *) a b.
+Applicative m =&gt;
+RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+*&gt; :: forall a b. RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+$c&lt;* :: forall ren (m :: * -&gt; *) a b.
+Applicative m =&gt;
+RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m a
+&lt;* :: forall a b. RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m a
+</span
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Applicative"
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		    >Applicative</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951474"
+      ><span id="local-6989586621681951479"
+	><span id="local-6989586621681951483"
+	  ><span id="local-6989586621681951487"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>Applicative (RenameT ren m)
+Applicative (RenameT ren m) =&gt;
+(forall a. RenameT ren m a)
+-&gt; (forall a.
+    RenameT ren m a -&gt; RenameT ren m a -&gt; RenameT ren m a)
+-&gt; (forall a. RenameT ren m a -&gt; RenameT ren m [a])
+-&gt; (forall a. RenameT ren m a -&gt; RenameT ren m [a])
+-&gt; Alternative (RenameT ren m)
+forall a. RenameT ren m a
+forall a. RenameT ren m a -&gt; RenameT ren m [a]
+forall a. RenameT ren m a -&gt; RenameT ren m a -&gt; RenameT ren m a
+forall ren (m :: * -&gt; *).
+Alternative m =&gt;
+Applicative (RenameT ren m)
+forall ren (m :: * -&gt; *) a. Alternative m =&gt; RenameT ren m a
+forall ren (m :: * -&gt; *) a.
+Alternative m =&gt;
+RenameT ren m a -&gt; RenameT ren m [a]
+forall ren (m :: * -&gt; *) a.
+Alternative m =&gt;
+RenameT ren m a -&gt; RenameT ren m a -&gt; RenameT ren m a
+forall (f :: * -&gt; *).
+Applicative f =&gt;
+(forall a. f a)
+-&gt; (forall a. f a -&gt; f a -&gt; f a)
+-&gt; (forall a. f a -&gt; f [a])
+-&gt; (forall a. f a -&gt; f [a])
+-&gt; Alternative f
+$cempty :: forall ren (m :: * -&gt; *) a. Alternative m =&gt; RenameT ren m a
+empty :: forall a. RenameT ren m a
+$c&lt;|&gt; :: forall ren (m :: * -&gt; *) a.
+Alternative m =&gt;
+RenameT ren m a -&gt; RenameT ren m a -&gt; RenameT ren m a
+&lt;|&gt; :: forall a. RenameT ren m a -&gt; RenameT ren m a -&gt; RenameT ren m a
+$csome :: forall ren (m :: * -&gt; *) a.
+Alternative m =&gt;
+RenameT ren m a -&gt; RenameT ren m [a]
+some :: forall a. RenameT ren m a -&gt; RenameT ren m [a]
+$cmany :: forall ren (m :: * -&gt; *) a.
+Alternative m =&gt;
+RenameT ren m a -&gt; RenameT ren m [a]
+many :: forall a. RenameT ren m a -&gt; RenameT ren m [a]
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Alternative"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Alternative</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951498"
+      ><span id="local-6989586621681951503"
+	><span id="local-6989586621681951507"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Applicative (RenameT ren m)
+Applicative (RenameT ren m) =&gt;
+(forall a b.
+ RenameT ren m a -&gt; (a -&gt; RenameT ren m b) -&gt; RenameT ren m b)
+-&gt; (forall a b.
+    RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b)
+-&gt; (forall a. a -&gt; RenameT ren m a)
+-&gt; Monad (RenameT ren m)
+forall a. a -&gt; RenameT ren m a
+forall a b. RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+forall a b.
+RenameT ren m a -&gt; (a -&gt; RenameT ren m b) -&gt; RenameT ren m b
+forall ren (m :: * -&gt; *). Monad m =&gt; Applicative (RenameT ren m)
+forall ren (m :: * -&gt; *) a. Monad m =&gt; a -&gt; RenameT ren m a
+forall ren (m :: * -&gt; *) a b.
+Monad m =&gt;
+RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+forall ren (m :: * -&gt; *) a b.
+Monad m =&gt;
+RenameT ren m a -&gt; (a -&gt; RenameT ren m b) -&gt; RenameT ren m b
+forall (m :: * -&gt; *).
+Applicative m =&gt;
+(forall a b. m a -&gt; (a -&gt; m b) -&gt; m b)
+-&gt; (forall a b. m a -&gt; m b -&gt; m b)
+-&gt; (forall a. a -&gt; m a)
+-&gt; Monad m
+$c&gt;&gt;= :: forall ren (m :: * -&gt; *) a b.
+Monad m =&gt;
+RenameT ren m a -&gt; (a -&gt; RenameT ren m b) -&gt; RenameT ren m b
+&gt;&gt;= :: forall a b.
+RenameT ren m a -&gt; (a -&gt; RenameT ren m b) -&gt; RenameT ren m b
+$c&gt;&gt; :: forall ren (m :: * -&gt; *) a b.
+Monad m =&gt;
+RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+&gt;&gt; :: forall a b. RenameT ren m a -&gt; RenameT ren m b -&gt; RenameT ren m b
+$creturn :: forall ren (m :: * -&gt; *) a. Monad m =&gt; a -&gt; RenameT ren m a
+return :: forall a. a -&gt; RenameT ren m a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monad</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951517"
+      ><span id="local-6989586621681951522"
+	><span id="local-6989586621681951526"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	      ><span class="hs-identifier hs-type"
+		>MonadReader</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951162"
+	      ><span class="hs-identifier hs-type"
+		>ren</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951536"
+      ><span class="annot"
+	><span class="annottext"
+	  >Monad (RenameT ren m)
+Monad (RenameT ren m) =&gt;
+(forall a. Quote a -&gt; RenameT ren m a)
+-&gt; MonadQuote (RenameT ren m)
+forall a. Quote a -&gt; RenameT ren m a
+forall ren (m :: * -&gt; *). MonadQuote m =&gt; Monad (RenameT ren m)
+forall ren (m :: * -&gt; *) a.
+MonadQuote m =&gt;
+Quote a -&gt; RenameT ren m a
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall a. Quote a -&gt; m a) -&gt; MonadQuote m
+$cliftQuote :: forall ren (m :: * -&gt; *) a.
+MonadQuote m =&gt;
+Quote a -&gt; RenameT ren m a
+liftQuote :: forall a. Quote a -&gt; RenameT ren m a
+</span
+	  ><a href="PlutusCore.Quote.html#MonadQuote"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >MonadQuote</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A renaming is a mapping from old uniques to new ones.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Renaming"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#Renaming"
+	  ><span class="hs-identifier hs-var"
+	    >Renaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951271"
+      ><span class="annot"
+	><a href="#local-6989586621681951271"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Renaming"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#Renaming"
+	  ><span class="hs-identifier hs-var"
+	    >Renaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unRenaming"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall unique. Renaming unique -&gt; UniqueMap unique unique
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#unRenaming"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unRenaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier hs-type"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951271"
+	><span class="hs-identifier hs-type"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951271"
+	><span class="hs-identifier hs-type"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681951546"
+      ><span id="local-6989586621681951551"
+	><span id="local-6989586621681951557"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty (Renaming unique) -&gt; Renaming unique
+Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+(Renaming unique -&gt; Renaming unique -&gt; Renaming unique)
+-&gt; (NonEmpty (Renaming unique) -&gt; Renaming unique)
+-&gt; (forall b.
+    Integral b =&gt;
+    b -&gt; Renaming unique -&gt; Renaming unique)
+-&gt; Semigroup (Renaming unique)
+forall b. Integral b =&gt; b -&gt; Renaming unique -&gt; Renaming unique
+forall unique. NonEmpty (Renaming unique) -&gt; Renaming unique
+forall unique.
+Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+forall unique b.
+Integral b =&gt;
+b -&gt; Renaming unique -&gt; Renaming unique
+$c&lt;&gt; :: forall unique.
+Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+&lt;&gt; :: Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+$csconcat :: forall unique. NonEmpty (Renaming unique) -&gt; Renaming unique
+sconcat :: NonEmpty (Renaming unique) -&gt; Renaming unique
+$cstimes :: forall unique b.
+Integral b =&gt;
+b -&gt; Renaming unique -&gt; Renaming unique
+stimes :: forall b. Integral b =&gt; b -&gt; Renaming unique -&gt; Renaming unique
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951567"
+      ><span id="local-6989586621681951572"
+	><span id="local-6989586621681951576"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup (Renaming unique)
+Renaming unique
+Semigroup (Renaming unique) =&gt;
+Renaming unique
+-&gt; (Renaming unique -&gt; Renaming unique -&gt; Renaming unique)
+-&gt; ([Renaming unique] -&gt; Renaming unique)
+-&gt; Monoid (Renaming unique)
+[Renaming unique] -&gt; Renaming unique
+Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+forall unique. Semigroup (Renaming unique)
+forall unique. Renaming unique
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+forall unique. [Renaming unique] -&gt; Renaming unique
+forall unique.
+Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+$cmempty :: forall unique. Renaming unique
+mempty :: Renaming unique
+$cmappend :: forall unique.
+Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+mappend :: Renaming unique -&gt; Renaming unique -&gt; Renaming unique
+$cmconcat :: forall unique. [Renaming unique] -&gt; Renaming unique
+mconcat :: [Renaming unique] -&gt; Renaming unique
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A type-level renaming.
+Needed for instantiating functions running over types in generic @RenameT ren m@ to
+a particular type of renaming. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="TypeRenaming"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#TypeRenaming"
+	  ><span class="hs-identifier hs-var"
+	    >TypeRenaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#Renaming"
+	><span class="hs-identifier hs-type"
+	  >Renaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier hs-type"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A class that specifies which 'Renaming' a @ren@ has inside.
+A @ren@ can contain several 'Renaming's (like 'Scoped', for example). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	><span class="hs-identifier hs-type"
+	  >Coercible</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951289"
+	><span class="hs-identifier hs-type"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="HasRenaming"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+	  ><span class="hs-identifier hs-var"
+	    >HasRenaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951288"
+      ><span class="annot"
+	><a href="#local-6989586621681951288"
+	  ><span class="hs-identifier hs-type"
+	    >ren</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951289"
+      ><span class="annot"
+	><a href="#local-6989586621681951289"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span id="renaming"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#renaming"
+	  ><span class="hs-identifier hs-type"
+	    >renaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Lens'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951288"
+	><span class="hs-identifier hs-type"
+	  >ren</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#Renaming"
+	><span class="hs-identifier hs-type"
+	  >Renaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681951289"
+	><span class="hs-identifier hs-type"
+	  >unique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Scoping-aware mapping from locally unique uniques to globally unique uniques.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ScopedRenaming"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	  ><span class="hs-identifier hs-var"
+	    >ScopedRenaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ScopedRenaming"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	  ><span class="hs-identifier hs-var"
+	    >ScopedRenaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_scopedRenamingTypes"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScopedRenaming -&gt; Renaming TypeUnique
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#_scopedRenamingTypes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_scopedRenamingTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#Renaming"
+	><span class="hs-identifier hs-type"
+	  >Renaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier hs-type"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_scopedRenamingTerms"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScopedRenaming -&gt; Renaming TermUnique
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#_scopedRenamingTerms"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_scopedRenamingTerms</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#Renaming"
+	><span class="hs-identifier hs-type"
+	  >Renaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier hs-type"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="scopedRenamingTypes"
+      ><span id="scopedRenamingTerms"
+	><span class="hs-identifier"
+	  >makeLenses</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >ScopedRenaming</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="ScopedRenameT"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#ScopedRenameT"
+	  ><span class="hs-identifier hs-var"
+	    >ScopedRenameT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#RenameT"
+	><span class="hs-identifier hs-type"
+	  >RenameT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier hs-type"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951600"
+      ><span id="local-6989586621681951604"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	    ><span class="hs-identifier hs-type"
+	      >Semigroup</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	    ><span class="hs-identifier hs-type"
+	      >ScopedRenaming</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier hs-type"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951610"
+      ><span class="annot"
+	><span class="annottext"
+	  >Renaming TypeUnique
+</span
+	  ><a href="#local-6989586621681951610"
+	  ><span class="hs-identifier hs-var"
+	    >types1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951611"
+      ><span class="annot"
+	><span class="annottext"
+	  >Renaming TermUnique
+</span
+	  ><a href="#local-6989586621681951611"
+	  ><span class="hs-identifier hs-var"
+	    >terms1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951612"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: ScopedRenaming -&gt; ScopedRenaming -&gt; ScopedRenaming
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >&lt;&gt;</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier hs-type"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951613"
+      ><span class="annot"
+	><span class="annottext"
+	  >Renaming TypeUnique
+</span
+	  ><a href="#local-6989586621681951613"
+	  ><span class="hs-identifier hs-var"
+	    >types2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951614"
+      ><span class="annot"
+	><span class="annottext"
+	  >Renaming TermUnique
+</span
+	  ><a href="#local-6989586621681951614"
+	  ><span class="hs-identifier hs-var"
+	    >terms2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TypeUnique -&gt; Renaming TermUnique -&gt; ScopedRenaming
+</span
+	><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier hs-var"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TypeUnique
+</span
+	><a href="#local-6989586621681951610"
+	><span class="hs-identifier hs-var"
+	  >types1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TypeUnique -&gt; Renaming TypeUnique -&gt; Renaming TypeUnique
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TypeUnique
+</span
+	><a href="#local-6989586621681951613"
+	><span class="hs-identifier hs-var"
+	  >types2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TermUnique
+</span
+	><a href="#local-6989586621681951611"
+	><span class="hs-identifier hs-var"
+	  >terms1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TermUnique -&gt; Renaming TermUnique -&gt; Renaming TermUnique
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TermUnique
+</span
+	><a href="#local-6989586621681951614"
+	><span class="hs-identifier hs-var"
+	  >terms2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681951619"
+      ><span id="local-6989586621681951623"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	    ><span class="hs-identifier hs-type"
+	      >Monoid</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	    ><span class="hs-identifier hs-type"
+	      >ScopedRenaming</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681951627"
+      ><span class="annot"
+	><span class="annottext"
+	  >mempty :: ScopedRenaming
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >mempty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TypeUnique -&gt; Renaming TermUnique -&gt; ScopedRenaming
+</span
+	><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier hs-var"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TypeUnique
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming TermUnique
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681951301"
+      ><span id="local-6989586621681951302"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Coercible"
+	    ><span class="hs-identifier hs-type"
+	      >Coercible</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681951301"
+	    ><span class="hs-identifier hs-type"
+	      >unique1</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#Unique"
+	    ><span class="hs-identifier hs-type"
+	      >Unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681951301"
+	    ><span class="hs-identifier hs-type"
+	      >unique1</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	    ><span class="hs-operator hs-type"
+	      >~</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681951302"
+	    ><span class="hs-identifier hs-type"
+	      >unique2</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-86"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+	    ><span class="hs-identifier hs-type"
+	      >HasRenaming</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Rename.Monad.html#Renaming"
+	    ><span class="hs-identifier hs-type"
+	      >Renaming</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681951301"
+	    ><span class="hs-identifier hs-type"
+	      >unique1</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681951302"
+	    ><span class="hs-identifier hs-type"
+	      >unique2</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681951638"
+      ><span class="annot"
+	><span class="annottext"
+	  >renaming :: Lens' (Renaming unique1) (Renaming unique2)
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#renaming"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >renaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Renaming unique2 -&gt; f (Renaming unique2))
+-&gt; Renaming unique1 -&gt; f (Renaming unique1)
+(Renaming unique2 -&gt; f (Renaming unique2))
+-&gt; Renaming unique2 -&gt; f (Renaming unique2)
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+	><span class="hs-identifier hs-type"
+	  >HasRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier hs-type"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier hs-type"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681951650"
+      ><span class="annot"
+	><span class="annottext"
+	  >renaming :: Lens' ScopedRenaming (Renaming TypeUnique)
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#renaming"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >renaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Renaming TypeUnique -&gt; f (Renaming TypeUnique))
+-&gt; ScopedRenaming -&gt; f ScopedRenaming
+Lens' ScopedRenaming (Renaming TypeUnique)
+</span
+	><a href="PlutusCore.Rename.Monad.html#scopedRenamingTypes"
+	><span class="hs-identifier hs-var"
+	  >scopedRenamingTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Renaming TypeUnique -&gt; f (Renaming TypeUnique))
+ -&gt; ScopedRenaming -&gt; f ScopedRenaming)
+-&gt; ((Renaming TypeUnique -&gt; f (Renaming TypeUnique))
+    -&gt; Renaming TypeUnique -&gt; f (Renaming TypeUnique))
+-&gt; (Renaming TypeUnique -&gt; f (Renaming TypeUnique))
+-&gt; ScopedRenaming
+-&gt; f ScopedRenaming
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Renaming TypeUnique -&gt; f (Renaming TypeUnique))
+-&gt; Renaming TypeUnique -&gt; f (Renaming TypeUnique)
+forall ren unique.
+HasRenaming ren unique =&gt;
+Lens' ren (Renaming unique)
+Lens' (Renaming TypeUnique) (Renaming TypeUnique)
+</span
+	><a href="PlutusCore.Rename.Monad.html#renaming"
+	><span class="hs-identifier hs-var"
+	  >renaming</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+	><span class="hs-identifier hs-type"
+	  >HasRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+	><span class="hs-identifier hs-type"
+	  >ScopedRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier hs-type"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681951662"
+      ><span class="annot"
+	><span class="annottext"
+	  >renaming :: Lens' ScopedRenaming (Renaming TermUnique)
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#renaming"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >renaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Renaming TermUnique -&gt; f (Renaming TermUnique))
+-&gt; ScopedRenaming -&gt; f ScopedRenaming
+Lens' ScopedRenaming (Renaming TermUnique)
+</span
+	><a href="PlutusCore.Rename.Monad.html#scopedRenamingTerms"
+	><span class="hs-identifier hs-var"
+	  >scopedRenamingTerms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Renaming TermUnique -&gt; f (Renaming TermUnique))
+ -&gt; ScopedRenaming -&gt; f ScopedRenaming)
+-&gt; ((Renaming TermUnique -&gt; f (Renaming TermUnique))
+    -&gt; Renaming TermUnique -&gt; f (Renaming TermUnique))
+-&gt; (Renaming TermUnique -&gt; f (Renaming TermUnique))
+-&gt; ScopedRenaming
+-&gt; f ScopedRenaming
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Renaming TermUnique -&gt; f (Renaming TermUnique))
+-&gt; Renaming TermUnique -&gt; f (Renaming TermUnique)
+forall ren unique.
+HasRenaming ren unique =&gt;
+Lens' ren (Renaming unique)
+Lens' (Renaming TermUnique) (Renaming TermUnique)
+</span
+	><a href="PlutusCore.Rename.Monad.html#renaming"
+	><span class="hs-identifier hs-var"
+	  >renaming</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Run a 'RenameT' computation with an empty renaming.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="local-6989586621681951310"
+      ><span id="local-6989586621681951311"
+	><span id="local-6989586621681951312"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Rename.Monad.html#runRenameT"
+	      ><span class="hs-identifier hs-type"
+		>runRenameT</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-type"
+		>Monoid</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951310"
+	      ><span class="hs-identifier hs-type"
+		>ren</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Rename.Monad.html#RenameT"
+	      ><span class="hs-identifier hs-type"
+		>RenameT</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951310"
+	      ><span class="hs-identifier hs-type"
+		>ren</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951311"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951312"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951311"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951312"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="runRenameT"
+      ><span class="annot"
+	><span class="annottext"
+	  >runRenameT :: forall ren (m :: * -&gt; *) a. Monoid ren =&gt; RenameT ren m a -&gt; m a
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#runRenameT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runRenameT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html#RenameT"
+	><span class="hs-identifier hs-type"
+	  >RenameT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951665"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReaderT ren m a
+</span
+	  ><a href="#local-6989586621681951665"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT ren m a -&gt; ren -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReaderT"
+	><span class="hs-identifier hs-var"
+	  >runReaderT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReaderT ren m a
+</span
+	><a href="#local-6989586621681951665"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ren
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Map the underlying representation of 'Renaming'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span id="local-6989586621681951319"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#mapRenaming"
+	  ><span class="hs-identifier hs-type"
+	    >mapRenaming</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-102"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681951319"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681951319"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	  ><span class="hs-identifier hs-type"
+	    >UniqueMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681951319"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681951319"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-103"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#Renaming"
+	  ><span class="hs-identifier hs-type"
+	    >Renaming</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681951319"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-104"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Rename.Monad.html#Renaming"
+	  ><span class="hs-identifier hs-type"
+	    >Renaming</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681951319"
+	  ><span class="hs-identifier hs-type"
+	    >unique</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="mapRenaming"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapRenaming :: forall unique.
+(UniqueMap unique unique -&gt; UniqueMap unique unique)
+-&gt; Renaming unique -&gt; Renaming unique
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#mapRenaming"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapRenaming</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap unique unique -&gt; UniqueMap unique unique)
+-&gt; Renaming unique -&gt; Renaming unique
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Save the mapping from the @unique@ of a name to a new @unique@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="local-6989586621681951321"
+      ><span id="local-6989586621681951322"
+	><span id="local-6989586621681951324"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Rename.Monad.html#insertByNameM"
+	      ><span class="hs-identifier hs-type"
+		>insertByNameM</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-109"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951321"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951322"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+	      ><span class="hs-identifier hs-type"
+		>HasRenaming</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951324"
+	      ><span class="hs-identifier hs-type"
+		>ren</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951322"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-110"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951321"
+	      ><span class="hs-identifier hs-type"
+		>name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951322"
+	      ><span class="hs-identifier hs-type"
+		>unique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951324"
+	      ><span class="hs-identifier hs-type"
+		>ren</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681951324"
+	      ><span class="hs-identifier hs-type"
+		>ren</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span id="insertByNameM"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertByNameM :: forall name unique ren.
+(HasUnique name unique, HasRenaming ren unique) =&gt;
+name -&gt; unique -&gt; ren -&gt; ren
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#insertByNameM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertByNameM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951676"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681951676"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter ren ren (Renaming unique) (Renaming unique)
+-&gt; (Renaming unique -&gt; Renaming unique) -&gt; ren -&gt; ren
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-identifier hs-var"
+	>over</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter ren ren (Renaming unique) (Renaming unique)
+forall ren unique.
+HasRenaming ren unique =&gt;
+Lens' ren (Renaming unique)
+Lens' ren (Renaming unique)
+</span
+	><a href="PlutusCore.Rename.Monad.html#renaming"
+	><span class="hs-identifier hs-var"
+	  >renaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Renaming unique -&gt; Renaming unique) -&gt; ren -&gt; ren)
+-&gt; (unique -&gt; Renaming unique -&gt; Renaming unique)
+-&gt; unique
+-&gt; ren
+-&gt; ren
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap unique unique -&gt; UniqueMap unique unique)
+-&gt; Renaming unique -&gt; Renaming unique
+forall unique.
+(UniqueMap unique unique -&gt; UniqueMap unique unique)
+-&gt; Renaming unique -&gt; Renaming unique
+</span
+	><a href="PlutusCore.Rename.Monad.html#mapRenaming"
+	><span class="hs-identifier hs-var"
+	  >mapRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((UniqueMap unique unique -&gt; UniqueMap unique unique)
+ -&gt; Renaming unique -&gt; Renaming unique)
+-&gt; (unique -&gt; UniqueMap unique unique -&gt; UniqueMap unique unique)
+-&gt; unique
+-&gt; Renaming unique
+-&gt; Renaming unique
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+-&gt; unique -&gt; UniqueMap unique unique -&gt; UniqueMap unique unique
+forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByName"
+	><span class="hs-identifier hs-var"
+	  >insertByName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951676"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Look up the new unique a name got mapped to.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span id="local-6989586621681951337"
+      ><span id="local-6989586621681951338"
+	><span id="local-6989586621681951339"
+	  ><span id="local-6989586621681951340"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Rename.Monad.html#lookupNameM"
+		><span class="hs-identifier hs-type"
+		  >lookupNameM</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-115"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951337"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951338"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+		><span class="hs-identifier hs-type"
+		  >HasRenaming</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951339"
+		><span class="hs-identifier hs-type"
+		  >ren</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951338"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		><span class="hs-identifier hs-type"
+		  >MonadReader</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951339"
+		><span class="hs-identifier hs-type"
+		  >ren</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951340"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-116"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951337"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951340"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+		><span class="hs-identifier hs-type"
+		  >Maybe</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951338"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="lookupNameM"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupNameM :: forall name unique ren (m :: * -&gt; *).
+(HasUnique name unique, HasRenaming ren unique,
+ MonadReader ren m) =&gt;
+name -&gt; m (Maybe unique)
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#lookupNameM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupNameM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951687"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681951687"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ren -&gt; Maybe unique) -&gt; m (Maybe unique)
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; a) -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#asks"
+	><span class="hs-identifier hs-var"
+	  >asks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((ren -&gt; Maybe unique) -&gt; m (Maybe unique))
+-&gt; (ren -&gt; Maybe unique) -&gt; m (Maybe unique)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; UniqueMap unique unique -&gt; Maybe unique
+forall name unique a.
+HasUnique name unique =&gt;
+name -&gt; UniqueMap unique a -&gt; Maybe a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#lookupName"
+	><span class="hs-identifier hs-var"
+	  >lookupName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951687"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap unique unique -&gt; Maybe unique)
+-&gt; (ren -&gt; UniqueMap unique unique) -&gt; ren -&gt; Maybe unique
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Renaming unique -&gt; UniqueMap unique unique
+forall unique. Renaming unique -&gt; UniqueMap unique unique
+</span
+	><a href="PlutusCore.Rename.Monad.html#unRenaming"
+	><span class="hs-identifier hs-var"
+	  >unRenaming</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Renaming unique -&gt; UniqueMap unique unique)
+-&gt; (ren -&gt; Renaming unique) -&gt; ren -&gt; UniqueMap unique unique
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (Renaming unique) ren (Renaming unique)
+-&gt; ren -&gt; Renaming unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting (Renaming unique) ren (Renaming unique)
+forall ren unique.
+HasRenaming ren unique =&gt;
+Lens' ren (Renaming unique)
+Lens' ren (Renaming unique)
+</span
+	><a href="PlutusCore.Rename.Monad.html#renaming"
+	><span class="hs-identifier hs-var"
+	  >renaming</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Rename a name that has a unique inside.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span id="local-6989586621681951361"
+      ><span id="local-6989586621681951362"
+	><span id="local-6989586621681951363"
+	  ><span id="local-6989586621681951364"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Rename.Monad.html#renameNameM"
+		><span class="hs-identifier hs-type"
+		  >renameNameM</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-121"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+		><span class="hs-identifier hs-type"
+		  >HasRenaming</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951361"
+		><span class="hs-identifier hs-type"
+		  >ren</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951362"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951363"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951362"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		><span class="hs-identifier hs-type"
+		  >MonadReader</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951361"
+		><span class="hs-identifier hs-type"
+		  >ren</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951364"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-122"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951363"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951364"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681951363"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="renameNameM"
+      ><span class="annot"
+	><span class="annottext"
+	  >renameNameM :: forall ren unique name (m :: * -&gt; *).
+(HasRenaming ren unique, HasUnique name unique,
+ MonadReader ren m) =&gt;
+name -&gt; m name
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#renameNameM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >renameNameM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951701"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681951701"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681951702"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe unique
+</span
+	  ><a href="#local-6989586621681951702"
+	  ><span class="hs-identifier hs-var"
+	    >mayUniqNew</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; m (Maybe unique)
+forall name unique ren (m :: * -&gt; *).
+(HasUnique name unique, HasRenaming ren unique,
+ MonadReader ren m) =&gt;
+name -&gt; m (Maybe unique)
+</span
+	><a href="PlutusCore.Rename.Monad.html#lookupNameM"
+	><span class="hs-identifier hs-var"
+	  >lookupNameM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951701"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; m name
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(name -&gt; m name) -&gt; name -&gt; m name
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe unique
+</span
+	><a href="#local-6989586621681951702"
+	><span class="hs-identifier hs-var"
+	  >mayUniqNew</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe unique
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951701"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951703"
+      ><span class="annot"
+	><span class="annottext"
+	  >unique
+</span
+	  ><a href="#local-6989586621681951703"
+	  ><span class="hs-identifier hs-var"
+	    >uniqNew</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951701"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; (name -&gt; name) -&gt; name
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; Identity unique) -&gt; name -&gt; Identity name
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((unique -&gt; Identity unique) -&gt; name -&gt; Identity name)
+-&gt; unique -&gt; name -&gt; name
+forall s t a b. ASetter s t a b -&gt; b -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>.~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique
+</span
+	><a href="#local-6989586621681951703"
+	><span class="hs-identifier hs-var"
+	  >uniqNew</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Replace the unique in a name by a new unique, save the mapping
+from the old unique to the new one and supply the updated value to a continuation. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span id="local-6989586621681951377"
+      ><span id="local-6989586621681951378"
+	><span id="local-6989586621681951379"
+	  ><span id="local-6989586621681951380"
+	    ><span id="local-6989586621681951381"
+	      ><span class="annot"
+		><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+		  ><span class="hs-identifier hs-type"
+		    >withFreshenedName</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-132"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+		  ><span class="hs-identifier hs-type"
+		    >HasRenaming</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951377"
+		  ><span class="hs-identifier hs-type"
+		    >ren</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951378"
+		  ><span class="hs-identifier hs-type"
+		    >unique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951379"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951378"
+		  ><span class="hs-identifier hs-type"
+		    >unique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Quote.html#MonadQuote"
+		  ><span class="hs-identifier hs-type"
+		    >MonadQuote</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951380"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		  ><span class="hs-identifier hs-type"
+		    >MonadReader</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951377"
+		  ><span class="hs-identifier hs-type"
+		    >ren</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951380"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-133"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951379"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="#local-6989586621681951379"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951380"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951381"
+		  ><span class="hs-identifier hs-type"
+		    >c</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951380"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951381"
+		  ><span class="hs-identifier hs-type"
+		    >c</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span id="withFreshenedName"
+      ><span class="annot"
+	><span class="annottext"
+	  >withFreshenedName :: forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, MonadQuote m,
+ MonadReader ren m) =&gt;
+name -&gt; (name -&gt; m c) -&gt; m c
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withFreshenedName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951725"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681951725"
+	  ><span class="hs-identifier hs-var"
+	    >nameOld</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951726"
+      ><span class="annot"
+	><span class="annottext"
+	  >name -&gt; m c
+</span
+	  ><a href="#local-6989586621681951726"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681951727"
+      ><span class="annot"
+	><span class="annottext"
+	  >unique
+</span
+	  ><a href="#local-6989586621681951727"
+	  ><span class="hs-identifier hs-var"
+	    >uniqNew</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; unique
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; unique) -&gt; m Unique -&gt; m unique
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m Unique
+forall (m :: * -&gt; *). MonadQuote m =&gt; m Unique
+</span
+	><a href="PlutusCore.Quote.html#freshUnique"
+	><span class="hs-identifier hs-var"
+	  >freshUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ren -&gt; ren) -&gt; m c -&gt; m c
+forall a. (ren -&gt; ren) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; unique -&gt; ren -&gt; ren
+forall name unique ren.
+(HasUnique name unique, HasRenaming ren unique) =&gt;
+name -&gt; unique -&gt; ren -&gt; ren
+</span
+	><a href="PlutusCore.Rename.Monad.html#insertByNameM"
+	><span class="hs-identifier hs-var"
+	  >insertByNameM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951725"
+	><span class="hs-identifier hs-var"
+	  >nameOld</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique
+</span
+	><a href="#local-6989586621681951727"
+	><span class="hs-identifier hs-var"
+	  >uniqNew</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m c -&gt; m c) -&gt; m c -&gt; m c
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; m c
+</span
+	><a href="#local-6989586621681951726"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951725"
+	><span class="hs-identifier hs-var"
+	  >nameOld</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; (name -&gt; name) -&gt; name
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; Identity unique) -&gt; name -&gt; Identity name
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((unique -&gt; Identity unique) -&gt; name -&gt; Identity name)
+-&gt; unique -&gt; name -&gt; name
+forall s t a b. ASetter s t a b -&gt; b -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>.~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>unique
+</span
+	><a href="#local-6989586621681951727"
+	><span class="hs-identifier hs-var"
+	  >uniqNew</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Run a 'RenameT' computation in the environment extended by the mapping from an old name
+to a new one. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span id="local-6989586621681951391"
+      ><span id="local-6989586621681951392"
+	><span id="local-6989586621681951393"
+	  ><span id="local-6989586621681951394"
+	    ><span id="local-6989586621681951395"
+	      ><span class="annot"
+		><a href="PlutusCore.Rename.Monad.html#withRenamedName"
+		  ><span class="hs-identifier hs-type"
+		    >withRenamedName</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-141"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+		  ><span class="hs-identifier hs-type"
+		    >HasRenaming</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951391"
+		  ><span class="hs-identifier hs-type"
+		    >ren</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951392"
+		  ><span class="hs-identifier hs-type"
+		    >unique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951393"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951392"
+		  ><span class="hs-identifier hs-type"
+		    >unique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		  ><span class="hs-identifier hs-type"
+		    >MonadReader</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951391"
+		  ><span class="hs-identifier hs-type"
+		    >ren</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951394"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-142"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951393"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951393"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951394"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951395"
+		  ><span class="hs-identifier hs-type"
+		    >c</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951394"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681951395"
+		  ><span class="hs-identifier hs-type"
+		    >c</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span id="withRenamedName"
+      ><span class="annot"
+	><span class="annottext"
+	  >withRenamedName :: forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique,
+ MonadReader ren m) =&gt;
+name -&gt; name -&gt; m c -&gt; m c
+</span
+	  ><a href="PlutusCore.Rename.Monad.html#withRenamedName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withRenamedName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951737"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681951737"
+	  ><span class="hs-identifier hs-var"
+	    >old</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681951738"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681951738"
+	  ><span class="hs-identifier hs-var"
+	    >new</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ren -&gt; ren) -&gt; m c -&gt; m c
+forall a. (ren -&gt; ren) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((ren -&gt; ren) -&gt; m c -&gt; m c) -&gt; (ren -&gt; ren) -&gt; m c -&gt; m c
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; unique -&gt; ren -&gt; ren
+forall name unique ren.
+(HasUnique name unique, HasRenaming ren unique) =&gt;
+name -&gt; unique -&gt; ren -&gt; ren
+</span
+	><a href="PlutusCore.Rename.Monad.html#insertByNameM"
+	><span class="hs-identifier hs-var"
+	  >insertByNameM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951737"
+	><span class="hs-identifier hs-var"
+	  >old</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681951738"
+	><span class="hs-identifier hs-var"
+	  >new</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Getting unique name unique -&gt; unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting unique name unique
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' name unique
+</span
+	><a href="PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >unique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

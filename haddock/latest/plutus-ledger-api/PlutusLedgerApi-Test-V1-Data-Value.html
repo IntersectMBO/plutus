@@ -1,0 +1,652 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Test.V1.Data.Value</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.56.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Test.V1.Data.Value.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Test.V1.Data.Value</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:listsToValue"
+	      >listsToValue</a
+	      > &#8759; [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Data.Value"
+	      >CurrencySymbol</a
+	      >, [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Data.Value"
+	      >TokenName</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >)])] &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	      >Value</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:valueToLists"
+	      >valueToLists</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	      >Value</a
+	      > &#8594; [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Data.Value"
+	      >CurrencySymbol</a
+	      >, [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Data.Value"
+	      >TokenName</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >)])]</li
+	    ><li class="src short"
+	    ><a href="#v:toCellCandidatesNumber"
+	      >toCellCandidatesNumber</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genShortHex"
+	      >genShortHex</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+	      >BuiltinByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:uniqueNames"
+	      >uniqueNames</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > name &#8658; (<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+	      >BuiltinByteString</a
+	      > &#8594; name) &#8594; [b] &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [(name, b)]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:FaceValue"
+	      >FaceValue</a
+	      > = <a href="#v:FaceValue"
+	      >FaceValue</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unFaceValue"
+		  >unFaceValue</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:NoArbitrary"
+	      >NoArbitrary</a
+	      > a = <a href="#v:NoArbitrary"
+	      >NoArbitrary</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unNoArbitrary"
+		  >unNoArbitrary</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:listsToValue" class="def"
+	    >listsToValue</a
+	    > &#8759; [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Data.Value"
+	    >CurrencySymbol</a
+	    >, [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Data.Value"
+	    >TokenName</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >)])] &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	    >Value</a
+	    > <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#listsToValue" class="link"
+	    >Source</a
+	    > <a href="#v:listsToValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a list representation of a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		>Value</a
+		></code
+	      > to the <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		>Value</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:valueToLists" class="def"
+	    >valueToLists</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+	    >Value</a
+	    > &#8594; [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Data.Value"
+	    >CurrencySymbol</a
+	    >, [(<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Data.Value"
+	    >TokenName</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >)])] <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#valueToLists" class="link"
+	    >Source</a
+	    > <a href="#v:valueToLists" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		>Value</a
+		></code
+	      > to its list representation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toCellCandidatesNumber" class="def"
+	    >toCellCandidatesNumber</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#toCellCandidatesNumber" class="link"
+	    >Source</a
+	    > <a href="#v:toCellCandidatesNumber" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return how many candidates to randomly choose from to fill the given number of cells. For
+example, if we only need to fill a single cell, we choose from 6 different candidates, and if we
+need to fill 5 cells, we choose from 11 candidates.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>map (\i -&gt; (i, toCellCandidatesNumber i)) [1..13]
+</code
+		></strong
+	      >[(1,6),(2,6),(3,6),(4,8),(5,11),(6,14),(7,18),(8,22),(9,27),(10,31),(11,36),(12,41),(13,46)] 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genShortHex" class="def"
+	    >genShortHex</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+	    >BuiltinByteString</a
+	    > <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#genShortHex" class="link"
+	    >Source</a
+	    > <a href="#v:genShortHex" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+		>BuiltinByteString</a
+		></code
+	      > by picking one of the predetermined ones, given a number of
+cells to fill (see <code
+	      ><a href="PlutusLedgerApi-Test-V1-Data-Value.html#v:toCellCandidatesNumber" title="PlutusLedgerApi.Test.V1.Data.Value"
+		>toCellCandidatesNumber</a
+		></code
+	      >). The idea is that we want to occasionally generate
+the same <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Data.Value"
+		>CurrencySymbol</a
+		></code
+	      > or <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Data.Value"
+		>TokenName</a
+		></code
+	      > for different <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		>Value</a
+		></code
+	      >s to have decent test coverage,
+hence to make name clashing more likely we pick from a predetermined set of
+<code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+		>BuiltinByteString</a
+		></code
+	      >s. Otherwise the chance of generating the same <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+		>BuiltinByteString</a
+		></code
+	      > for two
+different <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		>Value</a
+		></code
+	      >s would be virtually zero. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uniqueNames" class="def"
+	    >uniqueNames</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > name &#8658; (<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+	    >BuiltinByteString</a
+	    > &#8594; name) &#8594; [b] &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [(name, b)] <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#uniqueNames" class="link"
+	    >Source</a
+	    > <a href="#v:uniqueNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Annotate each element of the give list with a <code
+	      >name</code
+	      >, given a function turning
+<code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinByteString" title="PlutusLedgerApi.Common"
+		>BuiltinByteString</a
+		></code
+	      > into names. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:FaceValue" class="def"
+	    >FaceValue</a
+	    > <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#FaceValue" class="link"
+	    >Source</a
+	    > <a href="#t:FaceValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The value of a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Data.Value"
+		>TokenName</a
+		></code
+	      > in a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		>Value</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FaceValue" class="def"
+		  >FaceValue</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unFaceValue" class="def"
+			  >unFaceValue</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:FaceValue"
+	    >Instances</h4
+	    ><details id="i:FaceValue" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:FaceValue:Arbitrary:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Arbitrary</a
+		      > <a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:FaceValue" title="PlutusLedgerApi.Test.V1.Data.Value"
+		      >FaceValue</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:FaceValue" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:FaceValue:Arbitrary:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-V1-Data-Value.html"
+			>PlutusLedgerApi.Test.V1.Data.Value</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitrary"
+			  >arbitrary</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:FaceValue" title="PlutusLedgerApi.Test.V1.Data.Value"
+			  >FaceValue</a
+			  > <a href="#v:arbitrary" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrink"
+			  >shrink</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:FaceValue" title="PlutusLedgerApi.Test.V1.Data.Value"
+			  >FaceValue</a
+			  > &#8594; [<a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:FaceValue" title="PlutusLedgerApi.Test.V1.Data.Value"
+			  >FaceValue</a
+			  >] <a href="#v:shrink" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:NoArbitrary" class="def"
+	    >NoArbitrary</a
+	    > a <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#NoArbitrary" class="link"
+	    >Source</a
+	    > <a href="#t:NoArbitrary" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A wrapper for satisfying an <code
+	      >Arbitrary a</code
+	      > constraint without implementing an <code
+	      ><a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		>Arbitrary</a
+		></code
+	      >
+instance for <code
+	      >a</code
+	      >. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NoArbitrary" class="def"
+		  >NoArbitrary</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unNoArbitrary" class="def"
+			  >unNoArbitrary</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:NoArbitrary"
+	    >Instances</h4
+	    ><details id="i:NoArbitrary" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoArbitrary:Arbitrary:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Arbitrary</a
+		      > (<a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:NoArbitrary" title="PlutusLedgerApi.Test.V1.Data.Value"
+		      >NoArbitrary</a
+		      > a)</span
+		    > <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#line-83" class="link"
+		    >Source</a
+		    > <a href="#t:NoArbitrary" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    ><code
+		      ><a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#v:arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+			>arbitrary</a
+			></code
+		      > throws, <code
+		      ><a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#v:shrink" title="PlutusCore.Generators.QuickCheck.GenTm"
+			>shrink</a
+			></code
+		      > neither throws nor shrinks.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoArbitrary:Arbitrary:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-V1-Data-Value.html"
+			>PlutusLedgerApi.Test.V1.Data.Value</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitrary"
+			  >arbitrary</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > (<a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:NoArbitrary" title="PlutusLedgerApi.Test.V1.Data.Value"
+			  >NoArbitrary</a
+			  > a) <a href="#v:arbitrary" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrink"
+			  >shrink</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:NoArbitrary" title="PlutusLedgerApi.Test.V1.Data.Value"
+			  >NoArbitrary</a
+			  > a &#8594; [<a href="PlutusLedgerApi-Test-V1-Data-Value.html#t:NoArbitrary" title="PlutusLedgerApi.Test.V1.Data.Value"
+			  >NoArbitrary</a
+			  > a] <a href="#v:shrink" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:1"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		  >Value</a
+		  ></span
+		> <a href="src/PlutusLedgerApi.Test.V1.Data.Value.html#line-87" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitraryValue" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		      >Value</a
+		      > <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		      >Value</a
+		      > &#8594; [<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Data-Value.html#t:Value" title="PlutusLedgerApi.V1.Data.Value"
+		      >Value</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,1404 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.RTE.Float</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.58.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.RTE.Float.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.RTE.Float</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:doubleEq"
+	      >doubleEq</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleLe"
+	      >doubleLe</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleLt"
+	      >doubleLt</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:truncateDouble"
+	      >truncateDouble</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:intToDouble"
+	      >intToDouble</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	      >Integral</a
+	      > a &#8658; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doublePlus"
+	      >doublePlus</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleMinus"
+	      >doubleMinus</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleTimes"
+	      >doubleTimes</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleNegate"
+	      >doubleNegate</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleDiv"
+	      >doubleDiv</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doublePow"
+	      >doublePow</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleSqrt"
+	      >doubleSqrt</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleExp"
+	      >doubleExp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleLog"
+	      >doubleLog</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleSin"
+	      >doubleSin</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleCos"
+	      >doubleCos</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleTan"
+	      >doubleTan</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleASin"
+	      >doubleASin</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleACos"
+	      >doubleACos</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleATan"
+	      >doubleATan</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleATan2"
+	      >doubleATan2</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleSinh"
+	      >doubleSinh</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleCosh"
+	      >doubleCosh</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleTanh"
+	      >doubleTanh</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleASinh"
+	      >doubleASinh</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleACosh"
+	      >doubleACosh</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleATanh"
+	      >doubleATanh</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:negativeZero"
+	      >negativeZero</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:positiveInfinity"
+	      >positiveInfinity</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:negativeInfinity"
+	      >negativeInfinity</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nan"
+	      >nan</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isPosInf"
+	      >isPosInf</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isNegInf"
+	      >isNegInf</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isPosZero"
+	      >isPosZero</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isNegZero"
+	      >isNegZero</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleRound"
+	      >doubleRound</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleFloor"
+	      >doubleFloor</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleCeiling"
+	      >doubleCeiling</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:normaliseNaN"
+	      >normaliseNaN</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleToWord64"
+	      >doubleToWord64</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleDenotEq"
+	      >doubleDenotEq</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleDenotOrd"
+	      >doubleDenotOrd</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+	      >Ordering</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:asFinite"
+	      >asFinite</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleToRatio"
+	      >doubleToRatio</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:ratioToDouble"
+	      >ratioToDouble</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleDecode"
+	      >doubleDecode</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:isSafeInteger"
+	      >isSafeInteger</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleRadix"
+	      >doubleRadix</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleDigits"
+	      >doubleDigits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleRange"
+	      >doubleRange</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:minMantissa"
+	      >minMantissa</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:maxMantissa"
+	      >maxMantissa</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:minExponent"
+	      >minExponent</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:maxExponent"
+	      >maxExponent</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleEncode"
+	      >doubleEncode</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleEq" class="def"
+	    >doubleEq</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleEq" class="link"
+	    >Source</a
+	    > <a href="#v:doubleEq" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleLe" class="def"
+	    >doubleLe</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleLe" class="link"
+	    >Source</a
+	    > <a href="#v:doubleLe" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleLt" class="def"
+	    >doubleLt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleLt" class="link"
+	    >Source</a
+	    > <a href="#v:doubleLt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:truncateDouble" class="def"
+	    >truncateDouble</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#truncateDouble" class="link"
+	    >Source</a
+	    > <a href="#v:truncateDouble" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:intToDouble" class="def"
+	    >intToDouble</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	    >Integral</a
+	    > a &#8658; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#intToDouble" class="link"
+	    >Source</a
+	    > <a href="#v:intToDouble" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doublePlus" class="def"
+	    >doublePlus</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doublePlus" class="link"
+	    >Source</a
+	    > <a href="#v:doublePlus" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleMinus" class="def"
+	    >doubleMinus</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleMinus" class="link"
+	    >Source</a
+	    > <a href="#v:doubleMinus" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleTimes" class="def"
+	    >doubleTimes</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleTimes" class="link"
+	    >Source</a
+	    > <a href="#v:doubleTimes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleNegate" class="def"
+	    >doubleNegate</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleNegate" class="link"
+	    >Source</a
+	    > <a href="#v:doubleNegate" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleDiv" class="def"
+	    >doubleDiv</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleDiv" class="link"
+	    >Source</a
+	    > <a href="#v:doubleDiv" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doublePow" class="def"
+	    >doublePow</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doublePow" class="link"
+	    >Source</a
+	    > <a href="#v:doublePow" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleSqrt" class="def"
+	    >doubleSqrt</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleSqrt" class="link"
+	    >Source</a
+	    > <a href="#v:doubleSqrt" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleExp" class="def"
+	    >doubleExp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleExp" class="link"
+	    >Source</a
+	    > <a href="#v:doubleExp" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleLog" class="def"
+	    >doubleLog</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleLog" class="link"
+	    >Source</a
+	    > <a href="#v:doubleLog" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleSin" class="def"
+	    >doubleSin</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleSin" class="link"
+	    >Source</a
+	    > <a href="#v:doubleSin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleCos" class="def"
+	    >doubleCos</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleCos" class="link"
+	    >Source</a
+	    > <a href="#v:doubleCos" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleTan" class="def"
+	    >doubleTan</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleTan" class="link"
+	    >Source</a
+	    > <a href="#v:doubleTan" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleASin" class="def"
+	    >doubleASin</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleASin" class="link"
+	    >Source</a
+	    > <a href="#v:doubleASin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleACos" class="def"
+	    >doubleACos</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleACos" class="link"
+	    >Source</a
+	    > <a href="#v:doubleACos" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleATan" class="def"
+	    >doubleATan</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleATan" class="link"
+	    >Source</a
+	    > <a href="#v:doubleATan" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleATan2" class="def"
+	    >doubleATan2</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleATan2" class="link"
+	    >Source</a
+	    > <a href="#v:doubleATan2" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleSinh" class="def"
+	    >doubleSinh</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleSinh" class="link"
+	    >Source</a
+	    > <a href="#v:doubleSinh" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleCosh" class="def"
+	    >doubleCosh</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleCosh" class="link"
+	    >Source</a
+	    > <a href="#v:doubleCosh" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleTanh" class="def"
+	    >doubleTanh</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleTanh" class="link"
+	    >Source</a
+	    > <a href="#v:doubleTanh" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleASinh" class="def"
+	    >doubleASinh</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleASinh" class="link"
+	    >Source</a
+	    > <a href="#v:doubleASinh" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleACosh" class="def"
+	    >doubleACosh</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleACosh" class="link"
+	    >Source</a
+	    > <a href="#v:doubleACosh" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleATanh" class="def"
+	    >doubleATanh</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleATanh" class="link"
+	    >Source</a
+	    > <a href="#v:doubleATanh" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:negativeZero" class="def"
+	    >negativeZero</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#negativeZero" class="link"
+	    >Source</a
+	    > <a href="#v:negativeZero" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:positiveInfinity" class="def"
+	    >positiveInfinity</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#positiveInfinity" class="link"
+	    >Source</a
+	    > <a href="#v:positiveInfinity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:negativeInfinity" class="def"
+	    >negativeInfinity</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#negativeInfinity" class="link"
+	    >Source</a
+	    > <a href="#v:negativeInfinity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nan" class="def"
+	    >nan</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#nan" class="link"
+	    >Source</a
+	    > <a href="#v:nan" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isPosInf" class="def"
+	    >isPosInf</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#isPosInf" class="link"
+	    >Source</a
+	    > <a href="#v:isPosInf" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isNegInf" class="def"
+	    >isNegInf</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#isNegInf" class="link"
+	    >Source</a
+	    > <a href="#v:isNegInf" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isPosZero" class="def"
+	    >isPosZero</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#isPosZero" class="link"
+	    >Source</a
+	    > <a href="#v:isPosZero" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isNegZero" class="def"
+	    >isNegZero</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#isNegZero" class="link"
+	    >Source</a
+	    > <a href="#v:isNegZero" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleRound" class="def"
+	    >doubleRound</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleRound" class="link"
+	    >Source</a
+	    > <a href="#v:doubleRound" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleFloor" class="def"
+	    >doubleFloor</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleFloor" class="link"
+	    >Source</a
+	    > <a href="#v:doubleFloor" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleCeiling" class="def"
+	    >doubleCeiling</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleCeiling" class="link"
+	    >Source</a
+	    > <a href="#v:doubleCeiling" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normaliseNaN" class="def"
+	    >normaliseNaN</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#normaliseNaN" class="link"
+	    >Source</a
+	    > <a href="#v:normaliseNaN" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleToWord64" class="def"
+	    >doubleToWord64</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleToWord64" class="link"
+	    >Source</a
+	    > <a href="#v:doubleToWord64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleDenotEq" class="def"
+	    >doubleDenotEq</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleDenotEq" class="link"
+	    >Source</a
+	    > <a href="#v:doubleDenotEq" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Denotational equality for floating point numbers, checks bitwise equality.</p
+	    ><p
+	    >NOTE: Denotational equality distinguishes NaNs, so its results may vary
+        depending on the architecture and compilation flags. Unfortunately,
+        this is a problem with floating-point numbers in general.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleDenotOrd" class="def"
+	    >doubleDenotOrd</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+	    >Ordering</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleDenotOrd" class="link"
+	    >Source</a
+	    > <a href="#v:doubleDenotOrd" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >I guess &quot;denotational orderings&quot; are now a thing? The point is that we need
+  an Ord instance which provides a total ordering, and is consistent with the
+  denotational equality.</p
+	    ><p
+	    >NOTE: The ordering induced via <code
+	      ><a href="MAlonzo-RTE-Float.html#v:doubleToWord64" title="MAlonzo.RTE.Float"
+		>doubleToWord64</a
+		></code
+	      > is total, and is consistent
+        with <code
+	      ><a href="MAlonzo-RTE-Float.html#v:doubleDenotEq" title="MAlonzo.RTE.Float"
+		>doubleDenotEq</a
+		></code
+	      >. However, it is *deeply* unintuitive. For one, it
+        considers all negative numbers to be larger than positive numbers.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asFinite" class="def"
+	    >asFinite</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#asFinite" class="link"
+	    >Source</a
+	    > <a href="#v:asFinite" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return Just x if it's a finite number, otherwise return Nothing.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleToRatio" class="def"
+	    >doubleToRatio</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) <a href="src/MAlonzo.RTE.Float.html#doubleToRatio" class="link"
+	    >Source</a
+	    > <a href="#v:doubleToRatio" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode a Double to an integer ratio.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ratioToDouble" class="def"
+	    >ratioToDouble</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#ratioToDouble" class="link"
+	    >Source</a
+	    > <a href="#v:ratioToDouble" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode an integer ratio as a double.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleDecode" class="def"
+	    >doubleDecode</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >) <a href="src/MAlonzo.RTE.Float.html#doubleDecode" class="link"
+	    >Source</a
+	    > <a href="#v:doubleDecode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode a Double to its mantissa and its exponent, normalised such that the
+  mantissa is the smallest possible number without loss of accuracy.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isSafeInteger" class="def"
+	    >isSafeInteger</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.RTE.Float.html#isSafeInteger" class="link"
+	    >Source</a
+	    > <a href="#v:isSafeInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks whether or not the Double is within a safe range of operation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleRadix" class="def"
+	    >doubleRadix</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleRadix" class="link"
+	    >Source</a
+	    > <a href="#v:doubleRadix" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleDigits" class="def"
+	    >doubleDigits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleDigits" class="link"
+	    >Source</a
+	    > <a href="#v:doubleDigits" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleRange" class="def"
+	    >doubleRange</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >) <a href="src/MAlonzo.RTE.Float.html#doubleRange" class="link"
+	    >Source</a
+	    > <a href="#v:doubleRange" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:minMantissa" class="def"
+	    >minMantissa</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#minMantissa" class="link"
+	    >Source</a
+	    > <a href="#v:minMantissa" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The smallest representable mantissa. Simultaneously, the smallest integer which can be
+  represented as a Double without loss of precision.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:maxMantissa" class="def"
+	    >maxMantissa</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#maxMantissa" class="link"
+	    >Source</a
+	    > <a href="#v:maxMantissa" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The largest representable mantissa. Simultaneously, the largest integer which can be
+  represented as a Double without loss of precision.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:minExponent" class="def"
+	    >minExponent</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#minExponent" class="link"
+	    >Source</a
+	    > <a href="#v:minExponent" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The largest representable exponent.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:maxExponent" class="def"
+	    >maxExponent</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.RTE.Float.html#maxExponent" class="link"
+	    >Source</a
+	    > <a href="#v:maxExponent" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The smallest representable exponent.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleEncode" class="def"
+	    >doubleEncode</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/MAlonzo.RTE.Float.html#doubleEncode" class="link"
+	    >Source</a
+	    > <a href="#v:doubleEncode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode a mantissa and an exponent as a Double.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

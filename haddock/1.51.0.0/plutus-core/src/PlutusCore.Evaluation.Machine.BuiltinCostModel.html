@@ -1,0 +1,6991 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StrictData           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-comment"
+      >-- So that we don't spend a lot of time optimizing loads of Core whose performance doesn't matter.</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -O0               #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.BuiltinCostModel</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModel"
+	><span class="hs-identifier"
+	  >BuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	><span class="hs-identifier"
+	  >BuiltinCostModelBase</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	><span class="hs-identifier"
+	  >CostingFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#UnimplementedCostingFun"
+	><span class="hs-identifier"
+	  >UnimplementedCostingFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Intercept"
+	><span class="hs-identifier"
+	  >Intercept</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Slope"
+	><span class="hs-identifier"
+	  >Slope</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient0"
+	><span class="hs-identifier"
+	  >Coefficient0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient1"
+	><span class="hs-identifier"
+	  >Coefficient1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient2"
+	><span class="hs-identifier"
+	  >Coefficient2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient00"
+	><span class="hs-identifier"
+	  >Coefficient00</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient10"
+	><span class="hs-identifier"
+	  >Coefficient10</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient01"
+	><span class="hs-identifier"
+	  >Coefficient01</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient20"
+	><span class="hs-identifier"
+	  >Coefficient20</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient11"
+	><span class="hs-identifier"
+	  >Coefficient11</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient02"
+	><span class="hs-identifier"
+	  >Coefficient02</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient12"
+	><span class="hs-identifier"
+	  >Coefficient12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableLinearFunction"
+	><span class="hs-identifier"
+	  >OneVariableLinearFunction</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableQuadraticFunction"
+	><span class="hs-identifier"
+	  >OneVariableQuadraticFunction</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableLinearFunction"
+	><span class="hs-identifier"
+	  >TwoVariableLinearFunction</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableQuadraticFunction"
+	><span class="hs-identifier"
+	  >TwoVariableQuadraticFunction</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ExpModCostingFunction"
+	><span class="hs-identifier"
+	  >ExpModCostingFunction</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSubtractedSizes"
+	><span class="hs-identifier"
+	  >ModelSubtractedSizes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrOneArgument"
+	><span class="hs-identifier"
+	  >ModelConstantOrOneArgument</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrTwoArguments"
+	><span class="hs-identifier"
+	  >ModelConstantOrTwoArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrLinear"
+	><span class="hs-identifier"
+	  >ModelConstantOrLinear</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Deprecated: see Note [Backward compatibility for costing functions]</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+	><span class="hs-identifier"
+	  >ModelFourArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+	><span class="hs-identifier"
+	  >ModelFiveArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+	><span class="hs-identifier"
+	  >ModelSixArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#runCostingFunOneArgument"
+	><span class="hs-identifier"
+	  >runCostingFunOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#runCostingFunTwoArguments"
+	><span class="hs-identifier"
+	  >runCostingFunTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#runCostingFunThreeArguments"
+	><span class="hs-identifier"
+	  >runCostingFunThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#runCostingFunFourArguments"
+	><span class="hs-identifier"
+	  >runCostingFunFourArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#runCostingFunFiveArguments"
+	><span class="hs-identifier"
+	  >runCostingFunFiveArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#runCostingFunSixArguments"
+	><span class="hs-identifier"
+	  >runCostingFunSixArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	><span class="hs-identifier"
+	  >Hashable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#MCostingFun"
+	><span class="hs-identifier"
+	  >MCostingFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#toList"
+	><span class="hs-identifier"
+	  >toList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostingFun.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostingFun.JSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Barbies</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Kind</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Monoid.html"
+	><span class="hs-identifier"
+	  >Data.Monoid</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html"
+	><span class="hs-identifier"
+	  >Deriving.Aeson</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Name"
+	><span class="hs-identifier"
+	  >Name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#newName"
+	><span class="hs-identifier"
+	  >newName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="BuiltinCostModel"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModel"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostModelBase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	><span class="hs-identifier hs-type"
+	  >CostingFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- See  Note [Budgeting units] in ExBudgeting.hs</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- If the types here change there may be difficulties compiling this file</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-comment"
+      >-- because it doesn't match builtinCostModel.json (which is parsed during</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-comment"
+      >-- compilation).  In that case, manually change the JSON to match or do what it</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="hs-comment"
+      >-- says in Note [Modifying the cost model] in ExBudgetingDefaults.hs.</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="hs-comment"
+      >-- | The main model which contains all data required to predict the cost of</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-comment"
+      >-- builtin functions. See 'CostModelGeneration.md' for how this is</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-comment"
+      >-- generated. Calibrated for the CEK machine.</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinCostModelBase"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinCostModelBase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681857981"
+      ><span class="annot"
+	><a href="#local-6989586621681857981"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span id="BuiltinCostModelBase"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinCostModelBase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Integers</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >      </span
+      ><span id="paramAddInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramAddInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramAddInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramSubtractInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramSubtractInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramSubtractInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramMultiplyInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramMultiplyInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramMultiplyInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramDivideInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramDivideInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramDivideInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramQuotientInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramQuotientInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramQuotientInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramRemainderInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramRemainderInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramRemainderInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramModInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramModInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramModInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramEqualsInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramEqualsInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramEqualsInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramLessThanInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramLessThanInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramLessThanInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramLessThanEqualsInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramLessThanEqualsInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramLessThanEqualsInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Bytestrings</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramAppendByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramAppendByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramAppendByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramConsByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramConsByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramConsByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramSliceByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramSliceByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramSliceByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramLengthOfByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramLengthOfByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramLengthOfByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramIndexByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramIndexByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramIndexByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramEqualsByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramEqualsByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramEqualsByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramLessThanByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramLessThanByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramLessThanByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramLessThanEqualsByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramLessThanEqualsByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramLessThanEqualsByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Cryptography and hashes</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramSha2_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramSha2_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramSha2_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramSha3_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramSha3_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramSha3_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBlake2b_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBlake2b_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBlake2b_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramVerifyEd25519Signature"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramVerifyEd25519Signature"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramVerifyEd25519Signature</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramVerifyEcdsaSecp256k1Signature"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramVerifyEcdsaSecp256k1Signature"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramVerifyEcdsaSecp256k1Signature</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramVerifySchnorrSecp256k1Signature"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramVerifySchnorrSecp256k1Signature"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramVerifySchnorrSecp256k1Signature</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Strings</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramAppendString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramAppendString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramAppendString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramEqualsString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramEqualsString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramEqualsString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramEncodeUtf8"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramEncodeUtf8"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramEncodeUtf8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramDecodeUtf8"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramDecodeUtf8"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramDecodeUtf8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Bool</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramIfThenElse"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramIfThenElse"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramIfThenElse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Unit</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramChooseUnit"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramChooseUnit"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramChooseUnit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Tracing</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramTrace"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramTrace"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Pairs</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramFstPair"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramFstPair"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramFstPair</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramSndPair"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramSndPair"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramSndPair</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Lists</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramChooseList"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramChooseList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramChooseList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramMkCons"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramMkCons"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramMkCons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                          </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramHeadList"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramHeadList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramHeadList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramTailList"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramTailList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramTailList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramNullList"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramNullList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramNullList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Data</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramChooseData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelSixArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramChooseData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramChooseData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelSixArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramConstrData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramConstrData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramConstrData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramMapData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramMapData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramMapData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramListData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramListData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramListData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramIData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramIData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramIData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramUnConstrData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramUnConstrData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramUnConstrData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramUnMapData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramUnMapData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramUnMapData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramUnListData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramUnListData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramUnListData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramUnIData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramUnIData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramUnIData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramUnBData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramUnBData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramUnBData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramEqualsData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramEqualsData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramEqualsData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Misc constructors</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramMkPairData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramMkPairData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramMkPairData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramMkNilData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramMkNilData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramMkNilData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramMkNilPairData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramMkNilPairData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramMkNilPairData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramSerialiseData"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramSerialiseData"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramSerialiseData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- BLS12-381</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G1_add"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G1_add"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G1_add</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G1_neg"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G1_neg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G1_neg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G1_scalarMul"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G1_scalarMul"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G1_scalarMul</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G1_equal"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G1_equal"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G1_equal</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G1_compress"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G1_compress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G1_compress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G1_uncompress"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G1_uncompress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G1_uncompress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G1_hashToGroup"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G1_hashToGroup"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G1_hashToGroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G2_add"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G2_add"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G2_add</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G2_neg"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G2_neg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G2_neg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G2_scalarMul"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G2_scalarMul"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G2_scalarMul</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G2_equal"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G2_equal"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G2_equal</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G2_compress"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G2_compress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G2_compress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G2_uncompress"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G2_uncompress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G2_uncompress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_G2_hashToGroup"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_G2_hashToGroup"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_G2_hashToGroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_millerLoop"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_millerLoop"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_millerLoop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_mulMlResult"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_mulMlResult"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_mulMlResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBls12_381_finalVerify"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBls12_381_finalVerify"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBls12_381_finalVerify</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Keccak_256, Blake2b_224</span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramKeccak_256"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramKeccak_256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramKeccak_256</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramBlake2b_224"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramBlake2b_224"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramBlake2b_224</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Bitwise operations</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramIntegerToByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramIntegerToByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramIntegerToByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramByteStringToInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramByteStringToInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramByteStringToInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramAndByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramAndByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramAndByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramOrByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramOrByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramOrByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramXorByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramXorByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramXorByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramComplementByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramComplementByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramComplementByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramReadBit"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramReadBit"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramReadBit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramWriteBits"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramWriteBits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramWriteBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramReplicateByte"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramReplicateByte"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramReplicateByte</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramShiftByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramShiftByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramShiftByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramRotateByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramRotateByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramRotateByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramCountSetBits"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramCountSetBits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramCountSetBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramFindFirstSetBit"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramFindFirstSetBit"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramFindFirstSetBit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Ripemd_160</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramRipemd_160"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramRipemd_160"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramRipemd_160</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Batch 6</span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramExpModInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *).
+BuiltinCostModelBase f -&gt; f ModelThreeArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramExpModInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramExpModInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramDropList"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramDropList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramDropList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Arrays</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramLengthOfArray"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramLengthOfArray"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramLengthOfArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramListToArray"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelOneArgument
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramListToArray"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramListToArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="paramIndexArray"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). BuiltinCostModelBase f -&gt; f ModelTwoArguments
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#paramIndexArray"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramIndexArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681857981"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681858648"
+      ><span id="local-6989586621681858650"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x.
+ BuiltinCostModelBase f -&gt; Rep (BuiltinCostModelBase f) x)
+-&gt; (forall x.
+    Rep (BuiltinCostModelBase f) x -&gt; BuiltinCostModelBase f)
+-&gt; Generic (BuiltinCostModelBase f)
+forall x. Rep (BuiltinCostModelBase f) x -&gt; BuiltinCostModelBase f
+forall x. BuiltinCostModelBase f -&gt; Rep (BuiltinCostModelBase f) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (f :: * -&gt; *) x.
+Rep (BuiltinCostModelBase f) x -&gt; BuiltinCostModelBase f
+forall (f :: * -&gt; *) x.
+BuiltinCostModelBase f -&gt; Rep (BuiltinCostModelBase f) x
+$cfrom :: forall (f :: * -&gt; *) x.
+BuiltinCostModelBase f -&gt; Rep (BuiltinCostModelBase f) x
+from :: forall x. BuiltinCostModelBase f -&gt; Rep (BuiltinCostModelBase f) x
+$cto :: forall (f :: * -&gt; *) x.
+Rep (BuiltinCostModelBase f) x -&gt; BuiltinCostModelBase f
+to :: forall x. Rep (BuiltinCostModelBase f) x -&gt; BuiltinCostModelBase f
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681858654"
+      ><span class="annot"
+	><span class="annottext"
+	  >(forall (f :: * -&gt; *) (g :: * -&gt; *).
+ (forall a. f a -&gt; g a)
+ -&gt; BuiltinCostModelBase f -&gt; BuiltinCostModelBase g)
+-&gt; FunctorB BuiltinCostModelBase
+forall k (b :: (k -&gt; *) -&gt; *).
+(forall (f :: k -&gt; *) (g :: k -&gt; *).
+ (forall (a :: k). f a -&gt; g a) -&gt; b f -&gt; b g)
+-&gt; FunctorB b
+forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; BuiltinCostModelBase f -&gt; BuiltinCostModelBase g
+$cbmap :: forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; BuiltinCostModelBase f -&gt; BuiltinCostModelBase g
+bmap :: forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; BuiltinCostModelBase f -&gt; BuiltinCostModelBase g
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >FunctorB</span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681858864"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunctorB BuiltinCostModelBase
+FunctorB BuiltinCostModelBase =&gt;
+(forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+ Applicative e =&gt;
+ (forall a. f a -&gt; e (g a))
+ -&gt; BuiltinCostModelBase f -&gt; e (BuiltinCostModelBase g))
+-&gt; TraversableB BuiltinCostModelBase
+forall k (b :: (k -&gt; *) -&gt; *).
+FunctorB b =&gt;
+(forall (e :: * -&gt; *) (f :: k -&gt; *) (g :: k -&gt; *).
+ Applicative e =&gt;
+ (forall (a :: k). f a -&gt; e (g a)) -&gt; b f -&gt; e (b g))
+-&gt; TraversableB b
+forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+Applicative e =&gt;
+(forall a. f a -&gt; e (g a))
+-&gt; BuiltinCostModelBase f -&gt; e (BuiltinCostModelBase g)
+$cbtraverse :: forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+Applicative e =&gt;
+(forall a. f a -&gt; e (g a))
+-&gt; BuiltinCostModelBase f -&gt; e (BuiltinCostModelBase g)
+btraverse :: forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+Applicative e =&gt;
+(forall a. f a -&gt; e (g a))
+-&gt; BuiltinCostModelBase f -&gt; e (BuiltinCostModelBase g)
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	  >TraversableB</span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681859075"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunctorB BuiltinCostModelBase
+FunctorB BuiltinCostModelBase =&gt;
+(forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+ AllB c BuiltinCostModelBase =&gt;
+ BuiltinCostModelBase f
+ -&gt; BuiltinCostModelBase (Product (Dict c) f))
+-&gt; ConstraintsB BuiltinCostModelBase
+forall k (b :: (k -&gt; *) -&gt; *).
+FunctorB b =&gt;
+(forall (c :: k -&gt; Constraint) (f :: k -&gt; *).
+ AllB c b =&gt;
+ b f -&gt; b (Product (Dict c) f))
+-&gt; ConstraintsB b
+forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+AllB c BuiltinCostModelBase =&gt;
+BuiltinCostModelBase f -&gt; BuiltinCostModelBase (Product (Dict c) f)
+$cbaddDicts :: forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+AllB c BuiltinCostModelBase =&gt;
+BuiltinCostModelBase f -&gt; BuiltinCostModelBase (Product (Dict c) f)
+baddDicts :: forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+AllB c BuiltinCostModelBase =&gt;
+BuiltinCostModelBase f -&gt; BuiltinCostModelBase (Product (Dict c) f)
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	  >ConstraintsB</span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span id="local-6989586621681859287"
+      ><span id="local-6989586621681859296"
+	><span id="local-6989586621681859304"
+	  ><span id="local-6989586621681859312"
+	    ><span id="local-6989586621681859320"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+		  ><span class="hs-identifier hs-type"
+		    >CustomJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#FieldLabelModifier"
+		  ><span class="hs-identifier hs-type"
+		    >FieldLabelModifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#StripPrefix"
+		  ><span class="hs-identifier hs-type"
+		    >StripPrefix</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;param&quot;</span
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.ExBudget.html#LowerInitialCharacter"
+		  ><span class="hs-identifier hs-type"
+		    >LowerInitialCharacter</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>]</span
+		><span
+		>
+</span
+		><span id="line-199"
+		></span
+		><span
+		>             </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinCostModelBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+		  ><span class="hs-identifier hs-type"
+		    >CostingFun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinCostModelBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+		  ><span class="hs-identifier hs-type"
+		    >CostingFun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span id="local-6989586621681869090"
+      ><span id="local-6989586621681869098"
+	><span id="local-6989586621681869105"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+	      ><span class="hs-identifier hs-type"
+		>CustomJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#FieldLabelModifier"
+	      ><span class="hs-identifier hs-type"
+		>FieldLabelModifier</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#StripPrefix"
+	      ><span class="hs-identifier hs-type"
+		>StripPrefix</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-string"
+	      >&quot;param&quot;</span
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#LowerInitialCharacter"
+	      ><span class="hs-identifier hs-type"
+		>LowerInitialCharacter</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >]</span
+	    ><span
+	    >
+</span
+	    ><span id="line-201"
+	    ></span
+	    ><span
+	    >             </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	      ><span class="hs-identifier hs-type"
+		>BuiltinCostModelBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	      ><span class="hs-identifier hs-type"
+		>CostingFun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	      ><span class="hs-identifier hs-type"
+		>BuiltinCostModelBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	      ><span class="hs-identifier hs-type"
+		>CostingFun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span class="hs-comment"
+      >-- | Same as 'CostingFun' but maybe missing.</span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span class="hs-comment"
+      >-- We could use 'Compose Maybe CostinFun' instead but we would then need an orphan ToJSON instance.</span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="MCostingFun"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#MCostingFun"
+	  ><span class="hs-identifier hs-var"
+	    >MCostingFun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681871500"
+      ><span class="annot"
+	><a href="#local-6989586621681871500"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MCostingFun"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#MCostingFun"
+	  ><span class="hs-identifier hs-var"
+	    >MCostingFun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	><span class="hs-identifier hs-type"
+	  >CostingFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681871500"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681871504"
+      ><span id="local-6989586621681871510"
+	><span id="local-6989586621681871515"
+	  ><span id="local-6989586621681871520"
+	    ><span id="local-6989586621681871525"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[MCostingFun a] -&gt; Encoding
+[MCostingFun a] -&gt; Value
+MCostingFun a -&gt; Bool
+MCostingFun a -&gt; Encoding
+MCostingFun a -&gt; Value
+(MCostingFun a -&gt; Value)
+-&gt; (MCostingFun a -&gt; Encoding)
+-&gt; ([MCostingFun a] -&gt; Value)
+-&gt; ([MCostingFun a] -&gt; Encoding)
+-&gt; (MCostingFun a -&gt; Bool)
+-&gt; ToJSON (MCostingFun a)
+forall a. ToJSON a =&gt; [MCostingFun a] -&gt; Encoding
+forall a. ToJSON a =&gt; [MCostingFun a] -&gt; Value
+forall a. ToJSON a =&gt; MCostingFun a -&gt; Bool
+forall a. ToJSON a =&gt; MCostingFun a -&gt; Encoding
+forall a. ToJSON a =&gt; MCostingFun a -&gt; Value
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: forall a. ToJSON a =&gt; MCostingFun a -&gt; Value
+toJSON :: MCostingFun a -&gt; Value
+$ctoEncoding :: forall a. ToJSON a =&gt; MCostingFun a -&gt; Encoding
+toEncoding :: MCostingFun a -&gt; Encoding
+$ctoJSONList :: forall a. ToJSON a =&gt; [MCostingFun a] -&gt; Value
+toJSONList :: [MCostingFun a] -&gt; Value
+$ctoEncodingList :: forall a. ToJSON a =&gt; [MCostingFun a] -&gt; Encoding
+toEncodingList :: [MCostingFun a] -&gt; Encoding
+$comitField :: forall a. ToJSON a =&gt; MCostingFun a -&gt; Bool
+omitField :: MCostingFun a -&gt; Bool
+</span
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >ToJSON</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681871531"
+      ><span id="local-6989586621681871537"
+	><span id="local-6989586621681871544"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty (MCostingFun a) -&gt; MCostingFun a
+MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+(MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a)
+-&gt; (NonEmpty (MCostingFun a) -&gt; MCostingFun a)
+-&gt; (forall b. Integral b =&gt; b -&gt; MCostingFun a -&gt; MCostingFun a)
+-&gt; Semigroup (MCostingFun a)
+forall b. Integral b =&gt; b -&gt; MCostingFun a -&gt; MCostingFun a
+forall a. NonEmpty (MCostingFun a) -&gt; MCostingFun a
+forall a. MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+forall a b. Integral b =&gt; b -&gt; MCostingFun a -&gt; MCostingFun a
+$c&lt;&gt; :: forall a. MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+&lt;&gt; :: MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+$csconcat :: forall a. NonEmpty (MCostingFun a) -&gt; MCostingFun a
+sconcat :: NonEmpty (MCostingFun a) -&gt; MCostingFun a
+$cstimes :: forall a b. Integral b =&gt; b -&gt; MCostingFun a -&gt; MCostingFun a
+stimes :: forall b. Integral b =&gt; b -&gt; MCostingFun a -&gt; MCostingFun a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681871556"
+      ><span id="local-6989586621681871562"
+	><span id="local-6989586621681871567"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup (MCostingFun a)
+MCostingFun a
+Semigroup (MCostingFun a) =&gt;
+MCostingFun a
+-&gt; (MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a)
+-&gt; ([MCostingFun a] -&gt; MCostingFun a)
+-&gt; Monoid (MCostingFun a)
+[MCostingFun a] -&gt; MCostingFun a
+MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+forall a. Semigroup (MCostingFun a)
+forall a. MCostingFun a
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+forall a. [MCostingFun a] -&gt; MCostingFun a
+forall a. MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+$cmempty :: forall a. MCostingFun a
+mempty :: MCostingFun a
+$cmappend :: forall a. MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+mappend :: MCostingFun a -&gt; MCostingFun a -&gt; MCostingFun a
+$cmconcat :: forall a. [MCostingFun a] -&gt; MCostingFun a
+mconcat :: [MCostingFun a] -&gt; MCostingFun a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Semigroup.Internal.html#Alt"
+	><span class="hs-identifier hs-type"
+	  >Alt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	><span class="hs-identifier hs-type"
+	  >CostingFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681871500"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- for mempty == MCostingFun Nothing</span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span class="hs-comment"
+      >-- Omit generating JSON for any costing functions that have not been set (are missing).</span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span id="local-6989586621681871574"
+      ><span id="local-6989586621681871582"
+	><span id="local-6989586621681871590"
+	  ><span id="local-6989586621681871598"
+	    ><span id="local-6989586621681871606"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+		  ><span class="hs-identifier hs-type"
+		    >CustomJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#OmitNothingFields"
+		  ><span class="hs-identifier hs-type"
+		    >OmitNothingFields</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#FieldLabelModifier"
+		  ><span class="hs-identifier hs-type"
+		    >FieldLabelModifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#StripPrefix"
+		  ><span class="hs-identifier hs-type"
+		    >StripPrefix</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-string"
+		  >&quot;param&quot;</span
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.ExBudget.html#LowerInitialCharacter"
+		  ><span class="hs-identifier hs-type"
+		    >LowerInitialCharacter</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>]</span
+		><span
+		>
+</span
+		><span id="line-211"
+		></span
+		><span
+		>             </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinCostModelBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#MCostingFun"
+		  ><span class="hs-identifier hs-type"
+		    >MCostingFun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinCostModelBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#MCostingFun"
+		  ><span class="hs-identifier hs-type"
+		    >MCostingFun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span class="hs-comment"
+      >-- Needed to help derive various instances for BuiltinCostModelBase</span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="AllArgumentModels"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#AllArgumentModels"
+	  ><span class="hs-identifier hs-var"
+	    >AllArgumentModels</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681881325"
+      ><span class="annot"
+	><a href="#local-6989586621681881325"
+	  ><span class="hs-identifier hs-type"
+	    >constraint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Kind.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Constraint"
+	><span class="hs-identifier hs-type"
+	  >Kind.Constraint</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681881326"
+      ><span class="annot"
+	><a href="#local-6989586621681881326"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681881325"
+	><span class="hs-identifier hs-type"
+	  >constraint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681881326"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	><span class="hs-identifier hs-type"
+	  >ModelOneArgument</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681881325"
+	><span class="hs-identifier hs-type"
+	  >constraint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681881326"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelTwoArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681881325"
+	><span class="hs-identifier hs-type"
+	  >constraint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681881326"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelThreeArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681881325"
+	><span class="hs-identifier hs-type"
+	  >constraint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681881326"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelFourArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681881325"
+	><span class="hs-identifier hs-type"
+	  >constraint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681881326"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelFiveArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681881325"
+	><span class="hs-identifier hs-type"
+	  >constraint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681881326"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+	><span class="hs-identifier hs-type"
+	  >ModelSixArguments</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span class="hs-comment"
+      >-- HLS doesn't like the AllBF from Barbies.</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span id="local-6989586621681881329"
+      ><span class="hs-keyword"
+	>deriving</span
+	><span
+	> </span
+	><span id="local-6989586621681858492"
+	><span class="annot"
+	  ><a href="#local-6989586621681858492"
+	    ><span class="hs-keyword hs-type"
+	      >anyclass</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>instance</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#AllArgumentModels"
+	  ><span class="hs-identifier hs-type"
+	    >AllArgumentModels</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-type"
+	    >NFData</span
+	    ></a
+	  ></span
+	><span
+	>  </span
+	><span class="annot"
+	><a href="#local-6989586621681858492"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-type"
+	    >NFData</span
+	    ></a
+	  ></span
+	><span
+	>  </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinCostModelBase</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681858492"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span id="local-6989586621681881533"
+      ><span class="hs-keyword"
+	>deriving</span
+	><span
+	> </span
+	><span id="local-6989586621681858504"
+	><span class="annot"
+	  ><a href="#local-6989586621681858504"
+	    ><span class="hs-keyword hs-type"
+	      >anyclass</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>instance</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#AllArgumentModels"
+	  ><span class="hs-identifier hs-type"
+	    >AllArgumentModels</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Default</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681858504"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Default</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinCostModelBase</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681858504"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span id="local-6989586621681881737"
+      ><span id="local-6989586621681881929"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621681858512"
+	  ><span class="annot"
+	    ><a href="#local-6989586621681858512"
+	      ><span class="hs-keyword hs-type"
+		>stock</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#AllArgumentModels"
+	    ><span class="hs-identifier hs-type"
+	      >AllArgumentModels</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-type"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ><span
+	  >    </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681858512"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-type"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinCostModelBase</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681858512"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span id="local-6989586621681882120"
+      ><span id="local-6989586621681882220"
+	><span id="local-6989586621681882224"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621681858516"
+	    ><span class="annot"
+	      ><a href="#local-6989586621681858516"
+		><span class="hs-keyword hs-type"
+		  >stock</span
+		  ></a
+		></span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#AllArgumentModels"
+	      ><span class="hs-identifier hs-type"
+		>AllArgumentModels</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-type"
+		>Show</span
+		></a
+	      ></span
+	    ><span
+	    >    </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681858516"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-type"
+		>Show</span
+		></a
+	      ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	      ><span class="hs-identifier hs-type"
+		>BuiltinCostModelBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681858516"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span id="local-6989586621681882229"
+      ><span id="local-6989586621681882327"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621681858519"
+	  ><span class="annot"
+	    ><a href="#local-6989586621681858519"
+	      ><span class="hs-keyword hs-type"
+		>stock</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#AllArgumentModels"
+	    ><span class="hs-identifier hs-type"
+	      >AllArgumentModels</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  >      </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681858519"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  >      </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinCostModelBase</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681858519"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

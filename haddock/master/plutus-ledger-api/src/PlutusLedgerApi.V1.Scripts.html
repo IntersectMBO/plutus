@@ -1,0 +1,5051 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE BlockArguments #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingVia #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-specialise #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-name-shadowing #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Functions for working with scripts on the ledger.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.V1.Scripts</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptError"
+	><span class="hs-identifier"
+	  >ScriptError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier"
+	  >Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier"
+	  >Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#Context"
+	><span class="hs-identifier"
+	  >Context</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#DatumHash"
+	><span class="hs-identifier"
+	  >DatumHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#RedeemerHash"
+	><span class="hs-identifier"
+	  >RedeemerHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier"
+	  >ScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.html"
+	><span class="hs-identifier"
+	  >Codec.Serialise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	><span class="hs-identifier"
+	  >Serialise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html"
+	><span class="hs-identifier"
+	  >Data.String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html#IsString"
+	><span class="hs-identifier"
+	  >IsString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Bytes.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Bytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Bytes.html#LedgerBytes"
+	><span class="hs-identifier"
+	  >LedgerBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.TH.html#makeLift"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	><span class="hs-identifier"
+	  >HasBlueprintSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#emptyBytesSchema"
+	><span class="hs-identifier"
+	  >emptyBytesSchema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	><span class="hs-identifier"
+	  >SchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Builtins</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BI</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Show.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Show.TH.html#deriveShow"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Serialise instances for Datum and Redeemer]
+The `Serialise` instances for `Datum` and `Redeemer` exist for several reasons:
+
+- They are useful for the indexers in plutus-apps
+- There's clearly only one sensible way to encode `Datum` and `Redeemer` into CBOR,
+  since they just wrap `PLC.Data`.
+- The encoders and decoders are annoying to implement downstream, because one would
+  have to import `BuiltinData` which is from a different package.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A higher-level evaluation error.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ScriptError"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#ScriptError"
+	  ><span class="hs-identifier hs-var"
+	    >ScriptError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Expected behavior of the engine (e.g. user-provided error)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="EvaluationError"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#EvaluationError"
+	  ><span class="hs-identifier hs-var"
+	    >EvaluationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >Haskell.String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Unexpected behavior of the engine (a bug)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span id="EvaluationException"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#EvaluationException"
+	  ><span class="hs-identifier hs-var"
+	    >EvaluationException</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >Haskell.String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >Haskell.String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242047"
+      ><span id="local-6989586621681242059"
+	><span id="local-6989586621681242063"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ScriptError -&gt; ShowS
+[ScriptError] -&gt; ShowS
+ScriptError -&gt; String
+(Int -&gt; ScriptError -&gt; ShowS)
+-&gt; (ScriptError -&gt; String)
+-&gt; ([ScriptError] -&gt; ShowS)
+-&gt; Show ScriptError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ScriptError -&gt; ShowS
+showsPrec :: Int -&gt; ScriptError -&gt; ShowS
+$cshow :: ScriptError -&gt; String
+show :: ScriptError -&gt; String
+$cshowList :: [ScriptError] -&gt; ShowS
+showList :: [ScriptError] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242069"
+      ><span id="local-6989586621681242078"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ScriptError -&gt; ScriptError -&gt; Bool
+(ScriptError -&gt; ScriptError -&gt; Bool)
+-&gt; (ScriptError -&gt; ScriptError -&gt; Bool) -&gt; Eq ScriptError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ScriptError -&gt; ScriptError -&gt; Bool
+== :: ScriptError -&gt; ScriptError -&gt; Bool
+$c/= :: ScriptError -&gt; ScriptError -&gt; Bool
+/= :: ScriptError -&gt; ScriptError -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242085"
+      ><span id="local-6989586621681242087"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. ScriptError -&gt; Rep ScriptError x)
+-&gt; (forall x. Rep ScriptError x -&gt; ScriptError)
+-&gt; Generic ScriptError
+forall x. Rep ScriptError x -&gt; ScriptError
+forall x. ScriptError -&gt; Rep ScriptError x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ScriptError -&gt; Rep ScriptError x
+from :: forall x. ScriptError -&gt; Rep ScriptError x
+$cto :: forall x. Rep ScriptError x -&gt; ScriptError
+to :: forall x. Rep ScriptError x -&gt; ScriptError
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242091"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptError -&gt; ()
+(ScriptError -&gt; ()) -&gt; NFData ScriptError
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: ScriptError -&gt; ()
+rnf :: ScriptError -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242119"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition ScriptError
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Datum"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	  ><span class="hs-identifier hs-var"
+	    >Datum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Datum"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	  ><span class="hs-identifier hs-var"
+	    >Datum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="getDatum"
+      ><span class="annot"
+	><span class="annottext"
+	  >Datum -&gt; BuiltinData
+</span
+	  ><a href="PlutusLedgerApi.V1.Scripts.html#getDatum"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getDatum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242127"
+      ><span id="local-6989586621681242129"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Datum -&gt; Rep Datum x)
+-&gt; (forall x. Rep Datum x -&gt; Datum) -&gt; Generic Datum
+forall x. Rep Datum x -&gt; Datum
+forall x. Datum -&gt; Rep Datum x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Datum -&gt; Rep Datum x
+from :: forall x. Datum -&gt; Rep Datum x
+$cto :: forall x. Rep Datum x -&gt; Datum
+to :: forall x. Rep Datum x -&gt; Datum
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242132"
+      ><span id="local-6989586621681242137"
+	><span id="local-6989586621681242141"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Datum -&gt; ShowS
+[Datum] -&gt; ShowS
+Datum -&gt; String
+(Int -&gt; Datum -&gt; ShowS)
+-&gt; (Datum -&gt; String) -&gt; ([Datum] -&gt; ShowS) -&gt; Show Datum
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Datum -&gt; ShowS
+showsPrec :: Int -&gt; Datum -&gt; ShowS
+$cshow :: Datum -&gt; String
+show :: Datum -&gt; String
+$cshowList :: [Datum] -&gt; ShowS
+showList :: [Datum] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242144"
+      ><span id="local-6989586621681242149"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Datum -&gt; Datum -&gt; Bool
+(Datum -&gt; Datum -&gt; Bool) -&gt; (Datum -&gt; Datum -&gt; Bool) -&gt; Eq Datum
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Datum -&gt; Datum -&gt; Bool
+== :: Datum -&gt; Datum -&gt; Bool
+$c/= :: Datum -&gt; Datum -&gt; Bool
+/= :: Datum -&gt; Datum -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242156"
+      ><span id="local-6989586621681242161"
+	><span id="local-6989586621681242165"
+	  ><span id="local-6989586621681242169"
+	    ><span id="local-6989586621681242173"
+	      ><span id="local-6989586621681242177"
+		><span id="local-6989586621681242181"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Datum
+Eq Datum =&gt;
+(Datum -&gt; Datum -&gt; Ordering)
+-&gt; (Datum -&gt; Datum -&gt; Bool)
+-&gt; (Datum -&gt; Datum -&gt; Bool)
+-&gt; (Datum -&gt; Datum -&gt; Bool)
+-&gt; (Datum -&gt; Datum -&gt; Bool)
+-&gt; (Datum -&gt; Datum -&gt; Datum)
+-&gt; (Datum -&gt; Datum -&gt; Datum)
+-&gt; Ord Datum
+Datum -&gt; Datum -&gt; Bool
+Datum -&gt; Datum -&gt; Ordering
+Datum -&gt; Datum -&gt; Datum
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Datum -&gt; Datum -&gt; Ordering
+compare :: Datum -&gt; Datum -&gt; Ordering
+$c&lt; :: Datum -&gt; Datum -&gt; Bool
+&lt; :: Datum -&gt; Datum -&gt; Bool
+$c&lt;= :: Datum -&gt; Datum -&gt; Bool
+&lt;= :: Datum -&gt; Datum -&gt; Bool
+$c&gt; :: Datum -&gt; Datum -&gt; Bool
+&gt; :: Datum -&gt; Datum -&gt; Bool
+$c&gt;= :: Datum -&gt; Datum -&gt; Bool
+&gt;= :: Datum -&gt; Datum -&gt; Bool
+$cmax :: Datum -&gt; Datum -&gt; Datum
+max :: Datum -&gt; Datum -&gt; Datum
+$cmin :: Datum -&gt; Datum -&gt; Datum
+min :: Datum -&gt; Datum -&gt; Datum
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242187"
+      ><span class="annot"
+	><span class="annottext"
+	  >Datum -&gt; Datum -&gt; Bool
+(Datum -&gt; Datum -&gt; Bool) -&gt; Eq Datum
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Datum -&gt; Datum -&gt; Bool
+== :: Datum -&gt; Datum -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.Class.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242194"
+      ><span class="annot"
+	><span class="annottext"
+	  >Datum -&gt; BuiltinData
+(Datum -&gt; BuiltinData) -&gt; ToData Datum
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: Datum -&gt; BuiltinData
+toBuiltinData :: Datum -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242201"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe Datum
+(BuiltinData -&gt; Maybe Datum) -&gt; FromData Datum
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe Datum
+fromBuiltinData :: BuiltinData -&gt; Maybe Datum
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242208"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Datum
+(BuiltinData -&gt; Datum) -&gt; UnsafeFromData Datum
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; Datum
+unsafeFromBuiltinData :: BuiltinData -&gt; Datum
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242215"
+      ><span id="local-6989586621681242220"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. Datum -&gt; Doc ann)
+-&gt; (forall ann. [Datum] -&gt; Doc ann) -&gt; Pretty Datum
+forall ann. [Datum] -&gt; Doc ann
+forall ann. Datum -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. Datum -&gt; Doc ann
+pretty :: forall ann. Datum -&gt; Doc ann
+$cprettyList :: forall ann. [Datum] -&gt; Doc ann
+prettyList :: forall ann. [Datum] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242226"
+      ><span class="annot"
+	><span class="annottext"
+	  >Datum -&gt; ()
+(Datum -&gt; ()) -&gt; NFData Datum
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Datum -&gt; ()
+rnf :: Datum -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242238"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition Datum
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681241787"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	  ><span class="hs-identifier hs-type"
+	    >Datum</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681241787"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242248"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="#local-6989586621681242248"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaBuiltInData"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;Datum&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Serialise instances for Datum and Redeemer]</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242255"
+      ><span id="local-6989586621681242259"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	    ><span class="hs-identifier hs-type"
+	      >Serialise</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	    ><span class="hs-identifier hs-type"
+	      >Datum</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242264"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Datum -&gt; Encoding
+</span
+	  ><a href="#local-6989586621681242264"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-type"
+	  >Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681242267"
+      ><span class="annot"
+	><span class="annottext"
+	  >Data
+</span
+	  ><a href="#local-6989586621681242267"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; Encoding
+forall a. Serialise a =&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data
+</span
+	><a href="#local-6989586621681242267"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242271"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: forall s. Decoder s Datum
+</span
+	  ><a href="#local-6989586621681242271"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Datum
+</span
+	><a href="PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-var"
+	  >Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Datum) -&gt; (Data -&gt; BuiltinData) -&gt; Data -&gt; Datum
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-var"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Data -&gt; Datum) -&gt; Decoder s Data -&gt; Decoder s Datum
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >Haskell.&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Decoder s Data
+forall s. Decoder s Data
+forall a s. Serialise a =&gt; Decoder s a
+</span
+	><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Redeemer"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	  ><span class="hs-identifier hs-var"
+	    >Redeemer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Redeemer"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	  ><span class="hs-identifier hs-var"
+	    >Redeemer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="getRedeemer"
+      ><span class="annot"
+	><span class="annottext"
+	  >Redeemer -&gt; BuiltinData
+</span
+	  ><a href="PlutusLedgerApi.V1.Scripts.html#getRedeemer"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getRedeemer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242278"
+      ><span id="local-6989586621681242280"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Redeemer -&gt; Rep Redeemer x)
+-&gt; (forall x. Rep Redeemer x -&gt; Redeemer) -&gt; Generic Redeemer
+forall x. Rep Redeemer x -&gt; Redeemer
+forall x. Redeemer -&gt; Rep Redeemer x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Redeemer -&gt; Rep Redeemer x
+from :: forall x. Redeemer -&gt; Rep Redeemer x
+$cto :: forall x. Rep Redeemer x -&gt; Redeemer
+to :: forall x. Rep Redeemer x -&gt; Redeemer
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242283"
+      ><span id="local-6989586621681242287"
+	><span id="local-6989586621681242291"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Redeemer -&gt; ShowS
+[Redeemer] -&gt; ShowS
+Redeemer -&gt; String
+(Int -&gt; Redeemer -&gt; ShowS)
+-&gt; (Redeemer -&gt; String) -&gt; ([Redeemer] -&gt; ShowS) -&gt; Show Redeemer
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Redeemer -&gt; ShowS
+showsPrec :: Int -&gt; Redeemer -&gt; ShowS
+$cshow :: Redeemer -&gt; String
+show :: Redeemer -&gt; String
+$cshowList :: [Redeemer] -&gt; ShowS
+showList :: [Redeemer] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242294"
+      ><span id="local-6989586621681242298"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Redeemer -&gt; Redeemer -&gt; Bool
+(Redeemer -&gt; Redeemer -&gt; Bool)
+-&gt; (Redeemer -&gt; Redeemer -&gt; Bool) -&gt; Eq Redeemer
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Redeemer -&gt; Redeemer -&gt; Bool
+== :: Redeemer -&gt; Redeemer -&gt; Bool
+$c/= :: Redeemer -&gt; Redeemer -&gt; Bool
+/= :: Redeemer -&gt; Redeemer -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242305"
+      ><span id="local-6989586621681242309"
+	><span id="local-6989586621681242313"
+	  ><span id="local-6989586621681242317"
+	    ><span id="local-6989586621681242321"
+	      ><span id="local-6989586621681242325"
+		><span id="local-6989586621681242329"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Redeemer
+Eq Redeemer =&gt;
+(Redeemer -&gt; Redeemer -&gt; Ordering)
+-&gt; (Redeemer -&gt; Redeemer -&gt; Bool)
+-&gt; (Redeemer -&gt; Redeemer -&gt; Bool)
+-&gt; (Redeemer -&gt; Redeemer -&gt; Bool)
+-&gt; (Redeemer -&gt; Redeemer -&gt; Bool)
+-&gt; (Redeemer -&gt; Redeemer -&gt; Redeemer)
+-&gt; (Redeemer -&gt; Redeemer -&gt; Redeemer)
+-&gt; Ord Redeemer
+Redeemer -&gt; Redeemer -&gt; Bool
+Redeemer -&gt; Redeemer -&gt; Ordering
+Redeemer -&gt; Redeemer -&gt; Redeemer
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Redeemer -&gt; Redeemer -&gt; Ordering
+compare :: Redeemer -&gt; Redeemer -&gt; Ordering
+$c&lt; :: Redeemer -&gt; Redeemer -&gt; Bool
+&lt; :: Redeemer -&gt; Redeemer -&gt; Bool
+$c&lt;= :: Redeemer -&gt; Redeemer -&gt; Bool
+&lt;= :: Redeemer -&gt; Redeemer -&gt; Bool
+$c&gt; :: Redeemer -&gt; Redeemer -&gt; Bool
+&gt; :: Redeemer -&gt; Redeemer -&gt; Bool
+$c&gt;= :: Redeemer -&gt; Redeemer -&gt; Bool
+&gt;= :: Redeemer -&gt; Redeemer -&gt; Bool
+$cmax :: Redeemer -&gt; Redeemer -&gt; Redeemer
+max :: Redeemer -&gt; Redeemer -&gt; Redeemer
+$cmin :: Redeemer -&gt; Redeemer -&gt; Redeemer
+min :: Redeemer -&gt; Redeemer -&gt; Redeemer
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242334"
+      ><span class="annot"
+	><span class="annottext"
+	  >Redeemer -&gt; Redeemer -&gt; Bool
+(Redeemer -&gt; Redeemer -&gt; Bool) -&gt; Eq Redeemer
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Redeemer -&gt; Redeemer -&gt; Bool
+== :: Redeemer -&gt; Redeemer -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.Class.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242339"
+      ><span class="annot"
+	><span class="annottext"
+	  >Redeemer -&gt; BuiltinData
+(Redeemer -&gt; BuiltinData) -&gt; ToData Redeemer
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: Redeemer -&gt; BuiltinData
+toBuiltinData :: Redeemer -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242344"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe Redeemer
+(BuiltinData -&gt; Maybe Redeemer) -&gt; FromData Redeemer
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe Redeemer
+fromBuiltinData :: BuiltinData -&gt; Maybe Redeemer
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242349"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Redeemer
+(BuiltinData -&gt; Redeemer) -&gt; UnsafeFromData Redeemer
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; Redeemer
+unsafeFromBuiltinData :: BuiltinData -&gt; Redeemer
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242354"
+      ><span id="local-6989586621681242358"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. Redeemer -&gt; Doc ann)
+-&gt; (forall ann. [Redeemer] -&gt; Doc ann) -&gt; Pretty Redeemer
+forall ann. [Redeemer] -&gt; Doc ann
+forall ann. Redeemer -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. Redeemer -&gt; Doc ann
+pretty :: forall ann. Redeemer -&gt; Doc ann
+$cprettyList :: forall ann. [Redeemer] -&gt; Doc ann
+prettyList :: forall ann. [Redeemer] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242363"
+      ><span class="annot"
+	><span class="annottext"
+	  >Redeemer -&gt; ()
+(Redeemer -&gt; ()) -&gt; NFData Redeemer
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Redeemer -&gt; ()
+rnf :: Redeemer -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242374"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition Redeemer
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681241810"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	  ><span class="hs-identifier hs-type"
+	    >Redeemer</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681241810"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242382"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaBuiltInData"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;Redeemer&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Serialise instances for Datum and Redeemer]</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242386"
+      ><span id="local-6989586621681242390"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	    ><span class="hs-identifier hs-type"
+	      >Serialise</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	    ><span class="hs-identifier hs-type"
+	      >Redeemer</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242393"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Redeemer -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-type"
+	  >Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681242394"
+      ><span class="annot"
+	><span class="annottext"
+	  >Data
+</span
+	  ><a href="#local-6989586621681242394"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; Encoding
+forall a. Serialise a =&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data
+</span
+	><a href="#local-6989586621681242394"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242397"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: forall s. Decoder s Redeemer
+</span
+	  ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Redeemer
+</span
+	><a href="PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-var"
+	  >Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Redeemer)
+-&gt; (Data -&gt; BuiltinData) -&gt; Data -&gt; Redeemer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-var"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Data -&gt; Redeemer) -&gt; Decoder s Data -&gt; Decoder s Redeemer
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >Haskell.&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Decoder s Data
+forall s. Decoder s Data
+forall a s. Serialise a =&gt; Decoder s a
+</span
+	><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants.
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="ScriptHash"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	  ><span class="hs-identifier hs-var"
+	    >ScriptHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ScriptHash"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	  ><span class="hs-identifier hs-var"
+	    >ScriptHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="getScriptHash"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash -&gt; BuiltinByteString
+</span
+	  ><a href="PlutusLedgerApi.V1.Scripts.html#getScriptHash"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getScriptHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242401"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; ScriptHash
+(String -&gt; ScriptHash) -&gt; IsString ScriptHash
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; ScriptHash
+fromString :: String -&gt; ScriptHash
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html#IsString"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >IsString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ from hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242408"
+      ><span id="local-6989586621681242413"
+	><span id="local-6989586621681242417"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ScriptHash -&gt; ShowS
+[ScriptHash] -&gt; ShowS
+ScriptHash -&gt; String
+(Int -&gt; ScriptHash -&gt; ShowS)
+-&gt; (ScriptHash -&gt; String)
+-&gt; ([ScriptHash] -&gt; ShowS)
+-&gt; Show ScriptHash
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ScriptHash -&gt; ShowS
+showsPrec :: Int -&gt; ScriptHash -&gt; ShowS
+$cshow :: ScriptHash -&gt; String
+show :: ScriptHash -&gt; String
+$cshowList :: [ScriptHash] -&gt; ShowS
+showList :: [ScriptHash] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ using hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242422"
+      ><span id="local-6989586621681242427"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. ScriptHash -&gt; Doc ann)
+-&gt; (forall ann. [ScriptHash] -&gt; Doc ann) -&gt; Pretty ScriptHash
+forall ann. [ScriptHash] -&gt; Doc ann
+forall ann. ScriptHash -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. ScriptHash -&gt; Doc ann
+pretty :: forall ann. ScriptHash -&gt; Doc ann
+$cprettyList :: forall ann. [ScriptHash] -&gt; Doc ann
+prettyList :: forall ann. [ScriptHash] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ using hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Bytes.html#LedgerBytes"
+	><span class="hs-identifier hs-type"
+	  >LedgerBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242432"
+      ><span id="local-6989586621681242434"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. ScriptHash -&gt; Rep ScriptHash x)
+-&gt; (forall x. Rep ScriptHash x -&gt; ScriptHash) -&gt; Generic ScriptHash
+forall x. Rep ScriptHash x -&gt; ScriptHash
+forall x. ScriptHash -&gt; Rep ScriptHash x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ScriptHash -&gt; Rep ScriptHash x
+from :: forall x. ScriptHash -&gt; Rep ScriptHash x
+$cto :: forall x. Rep ScriptHash x -&gt; ScriptHash
+to :: forall x. Rep ScriptHash x -&gt; ScriptHash
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242437"
+      ><span id="local-6989586621681242442"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ScriptHash -&gt; ScriptHash -&gt; Bool
+(ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool) -&gt; Eq ScriptHash
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ScriptHash -&gt; ScriptHash -&gt; Bool
+== :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$c/= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+/= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242449"
+      ><span id="local-6989586621681242454"
+	><span id="local-6989586621681242458"
+	  ><span id="local-6989586621681242462"
+	    ><span id="local-6989586621681242466"
+	      ><span id="local-6989586621681242470"
+		><span id="local-6989586621681242474"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq ScriptHash
+Eq ScriptHash =&gt;
+(ScriptHash -&gt; ScriptHash -&gt; Ordering)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; ScriptHash)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; ScriptHash)
+-&gt; Ord ScriptHash
+ScriptHash -&gt; ScriptHash -&gt; Bool
+ScriptHash -&gt; ScriptHash -&gt; Ordering
+ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: ScriptHash -&gt; ScriptHash -&gt; Ordering
+compare :: ScriptHash -&gt; ScriptHash -&gt; Ordering
+$c&lt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&lt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$c&lt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&lt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$c&gt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&gt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$c&gt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&gt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$cmax :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+max :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+$cmin :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+min :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242479"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash -&gt; ScriptHash -&gt; Bool
+(ScriptHash -&gt; ScriptHash -&gt; Bool) -&gt; Eq ScriptHash
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ScriptHash -&gt; ScriptHash -&gt; Bool
+== :: ScriptHash -&gt; ScriptHash -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.Class.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242487"
+      ><span id="local-6989586621681242492"
+	><span id="local-6989586621681242496"
+	  ><span id="local-6989586621681242500"
+	    ><span id="local-6989586621681242504"
+	      ><span id="local-6989586621681242508"
+		><span id="local-6989586621681242512"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq ScriptHash
+Eq ScriptHash =&gt;
+(ScriptHash -&gt; ScriptHash -&gt; Ordering)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; Bool)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; ScriptHash)
+-&gt; (ScriptHash -&gt; ScriptHash -&gt; ScriptHash)
+-&gt; Ord ScriptHash
+ScriptHash -&gt; ScriptHash -&gt; Bool
+ScriptHash -&gt; ScriptHash -&gt; Ordering
+ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: ScriptHash -&gt; ScriptHash -&gt; Ordering
+compare :: ScriptHash -&gt; ScriptHash -&gt; Ordering
+$c&lt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&lt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$c&lt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&lt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$c&gt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&gt; :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$c&gt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+&gt;= :: ScriptHash -&gt; ScriptHash -&gt; Bool
+$cmax :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+max :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+$cmin :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+min :: ScriptHash -&gt; ScriptHash -&gt; ScriptHash
+</span
+		      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242518"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash -&gt; BuiltinData
+(ScriptHash -&gt; BuiltinData) -&gt; ToData ScriptHash
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: ScriptHash -&gt; BuiltinData
+toBuiltinData :: ScriptHash -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242524"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe ScriptHash
+(BuiltinData -&gt; Maybe ScriptHash) -&gt; FromData ScriptHash
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe ScriptHash
+fromBuiltinData :: BuiltinData -&gt; Maybe ScriptHash
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242530"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; ScriptHash
+(BuiltinData -&gt; ScriptHash) -&gt; UnsafeFromData ScriptHash
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; ScriptHash
+unsafeFromBuiltinData :: BuiltinData -&gt; ScriptHash
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242536"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash -&gt; ()
+(ScriptHash -&gt; ()) -&gt; NFData ScriptHash
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: ScriptHash -&gt; ()
+rnf :: ScriptHash -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242548"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition ScriptHash
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681241821"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	  ><span class="hs-identifier hs-type"
+	    >ScriptHash</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681241821"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242556"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; BytesSchema -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; BytesSchema -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaBytes"
+	><span class="hs-identifier hs-var"
+	  >SchemaBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;ScriptHash&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BytesSchema
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#emptyBytesSchema"
+	><span class="hs-identifier hs-var"
+	  >emptyBytesSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants.
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="DatumHash"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#DatumHash"
+	  ><span class="hs-identifier hs-var"
+	    >DatumHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="DatumHash"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#DatumHash"
+	  ><span class="hs-identifier hs-var"
+	    >DatumHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242560"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; DatumHash
+(String -&gt; DatumHash) -&gt; IsString DatumHash
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; DatumHash
+fromString :: String -&gt; DatumHash
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html#IsString"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >IsString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ from hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242565"
+      ><span id="local-6989586621681242569"
+	><span id="local-6989586621681242573"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; DatumHash -&gt; ShowS
+[DatumHash] -&gt; ShowS
+DatumHash -&gt; String
+(Int -&gt; DatumHash -&gt; ShowS)
+-&gt; (DatumHash -&gt; String)
+-&gt; ([DatumHash] -&gt; ShowS)
+-&gt; Show DatumHash
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DatumHash -&gt; ShowS
+showsPrec :: Int -&gt; DatumHash -&gt; ShowS
+$cshow :: DatumHash -&gt; String
+show :: DatumHash -&gt; String
+$cshowList :: [DatumHash] -&gt; ShowS
+showList :: [DatumHash] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ using hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242578"
+      ><span id="local-6989586621681242582"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. DatumHash -&gt; Doc ann)
+-&gt; (forall ann. [DatumHash] -&gt; Doc ann) -&gt; Pretty DatumHash
+forall ann. [DatumHash] -&gt; Doc ann
+forall ann. DatumHash -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. DatumHash -&gt; Doc ann
+pretty :: forall ann. DatumHash -&gt; Doc ann
+$cprettyList :: forall ann. [DatumHash] -&gt; Doc ann
+prettyList :: forall ann. [DatumHash] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ using hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Bytes.html#LedgerBytes"
+	><span class="hs-identifier hs-type"
+	  >LedgerBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242587"
+      ><span id="local-6989586621681242589"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. DatumHash -&gt; Rep DatumHash x)
+-&gt; (forall x. Rep DatumHash x -&gt; DatumHash) -&gt; Generic DatumHash
+forall x. Rep DatumHash x -&gt; DatumHash
+forall x. DatumHash -&gt; Rep DatumHash x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. DatumHash -&gt; Rep DatumHash x
+from :: forall x. DatumHash -&gt; Rep DatumHash x
+$cto :: forall x. Rep DatumHash x -&gt; DatumHash
+to :: forall x. Rep DatumHash x -&gt; DatumHash
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242592"
+      ><span id="local-6989586621681242596"
+	><span class="annot"
+	  ><span class="annottext"
+	    >DatumHash -&gt; DatumHash -&gt; Bool
+(DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool) -&gt; Eq DatumHash
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DatumHash -&gt; DatumHash -&gt; Bool
+== :: DatumHash -&gt; DatumHash -&gt; Bool
+$c/= :: DatumHash -&gt; DatumHash -&gt; Bool
+/= :: DatumHash -&gt; DatumHash -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242603"
+      ><span id="local-6989586621681242607"
+	><span id="local-6989586621681242611"
+	  ><span id="local-6989586621681242615"
+	    ><span id="local-6989586621681242619"
+	      ><span id="local-6989586621681242623"
+		><span id="local-6989586621681242627"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq DatumHash
+Eq DatumHash =&gt;
+(DatumHash -&gt; DatumHash -&gt; Ordering)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; DatumHash)
+-&gt; (DatumHash -&gt; DatumHash -&gt; DatumHash)
+-&gt; Ord DatumHash
+DatumHash -&gt; DatumHash -&gt; Bool
+DatumHash -&gt; DatumHash -&gt; Ordering
+DatumHash -&gt; DatumHash -&gt; DatumHash
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DatumHash -&gt; DatumHash -&gt; Ordering
+compare :: DatumHash -&gt; DatumHash -&gt; Ordering
+$c&lt; :: DatumHash -&gt; DatumHash -&gt; Bool
+&lt; :: DatumHash -&gt; DatumHash -&gt; Bool
+$c&lt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+&lt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+$c&gt; :: DatumHash -&gt; DatumHash -&gt; Bool
+&gt; :: DatumHash -&gt; DatumHash -&gt; Bool
+$c&gt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+&gt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+$cmax :: DatumHash -&gt; DatumHash -&gt; DatumHash
+max :: DatumHash -&gt; DatumHash -&gt; DatumHash
+$cmin :: DatumHash -&gt; DatumHash -&gt; DatumHash
+min :: DatumHash -&gt; DatumHash -&gt; DatumHash
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242632"
+      ><span class="annot"
+	><span class="annottext"
+	  >DatumHash -&gt; DatumHash -&gt; Bool
+(DatumHash -&gt; DatumHash -&gt; Bool) -&gt; Eq DatumHash
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DatumHash -&gt; DatumHash -&gt; Bool
+== :: DatumHash -&gt; DatumHash -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.Class.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242639"
+      ><span id="local-6989586621681242643"
+	><span id="local-6989586621681242647"
+	  ><span id="local-6989586621681242651"
+	    ><span id="local-6989586621681242655"
+	      ><span id="local-6989586621681242659"
+		><span id="local-6989586621681242663"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq DatumHash
+Eq DatumHash =&gt;
+(DatumHash -&gt; DatumHash -&gt; Ordering)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; Bool)
+-&gt; (DatumHash -&gt; DatumHash -&gt; DatumHash)
+-&gt; (DatumHash -&gt; DatumHash -&gt; DatumHash)
+-&gt; Ord DatumHash
+DatumHash -&gt; DatumHash -&gt; Bool
+DatumHash -&gt; DatumHash -&gt; Ordering
+DatumHash -&gt; DatumHash -&gt; DatumHash
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DatumHash -&gt; DatumHash -&gt; Ordering
+compare :: DatumHash -&gt; DatumHash -&gt; Ordering
+$c&lt; :: DatumHash -&gt; DatumHash -&gt; Bool
+&lt; :: DatumHash -&gt; DatumHash -&gt; Bool
+$c&lt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+&lt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+$c&gt; :: DatumHash -&gt; DatumHash -&gt; Bool
+&gt; :: DatumHash -&gt; DatumHash -&gt; Bool
+$c&gt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+&gt;= :: DatumHash -&gt; DatumHash -&gt; Bool
+$cmax :: DatumHash -&gt; DatumHash -&gt; DatumHash
+max :: DatumHash -&gt; DatumHash -&gt; DatumHash
+$cmin :: DatumHash -&gt; DatumHash -&gt; DatumHash
+min :: DatumHash -&gt; DatumHash -&gt; DatumHash
+</span
+		      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242668"
+      ><span class="annot"
+	><span class="annottext"
+	  >DatumHash -&gt; BuiltinData
+(DatumHash -&gt; BuiltinData) -&gt; ToData DatumHash
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: DatumHash -&gt; BuiltinData
+toBuiltinData :: DatumHash -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242673"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe DatumHash
+(BuiltinData -&gt; Maybe DatumHash) -&gt; FromData DatumHash
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe DatumHash
+fromBuiltinData :: BuiltinData -&gt; Maybe DatumHash
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242678"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; DatumHash
+(BuiltinData -&gt; DatumHash) -&gt; UnsafeFromData DatumHash
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; DatumHash
+unsafeFromBuiltinData :: BuiltinData -&gt; DatumHash
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242683"
+      ><span class="annot"
+	><span class="annottext"
+	  >DatumHash -&gt; ()
+(DatumHash -&gt; ()) -&gt; NFData DatumHash
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: DatumHash -&gt; ()
+rnf :: DatumHash -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242694"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition DatumHash
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681241827"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#DatumHash"
+	  ><span class="hs-identifier hs-type"
+	    >DatumHash</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681241827"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242702"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; BytesSchema -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; BytesSchema -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaBytes"
+	><span class="hs-identifier hs-var"
+	  >SchemaBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;DatumHash&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BytesSchema
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#emptyBytesSchema"
+	><span class="hs-identifier hs-var"
+	  >emptyBytesSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Type representing the /BLAKE2b-256/ hash of a redeemer. 32 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants.
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="RedeemerHash"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#RedeemerHash"
+	  ><span class="hs-identifier hs-var"
+	    >RedeemerHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="RedeemerHash"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#RedeemerHash"
+	  ><span class="hs-identifier hs-var"
+	    >RedeemerHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	><span class="hs-identifier hs-type"
+	  >Builtins.BuiltinByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242705"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; RedeemerHash
+(String -&gt; RedeemerHash) -&gt; IsString RedeemerHash
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; RedeemerHash
+fromString :: String -&gt; RedeemerHash
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html#IsString"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >IsString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ from hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242710"
+      ><span id="local-6989586621681242714"
+	><span id="local-6989586621681242718"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; RedeemerHash -&gt; ShowS
+[RedeemerHash] -&gt; ShowS
+RedeemerHash -&gt; String
+(Int -&gt; RedeemerHash -&gt; ShowS)
+-&gt; (RedeemerHash -&gt; String)
+-&gt; ([RedeemerHash] -&gt; ShowS)
+-&gt; Show RedeemerHash
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; RedeemerHash -&gt; ShowS
+showsPrec :: Int -&gt; RedeemerHash -&gt; ShowS
+$cshow :: RedeemerHash -&gt; String
+show :: RedeemerHash -&gt; String
+$cshowList :: [RedeemerHash] -&gt; ShowS
+showList :: [RedeemerHash] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ using hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242723"
+      ><span id="local-6989586621681242727"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. RedeemerHash -&gt; Doc ann)
+-&gt; (forall ann. [RedeemerHash] -&gt; Doc ann) -&gt; Pretty RedeemerHash
+forall ann. [RedeemerHash] -&gt; Doc ann
+forall ann. RedeemerHash -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. RedeemerHash -&gt; Doc ann
+pretty :: forall ann. RedeemerHash -&gt; Doc ann
+$cprettyList :: forall ann. [RedeemerHash] -&gt; Doc ann
+prettyList :: forall ann. [RedeemerHash] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ using hex encoding</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Bytes.html#LedgerBytes"
+	><span class="hs-identifier hs-type"
+	  >LedgerBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242732"
+      ><span id="local-6989586621681242734"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. RedeemerHash -&gt; Rep RedeemerHash x)
+-&gt; (forall x. Rep RedeemerHash x -&gt; RedeemerHash)
+-&gt; Generic RedeemerHash
+forall x. Rep RedeemerHash x -&gt; RedeemerHash
+forall x. RedeemerHash -&gt; Rep RedeemerHash x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. RedeemerHash -&gt; Rep RedeemerHash x
+from :: forall x. RedeemerHash -&gt; Rep RedeemerHash x
+$cto :: forall x. Rep RedeemerHash x -&gt; RedeemerHash
+to :: forall x. Rep RedeemerHash x -&gt; RedeemerHash
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242737"
+      ><span id="local-6989586621681242741"
+	><span class="annot"
+	  ><span class="annottext"
+	    >RedeemerHash -&gt; RedeemerHash -&gt; Bool
+(RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool) -&gt; Eq RedeemerHash
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+== :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$c/= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+/= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242748"
+      ><span id="local-6989586621681242752"
+	><span id="local-6989586621681242756"
+	  ><span id="local-6989586621681242760"
+	    ><span id="local-6989586621681242764"
+	      ><span id="local-6989586621681242768"
+		><span id="local-6989586621681242772"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq RedeemerHash
+Eq RedeemerHash =&gt;
+(RedeemerHash -&gt; RedeemerHash -&gt; Ordering)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash)
+-&gt; Ord RedeemerHash
+RedeemerHash -&gt; RedeemerHash -&gt; Bool
+RedeemerHash -&gt; RedeemerHash -&gt; Ordering
+RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: RedeemerHash -&gt; RedeemerHash -&gt; Ordering
+compare :: RedeemerHash -&gt; RedeemerHash -&gt; Ordering
+$c&lt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&lt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$c&lt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&lt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$c&gt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&gt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$c&gt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&gt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$cmax :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+max :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+$cmin :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+min :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Haskell.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242777"
+      ><span class="annot"
+	><span class="annottext"
+	  >RedeemerHash -&gt; RedeemerHash -&gt; Bool
+(RedeemerHash -&gt; RedeemerHash -&gt; Bool) -&gt; Eq RedeemerHash
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+== :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.Class.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242784"
+      ><span id="local-6989586621681242788"
+	><span id="local-6989586621681242792"
+	  ><span id="local-6989586621681242796"
+	    ><span id="local-6989586621681242800"
+	      ><span id="local-6989586621681242804"
+		><span id="local-6989586621681242808"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq RedeemerHash
+Eq RedeemerHash =&gt;
+(RedeemerHash -&gt; RedeemerHash -&gt; Ordering)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; Bool)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash)
+-&gt; (RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash)
+-&gt; Ord RedeemerHash
+RedeemerHash -&gt; RedeemerHash -&gt; Bool
+RedeemerHash -&gt; RedeemerHash -&gt; Ordering
+RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: RedeemerHash -&gt; RedeemerHash -&gt; Ordering
+compare :: RedeemerHash -&gt; RedeemerHash -&gt; Ordering
+$c&lt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&lt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$c&lt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&lt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$c&gt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&gt; :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$c&gt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+&gt;= :: RedeemerHash -&gt; RedeemerHash -&gt; Bool
+$cmax :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+max :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+$cmin :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+min :: RedeemerHash -&gt; RedeemerHash -&gt; RedeemerHash
+</span
+		      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242813"
+      ><span class="annot"
+	><span class="annottext"
+	  >RedeemerHash -&gt; BuiltinData
+(RedeemerHash -&gt; BuiltinData) -&gt; ToData RedeemerHash
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: RedeemerHash -&gt; BuiltinData
+toBuiltinData :: RedeemerHash -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242818"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe RedeemerHash
+(BuiltinData -&gt; Maybe RedeemerHash) -&gt; FromData RedeemerHash
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe RedeemerHash
+fromBuiltinData :: BuiltinData -&gt; Maybe RedeemerHash
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242823"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; RedeemerHash
+(BuiltinData -&gt; RedeemerHash) -&gt; UnsafeFromData RedeemerHash
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; RedeemerHash
+unsafeFromBuiltinData :: BuiltinData -&gt; RedeemerHash
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242828"
+      ><span class="annot"
+	><span class="annottext"
+	  >RedeemerHash -&gt; ()
+(RedeemerHash -&gt; ()) -&gt; NFData RedeemerHash
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: RedeemerHash -&gt; ()
+rnf :: RedeemerHash -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242839"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition RedeemerHash
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681241832"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#RedeemerHash"
+	  ><span class="hs-identifier hs-type"
+	    >RedeemerHash</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681241832"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681242847"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; BytesSchema -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; BytesSchema -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaBytes"
+	><span class="hs-identifier hs-var"
+	  >SchemaBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;RedeemerHash&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BytesSchema
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#emptyBytesSchema"
+	><span class="hs-identifier hs-var"
+	  >emptyBytesSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Information about the state of the blockchain and about the transaction
+  that is currently being validated, represented as a value in 'Data'. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Context"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Context"
+	  ><span class="hs-identifier hs-var"
+	    >Context</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Context"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#Context"
+	  ><span class="hs-identifier hs-var"
+	    >Context</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681242850"
+      ><span id="local-6989586621681242854"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. Context -&gt; Doc ann)
+-&gt; (forall ann. [Context] -&gt; Doc ann) -&gt; Pretty Context
+forall ann. [Context] -&gt; Doc ann
+forall ann. Context -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. Context -&gt; Doc ann
+pretty :: forall ann. Context -&gt; Doc ann
+$cprettyList :: forall ann. [Context] -&gt; Doc ann
+prettyList :: forall ann. [Context] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681242859"
+      ><span id="local-6989586621681242863"
+	><span id="local-6989586621681242867"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Context -&gt; ShowS
+[Context] -&gt; ShowS
+Context -&gt; String
+(Int -&gt; Context -&gt; ShowS)
+-&gt; (Context -&gt; String) -&gt; ([Context] -&gt; ShowS) -&gt; Show Context
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Context -&gt; ShowS
+showsPrec :: Int -&gt; Context -&gt; ShowS
+$cshow :: Context -&gt; String
+show :: Context -&gt; String
+$cshowList :: [Context] -&gt; ShowS
+showList :: [Context] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span class="hs-comment"
+      >-- TH Splices --------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span id="local-6989586621681242872"
+      ><span id="local-6989586621681242874"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >ScriptHash</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span id="local-6989586621681243001"
+      ><span id="local-6989586621681243003"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >DatumHash</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span id="local-6989586621681243073"
+      ><span id="local-6989586621681243075"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >RedeemerHash</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span id="local-6989586621681243145"
+      ><span id="local-6989586621681243147"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >Datum</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span id="local-6989586621681243220"
+      ><span id="local-6989586621681243222"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >Redeemer</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span id="local-6989586621681243292"
+      ><span id="local-6989586621681243301"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >ScriptHash</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span id="local-6989586621681243314"
+      ><span id="local-6989586621681243318"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >DatumHash</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span id="local-6989586621681243325"
+      ><span id="local-6989586621681243329"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >RedeemerHash</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span id="local-6989586621681243336"
+      ><span id="local-6989586621681243344"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >Datum</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span id="local-6989586621681243351"
+      ><span id="local-6989586621681243358"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >Redeemer</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

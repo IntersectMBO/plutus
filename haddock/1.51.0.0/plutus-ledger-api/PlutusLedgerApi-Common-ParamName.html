@@ -1,0 +1,1934 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Common.ParamName</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.51.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Common.ParamName.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Common.ParamName</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > a) &#8658; <a href="#t:IsParamName"
+	      >IsParamName</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:showParamName"
+		  >showParamName</a
+		  > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		><a href="#v:readParamName"
+		  >readParamName</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:GenericParamName"
+	      >GenericParamName</a
+	      > a = <a href="#v:GenericParamName"
+	      >GenericParamName</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:toCostModelParams"
+	      >toCostModelParams</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+	      >IsParamName</a
+	      > p &#8658; [(p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      >)] &#8594; <a href="PlutusLedgerApi-Common.html#t:CostModelParams" title="PlutusLedgerApi.Common"
+	      >CostModelParams</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tagWithParamNames"
+	      >tagWithParamNames</a
+	      > &#8759; &#8704; k m. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > k, <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	      >MonadError</a
+	      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+	      >CostModelApplyError</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	      >MonadWriter</a
+	      > [<a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyWarn" title="PlutusLedgerApi.Common.ParamName"
+	      >CostModelApplyWarn</a
+	      >] m) &#8658; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      >] &#8594; m [(k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      >)]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CostModelApplyError"
+	      >CostModelApplyError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CMUnknownParamError"
+		  >CMUnknownParamError</a
+		  > !<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		>| <a href="#v:CMInternalReadError"
+		  >CMInternalReadError</a
+		  ></li
+		><li
+		>| <a href="#v:CMInternalWriteError"
+		  >CMInternalWriteError</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CostModelApplyWarn"
+	      >CostModelApplyWarn</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CMTooManyParamsWarn"
+		  >CMTooManyParamsWarn</a
+		  > { <ul class="subs"
+		  ><li
+		    ><a href="#v:cmExpected"
+		      >cmExpected</a
+		      > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></li
+		    ><li
+		    ><a href="#v:cmActual"
+		      >cmActual</a
+		      > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></li
+		    ></ul
+		  > }</li
+		><li
+		>| <a href="#v:CMTooFewParamsWarn"
+		  >CMTooFewParamsWarn</a
+		  > { <ul class="subs"
+		  ><li
+		    ><a href="#v:cmExpected"
+		      >cmExpected</a
+		      > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></li
+		    ><li
+		    ><a href="#v:cmActual"
+		      >cmActual</a
+		      > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></li
+		    ></ul
+		  > }</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > a) &#8658; <a id="t:IsParamName" class="def"
+	    >IsParamName</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusLedgerApi.Common.ParamName.html#IsParamName" class="link"
+	    >Source</a
+	    > <a href="#t:IsParamName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A parameter name for different plutus versions.</p
+	    ><p
+	    >Each Plutus version should expose such an enumeration as an ADT and create
+an instance of <code
+	      >ParamName</code
+	      > out of it.</p
+	    ><p
+	    >A valid parameter name has to be enumeration, bounded, ordered, and
+prettyprintable to a &quot;lower-Kebab&quot; string.</p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusLedgerApi-Common-ParamName.html#v:showParamName" title="PlutusLedgerApi.Common.ParamName"
+	      >showParamName</a
+	      ></p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:showParamName" class="def"
+	      >showParamName</a
+	      > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > <a href="src/PlutusLedgerApi.Common.ParamName.html#showParamName" class="link"
+	      >Source</a
+	      > <a href="#v:showParamName" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Produce the raw textual form for a given typed-by-plutus-version cost model parameter
+ Any implementation *must be* an injective function.
+ The <code
+		>GIsParamName</code
+		> generic implementation guarantees injectivity.</p
+	      ></div
+	    ><p class="src"
+	    ><a id="v:readParamName" class="def"
+	      >readParamName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > a <a href="src/PlutusLedgerApi.Common.ParamName.html#readParamName" class="link"
+	      >Source</a
+	      > <a href="#v:readParamName" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >default implementation that inverts the showParamName operation (not very efficient)</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:IsParamName"
+	    >Instances</h4
+	    ><details id="i:IsParamName" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:IsParamName:IsParamName:1"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >IsParamName</a
+		      > <a href="PlutusLedgerApi-V1-ParamName.html#t:ParamName" title="PlutusLedgerApi.V1.ParamName"
+		      >ParamName</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V1.ParamName.html#line-317" class="link"
+		    >Source</a
+		    > <a href="#t:IsParamName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:IsParamName:IsParamName:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V1-ParamName.html"
+			>PlutusLedgerApi.V1.ParamName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showParamName"
+			  >showParamName</a
+			  > &#8759; <a href="PlutusLedgerApi-V1-ParamName.html#t:ParamName" title="PlutusLedgerApi.V1.ParamName"
+			  >ParamName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#showParamName" class="link"
+			  >Source</a
+			  > <a href="#v:showParamName" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readParamName"
+			  >readParamName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V1-ParamName.html#t:ParamName" title="PlutusLedgerApi.V1.ParamName"
+			  >ParamName</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#readParamName" class="link"
+			  >Source</a
+			  > <a href="#v:readParamName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:IsParamName:IsParamName:2"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >IsParamName</a
+		      > <a href="PlutusLedgerApi-V2-ParamName.html#t:ParamName" title="PlutusLedgerApi.V2.ParamName"
+		      >ParamName</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V2.ParamName.html#line-318" class="link"
+		    >Source</a
+		    > <a href="#t:IsParamName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:IsParamName:IsParamName:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V2-ParamName.html"
+			>PlutusLedgerApi.V2.ParamName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showParamName"
+			  >showParamName</a
+			  > &#8759; <a href="PlutusLedgerApi-V2-ParamName.html#t:ParamName" title="PlutusLedgerApi.V2.ParamName"
+			  >ParamName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#showParamName" class="link"
+			  >Source</a
+			  > <a href="#v:showParamName" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readParamName"
+			  >readParamName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V2-ParamName.html#t:ParamName" title="PlutusLedgerApi.V2.ParamName"
+			  >ParamName</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#readParamName" class="link"
+			  >Source</a
+			  > <a href="#v:readParamName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:IsParamName:IsParamName:3"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >IsParamName</a
+		      > <a href="PlutusLedgerApi-V3-ParamName.html#t:ParamName" title="PlutusLedgerApi.V3.ParamName"
+		      >ParamName</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.V3.ParamName.html#line-334" class="link"
+		    >Source</a
+		    > <a href="#t:IsParamName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:IsParamName:IsParamName:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-V3-ParamName.html"
+			>PlutusLedgerApi.V3.ParamName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showParamName"
+			  >showParamName</a
+			  > &#8759; <a href="PlutusLedgerApi-V3-ParamName.html#t:ParamName" title="PlutusLedgerApi.V3.ParamName"
+			  >ParamName</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#showParamName" class="link"
+			  >Source</a
+			  > <a href="#v:showParamName" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readParamName"
+			  >readParamName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-V3-ParamName.html#t:ParamName" title="PlutusLedgerApi.V3.ParamName"
+			  >ParamName</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#readParamName" class="link"
+			  >Source</a
+			  > <a href="#v:readParamName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:IsParamName:IsParamName:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a), <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a), <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > a, GIsParamName (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > a)) &#8658; <a href="PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >IsParamName</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a)</span
+		    > <a href="src/PlutusLedgerApi.Common.ParamName.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:IsParamName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:IsParamName:IsParamName:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-ParamName.html"
+			>PlutusLedgerApi.Common.ParamName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showParamName"
+			  >showParamName</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#showParamName" class="link"
+			  >Source</a
+			  > <a href="#v:showParamName" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readParamName"
+			  >readParamName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a) <a href="src/PlutusLedgerApi.Common.ParamName.html#readParamName" class="link"
+			  >Source</a
+			  > <a href="#v:readParamName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:GenericParamName" class="def"
+	    >GenericParamName</a
+	    > a <a href="src/PlutusLedgerApi.Common.ParamName.html#GenericParamName" class="link"
+	    >Source</a
+	    > <a href="#t:GenericParamName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A Generic wrapper for use with deriving via</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:GenericParamName" class="def"
+		  >GenericParamName</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:GenericParamName"
+	    >Instances</h4
+	    ><details id="i:GenericParamName" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GenericParamName:Bounded:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a)</span
+		    > <a href="src/PlutusLedgerApi.Common.ParamName.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:GenericParamName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GenericParamName:Bounded:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-ParamName.html"
+			>PlutusLedgerApi.Common.ParamName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GenericParamName:Enum:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a)</span
+		    > <a href="src/PlutusLedgerApi.Common.ParamName.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:GenericParamName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GenericParamName:Enum:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-ParamName.html"
+			>PlutusLedgerApi.Common.ParamName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; [<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; [<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; [<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; [<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GenericParamName:IsParamName:3"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a), <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a), <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > a, GIsParamName (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > a)) &#8658; <a href="PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >IsParamName</a
+		      > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+		      >GenericParamName</a
+		      > a)</span
+		    > <a href="src/PlutusLedgerApi.Common.ParamName.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:GenericParamName" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GenericParamName:IsParamName:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-ParamName.html"
+			>PlutusLedgerApi.Common.ParamName</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showParamName"
+			  >showParamName</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > <a href="src/PlutusLedgerApi.Common.ParamName.html#showParamName" class="link"
+			  >Source</a
+			  > <a href="#v:showParamName" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readParamName"
+			  >readParamName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusLedgerApi-Common-ParamName.html#t:GenericParamName" title="PlutusLedgerApi.Common.ParamName"
+			  >GenericParamName</a
+			  > a) <a href="src/PlutusLedgerApi.Common.ParamName.html#readParamName" class="link"
+			  >Source</a
+			  > <a href="#v:readParamName" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toCostModelParams" class="def"
+	    >toCostModelParams</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+	    >IsParamName</a
+	    > p &#8658; [(p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	    >Int64</a
+	    >)] &#8594; <a href="PlutusLedgerApi-Common.html#t:CostModelParams" title="PlutusLedgerApi.Common"
+	    >CostModelParams</a
+	    > <a href="src/PlutusLedgerApi.Common.ParamName.html#toCostModelParams" class="link"
+	    >Source</a
+	    > <a href="#v:toCostModelParams" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Untags the plutus version from the typed cost model parameters and returns their raw textual form
+ (internally used by CostModelInterface).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tagWithParamNames" class="def"
+	    >tagWithParamNames</a
+	    > &#8759; &#8704; k m. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > k, <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	    >MonadError</a
+	    > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+	    >CostModelApplyError</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	    >MonadWriter</a
+	    > [<a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyWarn" title="PlutusLedgerApi.Common.ParamName"
+	    >CostModelApplyWarn</a
+	    >] m) &#8658; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	    >Int64</a
+	    >] &#8594; m [(k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	    >Int64</a
+	    >)] <a href="src/PlutusLedgerApi.Common.ParamName.html#tagWithParamNames" class="link"
+	    >Source</a
+	    > <a href="#v:tagWithParamNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given an ordered list of parameter values, tag them with their parameter
+ names.  If the passed parameter values are more than expected: the function
+ will ignore the extraneous values at the tail of the list, if the passed
+ values are less than expected: the function will throw an error; for more
+ information, see Note [Cost model parameters from the ledger's point of view]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CostModelApplyError" class="def"
+	    >CostModelApplyError</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:CostModelApplyError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A fatal error when trying to create a cost given some plain costmodel parameters.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CMUnknownParamError" class="def"
+		  >CMUnknownParamError</a
+		  > !<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></td
+		><td class="doc"
+		><p
+		  >a costmodel parameter with the give name does not exist in the costmodel to be applied upon</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CMInternalReadError" class="def"
+		  >CMInternalReadError</a
+		  ></td
+		><td class="doc"
+		><p
+		  >internal error when we are transforming the applyParams' input to json (should not happen)</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CMInternalWriteError" class="def"
+		  >CMInternalWriteError</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >internal error when we are transforming the applied params from json with given jsonstring error (should not happen)</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CostModelApplyError"
+	    >Instances</h4
+	    ><details id="i:CostModelApplyError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:Data:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:Data:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; c <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; m <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; m <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; m <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:Exception:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+		      >Exception</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:Exception:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:Generic:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > x &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:Show:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:NFData:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:NFData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:Eq:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:NoThunks:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:NoThunks:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:Pretty:8"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:Pretty:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyError</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyError:Rep:9"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyError</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyError:Rep:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyError" title="PlutusLedgerApi.Common.ParamName"
+			>CostModelApplyError</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;CostModelApplyError&quot; &quot;PlutusCore.Evaluation.Machine.CostModelInterface&quot; &quot;plutus-core-1.51.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;CMUnknownParamError&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			>Text</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;CMInternalReadError&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;CMInternalWriteError&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			>String</a
+			>))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CostModelApplyWarn" class="def"
+	    >CostModelApplyWarn</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:CostModelApplyWarn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A non-fatal warning when trying to create a cost given some plain costmodel parameters.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CMTooManyParamsWarn" class="def"
+		  >CMTooManyParamsWarn</a
+		  ></td
+		><td class="doc"
+		><p
+		  >See Note [Cost model parameters from the ledger's point of view]</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:cmExpected" class="def"
+			  >cmExpected</a
+			  > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cmActual" class="def"
+			  >cmActual</a
+			  > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CMTooFewParamsWarn" class="def"
+		  >CMTooFewParamsWarn</a
+		  ></td
+		><td class="doc"
+		><p
+		  >See Note [Cost model parameters from the ledger's point of view]</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:cmExpected" class="def"
+			  >cmExpected</a
+			  > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cmActual" class="def"
+			  >cmActual</a
+			  > &#8759; !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CostModelApplyWarn"
+	    >Instances</h4
+	    ><details id="i:CostModelApplyWarn" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModelApplyWarn:Pretty:1"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyWarn" title="PlutusLedgerApi.Common.ParamName"
+		      >CostModelApplyWarn</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModelApplyWarn:Pretty:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html"
+			>PlutusCore.Evaluation.Machine.CostModelInterface</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyWarn" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyWarn</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-ParamName.html#t:CostModelApplyWarn" title="PlutusLedgerApi.Common.ParamName"
+			  >CostModelApplyWarn</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

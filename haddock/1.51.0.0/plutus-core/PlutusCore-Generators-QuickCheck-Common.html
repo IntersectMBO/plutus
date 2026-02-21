@@ -1,0 +1,519 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.QuickCheck.Common</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.QuickCheck.Common.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.QuickCheck.Common</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TypeCtx"
+	      >TypeCtx</a
+	      > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:inferKind"
+	      >inferKind</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:unsafeInferKind"
+	      >unsafeInferKind</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:checkKind"
+	      >checkKind</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:genList"
+	      >genList</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > a &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > [a]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TypeCtx" class="def"
+	    >TypeCtx</a
+	    > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.Common.html#TypeCtx" class="link"
+	    >Source</a
+	    > <a href="#t:TypeCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferKind" class="def"
+	    >inferKind</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.Common.html#inferKind" class="link"
+	    >Source</a
+	    > <a href="#v:inferKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Infer the kind of a type in a given kind context</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeInferKind" class="def"
+	    >unsafeInferKind</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	    >HasCallStack</a
+	    > &#8658; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.Common.html#unsafeInferKind" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeInferKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Partial unsafeInferKind, useful for context where invariants are set up to guarantee
+ that types are well-kinded.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkKind" class="def"
+	    >checkKind</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.Common.html#checkKind" class="link"
+	    >Source</a
+	    > <a href="#v:checkKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check well-kindedness of a type in a context</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genList" class="def"
+	    >genList</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > a &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > [a] <a href="src/PlutusCore.Generators.QuickCheck.Common.html#genList" class="link"
+	    >Source</a
+	    > <a href="#v:genList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a list with the given minimum and maximum lengths.
+ It is similar to <code
+	      >Hedgehog.Internal.Gen.list</code
+	      >.</p
+	    ><p
+	    >Note that <code
+	      >genList 0 n gen</code
+	      > behaves differently than <code
+	      >resize n (listOf gen)</code
+	      >, because</p
+	    ><pre
+	    >   resize m (genList 0 n gen) = genList 0 n (resize m gen)
+</pre
+	    ><p
+	    >whereas</p
+	    ><pre
+	    >   resize m (resize n (listOf gen)) = resize n (listOf gen)
+</pre
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:DefaultPrettyBy:DefaultPrettyBy:1"
+		  ></span
+		  > <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		  >PrettyBy</a
+		  > config i &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:DefaultPrettyBy" title="Text.PrettyBy.Internal"
+		  >DefaultPrettyBy</a
+		  > config (NonNegative i)</span
+		> <a href="src/PlutusCore.Generators.QuickCheck.Common.html#line-36" class="link"
+		>Source</a
+		> <a href="#v:-36-fDefaultPrettyByconfigNonNegative" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:DefaultPrettyBy:DefaultPrettyBy:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:defaultPrettyBy"
+		      >defaultPrettyBy</a
+		      > &#8759; config &#8594; NonNegative i &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:defaultPrettyBy" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:defaultPrettyListBy"
+		      >defaultPrettyListBy</a
+		      > &#8759; config &#8594; [NonNegative i] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:defaultPrettyListBy" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:PrettyBy:PrettyBy:2"
+		  ></span
+		  > <a href="../plutus-core/PlutusPrelude.html#t:PrettyDefaultBy" title="PlutusPrelude"
+		  >PrettyDefaultBy</a
+		  > config (NonNegative i) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		  >PrettyBy</a
+		  > config (NonNegative i)</span
+		> <a href="src/PlutusCore.Generators.QuickCheck.Common.html#line-37" class="link"
+		>Source</a
+		> <a href="#v:-36-fPrettyByconfigNonNegative" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:PrettyBy:PrettyBy:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:prettyBy"
+		      >prettyBy</a
+		      > &#8759; config &#8594; NonNegative i &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:prettyBy" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:prettyListBy"
+		      >prettyListBy</a
+		      > &#8759; config &#8594; [NonNegative i] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:prettyListBy" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Pretty:Pretty:3"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		  >Pretty</a
+		  > i &#8658; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		  >Pretty</a
+		  > (NonNegative i)</span
+		> <a href="src/PlutusCore.Generators.QuickCheck.Common.html#line-35" class="link"
+		>Source</a
+		> <a href="#v:-36-fPrettyNonNegative" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Pretty:Pretty:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:pretty"
+		      >pretty</a
+		      > &#8759; NonNegative i &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pretty" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:prettyList"
+		      >prettyList</a
+		      > &#8759; [NonNegative i] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:prettyList" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Testable:Testable:4"
+		  ></span
+		  > Testable (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > ())</span
+		> <a href="src/PlutusCore.Generators.QuickCheck.Common.html#line-30" class="link"
+		>Source</a
+		> <a href="#v:-36-fTestableEither" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Testable:Testable:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:property"
+		      >property</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		      >String</a
+		      > () &#8594; Property</p
+		    ><p class="src"
+		    ><a href="#v:propertyForAllShrinkShow"
+		      >propertyForAllShrinkShow</a
+		      > &#8759; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > a &#8594; (a &#8594; [a]) &#8594; (a &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		      >String</a
+		      >]) &#8594; (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		      >String</a
+		      > ()) &#8594; Property</p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

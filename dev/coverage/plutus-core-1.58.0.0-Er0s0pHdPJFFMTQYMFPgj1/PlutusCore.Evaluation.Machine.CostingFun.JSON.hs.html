@@ -1,0 +1,218 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE PolyKinds #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    6 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    7 </span>{-# OPTIONS_GHC -O0 #-}
+<span class="lineno">    8 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>{-| A separate module for JSON instances, so that we can stick @-O0@ on it and avoid spending
+<span class="lineno">   11 </span>a lot of time optimizing loads of Core whose performance doesn't matter. -}
+<span class="lineno">   12 </span>module PlutusCore.Evaluation.Machine.CostingFun.JSON () where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Data.Aeson
+<span class="lineno">   15 </span>import Deriving.Aeson
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import PlutusCore.Evaluation.Machine.CostingFun.Core
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>type ModelJSON prefix = CustomJSON '[FieldLabelModifier (StripPrefix prefix, CamelToSnake)]
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>type ModelArgumentJSON prefix =
+<span class="lineno">   22 </span>  CustomJSON
+<span class="lineno">   23 </span>    -- Without TagSingleConstructors the format can change unexpectedly if
+<span class="lineno">   24 </span>    -- you add/remove constructors because you don't get the tags if there's
+<span class="lineno">   25 </span>    -- only one constructor but you do if there's more than one.
+<span class="lineno">   26 </span>    '[ TagSingleConstructors
+<span class="lineno">   27 </span>     , SumTaggedObject &quot;type&quot; &quot;arguments&quot;
+<span class="lineno">   28 </span>     , ConstructorTagModifier (StripPrefix prefix, CamelToSnake)
+<span class="lineno">   29 </span>     ]
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving via</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">ModelJSON &quot;costingFun&quot; (CostingFun model)</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">instance</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="istickedoff">FromJSON model =&gt; FromJSON (CostingFun model)</span></span></span></span></span></span>
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;costingFun&quot; (CostingFun model)</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON model =&gt; ToJSON (CostingFun model)</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Intercept</span></span></span></span></span></span>
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Intercept</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Slope</span></span></span></span></span></span>
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Slope</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient0</span></span></span></span></span></span>
+<span class="lineno">   45 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient0</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient1</span></span></span></span></span></span>
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient1</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient2</span></span></span></span></span></span>
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient2</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient00</span></span></span></span></span></span>
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient00</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   52 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient10</span></span></span></span></span></span>
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient10</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient01</span></span></span></span></span></span>
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient01</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient20</span></span></span></span></span></span>
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient20</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   58 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient11</span></span></span></span></span></span>
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient11</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   60 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient02</span></span></span></span></span></span>
+<span class="lineno">   61 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient02</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving newtype instance FromJSON Coefficient12</span></span></span></span></span></span>
+<span class="lineno">   63 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance ToJSON Coefficient12</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving via</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">ModelArgumentJSON &quot;ModelOneArgument&quot; ModelOneArgument</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">instance</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">FromJSON ModelOneArgument</span></span></span></span></span></span>
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">ModelArgumentJSON &quot;ModelOneArgument&quot; ModelOneArgument</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelOneArgument</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   73 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving via</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">ModelArgumentJSON &quot;ModelTwoArguments&quot; ModelTwoArguments</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">instance</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">FromJSON ModelTwoArguments</span></span></span></span></span></span>
+<span class="lineno">   77 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">ModelArgumentJSON &quot;ModelTwoArguments&quot; ModelTwoArguments</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelTwoArguments</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   81 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving via</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">ModelArgumentJSON &quot;ModelThreeArguments&quot; ModelThreeArguments</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">instance</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="istickedoff">FromJSON ModelThreeArguments</span></span></span></span></span></span>
+<span class="lineno">   85 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">ModelArgumentJSON &quot;ModelThreeArguments&quot; ModelThreeArguments</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelThreeArguments</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   89 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving via</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="istickedoff">ModelArgumentJSON &quot;ModelFourArguments&quot; ModelFourArguments</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">instance</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">FromJSON ModelFourArguments</span></span></span></span></span></span>
+<span class="lineno">   93 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">ModelArgumentJSON &quot;ModelFourArguments&quot; ModelFourArguments</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelFourArguments</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">ModelArgumentJSON &quot;ModelFiveArguments&quot; ModelFiveArguments</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON ModelFiveArguments</span></span></span></span></span></span>
+<span class="lineno">  101 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">ModelArgumentJSON &quot;ModelFiveArguments&quot; ModelFiveArguments</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  104 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelFiveArguments</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  105 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">deriving via</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="istickedoff">ModelArgumentJSON &quot;ModelSixArguments&quot; ModelSixArguments</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="istickedoff">instance</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="istickedoff">FromJSON ModelSixArguments</span></span></span></span></span></span>
+<span class="lineno">  109 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">ModelArgumentJSON &quot;ModelSixArguments&quot; ModelSixArguments</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelSixArguments</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelSubtractedSizes&quot; ModelSubtractedSizes</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON ModelSubtractedSizes</span></span></span></span></span></span>
+<span class="lineno">  118 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelSubtractedSizes&quot; ModelSubtractedSizes</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelSubtractedSizes</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  122 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;oneVariableLinearFunction&quot; OneVariableLinearFunction</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON OneVariableLinearFunction</span></span></span></span></span></span>
+<span class="lineno">  126 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;oneVariableLinearFunction&quot; OneVariableLinearFunction</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON OneVariableLinearFunction</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  130 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;twoVariableLinearFunction&quot; TwoVariableLinearFunction</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON TwoVariableLinearFunction</span></span></span></span></span></span>
+<span class="lineno">  134 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;twoVariableLinearFunction&quot; TwoVariableLinearFunction</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  137 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON TwoVariableLinearFunction</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  138 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;oneVariableQuadraticFunction&quot; OneVariableQuadraticFunction</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON OneVariableQuadraticFunction</span></span></span></span></span></span>
+<span class="lineno">  142 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;oneVariableQuadraticFunction&quot; OneVariableQuadraticFunction</span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  145 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON OneVariableQuadraticFunction</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  146 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;twoVariableQuadraticFunction&quot; TwoVariableQuadraticFunction</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON TwoVariableQuadraticFunction</span></span></span></span></span></span>
+<span class="lineno">  150 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;twoVariableQuadraticFunction&quot; TwoVariableQuadraticFunction</span>
+<span class="lineno">  152 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  153 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON TwoVariableQuadraticFunction</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  154 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;expModCostingFunction&quot; ExpModCostingFunction</span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON ExpModCostingFunction</span></span></span></span></span></span>
+<span class="lineno">  158 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  159 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;expModCostingFunction&quot; ExpModCostingFunction</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  161 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ExpModCostingFunction</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  162 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelConstantOrOneArgument&quot; ModelConstantOrOneArgument</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON ModelConstantOrOneArgument</span></span></span></span></span></span>
+<span class="lineno">  166 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  167 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelConstantOrOneArgument&quot; ModelConstantOrOneArgument</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  169 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelConstantOrOneArgument</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  170 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelConstantOrTwoArguments&quot; ModelConstantOrTwoArguments</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON ModelConstantOrTwoArguments</span></span></span></span></span></span>
+<span class="lineno">  174 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelConstantOrTwoArguments&quot; ModelConstantOrTwoArguments</span>
+<span class="lineno">  176 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  177 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelConstantOrTwoArguments</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  178 </span>
+<span class="lineno">  179 </span>-- See Note [Backward compatibility for costing functions] for ModelConstantOrLinear
+<span class="lineno">  180 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  181 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelConstantOrLinear&quot; ModelConstantOrLinear</span>
+<span class="lineno">  182 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  183 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON ModelConstantOrLinear</span></span></span></span></span></span>
+<span class="lineno">  184 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  185 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;modelConstantOrLinear&quot; ModelConstantOrLinear</span>
+<span class="lineno">  186 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  187 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON ModelConstantOrLinear</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  188 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  189 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;twoVariableWithInteractionFunction&quot; TwoVariableWithInteractionFunction</span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  191 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON TwoVariableWithInteractionFunction</span></span></span></span></span></span>
+<span class="lineno">  192 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  193 </span><span class="spaces">  </span><span class="nottickedoff">ModelJSON &quot;twoVariableWithInteractionFunction&quot; TwoVariableWithInteractionFunction</span>
+<span class="lineno">  194 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  195 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON TwoVariableWithInteractionFunction</span></span></span></span></span></span></span></span></span></span>
+
+</pre>
+</body>
+</html>

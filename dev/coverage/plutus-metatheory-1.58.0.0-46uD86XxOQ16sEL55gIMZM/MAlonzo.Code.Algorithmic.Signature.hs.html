@@ -1,0 +1,377 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Algorithmic.Signature where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.Equality
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Builtin
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Builtin.Signature
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Type
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Type.BetaNBE
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.Type.BetaNBE.RenamingSubstitution
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.Type.BetaNormal
+<span class="lineno">   27 </span>import qualified MAlonzo.Code.Type.RenamingSubstitution
+<span class="lineno">   28 </span>import qualified MAlonzo.Code.Utils
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>-- Algorithmic.Signature._.SigTy
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">d_SigTy_6 a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 = ()</span></span>
+<span class="lineno">   32 </span>-- Algorithmic.Signature._.convSigTy
+<span class="lineno">   33 </span>d_convSigTy_8 ::
+<span class="lineno">   34 </span>  Integer -&gt;
+<span class="lineno">   35 </span>  Integer -&gt;
+<span class="lineno">   36 </span>  Integer -&gt;
+<span class="lineno">   37 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   38 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   39 </span>  Integer -&gt;
+<span class="lineno">   40 </span>  Integer -&gt;
+<span class="lineno">   41 </span>  Integer -&gt;
+<span class="lineno">   42 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   43 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   44 </span>  Integer -&gt;
+<span class="lineno">   45 </span>  Integer -&gt;
+<span class="lineno">   46 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">   47 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">   48 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   49 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">   50 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">d_convSigTy_8 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10 ~v11</span>
+<span class="lineno">   52 </span><span class="spaces">              </span><span class="nottickedoff">~v12 ~v13 ~v14 v15</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">= du_convSigTy_8 v15</span></span>
+<span class="lineno">   54 </span>du_convSigTy_8 ::
+<span class="lineno">   55 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">   56 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">du_convSigTy_8 v0 = coe v0</span></span>
+<span class="lineno">   58 </span>-- Algorithmic.Signature._.mkTy
+<span class="lineno">   59 </span>d_mkTy_10 ::
+<span class="lineno">   60 </span>  Integer -&gt;
+<span class="lineno">   61 </span>  Integer -&gt;
+<span class="lineno">   62 </span>  MAlonzo.Code.Builtin.Signature.T__'47'_'8866''8902'_26 -&gt;
+<span class="lineno">   63 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">d_mkTy_10</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Builtin.Signature.du_mkTy_204</span>
+<span class="lineno">   67 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)</span>
+<span class="lineno">   68 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   69 </span><span class="spaces">         </span><span class="nottickedoff">(\ v0 v1 v2 v3 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))</span>
+<span class="lineno">   70 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 v3 v4 -&gt;</span>
+<span class="lineno">   71 </span><span class="spaces">         </span><span class="nottickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'183'__10 v1 v3 v4)</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'94'_12))</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_con_22 v1)</span></span>
+<span class="lineno">   74 </span>-- Algorithmic.Signature._.sig2type
+<span class="lineno">   75 </span>d_sig2type_12 ::
+<span class="lineno">   76 </span>  MAlonzo.Code.Builtin.Signature.T_Sig_72 -&gt;
+<span class="lineno">   77 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">d_sig2type_12</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Builtin.Signature.du_sig2type_242</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   83 </span><span class="spaces">         </span><span class="nottickedoff">(\ v0 v1 v2 v3 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 v3 v4 -&gt;</span>
+<span class="lineno">   85 </span><span class="spaces">         </span><span class="nottickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'183'__10 v1 v3 v4)</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'94'_12))</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_con_22 v1)</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt;</span>
+<span class="lineno">   89 </span><span class="spaces">         </span><span class="nottickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v1 v2)</span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v1 v2)</span></span>
+<span class="lineno">   91 </span>-- Algorithmic.Signature._.sig2typeΠ
+<span class="lineno">   92 </span>d_sig2typeΠ_14 ::
+<span class="lineno">   93 </span>  Integer -&gt;
+<span class="lineno">   94 </span>  Integer -&gt;
+<span class="lineno">   95 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">   96 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">d_sig2typeΠ_14</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Builtin.Signature.du_sig2typeΠ_228</span>
+<span class="lineno">  100 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v1 v2)</span></span>
+<span class="lineno">  101 </span>-- Algorithmic.Signature._.sig2type⇒
+<span class="lineno">  102 </span>d_sig2type'8658'_16 ::
+<span class="lineno">  103 </span>  Integer -&gt;
+<span class="lineno">  104 </span>  Integer -&gt;
+<span class="lineno">  105 </span>  [MAlonzo.Code.Builtin.Signature.T__'47'_'8866''8902'_26] -&gt;
+<span class="lineno">  106 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  107 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
+<span class="lineno">  108 </span><span class="decl"><span class="nottickedoff">d_sig2type'8658'_16</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Builtin.Signature.du_sig2type'8658'_214</span>
+<span class="lineno">  111 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)</span>
+<span class="lineno">  112 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  113 </span><span class="spaces">         </span><span class="nottickedoff">(\ v0 v1 v2 v3 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 v3 v4 -&gt;</span>
+<span class="lineno">  115 </span><span class="spaces">         </span><span class="nottickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'183'__10 v1 v3 v4)</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'94'_12))</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_con_22 v1)</span>
+<span class="lineno">  118 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt;</span>
+<span class="lineno">  119 </span><span class="spaces">         </span><span class="nottickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v1 v2)</span></span>
+<span class="lineno">  120 </span>-- Algorithmic.Signature._.sigTy2type
+<span class="lineno">  121 </span>d_sigTy2type_18 ::
+<span class="lineno">  122 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  123 </span>  Integer -&gt;
+<span class="lineno">  124 </span>  Integer -&gt;
+<span class="lineno">  125 </span>  Integer -&gt;
+<span class="lineno">  126 </span>  Integer -&gt;
+<span class="lineno">  127 </span>  Integer -&gt;
+<span class="lineno">  128 </span>  Integer -&gt;
+<span class="lineno">  129 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  130 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  131 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  132 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">  133 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
+<span class="lineno">  134 </span><span class="decl"><span class="nottickedoff">d_sigTy2type_18 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="nottickedoff">= du_sigTy2type_18 v7</span></span>
+<span class="lineno">  136 </span>du_sigTy2type_18 ::
+<span class="lineno">  137 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  138 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
+<span class="lineno">  139 </span><span class="decl"><span class="nottickedoff">du_sigTy2type_18 v0 = coe v0</span></span>
+<span class="lineno">  140 </span>-- Algorithmic.Signature._.⊢♯2TyNe♯
+<span class="lineno">  141 </span>d_'8866''9839'2TyNe'9839'_20 ::
+<span class="lineno">  142 </span>  Integer -&gt;
+<span class="lineno">  143 </span>  Integer -&gt;
+<span class="lineno">  144 </span>  MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 -&gt;
+<span class="lineno">  145 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">d_'8866''9839'2TyNe'9839'_20</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_186</span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)</span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  151 </span><span class="spaces">         </span><span class="nottickedoff">(\ v0 v1 v2 v3 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))</span>
+<span class="lineno">  152 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 v2 v3 v4 -&gt;</span>
+<span class="lineno">  153 </span><span class="spaces">         </span><span class="nottickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'183'__10 v1 v3 v4)</span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'94'_12))</span></span>
+<span class="lineno">  155 </span>-- Algorithmic.Signature.btype
+<span class="lineno">  156 </span>d_btype_30 ::
+<span class="lineno">  157 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  158 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">  159 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
+<span class="lineno">  160 </span><span class="decl"><span class="istickedoff">d_btype_30 v0 v1</span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  162 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Type.BetaNBE.RenamingSubstitution.d_subNf'8709'_566</span>
+<span class="lineno">  163 </span><span class="spaces">      </span><span class="istickedoff">(coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  165 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.du_sig2type_242</span>
+<span class="lineno">  166 </span><span class="spaces">         </span><span class="istickedoff">(\ v2 v3 v4 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v4)</span>
+<span class="lineno">  167 </span><span class="spaces">         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  168 </span><span class="spaces">            </span><span class="istickedoff">(\ v2 v3 v4 v5 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v5))</span>
+<span class="lineno">  169 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">(\ v2 v3 v4 v5 v6 -&gt;</span></span>
+<span class="lineno">  170 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'183'__10 v3 v5 v6)</span></span>
+<span class="lineno">  171 </span><span class="spaces">         </span><span class="istickedoff">(coe (\ v2 v3 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_'94'_12))</span>
+<span class="lineno">  172 </span><span class="spaces">         </span><span class="istickedoff">(\ v2 v3 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_con_22 v3)</span>
+<span class="lineno">  173 </span><span class="spaces">         </span><span class="istickedoff">(\ v2 v3 v4 -&gt;</span>
+<span class="lineno">  174 </span><span class="spaces">            </span><span class="istickedoff">coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v3 v4)</span>
+<span class="lineno">  175 </span><span class="spaces">         </span><span class="istickedoff">(\ v2 v3 v4 -&gt; coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v3 v4)</span>
+<span class="lineno">  176 </span><span class="spaces">         </span><span class="istickedoff">(coe MAlonzo.Code.Builtin.d_signature_298 (coe v1)))</span></span>
+<span class="lineno">  177 </span>-- Algorithmic.Signature.btype-ren
+<span class="lineno">  178 </span>d_btype'45'ren_42 ::
+<span class="lineno">  179 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  180 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  181 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">  182 </span>  (MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  183 </span>   MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">  184 </span>   MAlonzo.Code.Type.T__'8715''8902'__14) -&gt;
+<span class="lineno">  185 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  186 </span><span class="decl"><span class="nottickedoff">d_btype'45'ren_42 = erased</span></span>
+<span class="lineno">  187 </span>-- Algorithmic.Signature.btype-sub
+<span class="lineno">  188 </span>d_btype'45'sub_56 ::
+<span class="lineno">  189 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  190 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  191 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">  192 </span>  (MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  193 </span>   MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">  194 </span>   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) -&gt;
+<span class="lineno">  195 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  196 </span><span class="decl"><span class="nottickedoff">d_btype'45'sub_56 = erased</span></span>
+<span class="lineno">  197 </span>-- Algorithmic.Signature.subNf-Π
+<span class="lineno">  198 </span>d_subNf'45'Π_72 ::
+<span class="lineno">  199 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  200 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  201 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  202 </span>  (MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  203 </span>   MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">  204 </span>   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) -&gt;
+<span class="lineno">  205 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  206 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  207 </span><span class="decl"><span class="nottickedoff">d_subNf'45'Π_72 = erased</span></span>
+<span class="lineno">  208 </span>-- Algorithmic.Signature.subSigTy
+<span class="lineno">  209 </span>d_subSigTy_108 ::
+<span class="lineno">  210 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  211 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  212 </span>  (MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  213 </span>   MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">  214 </span>   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) -&gt;
+<span class="lineno">  215 </span>  Integer -&gt;
+<span class="lineno">  216 </span>  Integer -&gt;
+<span class="lineno">  217 </span>  Integer -&gt;
+<span class="lineno">  218 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  219 </span>  Integer -&gt;
+<span class="lineno">  220 </span>  Integer -&gt;
+<span class="lineno">  221 </span>  Integer -&gt;
+<span class="lineno">  222 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  223 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  224 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">  225 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+<span class="lineno">  226 </span><span class="decl"><span class="nottickedoff">d_subSigTy_108 v0 v1 v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10 ~v11 v12</span>
+<span class="lineno">  227 </span><span class="spaces">  </span><span class="nottickedoff">= du_subSigTy_108 v0 v1 v2 v12</span></span>
+<span class="lineno">  228 </span>du_subSigTy_108 ::
+<span class="lineno">  229 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  230 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  231 </span>  (MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  232 </span>   MAlonzo.Code.Type.T__'8715''8902'__14 -&gt;
+<span class="lineno">  233 </span>   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) -&gt;
+<span class="lineno">  234 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">  235 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+<span class="lineno">  236 </span><span class="decl"><span class="istickedoff">du_subSigTy_108 v0 v1 v2 v3</span>
+<span class="lineno">  237 </span><span class="spaces">  </span><span class="istickedoff">= case coe v3 of</span>
+<span class="lineno">  238 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C_bresult_280</span>
+<span class="lineno">  239 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe MAlonzo.Code.Builtin.Signature.C_bresult_280</span></span>
+<span class="lineno">  240 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C__B'8658'__302 v12 v13 v14</span>
+<span class="lineno">  241 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  242 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C__B'8658'__302</span>
+<span class="lineno">  243 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(MAlonzo.Code.Type.BetaNBE.RenamingSubstitution.d_subNf_104</span></span>
+<span class="lineno">  244 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe v0) (coe v1) (coe v2) (coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  245 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe v12))</span></span>
+<span class="lineno">  246 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(MAlonzo.Code.Type.BetaNBE.d_reify_86</span></span>
+<span class="lineno">  247 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684) (coe v1)</span></span>
+<span class="lineno">  248 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  249 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNBE.d_eval_166 (coe v1) (coe v1)</span></span>
+<span class="lineno">  250 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  251 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  252 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.RenamingSubstitution.d_sub_346 (coe v0) (coe v1)</span></span>
+<span class="lineno">  253 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  254 </span><span class="spaces">                         </span><span class="istickedoff"><span class="nottickedoff">(\ v15 v16 -&gt;</span></span>
+<span class="lineno">  255 </span><span class="spaces">                            </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.d_embNf_128</span></span>
+<span class="lineno">  256 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">(coe v1) (coe v15) (coe v2 v15 v16)))</span></span>
+<span class="lineno">  257 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  258 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  259 </span><span class="spaces">                         </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.d_embNf_128 (coe v0)</span></span>
+<span class="lineno">  260 </span><span class="spaces">                         </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684) (coe v13)))</span></span>
+<span class="lineno">  261 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNBE.du_idEnv_250)))</span></span>
+<span class="lineno">  262 </span><span class="spaces">             </span><span class="istickedoff">(coe du_subSigTy_108 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> <span class="nottickedoff">(coe v2)</span> (coe v14))</span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.C_sucΠ_326 v13 v14 v15</span>
+<span class="lineno">  264 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  265 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Builtin.Signature.C_sucΠ_326 v13</span></span>
+<span class="lineno">  266 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(MAlonzo.Code.Type.BetaNBE.d_eval_166</span></span>
+<span class="lineno">  267 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v1) (coe v13))</span></span>
+<span class="lineno">  268 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v1) (coe v13))</span></span>
+<span class="lineno">  269 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  270 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  271 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.RenamingSubstitution.d_sub_346</span></span>
+<span class="lineno">  272 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v13))</span></span>
+<span class="lineno">  273 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v1) (coe v13))</span></span>
+<span class="lineno">  274 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  275 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">(\ v16 v17 -&gt;</span></span>
+<span class="lineno">  276 </span><span class="spaces">                         </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.d_embNf_128</span></span>
+<span class="lineno">  277 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v1) (coe v13))</span></span>
+<span class="lineno">  278 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">(coe v16)</span></span>
+<span class="lineno">  279 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  280 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNBE.RenamingSubstitution.du_extsNf_198</span></span>
+<span class="lineno">  281 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">(coe v1) (coe v2) (coe v13) (coe v16) (coe v17))))</span></span>
+<span class="lineno">  282 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684)</span></span>
+<span class="lineno">  283 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  284 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.d_embNf_128</span></span>
+<span class="lineno">  285 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v13))</span></span>
+<span class="lineno">  286 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_'42'_684) (coe v14)))</span></span>
+<span class="lineno">  287 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  288 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(\ v16 v17 -&gt;</span></span>
+<span class="lineno">  289 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">coe</span></span>
+<span class="lineno">  290 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNBE.du_reflect_22 (coe v16)</span></span>
+<span class="lineno">  291 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v17))))</span></span>
+<span class="lineno">  292 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  293 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">du_subSigTy_108</span></span>
+<span class="lineno">  294 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v13))</span></span>
+<span class="lineno">  295 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v1) (coe v13))</span></span>
+<span class="lineno">  296 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  297 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNBE.RenamingSubstitution.du_extsNf_198</span></span>
+<span class="lineno">  298 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">(coe v1) (coe v2) (coe v13))</span></span>
+<span class="lineno">  299 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe v15))</span></span>
+<span class="lineno">  300 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  301 </span>-- Algorithmic.Signature._[_]SigTy
+<span class="lineno">  302 </span>d__'91'_'93'SigTy_150 ::
+<span class="lineno">  303 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  304 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  305 </span>  Integer -&gt;
+<span class="lineno">  306 </span>  Integer -&gt;
+<span class="lineno">  307 </span>  Integer -&gt;
+<span class="lineno">  308 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  309 </span>  Integer -&gt;
+<span class="lineno">  310 </span>  Integer -&gt;
+<span class="lineno">  311 </span>  Integer -&gt;
+<span class="lineno">  312 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  313 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  314 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">  315 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  316 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+<span class="lineno">  317 </span><span class="decl"><span class="nottickedoff">d__'91'_'93'SigTy_150 v0 v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  318 </span><span class="spaces">                      </span><span class="nottickedoff">v11 v12</span>
+<span class="lineno">  319 </span><span class="spaces">  </span><span class="nottickedoff">= du__'91'_'93'SigTy_150 v0 v1 v11 v12</span></span>
+<span class="lineno">  320 </span>du__'91'_'93'SigTy_150 ::
+<span class="lineno">  321 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  322 </span>  MAlonzo.Code.Utils.T_Kind_682 -&gt;
+<span class="lineno">  323 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">  324 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  325 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+<span class="lineno">  326 </span><span class="decl"><span class="istickedoff">du__'91'_'93'SigTy_150 v0 v1 v2 v3</span>
+<span class="lineno">  327 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  328 </span><span class="spaces">      </span><span class="istickedoff">du_subSigTy_108</span>
+<span class="lineno">  329 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v1))</span> <span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  330 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  331 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNBE.RenamingSubstitution.du_subNf'45'cons_218</span></span>
+<span class="lineno">  332 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  333 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">(\ v4 v5 -&gt;</span></span>
+<span class="lineno">  334 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">coe</span></span>
+<span class="lineno">  335 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Type.BetaNormal.C_ne_20</span></span>
+<span class="lineno">  336 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v5)))</span></span>
+<span class="lineno">  337 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">(coe v3))</span></span>
+<span class="lineno">  338 </span><span class="spaces">      </span><span class="istickedoff">(coe v2)</span></span>
+<span class="lineno">  339 </span>-- Algorithmic.Signature.uniqueSigTy
+<span class="lineno">  340 </span>d_uniqueSigTy_180 ::
+<span class="lineno">  341 </span>  Integer -&gt;
+<span class="lineno">  342 </span>  Integer -&gt;
+<span class="lineno">  343 </span>  Integer -&gt;
+<span class="lineno">  344 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  345 </span>  Integer -&gt;
+<span class="lineno">  346 </span>  Integer -&gt;
+<span class="lineno">  347 </span>  Integer -&gt;
+<span class="lineno">  348 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">  349 </span>  MAlonzo.Code.Type.T_Ctx'8902'_2 -&gt;
+<span class="lineno">  350 </span>  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 -&gt;
+<span class="lineno">  351 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">  352 </span>  MAlonzo.Code.Builtin.Signature.T_SigTy_266 -&gt;
+<span class="lineno">  353 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  354 </span><span class="decl"><span class="nottickedoff">d_uniqueSigTy_180 = erased</span></span>
+
+</pre>
+</body>
+</html>

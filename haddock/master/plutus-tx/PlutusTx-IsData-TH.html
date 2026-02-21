@@ -1,0 +1,443 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.IsData.TH</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.58.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.IsData.TH.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.IsData.TH</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:unsafeFromDataClause"
+	      >unsafeFromDataClause</a
+	      > &#8759; [(<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	      >ConstructorInfo</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >)] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Clause" title="Language.Haskell.TH.Syntax"
+	      >Clause</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unstableMakeIsData"
+	      >unstableMakeIsData</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:makeIsDataIndexed"
+	      >makeIsDataIndexed</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; [(<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >)] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:makeIsDataAsList"
+	      >makeIsDataAsList</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:mkConstrCreateExpr"
+	      >mkConstrCreateExpr</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:ExpQ" title="Language.Haskell.TH.Lib.Internal"
+	      >ExpQ</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkUnsafeConstrMatchPattern"
+	      >mkUnsafeConstrMatchPattern</a
+	      > &#8759; <a href="PlutusTx-IsData-TH.html#t:AsDataProdType" title="PlutusTx.IsData.TH"
+	      >AsDataProdType</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:PatQ" title="Language.Haskell.TH.Lib.Internal"
+	      >PatQ</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkConstrPartsMatchPattern"
+	      >mkConstrPartsMatchPattern</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:PatQ" title="Language.Haskell.TH.Lib.Internal"
+	      >PatQ</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkUnsafeConstrPartsMatchPattern"
+	      >mkUnsafeConstrPartsMatchPattern</a
+	      > &#8759; <a href="PlutusTx-IsData-TH.html#t:AsDataProdType" title="PlutusTx.IsData.TH"
+	      >AsDataProdType</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:PatQ" title="Language.Haskell.TH.Lib.Internal"
+	      >PatQ</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:AsDataProdType"
+	      >AsDataProdType</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:IsAsDataProdType"
+		  >IsAsDataProdType</a
+		  ></li
+		><li
+		>| <a href="#v:IsNotAsDataProdType"
+		  >IsNotAsDataProdType</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromDataClause"
+	      >fromDataClause</a
+	      > &#8759; [(<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	      >ConstructorInfo</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >)] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Clause" title="Language.Haskell.TH.Syntax"
+	      >Clause</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeFromDataClause" class="def"
+	    >unsafeFromDataClause</a
+	    > &#8759; [(<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	    >ConstructorInfo</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >)] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Clause" title="Language.Haskell.TH.Syntax"
+	    >Clause</a
+	    > <a href="src/PlutusTx.IsData.TH.html#unsafeFromDataClause" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeFromDataClause" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unstableMakeIsData" class="def"
+	    >unstableMakeIsData</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.IsData.TH.html#unstableMakeIsData" class="link"
+	    >Source</a
+	    > <a href="#v:unstableMakeIsData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		>FromData</a
+		></code
+	      > and a <code
+	      ><a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		>ToData</a
+		></code
+	      > instance for a type.
+This may not be stable in the face of constructor additions,
+renamings, etc. Use <code
+	      ><a href="PlutusTx-IsData-TH.html#v:makeIsDataIndexed" title="PlutusTx.IsData.TH"
+		>makeIsDataIndexed</a
+		></code
+	      > if you need stability. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeIsDataIndexed" class="def"
+	    >makeIsDataIndexed</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; [(<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >)] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.IsData.TH.html#makeIsDataIndexed" class="link"
+	    >Source</a
+	    > <a href="#v:makeIsDataIndexed" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		>ToData</a
+		></code
+	      >, 'FromData and a <code
+	      ><a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		>UnsafeFromData</a
+		></code
+	      > instances for a type,
+using an explicit mapping of constructor names to indices.
+Use this for types where you need to keep the representation stable. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeIsDataAsList" class="def"
+	    >makeIsDataAsList</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.IsData.TH.html#makeIsDataAsList" class="link"
+	    >Source</a
+	    > <a href="#v:makeIsDataAsList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generates <code
+	      ><a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		>FromData</a
+		></code
+	      > and <code
+	      ><a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		>ToData</a
+		></code
+	      > instances for a type.
+Requires the type to have exactly one constructor,
+since instances created by <code
+	      >deriveIsDataAsList</code
+	      > use a list encoding
+instead of <code
+	      >Constr</code
+	      > and thus cannot represent constructor indices. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkConstrCreateExpr" class="def"
+	    >mkConstrCreateExpr</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:ExpQ" title="Language.Haskell.TH.Lib.Internal"
+	    >ExpQ</a
+	    > <a href="src/PlutusTx.IsData.TH.html#mkConstrCreateExpr" class="link"
+	    >Source</a
+	    > <a href="#v:mkConstrCreateExpr" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkUnsafeConstrMatchPattern" class="def"
+	    >mkUnsafeConstrMatchPattern</a
+	    > &#8759; <a href="PlutusTx-IsData-TH.html#t:AsDataProdType" title="PlutusTx.IsData.TH"
+	    >AsDataProdType</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:PatQ" title="Language.Haskell.TH.Lib.Internal"
+	    >PatQ</a
+	    > <a href="src/PlutusTx.IsData.TH.html#mkUnsafeConstrMatchPattern" class="link"
+	    >Source</a
+	    > <a href="#v:mkUnsafeConstrMatchPattern" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkConstrPartsMatchPattern" class="def"
+	    >mkConstrPartsMatchPattern</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:PatQ" title="Language.Haskell.TH.Lib.Internal"
+	    >PatQ</a
+	    > <a href="src/PlutusTx.IsData.TH.html#mkConstrPartsMatchPattern" class="link"
+	    >Source</a
+	    > <a href="#v:mkConstrPartsMatchPattern" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkUnsafeConstrPartsMatchPattern" class="def"
+	    >mkUnsafeConstrPartsMatchPattern</a
+	    > &#8759; <a href="PlutusTx-IsData-TH.html#t:AsDataProdType" title="PlutusTx.IsData.TH"
+	    >AsDataProdType</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:PatQ" title="Language.Haskell.TH.Lib.Internal"
+	    >PatQ</a
+	    > <a href="src/PlutusTx.IsData.TH.html#mkUnsafeConstrPartsMatchPattern" class="link"
+	    >Source</a
+	    > <a href="#v:mkUnsafeConstrPartsMatchPattern" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:AsDataProdType" class="def"
+	    >AsDataProdType</a
+	    > <a href="src/PlutusTx.IsData.TH.html#AsDataProdType" class="link"
+	    >Source</a
+	    > <a href="#t:AsDataProdType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If generating pattern synonyms for a product type declared with <code
+	      >asData</code
+	      >,
+we can avoid the index match, as we know that the type only has one constructor. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:IsAsDataProdType" class="def"
+		  >IsAsDataProdType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IsNotAsDataProdType" class="def"
+		  >IsNotAsDataProdType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromDataClause" class="def"
+	    >fromDataClause</a
+	    > &#8759; [(<a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:ConstructorInfo" title="Language.Haskell.TH.Datatype"
+	    >ConstructorInfo</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >)] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Clause" title="Language.Haskell.TH.Syntax"
+	    >Clause</a
+	    > <a href="src/PlutusTx.IsData.TH.html#fromDataClause" class="link"
+	    >Source</a
+	    > <a href="#v:fromDataClause" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

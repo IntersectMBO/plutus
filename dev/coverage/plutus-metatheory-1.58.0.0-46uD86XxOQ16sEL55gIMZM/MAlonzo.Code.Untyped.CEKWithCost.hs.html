@@ -1,0 +1,700 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Untyped.CEKWithCost where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.Equality
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Builtin
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Builtin.Signature
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Cost.Base
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Data.Maybe.Base
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.Data.Vec.Base
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.RawU
+<span class="lineno">   27 </span>import qualified MAlonzo.Code.Untyped
+<span class="lineno">   28 </span>import qualified MAlonzo.Code.Untyped.CEK
+<span class="lineno">   29 </span>import qualified MAlonzo.Code.Utils
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- Untyped.CEKWithCost.CekM
+<span class="lineno">   32 </span>d_CekM_26 ::
+<span class="lineno">   33 </span>  () -&gt; MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt; () -&gt; ()
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">d_CekM_26 = erased</span></span>
+<span class="lineno">   35 </span>-- Untyped.CEKWithCost.spend
+<span class="lineno">   36 </span>d_spend_28 ::
+<span class="lineno">   37 </span>  () -&gt;
+<span class="lineno">   38 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">   39 </span>  MAlonzo.Code.Cost.Base.T_StepKind_6 -&gt;
+<span class="lineno">   40 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">d_spend_28 ~v0 v1 v2 = du_spend_28 v1 v2</span></span>
+<span class="lineno">   42 </span>du_spend_28 ::
+<span class="lineno">   43 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">   44 </span>  MAlonzo.Code.Cost.Base.T_StepKind_6 -&gt;
+<span class="lineno">   45 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">du_spend_28 v0 v1</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Utils.du_tell_374</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">   50 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Cost.Base.d_cekMachineCost_58 v0</span>
+<span class="lineno">   51 </span><span class="spaces">         </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.C_BStep_36 (coe v1)))</span></span>
+<span class="lineno">   52 </span>-- Untyped.CEKWithCost.spendStartupCost
+<span class="lineno">   53 </span>d_spendStartupCost_32 ::
+<span class="lineno">   54 </span>  () -&gt;
+<span class="lineno">   55 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">   56 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">d_spendStartupCost_32 ~v0 v1 = du_spendStartupCost_32 v1</span></span>
+<span class="lineno">   58 </span>du_spendStartupCost_32 ::
+<span class="lineno">   59 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">   60 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">   61 </span><span class="decl"><span class="istickedoff">du_spendStartupCost_32 v0</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Utils.du_tell_374</span>
+<span class="lineno">   64 </span><span class="spaces">      </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.du_startupCost_66 (coe v0))</span></span>
+<span class="lineno">   65 </span>-- Untyped.CEKWithCost.extractConstants
+<span class="lineno">   66 </span>d_extractConstants_48 ::
+<span class="lineno">   67 </span>  () -&gt;
+<span class="lineno">   68 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">   69 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">   70 </span>  Integer -&gt;
+<span class="lineno">   71 </span>  Integer -&gt;
+<span class="lineno">   72 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   73 </span>  Integer -&gt;
+<span class="lineno">   74 </span>  Integer -&gt;
+<span class="lineno">   75 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   76 </span>  MAlonzo.Code.Untyped.CEK.T_BApp_42 -&gt;
+<span class="lineno">   77 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">d_extractConstants_48 ~v0 ~v1 ~v2 ~v3 ~v4 v5 ~v6 ~v7 v8 v9</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">= du_extractConstants_48 v5 v8 v9</span></span>
+<span class="lineno">   80 </span>du_extractConstants_48 ::
+<span class="lineno">   81 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   82 </span>  MAlonzo.Code.Utils.T__'8724'_'8803'__150 -&gt;
+<span class="lineno">   83 </span>  MAlonzo.Code.Untyped.CEK.T_BApp_42 -&gt;
+<span class="lineno">   84 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28
+<span class="lineno">   85 </span><span class="decl"><span class="istickedoff">du_extractConstants_48 v0 v1 v2</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="istickedoff">= case coe v2 of</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_base_94</span>
+<span class="lineno">   88 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32</span>
+<span class="lineno">   89 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_app_106 v8 v9</span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">   91 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Utils.C_bubble_162 v13</span>
+<span class="lineno">   92 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   93 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Data.Vec.Base.C__'8759'__38 v9</span>
+<span class="lineno">   94 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_extractConstants_48 (coe v0) (coe v13) (coe v8))</span>
+<span class="lineno">   95 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_app'8902'_120 v9</span>
+<span class="lineno">   97 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v0 of</span>
+<span class="lineno">   98 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Utils.C_bubble_162 v13</span>
+<span class="lineno">   99 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe du_extractConstants_48 <span class="nottickedoff">(coe v13)</span> <span class="nottickedoff">(coe v1)</span> (coe v9)</span>
+<span class="lineno">  100 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  101 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  102 </span>-- Untyped.CEKWithCost.spendBuiltin
+<span class="lineno">  103 </span>d_spendBuiltin_58 ::
+<span class="lineno">  104 </span>  () -&gt;
+<span class="lineno">  105 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  106 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">  107 </span>  MAlonzo.Code.Untyped.CEK.T_BApp_42 -&gt;
+<span class="lineno">  108 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">d_spendBuiltin_58 ~v0 v1 v2 v3 = du_spendBuiltin_58 v1 v2 v3</span></span>
+<span class="lineno">  110 </span>du_spendBuiltin_58 ::
+<span class="lineno">  111 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  112 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">  113 </span>  MAlonzo.Code.Untyped.CEK.T_BApp_42 -&gt;
+<span class="lineno">  114 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  115 </span><span class="decl"><span class="istickedoff">du_spendBuiltin_58 v0 v1 v2</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Utils.du_tell_374</span>
+<span class="lineno">  118 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  119 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Cost.Base.d_cekMachineCost_58 v0</span>
+<span class="lineno">  120 </span><span class="spaces">         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  121 </span><span class="spaces">            </span><span class="istickedoff">MAlonzo.Code.Cost.Base.C_BBuiltinApp_40 (coe v1)</span>
+<span class="lineno">  122 </span><span class="spaces">            </span><span class="istickedoff">(coe du_argsizes_68 (coe v1) (coe v2))))</span></span>
+<span class="lineno">  123 </span>-- Untyped.CEKWithCost._.argsizes
+<span class="lineno">  124 </span>d_argsizes_68 ::
+<span class="lineno">  125 </span>  () -&gt;
+<span class="lineno">  126 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  127 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">  128 </span>  MAlonzo.Code.Untyped.CEK.T_BApp_42 -&gt;
+<span class="lineno">  129 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28
+<span class="lineno">  130 </span><span class="decl"><span class="nottickedoff">d_argsizes_68 ~v0 ~v1 v2 v3 = du_argsizes_68 v2 v3</span></span>
+<span class="lineno">  131 </span>du_argsizes_68 ::
+<span class="lineno">  132 </span>  MAlonzo.Code.Builtin.T_Builtin_2 -&gt;
+<span class="lineno">  133 </span>  MAlonzo.Code.Untyped.CEK.T_BApp_42 -&gt;
+<span class="lineno">  134 </span>  MAlonzo.Code.Data.Vec.Base.T_Vec_28
+<span class="lineno">  135 </span><span class="decl"><span class="istickedoff">du_argsizes_68 v0 v1</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  137 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Data.Vec.Base.du_reverse_616</span>
+<span class="lineno">  138 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  139 </span><span class="spaces">         </span><span class="istickedoff">du_extractConstants_48</span>
+<span class="lineno">  140 </span><span class="spaces">         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  141 </span><span class="spaces">            </span><span class="istickedoff">MAlonzo.Code.Utils.d_alldone_210</span>
+<span class="lineno">  142 </span><span class="spaces">            </span><span class="istickedoff">(coe</span>
+<span class="lineno">  143 </span><span class="spaces">               </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.d_fv_96</span>
+<span class="lineno">  144 </span><span class="spaces">               </span><span class="istickedoff">(coe MAlonzo.Code.Builtin.d_signature_298 (coe v0))))</span>
+<span class="lineno">  145 </span><span class="spaces">         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  146 </span><span class="spaces">            </span><span class="istickedoff">MAlonzo.Code.Utils.d_alldone_210</span>
+<span class="lineno">  147 </span><span class="spaces">            </span><span class="istickedoff">(coe</span>
+<span class="lineno">  148 </span><span class="spaces">               </span><span class="istickedoff">MAlonzo.Code.Builtin.Signature.d_args'9839'_92</span>
+<span class="lineno">  149 </span><span class="spaces">               </span><span class="istickedoff">(coe MAlonzo.Code.Builtin.d_signature_298 (coe v0))))</span>
+<span class="lineno">  150 </span><span class="spaces">         </span><span class="istickedoff">(coe v1))</span></span>
+<span class="lineno">  151 </span>-- Untyped.CEKWithCost.stepC
+<span class="lineno">  152 </span>d_stepC_70 ::
+<span class="lineno">  153 </span>  () -&gt;
+<span class="lineno">  154 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  155 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  156 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">d_stepC_70 ~v0 v1 v2 = du_stepC_70 v1 v2</span></span>
+<span class="lineno">  158 </span>du_stepC_70 ::
+<span class="lineno">  159 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  160 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  161 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  162 </span><span class="decl"><span class="istickedoff">du_stepC_70 v0 v1</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="istickedoff">= case coe v1 of</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 v2 v3 v4 v5</span>
+<span class="lineno">  165 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v5 of</span>
+<span class="lineno">  166 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_'96'_18 v6</span>
+<span class="lineno">  167 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  168 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  169 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  170 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  171 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  172 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  173 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BVar_10))</span>
+<span class="lineno">  174 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  175 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  176 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  177 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v3)</span>
+<span class="lineno">  178 </span><span class="spaces">                          </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.du_lookup_232 (coe v4) (coe v6)))</span>
+<span class="lineno">  179 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  180 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_ƛ_20 v6</span>
+<span class="lineno">  181 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  182 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  183 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  184 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  185 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  186 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  187 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  188 </span><span class="spaces">                       </span><span class="istickedoff">du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BLamAbs_12))</span>
+<span class="lineno">  189 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  190 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  191 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  192 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v3)</span>
+<span class="lineno">  193 </span><span class="spaces">                          </span><span class="istickedoff">(coe</span>
+<span class="lineno">  194 </span><span class="spaces">                             </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'ƛ_46 <span class="nottickedoff">(coe v2)</span> (coe v4) (coe v6)))</span>
+<span class="lineno">  195 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  196 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C__'183'__22 v6 v7</span>
+<span class="lineno">  197 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  198 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  199 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  200 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  201 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  202 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  203 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BApply_14))</span>
+<span class="lineno">  204 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  205 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  206 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  207 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v2)</span></span>
+<span class="lineno">  208 </span><span class="spaces">                          </span><span class="istickedoff">(coe</span>
+<span class="lineno">  209 </span><span class="spaces">                             </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v3)</span>
+<span class="lineno">  210 </span><span class="spaces">                             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  211 </span><span class="spaces">                                </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_'45''183'_200 <span class="nottickedoff">(coe v2)</span> (coe v4)</span>
+<span class="lineno">  212 </span><span class="spaces">                                </span><span class="istickedoff">(coe v7)))</span>
+<span class="lineno">  213 </span><span class="spaces">                          </span><span class="istickedoff">(coe v4) (coe v6))</span>
+<span class="lineno">  214 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  215 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_force_24 v6</span>
+<span class="lineno">  216 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  217 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  218 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  219 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  220 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  221 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  222 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BForce_18))</span>
+<span class="lineno">  223 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  224 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  225 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  226 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v2)</span></span>
+<span class="lineno">  227 </span><span class="spaces">                          </span><span class="istickedoff">(coe</span>
+<span class="lineno">  228 </span><span class="spaces">                             </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v3)</span>
+<span class="lineno">  229 </span><span class="spaces">                             </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_force'45'_206))</span>
+<span class="lineno">  230 </span><span class="spaces">                          </span><span class="istickedoff">(coe v4) (coe v6))</span>
+<span class="lineno">  231 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  232 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_delay_26 v6</span>
+<span class="lineno">  233 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  234 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  235 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  236 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  237 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  238 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  239 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BDelay_16))</span>
+<span class="lineno">  240 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  241 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  242 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  243 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v3)</span>
+<span class="lineno">  244 </span><span class="spaces">                          </span><span class="istickedoff">(coe</span>
+<span class="lineno">  245 </span><span class="spaces">                             </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'delay_54 <span class="nottickedoff">(coe v2)</span> (coe v4)</span>
+<span class="lineno">  246 </span><span class="spaces">                             </span><span class="istickedoff">(coe v6)))</span>
+<span class="lineno">  247 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  248 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_con_28 v6</span>
+<span class="lineno">  249 </span><span class="spaces">               </span><span class="istickedoff">-&gt; case coe v6 of</span>
+<span class="lineno">  250 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.RawU.C_tmCon_206 v7 v8</span>
+<span class="lineno">  251 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  252 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  253 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  254 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  255 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  256 </span><span class="spaces">                              </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  257 </span><span class="spaces">                           </span><span class="istickedoff">(coe du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BConst_8))</span>
+<span class="lineno">  258 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  259 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  260 </span><span class="spaces">                              </span><span class="istickedoff">(coe</span>
+<span class="lineno">  261 </span><span class="spaces">                                 </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v3)</span>
+<span class="lineno">  262 </span><span class="spaces">                                 </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_V'45'con_50 (coe v7) (coe v8)))</span>
+<span class="lineno">  263 </span><span class="spaces">                              </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  264 </span><span class="spaces">                    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  265 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_constr_34 v6 v7</span>
+<span class="lineno">  266 </span><span class="spaces">               </span><span class="istickedoff">-&gt; case coe v7 of</span>
+<span class="lineno">  267 </span><span class="spaces">                    </span><span class="istickedoff">[]</span>
+<span class="lineno">  268 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  269 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  270 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  271 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  272 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  273 </span><span class="spaces">                              </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  274 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  275 </span><span class="spaces">                              </span><span class="istickedoff">du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BConstr_22))</span>
+<span class="lineno">  276 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  277 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  278 </span><span class="spaces">                              </span><span class="istickedoff">(coe</span>
+<span class="lineno">  279 </span><span class="spaces">                                 </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v3)</span>
+<span class="lineno">  280 </span><span class="spaces">                                 </span><span class="istickedoff">(coe</span>
+<span class="lineno">  281 </span><span class="spaces">                                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'constr_60 (coe v6)</span>
+<span class="lineno">  282 </span><span class="spaces">                                    </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_ε_10)))</span>
+<span class="lineno">  283 </span><span class="spaces">                              </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  284 </span><span class="spaces">                    </span><span class="istickedoff">(:) v8 v9</span>
+<span class="lineno">  285 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  286 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  287 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  288 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  289 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  290 </span><span class="spaces">                              </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  291 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  292 </span><span class="spaces">                              </span><span class="istickedoff">du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BConstr_22))</span>
+<span class="lineno">  293 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  294 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  295 </span><span class="spaces">                              </span><span class="istickedoff">(coe</span>
+<span class="lineno">  296 </span><span class="spaces">                                 </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v2)</span></span>
+<span class="lineno">  297 </span><span class="spaces">                                 </span><span class="istickedoff">(coe</span>
+<span class="lineno">  298 </span><span class="spaces">                                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v3)</span>
+<span class="lineno">  299 </span><span class="spaces">                                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  300 </span><span class="spaces">                                       </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_constr'45'_210 <span class="nottickedoff">(coe v2)</span> (coe v6)</span>
+<span class="lineno">  301 </span><span class="spaces">                                       </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_ε_10) <span class="nottickedoff">(coe v4)</span> (coe v9)))</span>
+<span class="lineno">  302 </span><span class="spaces">                                 </span><span class="istickedoff"><span class="nottickedoff">(coe v4)</span> (coe v8))</span>
+<span class="lineno">  303 </span><span class="spaces">                              </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  304 </span><span class="spaces">                    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  305 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_case_40 v6 v7</span>
+<span class="lineno">  306 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  307 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  308 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  309 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  310 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  311 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  312 </span><span class="spaces">                    </span><span class="istickedoff">(coe du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BCase_24))</span>
+<span class="lineno">  313 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  314 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  315 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  316 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v2)</span></span>
+<span class="lineno">  317 </span><span class="spaces">                          </span><span class="istickedoff">(coe</span>
+<span class="lineno">  318 </span><span class="spaces">                             </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v3)</span>
+<span class="lineno">  319 </span><span class="spaces">                             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  320 </span><span class="spaces">                                </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_case'45'_216 <span class="nottickedoff">(coe v2)</span> <span class="nottickedoff">(coe v4)</span></span>
+<span class="lineno">  321 </span><span class="spaces">                                </span><span class="istickedoff">(coe v7)))</span>
+<span class="lineno">  322 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe v4)</span> (coe v6))</span>
+<span class="lineno">  323 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  324 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_builtin_44 v6</span>
+<span class="lineno">  325 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  326 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  327 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  328 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  329 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  330 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  331 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  332 </span><span class="spaces">                       </span><span class="istickedoff">du_spend_28 (coe v0) (coe MAlonzo.Code.Cost.Base.C_BBuiltin_20))</span>
+<span class="lineno">  333 </span><span class="spaces">                    </span><span class="istickedoff">(coe</span>
+<span class="lineno">  334 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  335 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  336 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v3)</span>
+<span class="lineno">  337 </span><span class="spaces">                          </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.d_ival_980 (coe v6)))</span>
+<span class="lineno">  338 </span><span class="spaces">                       </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  339 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_error_46</span>
+<span class="lineno">  340 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  341 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  342 </span><span class="spaces">                    </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  343 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  344 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  345 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 v2 v3</span>
+<span class="lineno">  346 </span><span class="spaces">        </span><span class="istickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  347 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_ε_10</span>
+<span class="lineno">  348 </span><span class="spaces">               </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  349 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  350 </span><span class="spaces">                    </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9633'_226 (coe v3))</span>
+<span class="lineno">  351 </span><span class="spaces">                    </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  352 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 v4 v5</span>
+<span class="lineno">  353 </span><span class="spaces">               </span><span class="istickedoff">-&gt; case coe v5 of</span>
+<span class="lineno">  354 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_'45''183'_200 v6 v7 v8</span>
+<span class="lineno">  355 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  356 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  357 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  358 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v6)</span></span>
+<span class="lineno">  359 </span><span class="spaces">                              </span><span class="istickedoff">(coe</span>
+<span class="lineno">  360 </span><span class="spaces">                                 </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v4)</span>
+<span class="lineno">  361 </span><span class="spaces">                                 </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C__'183''45'_204 (coe v3)))</span>
+<span class="lineno">  362 </span><span class="spaces">                              </span><span class="istickedoff">(coe v7) (coe v8))</span>
+<span class="lineno">  363 </span><span class="spaces">                           </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  364 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_'45''183'v_202 v6</span>
+<span class="lineno">  365 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  366 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  367 </span><span class="spaces">                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  368 </span><span class="spaces">                              </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224</span>
+<span class="lineno">  369 </span><span class="spaces">                              </span><span class="istickedoff">(coe</span>
+<span class="lineno">  370 </span><span class="spaces">                                 </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v4)</span>
+<span class="lineno">  371 </span><span class="spaces">                                 </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C__'183''45'_204 (coe v3)))</span>
+<span class="lineno">  372 </span><span class="spaces">                              </span><span class="istickedoff">(coe v6))</span>
+<span class="lineno">  373 </span><span class="spaces">                           </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  374 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'183''45'_204 v6</span>
+<span class="lineno">  375 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; case coe v6 of</span>
+<span class="lineno">  376 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'ƛ_46 v7 v8 v9</span>
+<span class="lineno">  377 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  378 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  379 </span><span class="spaces">                                  </span><span class="istickedoff">(coe</span>
+<span class="lineno">  380 </span><span class="spaces">                                     </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222</span>
+<span class="lineno">  381 </span><span class="spaces">                                     </span><span class="istickedoff"><span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v7))</span> (coe v4)</span>
+<span class="lineno">  382 </span><span class="spaces">                                     </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C__'8759'__22 v8 v3) (coe v9))</span>
+<span class="lineno">  383 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  384 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v7 v8</span>
+<span class="lineno">  385 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  386 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  387 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  388 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  389 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'delay_54 v7 v8 v9</span>
+<span class="lineno">  390 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  391 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  392 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span></span>
+<span class="lineno">  393 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  394 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'constr_60 v7 v8</span>
+<span class="lineno">  395 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  396 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  397 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span></span>
+<span class="lineno">  398 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  399 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'I'8658'_74 v7 v8 v9 v10 v11 v12 v13</span>
+<span class="lineno">  400 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; case coe v11 of</span>
+<span class="lineno">  401 </span><span class="spaces">                                  </span><span class="istickedoff">0 -&gt; coe</span>
+<span class="lineno">  402 </span><span class="spaces">                                         </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  403 </span><span class="spaces">                                         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  404 </span><span class="spaces">                                            </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  405 </span><span class="spaces">                                            </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  406 </span><span class="spaces">                                            </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  407 </span><span class="spaces">                                         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  408 </span><span class="spaces">                                            </span><span class="istickedoff">du_spendBuiltin_58 (coe v0) (coe v7)</span>
+<span class="lineno">  409 </span><span class="spaces">                                            </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_app_106 v13 v3))</span>
+<span class="lineno">  410 </span><span class="spaces">                                         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  411 </span><span class="spaces">                                            </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  412 </span><span class="spaces">                                            </span><span class="istickedoff">(coe</span>
+<span class="lineno">  413 </span><span class="spaces">                                               </span><span class="istickedoff">MAlonzo.Code.Utils.du_either_22</span>
+<span class="lineno">  414 </span><span class="spaces">                                               </span><span class="istickedoff">(coe</span>
+<span class="lineno">  415 </span><span class="spaces">                                                  </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.d_BUILTIN_278 v7</span>
+<span class="lineno">  416 </span><span class="spaces">                                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_app_106 v13 v3))</span>
+<span class="lineno">  417 </span><span class="spaces">                                               </span><span class="istickedoff">(coe</span>
+<span class="lineno">  418 </span><span class="spaces">                                                  </span><span class="istickedoff">(\ v14 -&gt;</span>
+<span class="lineno">  419 </span><span class="spaces">                                                     </span><span class="istickedoff">coe MAlonzo.Code.Untyped.CEK.C_'9670'_228))</span>
+<span class="lineno">  420 </span><span class="spaces">                                               </span><span class="istickedoff">(coe</span>
+<span class="lineno">  421 </span><span class="spaces">                                                  </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v4)))</span>
+<span class="lineno">  422 </span><span class="spaces">                                            </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  423 </span><span class="spaces">                                  </span><span class="istickedoff">_ -&gt; let v14 = subInt (coe v11) (coe (1 :: Integer)) in</span>
+<span class="lineno">  424 </span><span class="spaces">                                       </span><span class="istickedoff">coe</span>
+<span class="lineno">  425 </span><span class="spaces">                                         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  426 </span><span class="spaces">                                            </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  427 </span><span class="spaces">                                            </span><span class="istickedoff">(coe</span>
+<span class="lineno">  428 </span><span class="spaces">                                               </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v4)</span>
+<span class="lineno">  429 </span><span class="spaces">                                               </span><span class="istickedoff">(coe</span>
+<span class="lineno">  430 </span><span class="spaces">                                                  </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.d_V'45'I_258 (coe v7)</span>
+<span class="lineno">  431 </span><span class="spaces">                                                  </span><span class="istickedoff"><span class="nottickedoff">(coe v8)</span> (coe (0 :: Integer)) (coe v9)</span>
+<span class="lineno">  432 </span><span class="spaces">                                                  </span><span class="istickedoff"><span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v10))</span></span>
+<span class="lineno">  433 </span><span class="spaces">                                                  </span><span class="istickedoff">(coe v14)</span>
+<span class="lineno">  434 </span><span class="spaces">                                                  </span><span class="istickedoff">(coe MAlonzo.Code.Utils.C_bubble_162 v12)</span>
+<span class="lineno">  435 </span><span class="spaces">                                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_app_106 v13 v3)))</span>
+<span class="lineno">  436 </span><span class="spaces">                                            </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))</span>
+<span class="lineno">  437 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'IΠ_90 v7 v8 v9 v10 v11 v12 v13 v14</span>
+<span class="lineno">  438 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  439 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  440 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  441 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  442 </span><span class="spaces">                           </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  443 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_force'45'_206</span>
+<span class="lineno">  444 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">  445 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'ƛ_46 v6 v7 v8</span>
+<span class="lineno">  446 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  447 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  448 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  449 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  450 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v6 v7</span>
+<span class="lineno">  451 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  452 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  453 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  454 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  455 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'delay_54 v6 v7 v8</span>
+<span class="lineno">  456 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  457 </span><span class="spaces">                                  </span><span class="istickedoff">du_stepC_70 (coe v0)</span>
+<span class="lineno">  458 </span><span class="spaces">                                  </span><span class="istickedoff">(coe</span>
+<span class="lineno">  459 </span><span class="spaces">                                     </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v6)</span> (coe v4)</span>
+<span class="lineno">  460 </span><span class="spaces">                                     </span><span class="istickedoff">(coe v7) (coe v8))</span>
+<span class="lineno">  461 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'constr_60 v6 v7</span>
+<span class="lineno">  462 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  463 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  464 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span></span>
+<span class="lineno">  465 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  466 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'I'8658'_74 v6 v7 v8 v9 v10 v11 v12</span>
+<span class="lineno">  467 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  468 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  469 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  470 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  471 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'IΠ_90 v6 v7 v8 v9 v10 v11 v12 v13</span>
+<span class="lineno">  472 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  473 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  474 </span><span class="spaces">                                  </span><span class="istickedoff">(coe</span>
+<span class="lineno">  475 </span><span class="spaces">                                     </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v4)</span>
+<span class="lineno">  476 </span><span class="spaces">                                     </span><span class="istickedoff">(coe</span>
+<span class="lineno">  477 </span><span class="spaces">                                        </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.d_V'45'I_258 (coe v6)</span>
+<span class="lineno">  478 </span><span class="spaces">                                        </span><span class="istickedoff"><span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v7))</span> (coe v8)</span>
+<span class="lineno">  479 </span><span class="spaces">                                        </span><span class="istickedoff">(coe MAlonzo.Code.Utils.C_bubble_162 <span class="nottickedoff">v9</span>) <span class="nottickedoff">(coe v10)</span> (coe v11)</span>
+<span class="lineno">  480 </span><span class="spaces">                                        </span><span class="istickedoff"><span class="nottickedoff">(coe v12)</span></span>
+<span class="lineno">  481 </span><span class="spaces">                                        </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_app'8902'_120 v13)))</span>
+<span class="lineno">  482 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  483 </span><span class="spaces">                           </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  484 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_constr'45'_210 v6 v7 v8 v9 v10</span>
+<span class="lineno">  485 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; case coe v10 of</span>
+<span class="lineno">  486 </span><span class="spaces">                           </span><span class="istickedoff">[]</span>
+<span class="lineno">  487 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  488 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  489 </span><span class="spaces">                                  </span><span class="istickedoff">(coe</span>
+<span class="lineno">  490 </span><span class="spaces">                                     </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v4)</span>
+<span class="lineno">  491 </span><span class="spaces">                                     </span><span class="istickedoff">(coe</span>
+<span class="lineno">  492 </span><span class="spaces">                                        </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'constr_60 (coe v7)</span>
+<span class="lineno">  493 </span><span class="spaces">                                        </span><span class="istickedoff">(coe</span>
+<span class="lineno">  494 </span><span class="spaces">                                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v8) (coe v3))))</span>
+<span class="lineno">  495 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  496 </span><span class="spaces">                           </span><span class="istickedoff">(:) v11 v12</span>
+<span class="lineno">  497 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  498 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  499 </span><span class="spaces">                                  </span><span class="istickedoff">(coe</span>
+<span class="lineno">  500 </span><span class="spaces">                                     </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v6)</span></span>
+<span class="lineno">  501 </span><span class="spaces">                                     </span><span class="istickedoff">(coe</span>
+<span class="lineno">  502 </span><span class="spaces">                                        </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v4)</span>
+<span class="lineno">  503 </span><span class="spaces">                                        </span><span class="istickedoff">(coe</span>
+<span class="lineno">  504 </span><span class="spaces">                                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_constr'45'_210 <span class="nottickedoff">(coe v6)</span></span>
+<span class="lineno">  505 </span><span class="spaces">                                           </span><span class="istickedoff">(coe v7)</span>
+<span class="lineno">  506 </span><span class="spaces">                                           </span><span class="istickedoff">(coe</span>
+<span class="lineno">  507 </span><span class="spaces">                                              </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'44'__12 (coe v8)</span>
+<span class="lineno">  508 </span><span class="spaces">                                              </span><span class="istickedoff">(coe v3))</span>
+<span class="lineno">  509 </span><span class="spaces">                                           </span><span class="istickedoff"><span class="nottickedoff">(coe v9)</span> (coe v12)))</span>
+<span class="lineno">  510 </span><span class="spaces">                                     </span><span class="istickedoff"><span class="nottickedoff">(coe v9)</span> (coe v11))</span>
+<span class="lineno">  511 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  512 </span><span class="spaces">                           </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  513 </span><span class="spaces">                    </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_case'45'_216 v6 v7 v8</span>
+<span class="lineno">  514 </span><span class="spaces">                      </span><span class="istickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">  515 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'ƛ_46 v9 v10 v11</span>
+<span class="lineno">  516 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  517 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  518 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  519 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  520 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v9 v10</span>
+<span class="lineno">  521 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  522 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  523 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span></span>
+<span class="lineno">  524 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  525 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'delay_54 v9 v10 v11</span>
+<span class="lineno">  526 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  527 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  528 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span></span>
+<span class="lineno">  529 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  530 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'constr_60 v9 v10</span>
+<span class="lineno">  531 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  532 </span><span class="spaces">                                  </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  533 </span><span class="spaces">                                  </span><span class="istickedoff">(coe</span>
+<span class="lineno">  534 </span><span class="spaces">                                     </span><span class="istickedoff">MAlonzo.Code.Data.Maybe.Base.du_maybe_32</span>
+<span class="lineno">  535 </span><span class="spaces">                                     </span><span class="istickedoff">(coe</span>
+<span class="lineno">  536 </span><span class="spaces">                                        </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 <span class="nottickedoff">(coe v6)</span></span>
+<span class="lineno">  537 </span><span class="spaces">                                        </span><span class="istickedoff">(coe</span>
+<span class="lineno">  538 </span><span class="spaces">                                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.d_pushValueFrames_984 (coe v4)</span>
+<span class="lineno">  539 </span><span class="spaces">                                           </span><span class="istickedoff">(coe v10))</span>
+<span class="lineno">  540 </span><span class="spaces">                                        </span><span class="istickedoff"><span class="nottickedoff">(coe v7)</span>)</span>
+<span class="lineno">  541 </span><span class="spaces">                                     </span><span class="istickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span>
+<span class="lineno">  542 </span><span class="spaces">                                     </span><span class="istickedoff">(coe</span>
+<span class="lineno">  543 </span><span class="spaces">                                        </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.du_lookup'63'_996 (coe v9)</span>
+<span class="lineno">  544 </span><span class="spaces">                                        </span><span class="istickedoff">(coe v8)))</span>
+<span class="lineno">  545 </span><span class="spaces">                                  </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  546 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'I'8658'_74 v9 v10 v11 v12 v13 v14 v15</span>
+<span class="lineno">  547 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  548 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  549 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span></span>
+<span class="lineno">  550 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  551 </span><span class="spaces">                           </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_V'45'IΠ_90 v9 v10 v11 v12 v13 v14 v15 v16</span>
+<span class="lineno">  552 </span><span class="spaces">                             </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  553 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  554 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)</span></span>
+<span class="lineno">  555 </span><span class="spaces">                                  </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  556 </span><span class="spaces">                           </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  557 </span><span class="spaces">                    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  558 </span><span class="spaces">             </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  559 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_'9633'_226 v2</span>
+<span class="lineno">  560 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  561 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348 (coe v1)</span></span>
+<span class="lineno">  562 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  563 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_'9670'_228</span>
+<span class="lineno">  564 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  565 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348 (coe v1)</span></span>
+<span class="lineno">  566 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  567 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  568 </span>-- Untyped.CEKWithCost.stepperC-internal
+<span class="lineno">  569 </span>d_stepperC'45'internal_314 ::
+<span class="lineno">  570 </span>  () -&gt;
+<span class="lineno">  571 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  572 </span>  Integer -&gt;
+<span class="lineno">  573 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  574 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  575 </span><span class="decl"><span class="nottickedoff">d_stepperC'45'internal_314 ~v0 v1 v2 v3</span>
+<span class="lineno">  576 </span><span class="spaces">  </span><span class="nottickedoff">= du_stepperC'45'internal_314 v1 v2 v3</span></span>
+<span class="lineno">  577 </span>du_stepperC'45'internal_314 ::
+<span class="lineno">  578 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  579 </span>  Integer -&gt;
+<span class="lineno">  580 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  581 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  582 </span><span class="decl"><span class="istickedoff">du_stepperC'45'internal_314 v0 v1 v2</span>
+<span class="lineno">  583 </span><span class="spaces">  </span><span class="istickedoff">= case coe v1 of</span>
+<span class="lineno">  584 </span><span class="spaces">      </span><span class="istickedoff">0 -&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  585 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__348</span></span>
+<span class="lineno">  586 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  587 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C_inj'8321'_12</span></span>
+<span class="lineno">  588 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Utils.C_gasError_380))</span></span>
+<span class="lineno">  589 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  590 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; let v3 = subInt (coe v1) (coe (1 :: Integer)) in</span>
+<span class="lineno">  591 </span><span class="spaces">           </span><span class="istickedoff">coe</span>
+<span class="lineno">  592 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  593 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  594 </span><span class="spaces">                </span><span class="istickedoff">(coe</span>
+<span class="lineno">  595 </span><span class="spaces">                   </span><span class="istickedoff">MAlonzo.Code.Utils.d_wrvalue_344</span>
+<span class="lineno">  596 </span><span class="spaces">                   </span><span class="istickedoff">(coe</span>
+<span class="lineno">  597 </span><span class="spaces">                      </span><span class="istickedoff">du_go_328 <span class="nottickedoff">(coe v0)</span> (coe v3)</span>
+<span class="lineno">  598 </span><span class="spaces">                      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  599 </span><span class="spaces">                         </span><span class="istickedoff">MAlonzo.Code.Utils.d_wrvalue_344</span>
+<span class="lineno">  600 </span><span class="spaces">                         </span><span class="istickedoff">(coe du_stepC_70 <span class="nottickedoff">(coe v0)</span> (coe v2)))))</span>
+<span class="lineno">  601 </span><span class="spaces">                </span><span class="istickedoff">(coe</span>
+<span class="lineno">  602 </span><span class="spaces">                   </span><span class="istickedoff">MAlonzo.Code.Cost.Base.d__'8729'__62 v0</span>
+<span class="lineno">  603 </span><span class="spaces">                   </span><span class="istickedoff">(MAlonzo.Code.Utils.d_accum_346</span>
+<span class="lineno">  604 </span><span class="spaces">                      </span><span class="istickedoff">(coe du_stepC_70 (coe v0) (coe v2)))</span>
+<span class="lineno">  605 </span><span class="spaces">                   </span><span class="istickedoff">(MAlonzo.Code.Utils.d_accum_346</span>
+<span class="lineno">  606 </span><span class="spaces">                      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  607 </span><span class="spaces">                         </span><span class="istickedoff">du_go_328 (coe v0) (coe v3)</span>
+<span class="lineno">  608 </span><span class="spaces">                         </span><span class="istickedoff">(coe</span>
+<span class="lineno">  609 </span><span class="spaces">                            </span><span class="istickedoff">MAlonzo.Code.Utils.d_wrvalue_344</span>
+<span class="lineno">  610 </span><span class="spaces">                            </span><span class="istickedoff">(coe du_stepC_70 <span class="nottickedoff">(coe v0)</span> (coe v2)))))))</span></span>
+<span class="lineno">  611 </span>-- Untyped.CEKWithCost._.go
+<span class="lineno">  612 </span>d_go_328 ::
+<span class="lineno">  613 </span>  () -&gt;
+<span class="lineno">  614 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  615 </span>  Integer -&gt;
+<span class="lineno">  616 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  617 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  618 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  619 </span><span class="decl"><span class="nottickedoff">d_go_328 ~v0 v1 v2 ~v3 v4 = du_go_328 v1 v2 v4</span></span>
+<span class="lineno">  620 </span>du_go_328 ::
+<span class="lineno">  621 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  622 </span>  Integer -&gt;
+<span class="lineno">  623 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  624 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  625 </span><span class="decl"><span class="istickedoff">du_go_328 v0 v1 v2</span>
+<span class="lineno">  626 </span><span class="spaces">  </span><span class="istickedoff">= let v3</span>
+<span class="lineno">  627 </span><span class="spaces">          </span><span class="istickedoff">= coe du_stepperC'45'internal_314 (coe v0) (coe v1) (coe v2) in</span>
+<span class="lineno">  628 </span><span class="spaces">    </span><span class="istickedoff">coe</span>
+<span class="lineno">  629 </span><span class="spaces">      </span><span class="istickedoff">(case coe v2 of</span>
+<span class="lineno">  630 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_'9633'_226 v4</span>
+<span class="lineno">  631 </span><span class="spaces">           </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  632 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  633 </span><span class="spaces">                </span><span class="istickedoff">(coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v2))</span>
+<span class="lineno">  634 </span><span class="spaces">                </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span>
+<span class="lineno">  635 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Untyped.CEK.C_'9670'_228</span>
+<span class="lineno">  636 </span><span class="spaces">           </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  637 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__348</span>
+<span class="lineno">  638 </span><span class="spaces">                </span><span class="istickedoff">(coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v2))</span>
+<span class="lineno">  639 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  640 </span><span class="spaces">         </span><span class="istickedoff">_ -&gt; coe v3)</span></span>
+<span class="lineno">  641 </span>-- Untyped.CEKWithCost.stepperC
+<span class="lineno">  642 </span>d_stepperC_338 ::
+<span class="lineno">  643 </span>  () -&gt;
+<span class="lineno">  644 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  645 </span>  Integer -&gt;
+<span class="lineno">  646 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  647 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  648 </span><span class="decl"><span class="nottickedoff">d_stepperC_338 ~v0 v1 v2 v3 = du_stepperC_338 v1 v2 v3</span></span>
+<span class="lineno">  649 </span>du_stepperC_338 ::
+<span class="lineno">  650 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  651 </span>  Integer -&gt;
+<span class="lineno">  652 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  653 </span>  MAlonzo.Code.Utils.T_Writer_334
+<span class="lineno">  654 </span><span class="decl"><span class="istickedoff">du_stepperC_338 v0 v1 v2</span>
+<span class="lineno">  655 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  656 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Utils.du__'62''62'__244</span>
+<span class="lineno">  657 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  658 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Utils.du_WriterMonad_358</span>
+<span class="lineno">  659 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))</span></span>
+<span class="lineno">  660 </span><span class="spaces">         </span><span class="istickedoff">(coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))</span>
+<span class="lineno">  661 </span><span class="spaces">      </span><span class="istickedoff">(coe du_spendStartupCost_32 (coe v0))</span>
+<span class="lineno">  662 </span><span class="spaces">      </span><span class="istickedoff">(coe du_stepperC'45'internal_314 (coe v0) (coe v1) (coe v2))</span></span>
+<span class="lineno">  663 </span>-- Untyped.CEKWithCost.cekStepEquivalence
+<span class="lineno">  664 </span>d_cekStepEquivalence_346 ::
+<span class="lineno">  665 </span>  () -&gt;
+<span class="lineno">  666 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  667 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  668 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  669 </span><span class="decl"><span class="nottickedoff">d_cekStepEquivalence_346 = erased</span></span>
+<span class="lineno">  670 </span>-- Untyped.CEKWithCost.cekStepperEquivalence
+<span class="lineno">  671 </span>d_cekStepperEquivalence_472 ::
+<span class="lineno">  672 </span>  () -&gt;
+<span class="lineno">  673 </span>  MAlonzo.Code.Cost.Base.T_MachineParameters_46 -&gt;
+<span class="lineno">  674 </span>  Integer -&gt;
+<span class="lineno">  675 </span>  MAlonzo.Code.Untyped.CEK.T_State_218 -&gt;
+<span class="lineno">  676 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  677 </span><span class="decl"><span class="nottickedoff">d_cekStepperEquivalence_472 = erased</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,3456 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Transform.Simplifier</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+	><span class="hs-identifier"
+	  >SimplifierT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+	><span class="hs-identifier"
+	  >Trace.SimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierStage"
+	><span class="hs-identifier"
+	  >Trace.SimplifierStage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#Simplification"
+	><span class="hs-identifier"
+	  >Trace.Simplification</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#runSimplifierT"
+	><span class="hs-identifier"
+	  >runSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#evalSimplifierT"
+	><span class="hs-identifier"
+	  >evalSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#execSimplifierT"
+	><span class="hs-identifier"
+	  >execSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#Simplifier"
+	><span class="hs-identifier"
+	  >Simplifier</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#runSimplifier"
+	><span class="hs-identifier"
+	  >runSimplifier</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#evalSimplifier"
+	><span class="hs-identifier"
+	  >evalSimplifier</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#execSimplifier"
+	><span class="hs-identifier"
+	  >execSimplifier</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#initSimplifierTrace"
+	><span class="hs-identifier"
+	  >Trace.initSimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#recordSimplification"
+	><span class="hs-identifier"
+	  >recordSimplification</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#recordSimplificationWithHints"
+	><span class="hs-identifier"
+	  >recordSimplificationWithHints</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.html"
+	><span class="hs-identifier"
+	  >Control.Monad.State</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#MonadTrans"
+	><span class="hs-identifier"
+	  >MonadTrans</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#StateT"
+	><span class="hs-identifier"
+	  >StateT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.html"
+	><span class="hs-identifier"
+	  >Control.Monad.State</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>State</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Identity.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier"
+	  >Identity</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#runIdentity"
+	><span class="hs-identifier"
+	  >runIdentity</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html#MonadQuote"
+	><span class="hs-identifier"
+	  >MonadQuote</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier"
+	  >Term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Transform.Certify.Hints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Hints</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Transform.Certify.Trace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Trace</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="SimplifierT"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+	  ><span class="hs-identifier hs-var"
+	    >SimplifierT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209956"
+      ><span class="annot"
+	><a href="#local-6989586621682209956"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209957"
+      ><span class="annot"
+	><a href="#local-6989586621682209957"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209958"
+      ><span class="annot"
+	><a href="#local-6989586621682209958"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209959"
+      ><span class="annot"
+	><a href="#local-6989586621682209959"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209960"
+      ><span class="annot"
+	><a href="#local-6989586621682209960"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682209961"
+      ><span class="annot"
+	><a href="#local-6989586621682209961"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SimplifierT"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+	  ><span class="hs-identifier hs-var"
+	    >SimplifierT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="getSimplifierT"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+SimplifierT name uni fun ann m a
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#getSimplifierT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getSimplifierT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#StateT"
+	><span class="hs-identifier hs-type"
+	  >StateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+	><span class="hs-identifier hs-type"
+	  >Trace.SimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209956"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209957"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209958"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209959"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209960"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682209961"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682210224"
+      ><span id="local-6989586621682210229"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b.
+ (a -&gt; b)
+ -&gt; SimplifierT name uni fun ann m a
+ -&gt; SimplifierT name uni fun ann m b)
+-&gt; (forall a b.
+    a
+    -&gt; SimplifierT name uni fun ann m b
+    -&gt; SimplifierT name uni fun ann m a)
+-&gt; Functor (SimplifierT name uni fun ann m)
+forall a b.
+a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+forall a b.
+(a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Functor m =&gt;
+a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Functor m =&gt;
+(a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Functor m =&gt;
+(a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+fmap :: forall a b.
+(a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+$c&lt;$ :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Functor m =&gt;
+a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+&lt;$ :: forall a b.
+a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682210239"
+      ><span id="local-6989586621682210244"
+	><span id="local-6989586621682210248"
+	  ><span id="local-6989586621682210252"
+	    ><span id="local-6989586621682210256"
+	      ><span class="annot"
+		><span class="annottext"
+		  >Functor (SimplifierT name uni fun ann m)
+Functor (SimplifierT name uni fun ann m) =&gt;
+(forall a. a -&gt; SimplifierT name uni fun ann m a)
+-&gt; (forall a b.
+    SimplifierT name uni fun ann m (a -&gt; b)
+    -&gt; SimplifierT name uni fun ann m a
+    -&gt; SimplifierT name uni fun ann m b)
+-&gt; (forall a b c.
+    (a -&gt; b -&gt; c)
+    -&gt; SimplifierT name uni fun ann m a
+    -&gt; SimplifierT name uni fun ann m b
+    -&gt; SimplifierT name uni fun ann m c)
+-&gt; (forall a b.
+    SimplifierT name uni fun ann m a
+    -&gt; SimplifierT name uni fun ann m b
+    -&gt; SimplifierT name uni fun ann m b)
+-&gt; (forall a b.
+    SimplifierT name uni fun ann m a
+    -&gt; SimplifierT name uni fun ann m b
+    -&gt; SimplifierT name uni fun ann m a)
+-&gt; Applicative (SimplifierT name uni fun ann m)
+forall a. a -&gt; SimplifierT name uni fun ann m a
+forall a b.
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+forall a b.
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+forall a b.
+SimplifierT name uni fun ann m (a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+forall a b c.
+(a -&gt; b -&gt; c)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m c
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+Monad m =&gt;
+Functor (SimplifierT name uni fun ann m)
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+Monad m =&gt;
+a -&gt; SimplifierT name uni fun ann m a
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m (a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; b -&gt; c)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m c
+forall (f :: * -&gt; *).
+Functor f =&gt;
+(forall a. a -&gt; f a)
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; Applicative f
+$cpure :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+Monad m =&gt;
+a -&gt; SimplifierT name uni fun ann m a
+pure :: forall a. a -&gt; SimplifierT name uni fun ann m a
+$c&lt;*&gt; :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m (a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+&lt;*&gt; :: forall a b.
+SimplifierT name uni fun ann m (a -&gt; b)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+$cliftA2 :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; b -&gt; c)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m c
+liftA2 :: forall a b c.
+(a -&gt; b -&gt; c)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m c
+$c*&gt; :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+*&gt; :: forall a b.
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+$c&lt;* :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+&lt;* :: forall a b.
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m a
+</span
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Applicative"
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		    >Applicative</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682210268"
+      ><span id="local-6989586621682210273"
+	><span id="local-6989586621682210277"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Applicative (SimplifierT name uni fun ann m)
+Applicative (SimplifierT name uni fun ann m) =&gt;
+(forall a b.
+ SimplifierT name uni fun ann m a
+ -&gt; (a -&gt; SimplifierT name uni fun ann m b)
+ -&gt; SimplifierT name uni fun ann m b)
+-&gt; (forall a b.
+    SimplifierT name uni fun ann m a
+    -&gt; SimplifierT name uni fun ann m b
+    -&gt; SimplifierT name uni fun ann m b)
+-&gt; (forall a. a -&gt; SimplifierT name uni fun ann m a)
+-&gt; Monad (SimplifierT name uni fun ann m)
+forall a. a -&gt; SimplifierT name uni fun ann m a
+forall a b.
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+forall a b.
+SimplifierT name uni fun ann m a
+-&gt; (a -&gt; SimplifierT name uni fun ann m b)
+-&gt; SimplifierT name uni fun ann m b
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+Monad m =&gt;
+Applicative (SimplifierT name uni fun ann m)
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+Monad m =&gt;
+a -&gt; SimplifierT name uni fun ann m a
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; (a -&gt; SimplifierT name uni fun ann m b)
+-&gt; SimplifierT name uni fun ann m b
+forall (m :: * -&gt; *).
+Applicative m =&gt;
+(forall a b. m a -&gt; (a -&gt; m b) -&gt; m b)
+-&gt; (forall a b. m a -&gt; m b -&gt; m b)
+-&gt; (forall a. a -&gt; m a)
+-&gt; Monad m
+$c&gt;&gt;= :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; (a -&gt; SimplifierT name uni fun ann m b)
+-&gt; SimplifierT name uni fun ann m b
+&gt;&gt;= :: forall a b.
+SimplifierT name uni fun ann m a
+-&gt; (a -&gt; SimplifierT name uni fun ann m b)
+-&gt; SimplifierT name uni fun ann m b
+$c&gt;&gt; :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a b.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+&gt;&gt; :: forall a b.
+SimplifierT name uni fun ann m a
+-&gt; SimplifierT name uni fun ann m b
+-&gt; SimplifierT name uni fun ann m b
+$creturn :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+Monad m =&gt;
+a -&gt; SimplifierT name uni fun ann m a
+return :: forall a. a -&gt; SimplifierT name uni fun ann m a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monad</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682210287"
+      ><span class="annot"
+	><span class="annottext"
+	  >(forall (m :: * -&gt; *).
+ Monad m =&gt;
+ Monad (SimplifierT name uni fun ann m)) =&gt;
+(forall (m :: * -&gt; *) a.
+ Monad m =&gt;
+ m a -&gt; SimplifierT name uni fun ann m a)
+-&gt; MonadTrans (SimplifierT name uni fun ann)
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+Monad m =&gt;
+Monad (SimplifierT name uni fun ann m)
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+Monad m =&gt;
+m a -&gt; SimplifierT name uni fun ann m a
+forall (m :: * -&gt; *).
+Monad m =&gt;
+Monad (SimplifierT name uni fun ann m)
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+m a -&gt; SimplifierT name uni fun ann m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *).
+(forall (m :: * -&gt; *). Monad m =&gt; Monad (t m)) =&gt;
+(forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; t m a) -&gt; MonadTrans t
+$clift :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+Monad m =&gt;
+m a -&gt; SimplifierT name uni fun ann m a
+lift :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+m a -&gt; SimplifierT name uni fun ann m a
+</span
+	  ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#MonadTrans"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >MonadTrans</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682210077"
+      ><span id="local-6989586621682210078"
+	><span id="local-6989586621682210079"
+	  ><span id="local-6989586621682210080"
+	    ><span id="local-6989586621682210081"
+	      ><span id="local-6989586621682210300"
+		><span class="annot"
+		  ><a href="PlutusCore.Quote.html#MonadQuote"
+		    ><span class="hs-identifier hs-type"
+		      >MonadQuote</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210077"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Quote.html#MonadQuote"
+		    ><span class="hs-identifier hs-type"
+		      >MonadQuote</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+		    ><span class="hs-identifier hs-type"
+		      >SimplifierT</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210078"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210079"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210080"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210081"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210077"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621682210082"
+      ><span id="local-6989586621682210083"
+	><span id="local-6989586621682210084"
+	  ><span id="local-6989586621682210085"
+	    ><span id="local-6989586621682210086"
+	      ><span id="local-6989586621682210087"
+		><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Simplifier.html#runSimplifierT"
+		    ><span class="hs-identifier hs-type"
+		      >runSimplifierT</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-36"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+		    ><span class="hs-identifier hs-type"
+		      >SimplifierT</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210082"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210083"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210084"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210085"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210086"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210087"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-37"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210086"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210087"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+		    ><span class="hs-identifier hs-type"
+		      >Trace.SimplifierTrace</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210082"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210083"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210084"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210085"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="runSimplifierT"
+      ><span class="annot"
+	><span class="annottext"
+	  >runSimplifierT :: forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+SimplifierT name uni fun ann m a
+-&gt; m (a, SimplifierTrace name uni fun ann)
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#runSimplifierT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runSimplifierT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (SimplifierTrace name uni fun ann) m a
+ -&gt; SimplifierTrace name uni fun ann
+ -&gt; m (a, SimplifierTrace name uni fun ann))
+-&gt; SimplifierTrace name uni fun ann
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+-&gt; m (a, SimplifierTrace name uni fun ann)
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT (SimplifierTrace name uni fun ann) m a
+-&gt; SimplifierTrace name uni fun ann
+-&gt; m (a, SimplifierTrace name uni fun ann)
+forall s (m :: * -&gt; *) a. StateT s m a -&gt; s -&gt; m (a, s)
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#runStateT"
+	><span class="hs-identifier hs-var"
+	  >State.runStateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierTrace name uni fun ann
+forall name (uni :: * -&gt; *) fun a. SimplifierTrace name uni fun a
+</span
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#initSimplifierTrace"
+	><span class="hs-identifier hs-var"
+	  >Trace.initSimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (SimplifierTrace name uni fun ann) m a
+ -&gt; m (a, SimplifierTrace name uni fun ann))
+-&gt; (SimplifierT name uni fun ann m a
+    -&gt; StateT (SimplifierTrace name uni fun ann) m a)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; m (a, SimplifierTrace name uni fun ann)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierT name uni fun ann m a
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+SimplifierT name uni fun ann m a
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#getSimplifierT"
+	><span class="hs-identifier hs-var"
+	  >getSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="local-6989586621682210107"
+      ><span id="local-6989586621682210108"
+	><span id="local-6989586621682210109"
+	  ><span id="local-6989586621682210110"
+	    ><span id="local-6989586621682210111"
+	      ><span id="local-6989586621682210112"
+		><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Simplifier.html#evalSimplifierT"
+		    ><span class="hs-identifier hs-type"
+		      >evalSimplifierT</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-41"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		    ><span class="hs-identifier hs-type"
+		      >Monad</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210107"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+		    ><span class="hs-identifier hs-type"
+		      >SimplifierT</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210108"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210109"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210110"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210111"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210107"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210112"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210107"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210112"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="evalSimplifierT"
+      ><span class="annot"
+	><span class="annottext"
+	  >evalSimplifierT :: forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun ann a.
+Monad m =&gt;
+SimplifierT name uni fun ann m a -&gt; m a
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#evalSimplifierT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evalSimplifierT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (SimplifierTrace name uni fun ann) m a
+ -&gt; SimplifierTrace name uni fun ann -&gt; m a)
+-&gt; SimplifierTrace name uni fun ann
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+-&gt; m a
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT (SimplifierTrace name uni fun ann) m a
+-&gt; SimplifierTrace name uni fun ann -&gt; m a
+forall (m :: * -&gt; *) s a. Monad m =&gt; StateT s m a -&gt; s -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#evalStateT"
+	><span class="hs-identifier hs-var"
+	  >State.evalStateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierTrace name uni fun ann
+forall name (uni :: * -&gt; *) fun a. SimplifierTrace name uni fun a
+</span
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#initSimplifierTrace"
+	><span class="hs-identifier hs-var"
+	  >Trace.initSimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (SimplifierTrace name uni fun ann) m a -&gt; m a)
+-&gt; (SimplifierT name uni fun ann m a
+    -&gt; StateT (SimplifierTrace name uni fun ann) m a)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierT name uni fun ann m a
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+SimplifierT name uni fun ann m a
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#getSimplifierT"
+	><span class="hs-identifier hs-var"
+	  >getSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621682210122"
+      ><span id="local-6989586621682210123"
+	><span id="local-6989586621682210124"
+	  ><span id="local-6989586621682210125"
+	    ><span id="local-6989586621682210126"
+	      ><span id="local-6989586621682210127"
+		><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Simplifier.html#execSimplifierT"
+		    ><span class="hs-identifier hs-type"
+		      >execSimplifierT</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-45"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		    ><span class="hs-identifier hs-type"
+		      >Monad</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210122"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+		    ><span class="hs-identifier hs-type"
+		      >SimplifierT</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210123"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210124"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210125"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210126"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210122"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210127"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210122"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+		    ><span class="hs-identifier hs-type"
+		      >Trace.SimplifierTrace</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210123"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210124"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210125"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682210126"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="execSimplifierT"
+      ><span class="annot"
+	><span class="annottext"
+	  >execSimplifierT :: forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun ann a.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; m (SimplifierTrace name uni fun ann)
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#execSimplifierT"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >execSimplifierT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (SimplifierTrace name uni fun ann) m a
+ -&gt; SimplifierTrace name uni fun ann
+ -&gt; m (SimplifierTrace name uni fun ann))
+-&gt; SimplifierTrace name uni fun ann
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+-&gt; m (SimplifierTrace name uni fun ann)
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT (SimplifierTrace name uni fun ann) m a
+-&gt; SimplifierTrace name uni fun ann
+-&gt; m (SimplifierTrace name uni fun ann)
+forall (m :: * -&gt; *) s a. Monad m =&gt; StateT s m a -&gt; s -&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#execStateT"
+	><span class="hs-identifier hs-var"
+	  >State.execStateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierTrace name uni fun ann
+forall name (uni :: * -&gt; *) fun a. SimplifierTrace name uni fun a
+</span
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#initSimplifierTrace"
+	><span class="hs-identifier hs-var"
+	  >Trace.initSimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (SimplifierTrace name uni fun ann) m a
+ -&gt; m (SimplifierTrace name uni fun ann))
+-&gt; (SimplifierT name uni fun ann m a
+    -&gt; StateT (SimplifierTrace name uni fun ann) m a)
+-&gt; SimplifierT name uni fun ann m a
+-&gt; m (SimplifierTrace name uni fun ann)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierT name uni fun ann m a
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+SimplifierT name uni fun ann m a
+-&gt; StateT (SimplifierTrace name uni fun ann) m a
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#getSimplifierT"
+	><span class="hs-identifier hs-var"
+	  >getSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Simplifier"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#Simplifier"
+	  ><span class="hs-identifier hs-var"
+	    >Simplifier</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210317"
+      ><span class="annot"
+	><a href="#local-6989586621682210317"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210318"
+      ><span class="annot"
+	><a href="#local-6989586621682210318"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210319"
+      ><span class="annot"
+	><a href="#local-6989586621682210319"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210320"
+      ><span class="annot"
+	><a href="#local-6989586621682210320"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+	><span class="hs-identifier hs-type"
+	  >SimplifierT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682210317"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682210318"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682210319"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682210320"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-type"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="local-6989586621682210137"
+      ><span id="local-6989586621682210138"
+	><span id="local-6989586621682210139"
+	  ><span id="local-6989586621682210140"
+	    ><span id="local-6989586621682210141"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#runSimplifier"
+		  ><span class="hs-identifier hs-type"
+		    >runSimplifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#Simplifier"
+		  ><span class="hs-identifier hs-type"
+		    >Simplifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210137"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210138"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210139"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210140"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210141"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="#local-6989586621682210141"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+		  ><span class="hs-identifier hs-type"
+		    >Trace.SimplifierTrace</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210137"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210138"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210139"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210140"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="runSimplifier"
+      ><span class="annot"
+	><span class="annottext"
+	  >runSimplifier :: forall name (uni :: * -&gt; *) fun ann a.
+Simplifier name uni fun ann a
+-&gt; (a, SimplifierTrace name uni fun ann)
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#runSimplifier"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runSimplifier</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity (a, SimplifierTrace name uni fun ann)
+-&gt; (a, SimplifierTrace name uni fun ann)
+forall a. Identity a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#runIdentity"
+	><span class="hs-identifier hs-var"
+	  >runIdentity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Identity (a, SimplifierTrace name uni fun ann)
+ -&gt; (a, SimplifierTrace name uni fun ann))
+-&gt; (Simplifier name uni fun ann a
+    -&gt; Identity (a, SimplifierTrace name uni fun ann))
+-&gt; Simplifier name uni fun ann a
+-&gt; (a, SimplifierTrace name uni fun ann)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Simplifier name uni fun ann a
+-&gt; Identity (a, SimplifierTrace name uni fun ann)
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+SimplifierT name uni fun ann m a
+-&gt; m (a, SimplifierTrace name uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#runSimplifierT"
+	><span class="hs-identifier hs-var"
+	  >runSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="local-6989586621682210150"
+      ><span id="local-6989586621682210151"
+	><span id="local-6989586621682210152"
+	  ><span id="local-6989586621682210153"
+	    ><span id="local-6989586621682210154"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#evalSimplifier"
+		  ><span class="hs-identifier hs-type"
+		    >evalSimplifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#Simplifier"
+		  ><span class="hs-identifier hs-type"
+		    >Simplifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210150"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210151"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210152"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210153"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210154"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210154"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span id="evalSimplifier"
+      ><span class="annot"
+	><span class="annottext"
+	  >evalSimplifier :: forall name (uni :: * -&gt; *) fun ann a.
+Simplifier name uni fun ann a -&gt; a
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#evalSimplifier"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evalSimplifier</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity a -&gt; a
+forall a. Identity a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#runIdentity"
+	><span class="hs-identifier hs-var"
+	  >runIdentity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Identity a -&gt; a)
+-&gt; (Simplifier name uni fun ann a -&gt; Identity a)
+-&gt; Simplifier name uni fun ann a
+-&gt; a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Simplifier name uni fun ann a -&gt; Identity a
+forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun ann a.
+Monad m =&gt;
+SimplifierT name uni fun ann m a -&gt; m a
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#evalSimplifierT"
+	><span class="hs-identifier hs-var"
+	  >evalSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621682210160"
+      ><span id="local-6989586621682210161"
+	><span id="local-6989586621682210162"
+	  ><span id="local-6989586621682210163"
+	    ><span id="local-6989586621682210164"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#execSimplifier"
+		  ><span class="hs-identifier hs-type"
+		    >execSimplifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#Simplifier"
+		  ><span class="hs-identifier hs-type"
+		    >Simplifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210160"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210161"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210162"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210163"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210164"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierTrace"
+		  ><span class="hs-identifier hs-type"
+		    >Trace.SimplifierTrace</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210160"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210161"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210162"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210163"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="execSimplifier"
+      ><span class="annot"
+	><span class="annottext"
+	  >execSimplifier :: forall name (uni :: * -&gt; *) fun ann a.
+Simplifier name uni fun ann a -&gt; SimplifierTrace name uni fun ann
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#execSimplifier"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >execSimplifier</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity (SimplifierTrace name uni fun ann)
+-&gt; SimplifierTrace name uni fun ann
+forall a. Identity a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#runIdentity"
+	><span class="hs-identifier hs-var"
+	  >runIdentity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Identity (SimplifierTrace name uni fun ann)
+ -&gt; SimplifierTrace name uni fun ann)
+-&gt; (Simplifier name uni fun ann a
+    -&gt; Identity (SimplifierTrace name uni fun ann))
+-&gt; Simplifier name uni fun ann a
+-&gt; SimplifierTrace name uni fun ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Simplifier name uni fun ann a
+-&gt; Identity (SimplifierTrace name uni fun ann)
+forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun ann a.
+Monad m =&gt;
+SimplifierT name uni fun ann m a
+-&gt; m (SimplifierTrace name uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#execSimplifierT"
+	><span class="hs-identifier hs-var"
+	  >execSimplifierT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span id="local-6989586621682210170"
+      ><span id="local-6989586621682210171"
+	><span id="local-6989586621682210172"
+	  ><span id="local-6989586621682210173"
+	    ><span id="local-6989586621682210174"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#recordSimplification"
+		  ><span class="hs-identifier hs-type"
+		    >recordSimplification</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-60"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		  ><span class="hs-identifier hs-type"
+		    >Monad</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210170"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-61"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210171"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210172"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210173"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210174"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-62"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierStage"
+		  ><span class="hs-identifier hs-type"
+		    >Trace.SimplifierStage</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-63"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210171"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210172"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210173"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210174"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-64"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+		  ><span class="hs-identifier hs-type"
+		    >SimplifierT</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210171"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210172"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210173"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210174"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210170"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="recordSimplification"
+      ><span class="annot"
+	><span class="annottext"
+	  >recordSimplification :: forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun a.
+Monad m =&gt;
+Term name uni fun a
+-&gt; SimplifierStage
+-&gt; Term name uni fun a
+-&gt; SimplifierT name uni fun a m ()
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#recordSimplification"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >recordSimplification</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Hints
+-&gt; Term name uni fun a
+-&gt; SimplifierStage
+-&gt; Term name uni fun a
+-&gt; SimplifierT name uni fun a m ()
+forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun a.
+Monad m =&gt;
+Hints
+-&gt; Term name uni fun a
+-&gt; SimplifierStage
+-&gt; Term name uni fun a
+-&gt; SimplifierT name uni fun a m ()
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#recordSimplificationWithHints"
+	><span class="hs-identifier hs-var"
+	  >recordSimplificationWithHints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Hints
+</span
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#NoHints"
+	><span class="hs-identifier hs-var"
+	  >Hints.NoHints</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="local-6989586621682210183"
+      ><span id="local-6989586621682210184"
+	><span id="local-6989586621682210185"
+	  ><span id="local-6989586621682210186"
+	    ><span id="local-6989586621682210187"
+	      ><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#recordSimplificationWithHints"
+		  ><span class="hs-identifier hs-type"
+		    >recordSimplificationWithHints</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-68"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		  ><span class="hs-identifier hs-type"
+		    >Monad</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210183"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-69"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Hints"
+		  ><span class="hs-identifier hs-type"
+		    >Hints.Hints</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-70"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210184"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210185"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210186"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210187"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-71"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Certify.Trace.html#SimplifierStage"
+		  ><span class="hs-identifier hs-type"
+		    >Trace.SimplifierStage</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-72"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210184"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210185"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210186"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210187"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-73"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+		  ><span class="hs-identifier hs-type"
+		    >SimplifierT</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210184"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210185"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210186"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210187"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682210183"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="recordSimplificationWithHints"
+      ><span class="annot"
+	><span class="annottext"
+	  >recordSimplificationWithHints :: forall (m :: * -&gt; *) name (uni :: * -&gt; *) fun a.
+Monad m =&gt;
+Hints
+-&gt; Term name uni fun a
+-&gt; SimplifierStage
+-&gt; Term name uni fun a
+-&gt; SimplifierT name uni fun a m ()
+</span
+	  ><a href="UntypedPlutusCore.Transform.Simplifier.html#recordSimplificationWithHints"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >recordSimplificationWithHints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210330"
+      ><span class="annot"
+	><span class="annottext"
+	  >Hints
+</span
+	  ><a href="#local-6989586621682210330"
+	  ><span class="hs-identifier hs-var"
+	    >hints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210331"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun a
+</span
+	  ><a href="#local-6989586621682210331"
+	  ><span class="hs-identifier hs-var"
+	    >before</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210332"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682210332"
+	  ><span class="hs-identifier hs-var"
+	    >stage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682210333"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun a
+</span
+	  ><a href="#local-6989586621682210333"
+	  ><span class="hs-identifier hs-var"
+	    >after</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682210334"
+      ><span class="annot"
+	><span class="annottext"
+	  >simplification :: Simplification name uni fun a
+</span
+	  ><a href="#local-6989586621682210334"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >simplification</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+-&gt; SimplifierStage
+-&gt; Hints
+-&gt; Term name uni fun a
+-&gt; Simplification name uni fun a
+forall name (uni :: * -&gt; *) fun a.
+Term name uni fun a
+-&gt; SimplifierStage
+-&gt; Hints
+-&gt; Term name uni fun a
+-&gt; Simplification name uni fun a
+</span
+	><a href="UntypedPlutusCore.Transform.Certify.Trace.html#Simplification"
+	><span class="hs-identifier hs-var"
+	  >Trace.Simplification</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+</span
+	><a href="#local-6989586621682210331"
+	><span class="hs-identifier hs-var"
+	  >before</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682210332"
+	><span class="hs-identifier hs-var"
+	  >stage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Hints
+</span
+	><a href="#local-6989586621682210330"
+	><span class="hs-identifier hs-var"
+	  >hints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+</span
+	><a href="#local-6989586621682210333"
+	><span class="hs-identifier hs-var"
+	  >after</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT (SimplifierTrace name uni fun a) m ()
+-&gt; SimplifierT name uni fun a m ()
+forall name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+StateT (SimplifierTrace name uni fun ann) m a
+-&gt; SimplifierT name uni fun ann m a
+</span
+	><a href="UntypedPlutusCore.Transform.Simplifier.html#SimplifierT"
+	><span class="hs-identifier hs-var"
+	  >SimplifierT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (SimplifierTrace name uni fun a) m ()
+ -&gt; SimplifierT name uni fun a m ())
+-&gt; ((SimplifierTrace name uni fun a
+     -&gt; SimplifierTrace name uni fun a)
+    -&gt; StateT (SimplifierTrace name uni fun a) m ())
+-&gt; (SimplifierTrace name uni fun a
+    -&gt; SimplifierTrace name uni fun a)
+-&gt; SimplifierT name uni fun a m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierTrace name uni fun a -&gt; SimplifierTrace name uni fun a)
+-&gt; StateT (SimplifierTrace name uni fun a) m ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; (s -&gt; s) -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#modify%27"
+	><span class="hs-identifier hs-var"
+	  >State.modify'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SimplifierTrace name uni fun a -&gt; SimplifierTrace name uni fun a)
+ -&gt; SimplifierT name uni fun a m ())
+-&gt; (SimplifierTrace name uni fun a
+    -&gt; SimplifierTrace name uni fun a)
+-&gt; SimplifierT name uni fun a m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682210337"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierTrace name uni fun a
+</span
+	  ><a href="#local-6989586621682210337"
+	  ><span class="hs-identifier hs-var"
+	    >st</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierTrace name uni fun a
+</span
+	><a href="#local-6989586621682210337"
+	><span class="hs-identifier hs-var"
+	  >st</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#simplifierTrace"
+	><span class="hs-identifier hs-var"
+	  >Trace.simplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682210334"
+	><span class="hs-identifier hs-type"
+	  >simplification</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Trace.html#simplifierTrace"
+	><span class="hs-identifier hs-var"
+	  >Trace.simplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682210337"
+	><span class="hs-identifier hs-type"
+	  >st</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

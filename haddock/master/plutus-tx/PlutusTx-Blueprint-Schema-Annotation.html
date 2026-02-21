@@ -1,0 +1,4028 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Schema.Annotation</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.58.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Schema.Annotation.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Schema.Annotation</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:SchemaInfo"
+	      >SchemaInfo</a
+	      > = <a href="#v:MkSchemaInfo"
+	      >MkSchemaInfo</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:title"
+		  >title</a
+		  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		><li
+		><a href="#v:description"
+		  >description</a
+		  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		><li
+		><a href="#v:comment"
+		  >comment</a
+		  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:emptySchemaInfo"
+	      >emptySchemaInfo</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+	      >SchemaInfo</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:annotationsToSchemaInfo"
+	      >annotationsToSchemaInfo</a
+	      > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+	      >SchemaAnn</a
+	      >] &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+	      >Either</a
+	      > SchemaInfoError <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+	      >SchemaInfo</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:SchemaAnn"
+	      >SchemaAnn</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:MkSchemaAnnTitle"
+		  >MkSchemaAnnTitle</a
+		  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		  >SchemaTitle</a
+		  ></li
+		><li
+		>| <a href="#v:MkSchemaAnnDescription"
+		  >MkSchemaAnnDescription</a
+		  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		  >SchemaDescription</a
+		  ></li
+		><li
+		>| <a href="#v:MkSchemaAnnComment"
+		  >MkSchemaAnnComment</a
+		  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		  >SchemaComment</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:SchemaTitle"
+	      >SchemaTitle</a
+	      > = <a href="#v:SchemaTitle"
+	      >SchemaTitle</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:schemaTitleToString"
+		  >schemaTitleToString</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:SchemaDescription"
+	      >SchemaDescription</a
+	      > = <a href="#v:SchemaDescription"
+	      >SchemaDescription</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:schemaDescriptionToString"
+		  >schemaDescriptionToString</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:SchemaComment"
+	      >SchemaComment</a
+	      > = <a href="#v:SchemaComment"
+	      >SchemaComment</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:schemaCommentToString"
+		  >schemaCommentToString</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:SchemaInfo" class="def"
+	    >SchemaInfo</a
+	    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo" class="link"
+	    >Source</a
+	    > <a href="#t:SchemaInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Additional information optionally attached to any datatype schema definition.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MkSchemaInfo" class="def"
+		  >MkSchemaInfo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:title" class="def"
+			  >title</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:description" class="def"
+			  >description</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:comment" class="def"
+			  >comment</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SchemaInfo"
+	    >Instances</h4
+	    ><details id="i:SchemaInfo" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaInfo:Data:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaInfo</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaInfo:Data:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaInfo:Generic:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaInfo</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaInfo:Generic:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > x &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaInfo:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaInfo</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaInfo:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaInfo:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaInfo</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaInfo:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaInfo:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaInfo</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaInfo:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaInfo:Lift:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaInfo</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaInfo:Lift:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaInfo</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaInfo:Rep:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaInfo</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaInfo:Rep:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+			>SchemaInfo</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;SchemaInfo&quot; &quot;PlutusTx.Blueprint.Schema.Annotation&quot; &quot;plutus-tx-1.58.0.0-inplace&quot; '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MkSchemaInfo&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;title&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			>String</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;description&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			>String</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;comment&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			>String</a
+			>)))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:emptySchemaInfo" class="def"
+	    >emptySchemaInfo</a
+	    > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+	    >SchemaInfo</a
+	    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo" class="link"
+	    >Source</a
+	    > <a href="#v:emptySchemaInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:annotationsToSchemaInfo" class="def"
+	    >annotationsToSchemaInfo</a
+	    > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+	    >SchemaAnn</a
+	    >] &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+	    >Either</a
+	    > SchemaInfoError <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaInfo" title="PlutusTx.Blueprint.Schema.Annotation"
+	    >SchemaInfo</a
+	    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#annotationsToSchemaInfo" class="link"
+	    >Source</a
+	    > <a href="#v:annotationsToSchemaInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:SchemaAnn" class="def"
+	    >SchemaAnn</a
+	    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaAnn" class="link"
+	    >Source</a
+	    > <a href="#t:SchemaAnn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Annotation that can be attached to a schema definition.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MkSchemaAnnTitle" class="def"
+		  >MkSchemaAnnTitle</a
+		  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		  >SchemaTitle</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MkSchemaAnnDescription" class="def"
+		  >MkSchemaAnnDescription</a
+		  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		  >SchemaDescription</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MkSchemaAnnComment" class="def"
+		  >MkSchemaAnnComment</a
+		  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		  >SchemaComment</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SchemaAnn"
+	    >Instances</h4
+	    ><details id="i:SchemaAnn" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaAnn:Data:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaAnn</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaAnn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaAnn:Data:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaAnn:Generic:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaAnn</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaAnn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaAnn:Generic:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > x &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaAnn:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaAnn</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaAnn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaAnn:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaAnn:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaAnn</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaAnn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaAnn:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaAnn:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaAnn</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaAnn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaAnn:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaAnn:Lift:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaAnn</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaAnn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaAnn:Lift:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaAnn</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaAnn:Rep:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaAnn</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaAnn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaAnn:Rep:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaAnn" title="PlutusTx.Blueprint.Schema.Annotation"
+			>SchemaAnn</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;SchemaAnn&quot; &quot;PlutusTx.Blueprint.Schema.Annotation&quot; &quot;plutus-tx-1.58.0.0-inplace&quot; '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MkSchemaAnnTitle&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+			>Nothing</a
+			> &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			>SchemaTitle</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MkSchemaAnnDescription&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+			>Nothing</a
+			> &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			>SchemaDescription</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MkSchemaAnnComment&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+			>Nothing</a
+			> &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			>SchemaComment</a
+			>))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:SchemaTitle" class="def"
+	    >SchemaTitle</a
+	    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle" class="link"
+	    >Source</a
+	    > <a href="#t:SchemaTitle" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An annotation for the &quot;title&quot; schema attribute.</p
+	    ><p
+	    >This annotation could be attached to a type or constructor:
+<code
+	      >
+{-# ANN type MyFoo (SchemaTitle &quot;My Foo Title&quot;) #-}
+{-# ANN MkMyFoo (SchemaTitle <a href="Title.html"
+		>Title</a
+		>) #-}
+newtype MyFoo = MkMyFoo Int
+</code
+	      > </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:SchemaTitle" class="def"
+		  >SchemaTitle</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:schemaTitleToString" class="def"
+			  >schemaTitleToString</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SchemaTitle"
+	    >Instances</h4
+	    ><details id="i:SchemaTitle" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaTitle:ToJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaTitle</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaTitle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaTitle:ToJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaTitle:Data:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaTitle</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaTitle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaTitle:Data:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaTitle:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaTitle</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaTitle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaTitle:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaTitle:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaTitle</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaTitle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaTitle:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaTitle:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaTitle</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaTitle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaTitle:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaTitle:Lift:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaTitle</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaTitle" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaTitle:Lift:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaTitle" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaTitle</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:SchemaDescription" class="def"
+	    >SchemaDescription</a
+	    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription" class="link"
+	    >Source</a
+	    > <a href="#t:SchemaDescription" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An annotation for the &quot;description&quot; schema attribute.</p
+	    ><p
+	    >This annotation could be attached to a type or constructor:
+<code
+	      >
+{-# ANN type MyFoo (SchemaDescription &quot;My Foo Description&quot;) #-}
+{-# ANN MkMyFoo (SchemaDescription <a href="Description.html"
+		>Description</a
+		>) #-}
+newtype MyFoo = MkMyFoo Int
+</code
+	      > </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:SchemaDescription" class="def"
+		  >SchemaDescription</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:schemaDescriptionToString" class="def"
+			  >schemaDescriptionToString</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SchemaDescription"
+	    >Instances</h4
+	    ><details id="i:SchemaDescription" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaDescription:ToJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaDescription</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaDescription" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaDescription:ToJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaDescription:Data:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaDescription</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-85" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaDescription" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaDescription:Data:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaDescription:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaDescription</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaDescription" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaDescription:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaDescription:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaDescription</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaDescription" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaDescription:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaDescription:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaDescription</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-84" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaDescription" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaDescription:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaDescription:Lift:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaDescription</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-85" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaDescription" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaDescription:Lift:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaDescription" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaDescription</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:SchemaComment" class="def"
+	    >SchemaComment</a
+	    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaComment" class="link"
+	    >Source</a
+	    > <a href="#t:SchemaComment" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An annotation for the &quot;$comment&quot; schema attribute.</p
+	    ><p
+	    >This annotation could be attached to a type or constructor:
+<code
+	      >
+{-# ANN type MyFoo (SchemaComment &quot;My Foo Comment&quot;) #-}
+{-# ANN MkMyFoo (SchemaComment <a href="Comment.html"
+		>Comment</a
+		>) #-}
+newtype MyFoo = MkMyFoo Int
+</code
+	      > </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:SchemaComment" class="def"
+		  >SchemaComment</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:schemaCommentToString" class="def"
+			  >schemaCommentToString</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:SchemaComment"
+	    >Instances</h4
+	    ><details id="i:SchemaComment" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaComment:ToJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaComment</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaComment" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaComment:ToJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaComment:Data:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaComment</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaComment" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaComment:Data:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  >) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaComment:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaComment</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaComment" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaComment:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaComment:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaComment</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaComment" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaComment:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaComment:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaComment</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaComment" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaComment:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:SchemaComment:Lift:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+		      >SchemaComment</a
+		      ></span
+		    > <a href="src/PlutusTx.Blueprint.Schema.Annotation.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:SchemaComment" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:SchemaComment:Lift:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Schema-Annotation.html"
+			>PlutusTx.Blueprint.Schema.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m <a href="PlutusTx-Blueprint-Schema-Annotation.html#t:SchemaComment" title="PlutusTx.Blueprint.Schema.Annotation"
+			  >SchemaComment</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

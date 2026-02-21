@@ -1,0 +1,6623 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TupleSections     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Parsers for PLC terms in DefaultUni.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Parser</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#program"
+	><span class="hs-identifier"
+	  >program</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#parseProgram"
+	><span class="hs-identifier"
+	  >parseProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#parseTerm"
+	><span class="hs-identifier"
+	  >parseTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#parseType"
+	><span class="hs-identifier"
+	  >parseType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Pos.html#SourcePos"
+	><span class="hs-identifier"
+	  >SourcePos</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html#ParserError"
+	><span class="hs-identifier"
+	  >ParserError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html#ParserError"
+	><span class="hs-identifier"
+	  >ParserError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html#ParserErrorBundle"
+	><span class="hs-identifier"
+	  >ParserErrorBundle</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.MkPlc.html#mkIterApp"
+	><span class="hs-identifier"
+	  >mkIterApp</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.MkPlc.html#mkIterInst"
+	><span class="hs-identifier"
+	  >mkIterInst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier"
+	  >Name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier"
+	  >TyName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Parser.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Parser.ParserCommon</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.Type.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Parser.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html#MonadQuote"
+	><span class="hs-identifier"
+	  >MonadQuote</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Version.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier"
+	  >when</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	><span class="hs-identifier"
+	  >MonadError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier"
+	  >Word64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.html"
+	><span class="hs-identifier"
+	  >Text.Megaparsec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Class.html#MonadParsec"
+	><span class="hs-identifier"
+	  >MonadParsec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Class.html#notFollowedBy"
+	><span class="hs-identifier"
+	  >notFollowedBy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.html#anySingle"
+	><span class="hs-identifier"
+	  >anySingle</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Applicative.Combinators.html#choice"
+	><span class="hs-identifier"
+	  >choice</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Monad.Combinators.html#many"
+	><span class="hs-identifier"
+	  >many</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Monad.Combinators.html#some"
+	><span class="hs-identifier"
+	  >some</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Class.html#try"
+	><span class="hs-identifier"
+	  >try</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Char.Lexer.html"
+	><span class="hs-identifier"
+	  >Text.Megaparsec.Char.Lexer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Lex</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A parsable PLC term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="PTerm"
+      ><span class="annot"
+	><a href="PlutusCore.Parser.html#PTerm"
+	  ><span class="hs-identifier hs-var"
+	    >PTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Annotation.html#SrcSpan"
+	><span class="hs-identifier hs-type"
+	  >SrcSpan</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#varTerm"
+	><span class="hs-identifier hs-type"
+	  >varTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="varTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >varTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#varTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >varTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938285"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938285"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; Name -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938285"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     Name
+-&gt; Parser PTerm
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  Name
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#name"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#tyAbsTerm"
+	><span class="hs-identifier hs-type"
+	  >tyAbsTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="tyAbsTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyAbsTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#tyAbsTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tyAbsTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938290"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938290"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; TyName -&gt; Kind SrcSpan -&gt; PTerm -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; tyname
+-&gt; Kind ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyAbs"
+	><span class="hs-identifier hs-var"
+	  >TyAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938290"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TyName -&gt; Kind SrcSpan -&gt; PTerm -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     TyName
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Kind SrcSpan -&gt; PTerm -&gt; PTerm)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;abs&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     TyName
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     TyName
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  TyName
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     TyName
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#trailingWhitespace"
+	><span class="hs-identifier hs-var"
+	  >trailingWhitespace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  TyName
+</span
+	><a href="PlutusCore.Parser.Type.html#tyName"
+	><span class="hs-identifier hs-var"
+	  >tyName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Kind SrcSpan -&gt; PTerm -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Kind SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (PTerm -&gt; PTerm)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Kind SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#kind"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (PTerm -&gt; PTerm)
+-&gt; Parser PTerm -&gt; Parser PTerm
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#lamTerm"
+	><span class="hs-identifier hs-type"
+	  >lamTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="lamTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >lamTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#lamTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lamTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938299"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938299"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; Name -&gt; Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; name
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938299"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name -&gt; Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     Name
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; PTerm)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;lam&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     Name
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     Name
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  Name
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     Name
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#trailingWhitespace"
+	><span class="hs-identifier hs-var"
+	  >trailingWhitespace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  Name
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#name"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (PTerm -&gt; PTerm)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (PTerm -&gt; PTerm)
+-&gt; Parser PTerm -&gt; Parser PTerm
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#appTerm"
+	><span class="hs-identifier hs-type"
+	  >appTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="appTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >appTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#appTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >appTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938303"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938303"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- TODO: should not use the same `sp` for all arguments.</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inBrackets"
+	><span class="hs-identifier hs-var"
+	  >inBrackets</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PTerm -&gt; [(SrcSpan, PTerm)] -&gt; PTerm
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun ann.
+TermLike term tyname name uni fun =&gt;
+term ann -&gt; [(ann, term ann)] -&gt; term ann
+</span
+	><a href="PlutusCore.MkPlc.html#mkIterApp"
+	><span class="hs-identifier hs-var"
+	  >mkIterApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PTerm -&gt; [(SrcSpan, PTerm)] -&gt; PTerm)
+-&gt; Parser PTerm
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     ([(SrcSpan, PTerm)] -&gt; PTerm)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  ([(SrcSpan, PTerm)] -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [(SrcSpan, PTerm)]
+-&gt; Parser PTerm
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PTerm -&gt; (SrcSpan, PTerm)) -&gt; [PTerm] -&gt; [(SrcSpan, PTerm)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938303"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([PTerm] -&gt; [(SrcSpan, PTerm)])
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [PTerm]
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [(SrcSpan, PTerm)]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [PTerm]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span
+	><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Monad.Combinators.html#some"
+	><span class="hs-identifier hs-var"
+	  >some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#conTerm"
+	><span class="hs-identifier hs-type"
+	  >conTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="conTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >conTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#conTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >conTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938306"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938306"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; Some (ValueOf DefaultUni) -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; Some (ValueOf uni) -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-var"
+	  >Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938306"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Some (ValueOf DefaultUni) -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Some (ValueOf DefaultUni))
+-&gt; Parser PTerm
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;con&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Some (ValueOf DefaultUni))
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Some (ValueOf DefaultUni))
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Some (ValueOf DefaultUni))
+</span
+	><a href="PlutusCore.Parser.Builtin.html#constant"
+	><span class="hs-identifier hs-var"
+	  >constant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#builtinTerm"
+	><span class="hs-identifier hs-type"
+	  >builtinTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="builtinTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#builtinTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938310"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938310"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; DefaultFun -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; fun -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-var"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938310"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DefaultFun -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     DefaultFun
+-&gt; Parser PTerm
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;builtin&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     DefaultFun
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     DefaultFun
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  DefaultFun
+</span
+	><a href="PlutusCore.Parser.Builtin.html#builtinFunction"
+	><span class="hs-identifier hs-var"
+	  >builtinFunction</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#tyInstTerm"
+	><span class="hs-identifier hs-type"
+	  >tyInstTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="tyInstTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyInstTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#tyInstTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tyInstTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938314"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938314"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- TODO: should not use the same `sp` for all arguments.</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inBraces"
+	><span class="hs-identifier hs-var"
+	  >inBraces</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PTerm -&gt; [(SrcSpan, Type TyName DefaultUni SrcSpan)] -&gt; PTerm
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun ann.
+TermLike term tyname name uni fun =&gt;
+term ann -&gt; [(ann, Type tyname uni ann)] -&gt; term ann
+</span
+	><a href="PlutusCore.MkPlc.html#mkIterInst"
+	><span class="hs-identifier hs-var"
+	  >mkIterInst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PTerm -&gt; [(SrcSpan, Type TyName DefaultUni SrcSpan)] -&gt; PTerm)
+-&gt; Parser PTerm
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     ([(SrcSpan, Type TyName DefaultUni SrcSpan)] -&gt; PTerm)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  ([(SrcSpan, Type TyName DefaultUni SrcSpan)] -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [(SrcSpan, Type TyName DefaultUni SrcSpan)]
+-&gt; Parser PTerm
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni SrcSpan
+ -&gt; (SrcSpan, Type TyName DefaultUni SrcSpan))
+-&gt; [Type TyName DefaultUni SrcSpan]
+-&gt; [(SrcSpan, Type TyName DefaultUni SrcSpan)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938314"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Type TyName DefaultUni SrcSpan]
+ -&gt; [(SrcSpan, Type TyName DefaultUni SrcSpan)])
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [Type TyName DefaultUni SrcSpan]
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [(SrcSpan, Type TyName DefaultUni SrcSpan)]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [Type TyName DefaultUni SrcSpan]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span
+	><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Monad.Combinators.html#many"
+	><span class="hs-identifier hs-var"
+	  >many</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#unwrapTerm"
+	><span class="hs-identifier hs-type"
+	  >unwrapTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="unwrapTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >unwrapTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#unwrapTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unwrapTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938317"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938317"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; PTerm -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Unwrap"
+	><span class="hs-identifier hs-var"
+	  >Unwrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938317"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PTerm -&gt; PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;unwrap&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#iwrapTerm"
+	><span class="hs-identifier hs-type"
+	  >iwrapTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="iwrapTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >iwrapTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#iwrapTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >iwrapTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938320"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938320"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+-&gt; Type TyName DefaultUni SrcSpan
+-&gt; Type TyName DefaultUni SrcSpan
+-&gt; PTerm
+-&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#IWrap"
+	><span class="hs-identifier hs-var"
+	  >IWrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938320"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni SrcSpan
+ -&gt; Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; PTerm)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;iwrap&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (PTerm -&gt; PTerm)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (PTerm -&gt; PTerm)
+-&gt; Parser PTerm -&gt; Parser PTerm
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#errorTerm"
+	><span class="hs-identifier hs-type"
+	  >errorTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="errorTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >errorTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#errorTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >errorTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938323"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938323"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; Type TyName DefaultUni SrcSpan -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; Type tyname uni ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-var"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938323"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni SrcSpan -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; Parser PTerm
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;error&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#constrTerm"
+	><span class="hs-identifier hs-type"
+	  >constrTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span id="constrTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >constrTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#constrTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >constrTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938326"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938326"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681938332"
+      ><span class="annot"
+	><span class="annottext"
+	  >maxTag :: Integer
+</span
+	  ><a href="#local-6989586621681938332"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maxTag</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Integer
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier hs-type"
+	  >Word64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621681938334"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName DefaultUni SrcSpan
+</span
+	  ><a href="#local-6989586621681938334"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;constr&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621681938335"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681938335"
+	  ><span class="hs-identifier hs-var"
+	    >tag</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Integer -&gt; Parser Integer
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#lexeme"
+	><span class="hs-identifier hs-var"
+	  >lexeme</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Integer
+forall e s (m :: * -&gt; *) a.
+(MonadParsec e s m, Token s ~ Char, Num a) =&gt;
+m a
+</span
+	><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Char.Lexer.html#decimal"
+	><span class="hs-identifier hs-var"
+	  >Lex.decimal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621681938338"
+      ><span class="annot"
+	><span class="annottext"
+	  >[PTerm]
+</span
+	  ><a href="#local-6989586621681938338"
+	  ><span class="hs-identifier hs-var"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [PTerm]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span
+	><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Monad.Combinators.html#many"
+	><span class="hs-identifier hs-var"
+	  >many</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Version -&gt; Bool) -&gt; Parser () -&gt; Parser ()
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#whenVersion"
+	><span class="hs-identifier hs-var"
+	  >whenVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938340"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621681938340"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621681938340"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version -&gt; Version -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser () -&gt; Parser ()) -&gt; Parser () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser ()
+forall a.
+String
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;'constr' is not allowed before version 1.1.0&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Parser () -&gt; Parser ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681938335"
+	><span class="hs-identifier hs-var"
+	  >tag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681938332"
+	><span class="hs-identifier hs-var"
+	  >maxTag</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser () -&gt; Parser ()) -&gt; Parser () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser ()
+forall a.
+String
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;constr tag too large: must be a legal Word64 value&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PTerm -&gt; Parser PTerm
+forall a.
+a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PTerm -&gt; Parser PTerm) -&gt; PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+-&gt; Type TyName DefaultUni SrcSpan -&gt; Word64 -&gt; [PTerm] -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Word64
+-&gt; [Term tyname name uni fun ann]
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-var"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938326"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni SrcSpan
+</span
+	><a href="#local-6989586621681938334"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Word64
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681938335"
+	><span class="hs-identifier hs-var"
+	  >tag</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PTerm]
+</span
+	><a href="#local-6989586621681938338"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#caseTerm"
+	><span class="hs-identifier hs-type"
+	  >caseTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="caseTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >caseTerm :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#caseTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >caseTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm)
+-&gt; (SrcSpan -&gt; Parser PTerm) -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938346"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938346"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; Parser PTerm -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621681938347"
+      ><span class="annot"
+	><span class="annottext"
+	  >PTerm
+</span
+	  ><a href="#local-6989586621681938347"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+-&gt; Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; [PTerm] -&gt; PTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; [Term tyname name uni fun ann]
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-var"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938346"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni SrcSpan -&gt; PTerm -&gt; [PTerm] -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (PTerm -&gt; [PTerm] -&gt; PTerm)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;case&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     (Type TyName DefaultUni SrcSpan)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (PTerm -&gt; [PTerm] -&gt; PTerm)
+-&gt; Parser PTerm
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     ([PTerm] -&gt; PTerm)
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  ([PTerm] -&gt; PTerm)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [PTerm]
+-&gt; Parser PTerm
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (a -&gt; b)
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     [PTerm]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span
+	><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Monad.Combinators.html#many"
+	><span class="hs-identifier hs-var"
+	  >many</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Version -&gt; Bool) -&gt; Parser () -&gt; Parser ()
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#whenVersion"
+	><span class="hs-identifier hs-var"
+	  >whenVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938349"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621681938349"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621681938349"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version -&gt; Version -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser () -&gt; Parser ()) -&gt; Parser () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Parser ()
+forall a.
+String
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;'case' is not allowed before version 1.1.0&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PTerm -&gt; Parser PTerm
+forall a.
+a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PTerm
+</span
+	><a href="#local-6989586621681938347"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Parser for all PLC terms.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#PTerm"
+	><span class="hs-identifier hs-type"
+	  >PTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span id="term"
+      ><span class="annot"
+	><span class="annottext"
+	  >term :: Parser PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#term"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#leadingWhitespace"
+	><span class="hs-identifier hs-var"
+	  >leadingWhitespace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="#local-6989586621681938351"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681938351"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: Parser PTerm
+</span
+	  ><a href="#local-6989586621681938351"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Parser PTerm] -&gt; Parser PTerm
+forall (f :: * -&gt; *) (m :: * -&gt; *) a.
+(Foldable f, Alternative m) =&gt;
+f (m a) -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/src/Control.Applicative.Combinators.html#choice"
+	><span class="hs-identifier hs-var"
+	  >choice</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Parser PTerm] -&gt; Parser PTerm) -&gt; [Parser PTerm] -&gt; Parser PTerm
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser PTerm -&gt; Parser PTerm) -&gt; [Parser PTerm] -&gt; [Parser PTerm]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Parser PTerm
+forall a. Parser a -&gt; Parser a
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Class.html#try"
+	><span class="hs-identifier hs-var"
+	  >try</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#tyAbsTerm"
+	><span class="hs-identifier hs-var"
+	  >tyAbsTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#lamTerm"
+	><span class="hs-identifier hs-var"
+	  >lamTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#appTerm"
+	><span class="hs-identifier hs-var"
+	  >appTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#conTerm"
+	><span class="hs-identifier hs-var"
+	  >conTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#builtinTerm"
+	><span class="hs-identifier hs-var"
+	  >builtinTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#tyInstTerm"
+	><span class="hs-identifier hs-var"
+	  >tyInstTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#unwrapTerm"
+	><span class="hs-identifier hs-var"
+	  >unwrapTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#iwrapTerm"
+	><span class="hs-identifier hs-var"
+	  >iwrapTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#errorTerm"
+	><span class="hs-identifier hs-var"
+	  >errorTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#varTerm"
+	><span class="hs-identifier hs-var"
+	  >varTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#constrTerm"
+	><span class="hs-identifier hs-var"
+	  >constrTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#caseTerm"
+	><span class="hs-identifier hs-var"
+	  >caseTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >-- | Parse a PLC program. The resulting program will have fresh names. The</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- underlying monad must be capable of handling any parse errors.  This passes</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >-- &quot;test&quot; to the parser as the name of the input stream; to supply a name</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="hs-comment"
+      >-- explicity, use `parse program &lt;name&gt; &lt;input&gt;`.</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="local-6989586621681938160"
+      ><span class="annot"
+	><a href="PlutusCore.Parser.html#parseProgram"
+	  ><span class="hs-identifier hs-type"
+	    >parseProgram</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	>
+</span
+	><span id="line-124"
+	></span
+	><span
+	>    </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	  ><span class="hs-identifier hs-type"
+	    >MonadError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Error.html#ParserErrorBundle"
+	  ><span class="hs-identifier hs-type"
+	    >ParserErrorBundle</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938160"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Quote.html#MonadQuote"
+	  ><span class="hs-identifier hs-type"
+	    >MonadQuote</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938160"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-125"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-126"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938160"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Core.Type.html#Program"
+	  ><span class="hs-identifier hs-type"
+	    >Program</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-type"
+	    >TyName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-type"
+	    >Name</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultFun</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Annotation.html#SrcSpan"
+	  ><span class="hs-identifier hs-type"
+	    >SrcSpan</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span id="parseProgram"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseProgram :: forall (m :: * -&gt; *).
+(MonadError ParserErrorBundle m, MonadQuote m) =&gt;
+Text -&gt; m (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	  ><a href="PlutusCore.Parser.html#parseProgram"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseProgram</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+-&gt; Text -&gt; m (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall (m :: * -&gt; *) a.
+(MonadError ParserErrorBundle m, MonadQuote m) =&gt;
+Parser a -&gt; Text -&gt; m a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#parseGen"
+	><span class="hs-identifier hs-var"
+	  >parseGen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	><a href="PlutusCore.Parser.html#program"
+	><span class="hs-identifier hs-var"
+	  >program</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Parser for PLC programs.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.html#program"
+	><span class="hs-identifier hs-type"
+	  >program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Parser.ParserCommon.html#Parser"
+	><span class="hs-identifier hs-type"
+	  >Parser</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Annotation.html#SrcSpan"
+	><span class="hs-identifier hs-type"
+	  >SrcSpan</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span id="program"
+      ><span class="annot"
+	><span class="annottext"
+	  >program :: Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	  ><a href="PlutusCore.Parser.html#program"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >program</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#leadingWhitespace"
+	><span class="hs-identifier hs-var"
+	  >leadingWhitespace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	><a href="#local-6989586621681938364"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681938364"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	  ><a href="#local-6989586621681938364"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681938376"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name DefaultUni DefaultFun SrcSpan
+</span
+	  ><a href="#local-6989586621681938376"
+	  ><span class="hs-identifier hs-var"
+	    >prog</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SrcSpan
+ -&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan))
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a. (SrcSpan -&gt; Parser a) -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withSpan"
+	><span class="hs-identifier hs-var"
+	  >withSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((SrcSpan
+  -&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan))
+ -&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan))
+-&gt; (SrcSpan
+    -&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan))
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681938377"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpan
+</span
+	  ><a href="#local-6989586621681938377"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a. Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#inParens"
+	><span class="hs-identifier hs-var"
+	  >inParens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+ -&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan))
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621681938378"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621681938378"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Parser Text
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#symbol"
+	><span class="hs-identifier hs-var"
+	  >symbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;program&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser Text
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     Version
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     Version
+forall a b.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  Version
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#version"
+	><span class="hs-identifier hs-var"
+	  >version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a. Version -&gt; Parser a -&gt; Parser a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#withVersion"
+	><span class="hs-identifier hs-var"
+	  >withVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621681938378"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+ -&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan))
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+-&gt; Version
+-&gt; PTerm
+-&gt; Program TyName Name DefaultUni DefaultFun SrcSpan
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Version
+-&gt; Term tyname name uni fun ann
+-&gt; Program tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan
+</span
+	><a href="#local-6989586621681938377"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621681938378"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PTerm -&gt; Program TyName Name DefaultUni DefaultFun SrcSpan)
+-&gt; Parser PTerm
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Token Text)
+-&gt; Parser ()
+forall a.
+ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  a
+-&gt; Parser ()
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m a -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.Class.html#notFollowedBy"
+	><span class="hs-identifier hs-var"
+	  >notFollowedBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Token Text)
+forall e s (m :: * -&gt; *). MonadParsec e s m =&gt; m (Token s)
+</span
+	><a href="https://hackage.haskell.org/package/megaparsec-9.7.0/docs/src/Text.Megaparsec.html#anySingle"
+	><span class="hs-identifier hs-var"
+	  >anySingle</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name DefaultUni DefaultFun SrcSpan
+-&gt; Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall a.
+a
+-&gt; ParsecT
+     ParserError
+     Text
+     (StateT ParserState (ReaderT (Maybe Version) Quote))
+     a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name DefaultUni DefaultFun SrcSpan
+</span
+	><a href="#local-6989586621681938376"
+	><span class="hs-identifier hs-var"
+	  >prog</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="hs-comment"
+      >-- | Parse a PLC term. The resulting program will have fresh names. The underlying monad</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span class="hs-comment"
+      >-- must be capable of handling any parse errors.</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span id="local-6989586621681938177"
+      ><span class="annot"
+	><a href="PlutusCore.Parser.html#parseTerm"
+	  ><span class="hs-identifier hs-type"
+	    >parseTerm</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	  ><span class="hs-identifier hs-type"
+	    >MonadError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Error.html#ParserErrorBundle"
+	  ><span class="hs-identifier hs-type"
+	    >ParserErrorBundle</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938177"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Quote.html#MonadQuote"
+	  ><span class="hs-identifier hs-type"
+	    >MonadQuote</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938177"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	>
+</span
+	><span id="line-143"
+	></span
+	><span
+	>    </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938177"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Core.Type.html#Term"
+	  ><span class="hs-identifier hs-type"
+	    >Term</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-type"
+	    >TyName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-type"
+	    >Name</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultFun</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Annotation.html#SrcSpan"
+	  ><span class="hs-identifier hs-type"
+	    >SrcSpan</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span id="parseTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseTerm :: forall (m :: * -&gt; *).
+(MonadError ParserErrorBundle m, MonadQuote m) =&gt;
+Text -&gt; m PTerm
+</span
+	  ><a href="PlutusCore.Parser.html#parseTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm -&gt; Text -&gt; m PTerm
+forall (m :: * -&gt; *) a.
+(MonadError ParserErrorBundle m, MonadQuote m) =&gt;
+Parser a -&gt; Text -&gt; m a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#parseGen"
+	><span class="hs-identifier hs-var"
+	  >parseGen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Parser PTerm
+</span
+	><a href="PlutusCore.Parser.html#term"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span class="hs-comment"
+      >-- | Parse a PLC type. The resulting program will have fresh names. The underlying monad</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span class="hs-comment"
+      >-- must be capable of handling any parse errors.</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span id="local-6989586621681938179"
+      ><span class="annot"
+	><a href="PlutusCore.Parser.html#parseType"
+	  ><span class="hs-identifier hs-type"
+	    >parseType</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	  ><span class="hs-identifier hs-type"
+	    >MonadError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Error.html#ParserErrorBundle"
+	  ><span class="hs-identifier hs-type"
+	    >ParserErrorBundle</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938179"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Quote.html#MonadQuote"
+	  ><span class="hs-identifier hs-type"
+	    >MonadQuote</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938179"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	>
+</span
+	><span id="line-149"
+	></span
+	><span
+	>    </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681938179"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Core.Type.html#Type"
+	  ><span class="hs-identifier hs-type"
+	    >Type</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Name.Unique.html#TyName"
+	  ><span class="hs-identifier hs-type"
+	    >TyName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Annotation.html#SrcSpan"
+	  ><span class="hs-identifier hs-type"
+	    >SrcSpan</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span id="parseType"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseType :: forall (m :: * -&gt; *).
+(MonadError ParserErrorBundle m, MonadQuote m) =&gt;
+Text -&gt; m (Type TyName DefaultUni SrcSpan)
+</span
+	  ><a href="PlutusCore.Parser.html#parseType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >parseType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+-&gt; Text -&gt; m (Type TyName DefaultUni SrcSpan)
+forall (m :: * -&gt; *) a.
+(MonadError ParserErrorBundle m, MonadQuote m) =&gt;
+Parser a -&gt; Text -&gt; m a
+</span
+	><a href="PlutusCore.Parser.ParserCommon.html#parseGen"
+	><span class="hs-identifier hs-var"
+	  >parseGen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParsecT
+  ParserError
+  Text
+  (StateT ParserState (ReaderT (Maybe Version) Quote))
+  (Type TyName DefaultUni SrcSpan)
+</span
+	><a href="PlutusCore.Parser.Type.html#pType"
+	><span class="hs-identifier hs-var"
+	  >pType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

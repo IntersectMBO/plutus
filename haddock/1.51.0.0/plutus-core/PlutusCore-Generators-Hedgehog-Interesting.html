@@ -1,0 +1,1062 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.Hedgehog.Interesting</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.Hedgehog.Interesting.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.Hedgehog.Interesting</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Sample generators used for tests.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TermGen"
+	      >TermGen</a
+	      > a = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermOf</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()) a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TermOf"
+	      >TermOf</a
+	      > term a = <a href="#v:TermOf"
+	      >TermOf</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_termOfTerm"
+		  >_termOfTerm</a
+		  > &#8759; term</li
+		><li
+		><a href="#v:_termOfValue"
+		  >_termOfValue</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:genOverapplication"
+	      >genOverapplication</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermGen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:factorial"
+	      >factorial</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:genFactorial"
+	      >genFactorial</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermGen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:naiveFib"
+	      >naiveFib</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:genNaiveFib"
+	      >genNaiveFib</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermGen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genNatRoundtrip"
+	      >genNatRoundtrip</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermGen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:natSum"
+	      >natSum</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:genScottListSum"
+	      >genScottListSum</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermGen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genIfIntegers"
+	      >genIfIntegers</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermGen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromInterestingTermGens"
+	      >fromInterestingTermGens</a
+	      > &#8759; (&#8704; a. <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	      >KnownType</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()) a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	      >TermGen</a
+	      > a &#8594; c) &#8594; [c]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TermGen" class="def"
+	    >TermGen</a
+	    > a = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermOf</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) a) <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#TermGen" class="link"
+	    >Source</a
+	    > <a href="#t:TermGen" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of terms-and-their-values generators.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TermOf" class="def"
+	    >TermOf</a
+	    > term a <a href="src/PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#TermOf" class="link"
+	    >Source</a
+	    > <a href="#t:TermOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      >term</code
+	      > along with the corresponding Haskell value.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TermOf" class="def"
+		  >TermOf</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_termOfTerm" class="def"
+			  >_termOfTerm</a
+			  > &#8759; term</dfn
+			><div class="doc"
+			><p
+			  >The term</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_termOfValue" class="def"
+			  >_termOfValue</a
+			  > &#8759; a</dfn
+			><div class="doc"
+			><p
+			  >The Haskell value.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TermOf"
+	    >Instances</h4
+	    ><details id="i:TermOf" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermOf:PrettyBy:1"
+		      ></span
+		      > (<a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config a, <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config term) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+		      >TermOf</a
+		      > term a)</span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:TermOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermOf:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html"
+			>PlutusCore.Generators.Hedgehog.TypedBuiltinGen</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermOf:Foldable:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+		      >Foldable</a
+		      > (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+		      >TermOf</a
+		      > term)</span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#line-45" class="link"
+		    >Source</a
+		    > <a href="#t:TermOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermOf:Foldable:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html"
+			>PlutusCore.Generators.Hedgehog.TypedBuiltinGen</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fold"
+			  >fold</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term m &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap"
+			  >foldMap</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap-39-"
+			  >foldMap'</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr-39-"
+			  >foldr'</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl"
+			  >foldl</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl-39-"
+			  >foldl'</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr1"
+			  >foldr1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl1"
+			  >foldl1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toList"
+			  >toList</a
+			  > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:null"
+			  >null</a
+			  > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:null" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:length"
+			  >length</a
+			  > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:length" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:elem"
+			  >elem</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+			  >Eq</a
+			  > a &#8658; a &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:elem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maximum"
+			  >maximum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maximum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:minimum"
+			  >minimum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minimum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sum"
+			  >sum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:product"
+			  >product</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:product" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermOf:Traversable:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Traversable.html#t:Traversable" title="Data.Traversable"
+		      >Traversable</a
+		      > (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+		      >TermOf</a
+		      > term)</span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#line-45" class="link"
+		    >Source</a
+		    > <a href="#t:TermOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermOf:Traversable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html"
+			>PlutusCore.Generators.Hedgehog.TypedBuiltinGen</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:traverse"
+			  >traverse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+			  >Applicative</a
+			  > f &#8658; (a &#8594; f b) &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; f (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term b) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:traverse" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sequenceA"
+			  >sequenceA</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+			  >Applicative</a
+			  > f &#8658; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term (f a) &#8594; f (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sequenceA" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mapM"
+			  >mapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (a &#8594; m b) &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; m (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term b) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sequence"
+			  >sequence</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term (m a) &#8594; m (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sequence" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermOf:Functor:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+		      >TermOf</a
+		      > term)</span
+		    > <a href="src/PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#line-45" class="link"
+		    >Source</a
+		    > <a href="#t:TermOf" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermOf:Functor:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Generators-Hedgehog-TypedBuiltinGen.html"
+			>PlutusCore.Generators.Hedgehog.TypedBuiltinGen</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term b &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermOf" title="PlutusCore.Generators.Hedgehog.Interesting"
+			  >TermOf</a
+			  > term a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genOverapplication" class="def"
+	    >genOverapplication</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermGen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#genOverapplication" class="link"
+	    >Source</a
+	    > <a href="#v:genOverapplication" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generates application of a builtin that returns a function, immediately saturated afterwards.</p
+	    ><pre
+	    >ifThenElse {integer -&gt; integer -&gt; integer} (lessThanInteger i j) addInteger subtractInteger i j
+    == if i &lt; j then i + j else i - j</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:factorial" class="def"
+	    >factorial</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#factorial" class="link"
+	    >Source</a
+	    > <a href="#v:factorial" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >i -&gt; product [1 :: Integer .. i]</code
+	      > as a PLC term.</p
+	    ><pre
+	    >\(i : integer) -&gt; product (enumFromTo 1 i)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genFactorial" class="def"
+	    >genFactorial</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermGen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#genFactorial" class="link"
+	    >Source</a
+	    > <a href="#v:genFactorial" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a term that computes the factorial of an <code
+	      >integer</code
+	      > and return it
+ along with the factorial of the corresponding <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      > computed on the Haskell side.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:naiveFib" class="def"
+	    >naiveFib</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#naiveFib" class="link"
+	    >Source</a
+	    > <a href="#v:naiveFib" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The naive exponential fibonacci function as a PLC term.</p
+	    ><pre
+	    >\(i0 : integer) -&gt;
+    fix {integer} {integer}
+        (\(rec : integer -&gt; integer) (i : integer) -&gt;
+                ifThenElse {integer}
+                    (lessThanEqInteger i 1)
+                    (\(u : unit) -&gt; i)
+                    (\(u : unit) -&gt; addInteger
+                        (rec (subtractInteger i 1))
+                        (rec (subtractInteger i 2)))
+        i0</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genNaiveFib" class="def"
+	    >genNaiveFib</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermGen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#genNaiveFib" class="link"
+	    >Source</a
+	    > <a href="#v:genNaiveFib" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a term that computes the ith Fibonacci number and return it
+ along with the corresponding <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      > computed on the Haskell side.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genNatRoundtrip" class="def"
+	    >genNatRoundtrip</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermGen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#genNatRoundtrip" class="link"
+	    >Source</a
+	    > <a href="#v:genNatRoundtrip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate an <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      >, turn it into a Scott-encoded PLC <code
+	      >Nat</code
+	      > (see <code
+	      >Nat</code
+	      >),
+ turn that <code
+	      >Nat</code
+	      > into the corresponding PLC <code
+	      >integer</code
+	      > using a fold (see <code
+	      >FoldNat</code
+	      >)
+ defined in terms of generic fix (see <code
+	      >Fix</code
+	      >) and return the result
+ along with the original <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:natSum" class="def"
+	    >natSum</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#natSum" class="link"
+	    >Source</a
+	    > <a href="#v:natSum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >sumNat</code
+	      > as a PLC term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genScottListSum" class="def"
+	    >genScottListSum</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermGen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#genScottListSum" class="link"
+	    >Source</a
+	    > <a href="#v:genScottListSum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a list of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      >s, turn it into a Scott-encoded PLC <code
+	      >List</code
+	      > (see <code
+	      >List</code
+	      >),
+ sum elements of the list (see <code
+	      >Sum</code
+	      >) and return it along with the sum of the original list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genIfIntegers" class="def"
+	    >genIfIntegers</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermGen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#genIfIntegers" class="link"
+	    >Source</a
+	    > <a href="#v:genIfIntegers" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      >boolean</code
+	      > and two <code
+	      >integer</code
+	      >s and check whether <code
+	      >if b then i1 else i2</code
+	      >
+ means the same thing in Haskell and PLC. Terms are generated using <code
+	      ><a href="PlutusCore-Generators-Hedgehog-Entity.html#v:genTermLoose" title="PlutusCore.Generators.Hedgehog.Entity"
+		>genTermLoose</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromInterestingTermGens" class="def"
+	    >fromInterestingTermGens</a
+	    > &#8759; (&#8704; a. <a href="PlutusCore-Generators-Hedgehog-Denotation.html#t:KnownType" title="PlutusCore.Generators.Hedgehog.Denotation"
+	    >KnownType</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusCore-Generators-Hedgehog-Interesting.html#t:TermGen" title="PlutusCore.Generators.Hedgehog.Interesting"
+	    >TermGen</a
+	    > a &#8594; c) &#8594; [c] <a href="src/PlutusCore.Generators.Hedgehog.Interesting.html#fromInterestingTermGens" class="link"
+	    >Source</a
+	    > <a href="#v:fromInterestingTermGens" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Apply a function to all interesting generators and collect the results.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

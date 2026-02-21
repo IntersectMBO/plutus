@@ -1,0 +1,6231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span id="local-6989586621681200551"
+      ><span id="local-6989586621681200552"
+	></span
+	></span
+      ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| This module contains the code for handling the various kinds of version that we care about:
+
+* Protocol versions
+* Plutus ledger languages
+* Plutus Core language versions -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Common.Versions</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Cardano Protocol versions</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common.ProtocolVersions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Plutus ledger languages</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Plutus Core language versions</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html#Version"
+	><span class="hs-identifier"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- * Version-testing functions</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#ledgerLanguageIntroducedIn"
+	><span class="hs-identifier"
+	  >ledgerLanguageIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#ledgerLanguagesAvailableIn"
+	><span class="hs-identifier"
+	  >ledgerLanguagesAvailableIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#plcVersionsIntroducedIn"
+	><span class="hs-identifier"
+	  >plcVersionsIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#plcVersionsAvailableIn"
+	><span class="hs-identifier"
+	  >plcVersionsAvailableIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#builtinsIntroducedIn"
+	><span class="hs-identifier"
+	  >builtinsIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#builtinsAvailableIn"
+	><span class="hs-identifier"
+	  >builtinsAvailableIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch1"
+	><span class="hs-identifier"
+	  >batch1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch2"
+	><span class="hs-identifier"
+	  >batch2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch3"
+	><span class="hs-identifier"
+	  >batch3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch4a"
+	><span class="hs-identifier"
+	  >batch4a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch4b"
+	><span class="hs-identifier"
+	  >batch4b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch5"
+	><span class="hs-identifier"
+	  >batch5</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch6"
+	><span class="hs-identifier"
+	  >batch6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common.ProtocolVersions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html"
+	><span class="hs-identifier"
+	  >Codec.Serialise.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	><span class="hs-identifier"
+	  >Serialise</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src/NoThunks.Class.html#NoThunks"
+	><span class="hs-identifier"
+	  >NoThunks</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Version</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [New builtins/language versions and protocol versions]
+
+Abbreviations: LL = ledger language, PV = (major) protocol version.
+
+When we add a new builtin to the Plutus language, that is a *backwards-compatible* change.
+Old scripts will still work (since they don't use the new builtins), we just make some more
+scripts possible.
+
+The same is true for new Plutus Core language versions: adding these is also backwards-compatible.
+
+It would be nice, therefore, to get away with just having one definition of the
+set of builtin functions/language features. Then the new features will just
+&quot;work&quot;. However, this neglects the fact that support for the new feature will be
+added in the *software update* that brings a new Plutus ledger language, but
+they should only be usable after the corresponding *hard fork*. So there is a
+period of time in which the feature must be present in the software but not
+usable, so we need to decide this conditionally based on the protocol version.
+
+To do this we need to:
+- Know which protocol version a feature was introduced in.
+- Given the protocol version, check a program for features that should not be usable yet.
+
+To simplify our lives, we pervasively make the assumption that after a feature
+is introduced in a particular ledger language and protocol version, it remains
+present in the same ledger language in all later protocol versions (but not
+necessarily in other ledger languages; there was previously an assumption that
+if a feature was available in a given LL then it would also be available in all
+later LLs, but this led to complications when we retrospectively introduced
+certain features in earlier LLs).
+
+Note that this doesn't currently handle removals, although it fairly straighforwardly
+could do, just by tracking when they were removed.
+
+See also Note [Adding new builtins: protocol versions].
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The Plutus ledger language. These are entirely different script languages from the ledger's perspective,
+which on our side are interpreted in very similar ways.
+
+It is a simple enumerated datatype (there is no major and minor components as in protocol version)
+and the __ordering of constructors__ is essential for deriving Enum,Ord,Bounded.
+
+IMPORTANT: this is different from the Plutus Core language version, `PlutusCore.Version` -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="PlutusLedgerLanguage"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusLedgerLanguage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | introduced in Alonzo HF</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span id="PlutusV1"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV1"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusV1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | introduced in Vasil HF</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span id="PlutusV2"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV2"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusV2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | introduced in Chang HF</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >    </span
+      ><span id="PlutusV3"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	  ><span class="hs-identifier hs-var"
+	    >PlutusV3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681200605"
+      ><span id="local-6989586621681200607"
+	><span class="annot"
+	  ><span class="annottext"
+	    >PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+(PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool)
+-&gt; (PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool)
+-&gt; Eq PlutusLedgerLanguage
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+== :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+$c/= :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+/= :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200614"
+      ><span id="local-6989586621681200616"
+	><span id="local-6989586621681200618"
+	  ><span id="local-6989586621681200621"
+	    ><span id="local-6989586621681200624"
+	      ><span id="local-6989586621681200627"
+		><span id="local-6989586621681200630"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq PlutusLedgerLanguage
+Eq PlutusLedgerLanguage =&gt;
+(PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Ordering)
+-&gt; (PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool)
+-&gt; (PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool)
+-&gt; (PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool)
+-&gt; (PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool)
+-&gt; (PlutusLedgerLanguage
+    -&gt; PlutusLedgerLanguage -&gt; PlutusLedgerLanguage)
+-&gt; (PlutusLedgerLanguage
+    -&gt; PlutusLedgerLanguage -&gt; PlutusLedgerLanguage)
+-&gt; Ord PlutusLedgerLanguage
+PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Ordering
+PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Ordering
+compare :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Ordering
+$c&lt; :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+&lt; :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+$c&lt;= :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+&lt;= :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+$c&gt; :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+&gt; :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+$c&gt;= :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+&gt;= :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage -&gt; Bool
+$cmax :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+max :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+$cmin :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+min :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200634"
+      ><span id="local-6989586621681200636"
+	><span id="local-6989586621681200640"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; PlutusLedgerLanguage -&gt; ShowS
+[PlutusLedgerLanguage] -&gt; ShowS
+PlutusLedgerLanguage -&gt; String
+(Int -&gt; PlutusLedgerLanguage -&gt; ShowS)
+-&gt; (PlutusLedgerLanguage -&gt; String)
+-&gt; ([PlutusLedgerLanguage] -&gt; ShowS)
+-&gt; Show PlutusLedgerLanguage
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; PlutusLedgerLanguage -&gt; ShowS
+showsPrec :: Int -&gt; PlutusLedgerLanguage -&gt; ShowS
+$cshow :: PlutusLedgerLanguage -&gt; String
+show :: PlutusLedgerLanguage -&gt; String
+$cshowList :: [PlutusLedgerLanguage] -&gt; ShowS
+showList :: [PlutusLedgerLanguage] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200644"
+      ><span id="local-6989586621681200646"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. PlutusLedgerLanguage -&gt; Rep PlutusLedgerLanguage x)
+-&gt; (forall x. Rep PlutusLedgerLanguage x -&gt; PlutusLedgerLanguage)
+-&gt; Generic PlutusLedgerLanguage
+forall x. Rep PlutusLedgerLanguage x -&gt; PlutusLedgerLanguage
+forall x. PlutusLedgerLanguage -&gt; Rep PlutusLedgerLanguage x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. PlutusLedgerLanguage -&gt; Rep PlutusLedgerLanguage x
+from :: forall x. PlutusLedgerLanguage -&gt; Rep PlutusLedgerLanguage x
+$cto :: forall x. Rep PlutusLedgerLanguage x -&gt; PlutusLedgerLanguage
+to :: forall x. Rep PlutusLedgerLanguage x -&gt; PlutusLedgerLanguage
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200650"
+      ><span id="local-6989586621681200658"
+	><span id="local-6989586621681200664"
+	  ><span id="local-6989586621681200674"
+	    ><span id="local-6989586621681200676"
+	      ><span id="local-6989586621681200680"
+		><span id="local-6989586621681200684"
+		  ><span id="local-6989586621681200687"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; PlutusLedgerLanguage
+PlutusLedgerLanguage -&gt; Int
+PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage
+-&gt; [PlutusLedgerLanguage]
+(PlutusLedgerLanguage -&gt; PlutusLedgerLanguage)
+-&gt; (PlutusLedgerLanguage -&gt; PlutusLedgerLanguage)
+-&gt; (Int -&gt; PlutusLedgerLanguage)
+-&gt; (PlutusLedgerLanguage -&gt; Int)
+-&gt; (PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage])
+-&gt; (PlutusLedgerLanguage
+    -&gt; PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage])
+-&gt; (PlutusLedgerLanguage
+    -&gt; PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage])
+-&gt; (PlutusLedgerLanguage
+    -&gt; PlutusLedgerLanguage
+    -&gt; PlutusLedgerLanguage
+    -&gt; [PlutusLedgerLanguage])
+-&gt; Enum PlutusLedgerLanguage
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+succ :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+$cpred :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+pred :: PlutusLedgerLanguage -&gt; PlutusLedgerLanguage
+$ctoEnum :: Int -&gt; PlutusLedgerLanguage
+toEnum :: Int -&gt; PlutusLedgerLanguage
+$cfromEnum :: PlutusLedgerLanguage -&gt; Int
+fromEnum :: PlutusLedgerLanguage -&gt; Int
+$cenumFrom :: PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+enumFrom :: PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+$cenumFromThen :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+enumFromThen :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+$cenumFromTo :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+enumFromTo :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; [PlutusLedgerLanguage]
+$cenumFromThenTo :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage
+-&gt; [PlutusLedgerLanguage]
+enumFromThenTo :: PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage
+-&gt; [PlutusLedgerLanguage]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200691"
+      ><span id="local-6989586621681200693"
+	><span class="annot"
+	  ><span class="annottext"
+	    >PlutusLedgerLanguage
+PlutusLedgerLanguage
+-&gt; PlutusLedgerLanguage -&gt; Bounded PlutusLedgerLanguage
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: PlutusLedgerLanguage
+minBound :: PlutusLedgerLanguage
+$cmaxBound :: PlutusLedgerLanguage
+maxBound :: PlutusLedgerLanguage
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681200696"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusLedgerLanguage -&gt; ()
+(PlutusLedgerLanguage -&gt; ()) -&gt; NFData PlutusLedgerLanguage
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: PlutusLedgerLanguage -&gt; ()
+rnf :: PlutusLedgerLanguage -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200713"
+      ><span id="local-6989586621681200717"
+	><span id="local-6989586621681200723"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Context -&gt; PlutusLedgerLanguage -&gt; IO (Maybe ThunkInfo)
+Proxy PlutusLedgerLanguage -&gt; String
+(Context -&gt; PlutusLedgerLanguage -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; PlutusLedgerLanguage -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy PlutusLedgerLanguage -&gt; String)
+-&gt; NoThunks PlutusLedgerLanguage
+forall a.
+(Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy a -&gt; String)
+-&gt; NoThunks a
+$cnoThunks :: Context -&gt; PlutusLedgerLanguage -&gt; IO (Maybe ThunkInfo)
+noThunks :: Context -&gt; PlutusLedgerLanguage -&gt; IO (Maybe ThunkInfo)
+$cwNoThunks :: Context -&gt; PlutusLedgerLanguage -&gt; IO (Maybe ThunkInfo)
+wNoThunks :: Context -&gt; PlutusLedgerLanguage -&gt; IO (Maybe ThunkInfo)
+$cshowTypeOf :: Proxy PlutusLedgerLanguage -&gt; String
+showTypeOf :: Proxy PlutusLedgerLanguage -&gt; String
+</span
+	      ><a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>NoThunks</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200748"
+      ><span id="local-6989586621681200755"
+	><span id="local-6989586621681200761"
+	  ><span id="local-6989586621681200764"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>[PlutusLedgerLanguage] -&gt; Encoding
+PlutusLedgerLanguage -&gt; Encoding
+(PlutusLedgerLanguage -&gt; Encoding)
+-&gt; (forall s. Decoder s PlutusLedgerLanguage)
+-&gt; ([PlutusLedgerLanguage] -&gt; Encoding)
+-&gt; (forall s. Decoder s [PlutusLedgerLanguage])
+-&gt; Serialise PlutusLedgerLanguage
+forall s. Decoder s [PlutusLedgerLanguage]
+forall s. Decoder s PlutusLedgerLanguage
+forall a.
+(a -&gt; Encoding)
+-&gt; (forall s. Decoder s a)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (forall s. Decoder s [a])
+-&gt; Serialise a
+$cencode :: PlutusLedgerLanguage -&gt; Encoding
+encode :: PlutusLedgerLanguage -&gt; Encoding
+$cdecode :: forall s. Decoder s PlutusLedgerLanguage
+decode :: forall s. Decoder s PlutusLedgerLanguage
+$cencodeList :: [PlutusLedgerLanguage] -&gt; Encoding
+encodeList :: [PlutusLedgerLanguage] -&gt; Encoding
+$cdecodeList :: forall s. Decoder s [PlutusLedgerLanguage]
+decodeList :: forall s. Decoder s [PlutusLedgerLanguage]
+</span
+		><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Serialise</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681200794"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusLedgerLanguage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681200799"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. PlutusLedgerLanguage -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681200799"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage -&gt; Doc ann
+forall a ann. Show a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#viaShow"
+	><span class="hs-identifier hs-var"
+	  >viaShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Query the protocol version that a specific Plutus ledger language was first introduced in.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#ledgerLanguageIntroducedIn"
+	><span class="hs-identifier hs-type"
+	  >ledgerLanguageIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="ledgerLanguageIntroducedIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -&gt; MajorProtocolVersion
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#ledgerLanguageIntroducedIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ledgerLanguageIntroducedIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV1"
+	><span class="hs-identifier hs-var"
+	  >PlutusV1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#alonzoPV"
+	><span class="hs-identifier hs-var"
+	  >alonzoPV</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >PlutusV2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#vasilPV"
+	><span class="hs-identifier hs-var"
+	  >vasilPV</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#changPV"
+	><span class="hs-identifier hs-var"
+	  >changPV</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Which Plutus language versions are available in the given
+'MajorProtocolVersion'?  See Note [New builtins/language versions and protocol
+versions].  This function (and others in this module) assumes that once a LL is
+available it remains available in all later PVs and that if m &lt;= n, PlutusVm is
+introduced no later than PlutusVn. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#ledgerLanguagesAvailableIn"
+	><span class="hs-identifier hs-type"
+	  >ledgerLanguagesAvailableIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="ledgerLanguagesAvailableIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >ledgerLanguagesAvailableIn :: MajorProtocolVersion -&gt; Set PlutusLedgerLanguage
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#ledgerLanguagesAvailableIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ledgerLanguagesAvailableIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681200806"
+      ><span class="annot"
+	><span class="annottext"
+	  >MajorProtocolVersion
+</span
+	  ><a href="#local-6989586621681200806"
+	  ><span class="hs-identifier hs-var"
+	    >searchPv</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PlutusLedgerLanguage] -&gt; Set PlutusLedgerLanguage
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([PlutusLedgerLanguage] -&gt; Set PlutusLedgerLanguage)
+-&gt; [PlutusLedgerLanguage] -&gt; Set PlutusLedgerLanguage
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlutusLedgerLanguage -&gt; Bool)
+-&gt; [PlutusLedgerLanguage] -&gt; [PlutusLedgerLanguage]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#takeWhile"
+	><span class="hs-identifier hs-var"
+	  >takeWhile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681200809"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusLedgerLanguage
+</span
+	  ><a href="#local-6989586621681200809"
+	  ><span class="hs-identifier hs-var"
+	    >ll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage -&gt; MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#ledgerLanguageIntroducedIn"
+	><span class="hs-identifier hs-var"
+	  >ledgerLanguageIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="#local-6989586621681200809"
+	><span class="hs-identifier hs-var"
+	  >ll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion -&gt; MajorProtocolVersion -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >&lt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="#local-6989586621681200806"
+	><span class="hs-identifier hs-var"
+	  >searchPv</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PlutusLedgerLanguage]
+forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	><span class="hs-identifier hs-var"
+	  >enumerate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Given a map from PVs to a type `a`, return a `Set a` containing all of the
+entries with PV &lt;= thisPv -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span id="local-6989586621681200535"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#collectUpTo"
+	  ><span class="hs-identifier hs-type"
+	    >collectUpTo</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-122"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+	  ><span class="hs-identifier hs-type"
+	    >Ord</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681200535"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-123"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	  ><span class="hs-identifier hs-type"
+	    >Map.Map</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	  ><span class="hs-identifier hs-type"
+	    >MajorProtocolVersion</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	  ><span class="hs-identifier hs-type"
+	    >Set.Set</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681200535"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-124"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	  ><span class="hs-identifier hs-type"
+	    >MajorProtocolVersion</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-125"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	  ><span class="hs-identifier hs-type"
+	    >Set.Set</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681200535"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span id="collectUpTo"
+      ><span class="annot"
+	><span class="annottext"
+	  >collectUpTo :: forall a.
+Ord a =&gt;
+Map MajorProtocolVersion (Set a) -&gt; MajorProtocolVersion -&gt; Set a
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#collectUpTo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >collectUpTo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681200819"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map MajorProtocolVersion (Set a)
+</span
+	  ><a href="#local-6989586621681200819"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681200820"
+      ><span class="annot"
+	><span class="annottext"
+	  >MajorProtocolVersion
+</span
+	  ><a href="#local-6989586621681200820"
+	  ><span class="hs-identifier hs-var"
+	    >thisPv</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Set a] -&gt; Set a
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Set a] -&gt; Set a) -&gt; [Set a] -&gt; Set a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- ie, iterated `union`</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map MajorProtocolVersion (Set a) -&gt; [Set a]
+forall k a. Map k a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#elems"
+	><span class="hs-identifier hs-var"
+	  >Map.elems</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map MajorProtocolVersion (Set a) -&gt; [Set a])
+-&gt; Map MajorProtocolVersion (Set a) -&gt; [Set a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(MajorProtocolVersion -&gt; Bool)
+-&gt; Map MajorProtocolVersion (Set a)
+-&gt; Map MajorProtocolVersion (Set a)
+forall k a. (k -&gt; Bool) -&gt; Map k a -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#takeWhileAntitone"
+	><span class="hs-identifier hs-var"
+	  >Map.takeWhileAntitone</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion -&gt; MajorProtocolVersion -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >&lt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="#local-6989586621681200820"
+	><span class="hs-identifier hs-var"
+	  >thisPv</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map MajorProtocolVersion (Set a)
+</span
+	><a href="#local-6989586621681200819"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span class="hs-comment"
+      >{- Batches of builtins which were introduced in the same hard fork (but perhaps
+   not for all LLs): see the Plutus Core specification and
+   `builtinsIntroducedIn` below.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span class="hs-comment"
+      >{- If any new builtins are introduced after a batch has been deployed on the chain
+  then a new `batch` object MUST be added to contain them and the
+  `builtinsIntroducedIn` function must be updated; the contents of batches which
+  have already been deployed must NOT be altered.  Also, remember to UPDATE THE
+  TESTS in `Spec.Versions` and `Spec.Data.Versions` when a new batch is added.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span class="hs-comment"
+      >{- It's tempting to try something like `fmap toEnum [0..50]` here, but that's
+   dangerous because the order of the constructors in DefaultFun doesn't
+   precisely match the order that the builtins were introduced in.  A safer
+   alternative would be to use the flat tags, but they're not directly
+   accessible at the moment.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="hs-comment"
+      >-- DO NOT CHANGE THIS.</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch1"
+	><span class="hs-identifier hs-type"
+	  >batch1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span id="batch1"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch1 :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch1"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AddInteger"
+	><span class="hs-identifier hs-var"
+	  >AddInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#SubtractInteger"
+	><span class="hs-identifier hs-var"
+	  >SubtractInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MultiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >MultiplyInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DivideInteger"
+	><span class="hs-identifier hs-var"
+	  >DivideInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#QuotientInteger"
+	><span class="hs-identifier hs-var"
+	  >QuotientInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#RemainderInteger"
+	><span class="hs-identifier hs-var"
+	  >RemainderInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ModInteger"
+	><span class="hs-identifier hs-var"
+	  >ModInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#EqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >EqualsInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanInteger"
+	><span class="hs-identifier hs-var"
+	  >LessThanInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanEqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >LessThanEqualsInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AppendByteString"
+	><span class="hs-identifier hs-var"
+	  >AppendByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ConsByteString"
+	><span class="hs-identifier hs-var"
+	  >ConsByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#SliceByteString"
+	><span class="hs-identifier hs-var"
+	  >SliceByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LengthOfByteString"
+	><span class="hs-identifier hs-var"
+	  >LengthOfByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IndexByteString"
+	><span class="hs-identifier hs-var"
+	  >IndexByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#EqualsByteString"
+	><span class="hs-identifier hs-var"
+	  >EqualsByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanByteString"
+	><span class="hs-identifier hs-var"
+	  >LessThanByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanEqualsByteString"
+	><span class="hs-identifier hs-var"
+	  >LessThanEqualsByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Sha2_256"
+	><span class="hs-identifier hs-var"
+	  >Sha2_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Sha3_256"
+	><span class="hs-identifier hs-var"
+	  >Sha3_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Blake2b_256"
+	><span class="hs-identifier hs-var"
+	  >Blake2b_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#VerifyEd25519Signature"
+	><span class="hs-identifier hs-var"
+	  >VerifyEd25519Signature</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AppendString"
+	><span class="hs-identifier hs-var"
+	  >AppendString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#EqualsString"
+	><span class="hs-identifier hs-var"
+	  >EqualsString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#EncodeUtf8"
+	><span class="hs-identifier hs-var"
+	  >EncodeUtf8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DecodeUtf8"
+	><span class="hs-identifier hs-var"
+	  >DecodeUtf8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IfThenElse"
+	><span class="hs-identifier hs-var"
+	  >IfThenElse</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ChooseUnit"
+	><span class="hs-identifier hs-var"
+	  >ChooseUnit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Trace"
+	><span class="hs-identifier hs-var"
+	  >Trace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#FstPair"
+	><span class="hs-identifier hs-var"
+	  >FstPair</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#SndPair"
+	><span class="hs-identifier hs-var"
+	  >SndPair</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ChooseList"
+	><span class="hs-identifier hs-var"
+	  >ChooseList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MkCons"
+	><span class="hs-identifier hs-var"
+	  >MkCons</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#HeadList"
+	><span class="hs-identifier hs-var"
+	  >HeadList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#TailList"
+	><span class="hs-identifier hs-var"
+	  >TailList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#NullList"
+	><span class="hs-identifier hs-var"
+	  >NullList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ChooseData"
+	><span class="hs-identifier hs-var"
+	  >ChooseData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ConstrData"
+	><span class="hs-identifier hs-var"
+	  >ConstrData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MapData"
+	><span class="hs-identifier hs-var"
+	  >MapData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ListData"
+	><span class="hs-identifier hs-var"
+	  >ListData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IData"
+	><span class="hs-identifier hs-var"
+	  >IData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#BData"
+	><span class="hs-identifier hs-var"
+	  >BData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#UnConstrData"
+	><span class="hs-identifier hs-var"
+	  >UnConstrData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#UnMapData"
+	><span class="hs-identifier hs-var"
+	  >UnMapData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#UnListData"
+	><span class="hs-identifier hs-var"
+	  >UnListData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#UnIData"
+	><span class="hs-identifier hs-var"
+	  >UnIData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#UnBData"
+	><span class="hs-identifier hs-var"
+	  >UnBData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#EqualsData"
+	><span class="hs-identifier hs-var"
+	  >EqualsData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MkPairData"
+	><span class="hs-identifier hs-var"
+	  >MkPairData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MkNilData"
+	><span class="hs-identifier hs-var"
+	  >MkNilData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MkNilPairData"
+	><span class="hs-identifier hs-var"
+	  >MkNilPairData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span class="hs-comment"
+      >-- DO NOT CHANGE THIS.</span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch2"
+	><span class="hs-identifier hs-type"
+	  >batch2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span id="batch2"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch2 :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch2"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#SerialiseData"
+	><span class="hs-identifier hs-var"
+	  >SerialiseData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span class="hs-comment"
+      >-- DO NOT CHANGE THIS.</span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch3"
+	><span class="hs-identifier hs-type"
+	  >batch3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span id="batch3"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch3 :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch3"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#VerifyEcdsaSecp256k1Signature"
+	><span class="hs-identifier hs-var"
+	  >VerifyEcdsaSecp256k1Signature</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#VerifySchnorrSecp256k1Signature"
+	><span class="hs-identifier hs-var"
+	  >VerifySchnorrSecp256k1Signature</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span class="hs-comment"
+      >-- `cekCase` and `cekConstr` costs come between Batch 3 and Batch 4 in the</span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span class="hs-comment"
+      >-- PlutusV3 cost model parameters, although that's irrelevant here.</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span class="hs-comment"
+      >-- batch4, excluding IntegerToByteString and ByteStringToInteger.</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span class="hs-comment"
+      >-- DO NOT CHANGE THIS.</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch4a"
+	><span class="hs-identifier hs-type"
+	  >batch4a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span id="batch4a"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch4a :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch4a"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch4a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_add"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_add</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_neg"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_neg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_scalarMul"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_scalarMul</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_equal"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_equal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_hashToGroup"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_hashToGroup</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_compress"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_compress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_uncompress"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_uncompress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_add"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_add</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_neg"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_neg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_scalarMul"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_scalarMul</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_equal"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_equal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_hashToGroup"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_hashToGroup</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_compress"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_compress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_uncompress"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_uncompress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_millerLoop"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_millerLoop</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_mulMlResult"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_mulMlResult</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_finalVerify"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_finalVerify</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Keccak_256"
+	><span class="hs-identifier hs-var"
+	  >Keccak_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Blake2b_224"
+	><span class="hs-identifier hs-var"
+	  >Blake2b_224</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span class="hs-comment"
+      >{- batch4b: IntegerToByteString and ByteStringToInteger.  These were enabled in
+ PlutusV3 at PV9, along with batch4a, They were enabled in PlutusV2 at PV10 in
+ #6056 and #6065.  They are available on the chain, but they're prohibitively
+ expensive because the proposal to update the relevant protocol parameters has
+ not (yet) been enacted.  This has left a &quot;gap&quot; in the cost model paramters: for
+ PlutusV3, the parameters for Batch 3 are followed those for 4a, then 4b, but
+ for PlutusV2 those for Batch3 are followed by those for Batch 4a, and those for
+ 4b aren't in use yet.  Since you can't actually use the 4b builtins in PlutusV2
+ at the moment, it's tempting to insert the 4a parameter before the 4b
+ parameters and enable them all at PV11 and with a suitable parameter update.
+ However, if we do do this there's a theoretical risk of turning a phase 2
+ failure into a phase 1 failure: would that be problematic?
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span class="hs-comment"
+      >-- DO NOT CHANGE THIS.</span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch4b"
+	><span class="hs-identifier hs-type"
+	  >batch4b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span id="batch4b"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch4b :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch4b"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch4b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IntegerToByteString"
+	><span class="hs-identifier hs-var"
+	  >IntegerToByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ByteStringToInteger"
+	><span class="hs-identifier hs-var"
+	  >ByteStringToInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span class="hs-comment"
+      >-- DO NOT CHANGE THIS.</span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch4"
+	><span class="hs-identifier hs-type"
+	  >batch4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-263"
+      ></span
+      ><span id="batch4"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch4 :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch4"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch4a"
+	><span class="hs-identifier hs-var"
+	  >batch4a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch4b"
+	><span class="hs-identifier hs-var"
+	  >batch4b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-264"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-265"
+      ></span
+      ><span class="hs-comment"
+      >-- DO NOT CHANGE THIS.</span
+      ><span
+      >
+</span
+      ><span id="line-266"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch5"
+	><span class="hs-identifier hs-type"
+	  >batch5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-267"
+      ></span
+      ><span id="batch5"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch5 :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch5"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-268"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AndByteString"
+	><span class="hs-identifier hs-var"
+	  >AndByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-269"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#OrByteString"
+	><span class="hs-identifier hs-var"
+	  >OrByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-270"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#XorByteString"
+	><span class="hs-identifier hs-var"
+	  >XorByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-271"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ComplementByteString"
+	><span class="hs-identifier hs-var"
+	  >ComplementByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-272"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ReadBit"
+	><span class="hs-identifier hs-var"
+	  >ReadBit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-273"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#WriteBits"
+	><span class="hs-identifier hs-var"
+	  >WriteBits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-274"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ReplicateByte"
+	><span class="hs-identifier hs-var"
+	  >ReplicateByte</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-275"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ShiftByteString"
+	><span class="hs-identifier hs-var"
+	  >ShiftByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-276"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#RotateByteString"
+	><span class="hs-identifier hs-var"
+	  >RotateByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-277"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#CountSetBits"
+	><span class="hs-identifier hs-var"
+	  >CountSetBits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-278"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#FindFirstSetBit"
+	><span class="hs-identifier hs-var"
+	  >FindFirstSetBit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-279"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Ripemd_160"
+	><span class="hs-identifier hs-var"
+	  >Ripemd_160</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-280"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-281"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-282"
+      ></span
+      ><span class="hs-comment"
+      >-- Add new builtins for release in PV11 here.  Once PV11 has happened (by which</span
+      ><span
+      >
+</span
+      ><span id="line-283"
+      ></span
+      ><span class="hs-comment"
+      >-- time we should have replaced pv11PV by the real name), mark this as not to be</span
+      ><span
+      >
+</span
+      ><span id="line-284"
+      ></span
+      ><span class="hs-comment"
+      >-- changed and open a new batch.</span
+      ><span
+      >
+</span
+      ><span id="line-285"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#batch6"
+	><span class="hs-identifier hs-type"
+	  >batch6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-286"
+      ></span
+      ><span id="batch6"
+      ><span class="annot"
+	><span class="annottext"
+	  >batch6 :: [DefaultFun]
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#batch6"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >batch6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-287"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ExpModInteger"
+	><span class="hs-identifier hs-var"
+	  >ExpModInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-288"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DropList"
+	><span class="hs-identifier hs-var"
+	  >DropList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-289"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LengthOfArray"
+	><span class="hs-identifier hs-var"
+	  >LengthOfArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-290"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ListToArray"
+	><span class="hs-identifier hs-var"
+	  >ListToArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-291"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#IndexArray"
+	><span class="hs-identifier hs-var"
+	  >IndexArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-292"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_multiScalarMul"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G1_multiScalarMul</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-293"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_multiScalarMul"
+	><span class="hs-identifier hs-var"
+	  >Bls12_381_G2_multiScalarMul</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-294"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-295"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-296"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Given a ledger language, return a map indicating which builtin functions were
+  introduced in which 'MajorProtocolVersion'.  This __must__ be updated when new
+  builtins are added.  It is not necessary to add entries for protocol versions
+  where no new builtins are added.  See Note [New builtins/language versions and
+  protocol versions] -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-301"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#builtinsIntroducedIn"
+	><span class="hs-identifier hs-type"
+	  >builtinsIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-302"
+      ></span
+      ><span id="builtinsIntroducedIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinsIntroducedIn :: PlutusLedgerLanguage -&gt; Map MajorProtocolVersion (Set DefaultFun)
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#builtinsIntroducedIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinsIntroducedIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-303"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-304"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV1"
+	><span class="hs-identifier hs-var"
+	  >PlutusV1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-305"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(MajorProtocolVersion, Set DefaultFun)]
+-&gt; Map MajorProtocolVersion (Set DefaultFun)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-306"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#alonzoPV"
+	><span class="hs-identifier hs-var"
+	  >alonzoPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch1"
+	><span class="hs-identifier hs-var"
+	  >batch1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-307"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#pv11PV"
+	><span class="hs-identifier hs-var"
+	  >pv11PV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch2"
+	><span class="hs-identifier hs-var"
+	  >batch2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch3"
+	><span class="hs-identifier hs-var"
+	  >batch3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch4"
+	><span class="hs-identifier hs-var"
+	  >batch4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch5"
+	><span class="hs-identifier hs-var"
+	  >batch5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch6"
+	><span class="hs-identifier hs-var"
+	  >batch6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-308"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-309"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >PlutusV2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-310"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(MajorProtocolVersion, Set DefaultFun)]
+-&gt; Map MajorProtocolVersion (Set DefaultFun)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-311"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#vasilPV"
+	><span class="hs-identifier hs-var"
+	  >vasilPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch1"
+	><span class="hs-identifier hs-var"
+	  >batch1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch2"
+	><span class="hs-identifier hs-var"
+	  >batch2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-312"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#valentinePV"
+	><span class="hs-identifier hs-var"
+	  >valentinePV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch3"
+	><span class="hs-identifier hs-var"
+	  >batch3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-313"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#plominPV"
+	><span class="hs-identifier hs-var"
+	  >plominPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch4b"
+	><span class="hs-identifier hs-var"
+	  >batch4b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-314"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#pv11PV"
+	><span class="hs-identifier hs-var"
+	  >pv11PV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch4a"
+	><span class="hs-identifier hs-var"
+	  >batch4a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch5"
+	><span class="hs-identifier hs-var"
+	  >batch5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch6"
+	><span class="hs-identifier hs-var"
+	  >batch6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-315"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-316"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-317"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(MajorProtocolVersion, Set DefaultFun)]
+-&gt; Map MajorProtocolVersion (Set DefaultFun)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-318"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#changPV"
+	><span class="hs-identifier hs-var"
+	  >changPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch1"
+	><span class="hs-identifier hs-var"
+	  >batch1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch2"
+	><span class="hs-identifier hs-var"
+	  >batch2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch3"
+	><span class="hs-identifier hs-var"
+	  >batch3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; [DefaultFun] -&gt; [DefaultFun]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch4"
+	><span class="hs-identifier hs-var"
+	  >batch4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-319"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#plominPV"
+	><span class="hs-identifier hs-var"
+	  >plominPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch5"
+	><span class="hs-identifier hs-var"
+	  >batch5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-320"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#pv11PV"
+	><span class="hs-identifier hs-var"
+	  >pv11PV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun] -&gt; Set DefaultFun
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DefaultFun]
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#batch6"
+	><span class="hs-identifier hs-var"
+	  >batch6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-321"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-322"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-323"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Return a set containing the builtins which are available in a given LL in a
+given PV.  All builtins are available in all LLs from `pv11PV` onwards. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-325"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#builtinsAvailableIn"
+	><span class="hs-identifier hs-type"
+	  >builtinsAvailableIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-326"
+      ></span
+      ><span id="builtinsAvailableIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinsAvailableIn :: PlutusLedgerLanguage -&gt; MajorProtocolVersion -&gt; Set DefaultFun
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#builtinsAvailableIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinsAvailableIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map MajorProtocolVersion (Set DefaultFun)
+-&gt; MajorProtocolVersion -&gt; Set DefaultFun
+forall a.
+Ord a =&gt;
+Map MajorProtocolVersion (Set a) -&gt; MajorProtocolVersion -&gt; Set a
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#collectUpTo"
+	><span class="hs-identifier hs-var"
+	  >collectUpTo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map MajorProtocolVersion (Set DefaultFun)
+ -&gt; MajorProtocolVersion -&gt; Set DefaultFun)
+-&gt; (PlutusLedgerLanguage
+    -&gt; Map MajorProtocolVersion (Set DefaultFun))
+-&gt; PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; Set DefaultFun
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage -&gt; Map MajorProtocolVersion (Set DefaultFun)
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#builtinsIntroducedIn"
+	><span class="hs-identifier hs-var"
+	  >builtinsIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-327"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-328"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A map indicating which Plutus Core versions were introduced in which
+'MajorProtocolVersion' and 'PlutusLedgerLanguage'. Each version should appear at most once.
+This __must__ be updated when new versions are added.
+See Note [New builtins/language versions and protocol versions] -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-332"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#plcVersionsIntroducedIn"
+	><span class="hs-identifier hs-type"
+	  >plcVersionsIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-333"
+      ></span
+      ><span id="plcVersionsIntroducedIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >plcVersionsIntroducedIn :: PlutusLedgerLanguage -&gt; Map MajorProtocolVersion (Set Version)
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#plcVersionsIntroducedIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plcVersionsIntroducedIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-334"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-335"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV1"
+	><span class="hs-identifier hs-var"
+	  >PlutusV1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-336"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(MajorProtocolVersion, Set Version)]
+-&gt; Map MajorProtocolVersion (Set Version)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-337"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#alonzoPV"
+	><span class="hs-identifier hs-var"
+	  >alonzoPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Version] -&gt; Set Version
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-338"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#pv11PV"
+	><span class="hs-identifier hs-var"
+	  >pv11PV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Version] -&gt; Set Version
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-339"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-340"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >PlutusV2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-341"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(MajorProtocolVersion, Set Version)]
+-&gt; Map MajorProtocolVersion (Set Version)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-342"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#vasilPV"
+	><span class="hs-identifier hs-var"
+	  >vasilPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Version] -&gt; Set Version
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-343"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#pv11PV"
+	><span class="hs-identifier hs-var"
+	  >pv11PV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Version] -&gt; Set Version
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-344"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-345"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-346"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(MajorProtocolVersion, Set Version)]
+-&gt; Map MajorProtocolVersion (Set Version)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-347"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MajorProtocolVersion
+</span
+	><a href="PlutusLedgerApi.Common.ProtocolVersions.html#changPV"
+	><span class="hs-identifier hs-var"
+	  >changPV</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Version] -&gt; Set Version
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Set.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion100"
+	><span class="hs-identifier hs-var"
+	  >plcVersion100</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="../../plutus-core/src/PlutusCore.Version.html#plcVersion110"
+	><span class="hs-identifier hs-var"
+	  >plcVersion110</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-348"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-349"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-350"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
+and 'MajorProtocolVersion'? -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-352"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#plcVersionsAvailableIn"
+	><span class="hs-identifier hs-type"
+	  >plcVersionsAvailableIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier hs-type"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ProtocolVersions.html#MajorProtocolVersion"
+	><span class="hs-identifier hs-type"
+	  >MajorProtocolVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Version.html#Version"
+	><span class="hs-identifier hs-type"
+	  >Version</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-353"
+      ></span
+      ><span id="plcVersionsAvailableIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >plcVersionsAvailableIn :: PlutusLedgerLanguage -&gt; MajorProtocolVersion -&gt; Set Version
+</span
+	  ><a href="PlutusLedgerApi.Common.Versions.html#plcVersionsAvailableIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plcVersionsAvailableIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map MajorProtocolVersion (Set Version)
+-&gt; MajorProtocolVersion -&gt; Set Version
+forall a.
+Ord a =&gt;
+Map MajorProtocolVersion (Set a) -&gt; MajorProtocolVersion -&gt; Set a
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#collectUpTo"
+	><span class="hs-identifier hs-var"
+	  >collectUpTo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map MajorProtocolVersion (Set Version)
+ -&gt; MajorProtocolVersion -&gt; Set Version)
+-&gt; (PlutusLedgerLanguage -&gt; Map MajorProtocolVersion (Set Version))
+-&gt; PlutusLedgerLanguage
+-&gt; MajorProtocolVersion
+-&gt; Set Version
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage -&gt; Map MajorProtocolVersion (Set Version)
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#plcVersionsIntroducedIn"
+	><span class="hs-identifier hs-var"
+	  >plcVersionsIntroducedIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-354"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

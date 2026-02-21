@@ -1,0 +1,1036 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.BLS12_381.TestClasses</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.BLS12_381.TestClasses</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	      >Show</a
+	      > a, <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Arbitrary</a
+	      > a, <a href="../plutus-core/PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+	      >ArbitraryBuiltin</a
+	      > a, <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	      >`Contains`</a
+	      > a) &#8658; <a href="#t:TestableAbelianGroup"
+	      >TestableAbelianGroup</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:groupName"
+		  >groupName</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		><li
+		><a href="#v:zero"
+		  >zero</a
+		  > &#8759; a</li
+		><li
+		><a href="#v:addTerm"
+		  >addTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		><a href="#v:negTerm"
+		  >negTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		><a href="#v:scalarMulTerm"
+		  >scalarMulTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		><a href="#v:multiScalarMulTerm"
+		  >multiScalarMulTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		><a href="#v:eqTerm"
+		  >eqTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:zeroTerm"
+	      >zeroTerm</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryNonZero"
+	      >arbitraryNonZero</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > g</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > a &#8658; <a href="#t:HashAndCompress"
+	      >HashAndCompress</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:compressedSize"
+		  >compressedSize</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:compress"
+		  >compress</a
+		  > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		  >ByteString</a
+		  ></li
+		><li
+		><a href="#v:compressTerm"
+		  >compressTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		><a href="#v:uncompressTerm"
+		  >uncompressTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		><a href="#v:hashToGroupTerm"
+		  >hashToGroupTerm</a
+		  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Arbitrary</a
+	    > a, <a href="../plutus-core/PlutusCore-Generators-QuickCheck-Builtin.html#t:ArbitraryBuiltin" title="PlutusCore.Generators.QuickCheck.Builtin"
+	    >ArbitraryBuiltin</a
+	    > a, <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	    >`Contains`</a
+	    > a) &#8658; <a id="t:TestableAbelianGroup" class="def"
+	    >TestableAbelianGroup</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#TestableAbelianGroup" class="link"
+	    >Source</a
+	    > <a href="#t:TestableAbelianGroup" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The code for the property tests for G1 and G2 is essentially identical, so
+ it's worth abstracting over the common features.  The blst Haskell FFI uses a
+ phantom type to do this but unfortunately we have to hide that to stop the
+ builtin machinery spotting it and then we have to re-abstract here. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:groupName" class="def"
+	      >groupName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#groupName" class="link"
+	      >Source</a
+	      > <a href="#v:groupName" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:zero" class="def"
+	      >zero</a
+	      > &#8759; a <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#zero" class="link"
+	      >Source</a
+	      > <a href="#v:zero" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:addTerm" class="def"
+	      >addTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#addTerm" class="link"
+	      >Source</a
+	      > <a href="#v:addTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:negTerm" class="def"
+	      >negTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#negTerm" class="link"
+	      >Source</a
+	      > <a href="#v:negTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:scalarMulTerm" class="def"
+	      >scalarMulTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#scalarMulTerm" class="link"
+	      >Source</a
+	      > <a href="#v:scalarMulTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:multiScalarMulTerm" class="def"
+	      >multiScalarMulTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#multiScalarMulTerm" class="link"
+	      >Source</a
+	      > <a href="#v:multiScalarMulTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:eqTerm" class="def"
+	      >eqTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#eqTerm" class="link"
+	      >Source</a
+	      > <a href="#v:eqTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TestableAbelianGroup"
+	    >Instances</h4
+	    ><details id="i:TestableAbelianGroup" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:TestableAbelianGroup:TestableAbelianGroup:1"
+		      ></span
+		      > <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+		      >TestableAbelianGroup</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:TestableAbelianGroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:TestableAbelianGroup:TestableAbelianGroup:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-BLS12_381-TestClasses.html"
+			>Evaluation.Builtins.BLS12_381.TestClasses</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:groupName"
+			  >groupName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#groupName" class="link"
+			  >Source</a
+			  > <a href="#v:groupName" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:addTerm"
+			  >addTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#addTerm" class="link"
+			  >Source</a
+			  > <a href="#v:addTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negTerm"
+			  >negTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#negTerm" class="link"
+			  >Source</a
+			  > <a href="#v:negTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:scalarMulTerm"
+			  >scalarMulTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#scalarMulTerm" class="link"
+			  >Source</a
+			  > <a href="#v:scalarMulTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:multiScalarMulTerm"
+			  >multiScalarMulTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#multiScalarMulTerm" class="link"
+			  >Source</a
+			  > <a href="#v:multiScalarMulTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:eqTerm"
+			  >eqTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#eqTerm" class="link"
+			  >Source</a
+			  > <a href="#v:eqTerm" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:TestableAbelianGroup:TestableAbelianGroup:2"
+		      ></span
+		      > <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+		      >TestableAbelianGroup</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:TestableAbelianGroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:TestableAbelianGroup:TestableAbelianGroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-BLS12_381-TestClasses.html"
+			>Evaluation.Builtins.BLS12_381.TestClasses</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:groupName"
+			  >groupName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#groupName" class="link"
+			  >Source</a
+			  > <a href="#v:groupName" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:addTerm"
+			  >addTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#addTerm" class="link"
+			  >Source</a
+			  > <a href="#v:addTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negTerm"
+			  >negTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#negTerm" class="link"
+			  >Source</a
+			  > <a href="#v:negTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:scalarMulTerm"
+			  >scalarMulTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#scalarMulTerm" class="link"
+			  >Source</a
+			  > <a href="#v:scalarMulTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:multiScalarMulTerm"
+			  >multiScalarMulTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#multiScalarMulTerm" class="link"
+			  >Source</a
+			  > <a href="#v:multiScalarMulTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:eqTerm"
+			  >eqTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#eqTerm" class="link"
+			  >Source</a
+			  > <a href="#v:eqTerm" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zeroTerm" class="def"
+	    >zeroTerm</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#zeroTerm" class="link"
+	    >Source</a
+	    > <a href="#v:zeroTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryNonZero" class="def"
+	    >arbitraryNonZero</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > g <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#arbitraryNonZero" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryNonZero" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > a &#8658; <a id="t:HashAndCompress" class="def"
+	    >HashAndCompress</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#HashAndCompress" class="link"
+	    >Source</a
+	    > <a href="#t:HashAndCompress" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:compressedSize" class="def"
+	      >compressedSize</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compressedSize" class="link"
+	      >Source</a
+	      > <a href="#v:compressedSize" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:compress" class="def"
+	      >compress</a
+	      > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compress" class="link"
+	      >Source</a
+	      > <a href="#v:compress" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:compressTerm" class="def"
+	      >compressTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compressTerm" class="link"
+	      >Source</a
+	      > <a href="#v:compressTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:uncompressTerm" class="def"
+	      >uncompressTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#uncompressTerm" class="link"
+	      >Source</a
+	      > <a href="#v:uncompressTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:hashToGroupTerm" class="def"
+	      >hashToGroupTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#hashToGroupTerm" class="link"
+	      >Source</a
+	      > <a href="#v:hashToGroupTerm" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:HashAndCompress"
+	    >Instances</h4
+	    ><details id="i:HashAndCompress" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HashAndCompress:HashAndCompress:1"
+		      ></span
+		      > <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+		      >HashAndCompress</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:HashAndCompress" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HashAndCompress:HashAndCompress:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-BLS12_381-TestClasses.html"
+			>Evaluation.Builtins.BLS12_381.TestClasses</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compressedSize"
+			  >compressedSize</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compressedSize" class="link"
+			  >Source</a
+			  > <a href="#v:compressedSize" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:compress"
+			  >compress</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compress" class="link"
+			  >Source</a
+			  > <a href="#v:compress" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:compressTerm"
+			  >compressTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compressTerm" class="link"
+			  >Source</a
+			  > <a href="#v:compressTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:uncompressTerm"
+			  >uncompressTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#uncompressTerm" class="link"
+			  >Source</a
+			  > <a href="#v:uncompressTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:hashToGroupTerm"
+			  >hashToGroupTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#hashToGroupTerm" class="link"
+			  >Source</a
+			  > <a href="#v:hashToGroupTerm" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HashAndCompress:HashAndCompress:2"
+		      ></span
+		      > <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+		      >HashAndCompress</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#line-113" class="link"
+		    >Source</a
+		    > <a href="#t:HashAndCompress" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HashAndCompress:HashAndCompress:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-BLS12_381-TestClasses.html"
+			>Evaluation.Builtins.BLS12_381.TestClasses</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compressedSize"
+			  >compressedSize</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compressedSize" class="link"
+			  >Source</a
+			  > <a href="#v:compressedSize" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:compress"
+			  >compress</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compress" class="link"
+			  >Source</a
+			  > <a href="#v:compress" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:compressTerm"
+			  >compressTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#compressTerm" class="link"
+			  >Source</a
+			  > <a href="#v:compressTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:uncompressTerm"
+			  >uncompressTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#uncompressTerm" class="link"
+			  >Source</a
+			  > <a href="#v:uncompressTerm" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:hashToGroupTerm"
+			  >hashToGroupTerm</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+			  >PlcTerm</a
+			  > <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#hashToGroupTerm" class="link"
+			  >Source</a
+			  > <a href="#v:hashToGroupTerm" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:1"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		  >Element</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#line-61" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitraryElement0" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><p
+		>Generate an arbitrary element of G1.  It's tricky to construct such an
+ element directly without using quite low-level operations on the curve
+ because a random point on the curve is highly unlikely to be in the subgroup
+ G1, but fortunately <code
+		  >hashToGroup</code
+		  > always produces an element of the subgroup,
+ so we can produce random elements of G1 by hashing random bytestrings. </p
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      > <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      > &#8594; [<a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:2"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		  >Element</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.BLS12_381.TestClasses.html#line-92" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitraryElement" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><p
+		>See the comment for the Arbitrary instance for G1.</p
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      > <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      > &#8594; [<a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

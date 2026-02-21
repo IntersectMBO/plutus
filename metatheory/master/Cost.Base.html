@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Cost.Base</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Cost.Base</h1>
+    <section>
+      <pre class="Agda"><a id="43" class="Keyword">module</a> <a id="50" href="Cost.Base.html" class="Module">Cost.Base</a> <a id="60" class="Keyword">where</a>
+
+</pre>
+<h2 id="imports">Imports</h2>
+
+<pre class="Agda"><a id="88" class="Keyword">open</a> <a id="93" class="Keyword">import</a> <a id="100" href="Algebra.html" class="Module">Algebra</a> <a id="108" class="Keyword">using</a> <a id="114" class="Symbol">(</a><a id="115" href="Algebra.Structures.html#4825" class="Record">IsMonoid</a><a id="123" class="Symbol">)</a>
+<a id="125" class="Keyword">open</a> <a id="130" class="Keyword">import</a> <a id="137" href="Data.List.html" class="Module">Data.List</a> <a id="147" class="Keyword">using</a> <a id="153" class="Symbol">(</a><a id="154" href="Agda.Builtin.List.html#147" class="Datatype">List</a><a id="158" class="Symbol">)</a>
+<a id="160" class="Keyword">open</a> <a id="165" class="Keyword">import</a> <a id="172" href="Data.Maybe.html" class="Module">Data.Maybe</a> <a id="183" class="Keyword">using</a> <a id="189" class="Symbol">(</a><a id="190" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a><a id="195" class="Symbol">;</a><a id="196" href="Data.Maybe.Base.html#1546" class="Function">fromMaybe</a><a id="205" class="Symbol">)</a>
+<a id="207" class="Keyword">open</a> <a id="212" class="Keyword">import</a> <a id="219" href="Data.Nat.html" class="Module">Data.Nat</a> <a id="228" class="Keyword">using</a> <a id="234" class="Symbol">(</a><a id="235" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a><a id="236" class="Symbol">)</a>
+<a id="238" class="Keyword">open</a> <a id="243" class="Keyword">import</a> <a id="250" href="Data.String.html" class="Module">Data.String</a> <a id="262" class="Keyword">using</a> <a id="268" class="Symbol">(</a><a id="269" href="Agda.Builtin.String.html#335" class="Postulate">String</a><a id="275" class="Symbol">;</a><a id="276" href="Data.String.Base.html#2168" class="Function">tail</a><a id="280" class="Symbol">)</a>
+<a id="282" class="Keyword">open</a> <a id="287" class="Keyword">import</a> <a id="294" href="Data.Vec.html" class="Module">Data.Vec</a> <a id="303" class="Keyword">using</a> <a id="309" class="Symbol">(</a><a id="310" href="Data.Vec.Base.html#1119" class="Datatype">Vec</a><a id="313" class="Symbol">)</a>
+<a id="315" class="Keyword">open</a> <a id="320" class="Keyword">import</a> <a id="327" href="Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a> <a id="365" class="Keyword">using</a> <a id="371" class="Symbol">(</a><a id="372" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a><a id="375" class="Symbol">)</a>
+
+<a id="378" class="Keyword">open</a> <a id="383" class="Keyword">import</a> <a id="390" href="Utils.Reflection.html" class="Module">Utils.Reflection</a> <a id="407" class="Keyword">using</a> <a id="413" class="Symbol">(</a><a id="414" href="Utils.Reflection.html#2724" class="Function">defDec</a><a id="420" class="Symbol">;</a><a id="421" href="Utils.Reflection.html#3112" class="Function">defShow</a><a id="428" class="Symbol">;</a><a id="429" href="Utils.Reflection.html#3476" class="Function">defListConstructors</a><a id="448" class="Symbol">)</a>
+<a id="450" class="Keyword">open</a> <a id="455" class="Keyword">import</a> <a id="462" href="RawU.html" class="Module">RawU</a> <a id="467" class="Keyword">using</a> <a id="473" class="Symbol">(</a><a id="474" href="RawU.html#8012" class="Datatype">TmCon</a><a id="479" class="Symbol">)</a>
+<a id="481" class="Keyword">open</a> <a id="486" class="Keyword">import</a> <a id="493" href="Builtin.html" class="Module">Builtin</a> <a id="501" class="Keyword">using</a> <a id="507" class="Symbol">(</a><a id="508" href="Builtin.html#1434" class="Datatype">Builtin</a><a id="515" class="Symbol">;</a><a id="516" href="Builtin.html#17167" class="Function">arity</a><a id="521" class="Symbol">)</a>
+<a id="523" class="Keyword">open</a> <a id="528" class="Keyword">import</a> <a id="535" href="Untyped.CEK.html" class="Module">Untyped.CEK</a> <a id="547" class="Keyword">using</a> <a id="553" class="Symbol">(</a><a id="554" href="Untyped.CEK.html#1386" class="Datatype">Value</a><a id="559" class="Symbol">)</a>
+</pre>
+<p>We will represent costs with Naturals. In the implementation <code class="language-plaintext highlighter-rouge">SatInt</code> is used, (integers that don’t overflow, but saturate).
+As long as the budget is less than the maxInt then the result should be the same.</p>
+
+<pre class="Agda"><a id="CostingNat"></a><a id="778" href="Cost.Base.html#778" class="Function">CostingNat</a> <a id="789" class="Symbol">:</a> <a id="791" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="795" href="Cost.Base.html#778" class="Function">CostingNat</a> <a id="806" class="Symbol">=</a> <a id="808" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a>
+</pre>
+<p>We define one constructor for each possible type of node in a UPLC term.</p>
+
+<pre class="Agda"><a id="893" class="Keyword">data</a> <a id="StepKind"></a><a id="898" href="Cost.Base.html#898" class="Datatype">StepKind</a> <a id="907" class="Symbol">:</a> <a id="909" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="913" class="Keyword">where</a>
+    <a id="StepKind.BConst"></a><a id="923" href="Cost.Base.html#923" class="InductiveConstructor">BConst</a>
+      <a id="StepKind.BVar"></a><a id="936" href="Cost.Base.html#936" class="InductiveConstructor">BVar</a>
+      <a id="StepKind.BLamAbs"></a><a id="947" href="Cost.Base.html#947" class="InductiveConstructor">BLamAbs</a>
+      <a id="StepKind.BApply"></a><a id="961" href="Cost.Base.html#961" class="InductiveConstructor">BApply</a>
+      <a id="StepKind.BDelay"></a><a id="974" href="Cost.Base.html#974" class="InductiveConstructor">BDelay</a>
+      <a id="StepKind.BForce"></a><a id="987" href="Cost.Base.html#987" class="InductiveConstructor">BForce</a>
+      <a id="StepKind.BBuiltin"></a><a id="1000" href="Cost.Base.html#1000" class="InductiveConstructor">BBuiltin</a> <a id="1009" class="Comment">-- Cost of evaluating a Builtin AST node, not the function itself</a>
+      <a id="StepKind.BConstr"></a><a id="1081" href="Cost.Base.html#1081" class="InductiveConstructor">BConstr</a>
+      <a id="StepKind.BCase"></a><a id="1095" href="Cost.Base.html#1095" class="InductiveConstructor">BCase</a> <a id="1101" class="Symbol">:</a> <a id="1103" href="Cost.Base.html#898" class="Datatype">StepKind</a>
+</pre>
+<p>We define a show function for StepKinds</p>
+
+<pre class="Agda"><a id="showStepKind&#39;"></a><a id="1162" href="Cost.Base.html#1162" class="Function">showStepKind&#39;</a> <a id="1176" class="Symbol">:</a> <a id="1178" href="Cost.Base.html#898" class="Datatype">StepKind</a> <a id="1187" class="Symbol">→</a> <a id="1189" href="Agda.Builtin.String.html#335" class="Postulate">String</a>
+<a id="1196" class="Keyword">unquoteDef</a> <a id="1207" href="Cost.Base.html#1162" class="Function">showStepKind&#39;</a> <a id="1221" class="Symbol">=</a> <a id="1223" href="Utils.Reflection.html#3112" class="Function">defShow</a> <a id="1231" class="Symbol">(</a><a id="1232" class="Keyword">quote</a> <a id="1238" href="Cost.Base.html#898" class="Datatype">StepKind</a><a id="1246" class="Symbol">)</a> <a id="1248" href="Cost.Base.html#1162" class="Function">showStepKind&#39;</a>
+
+<a id="showStepKind"></a><a id="1263" href="Cost.Base.html#1263" class="Function">showStepKind</a> <a id="1276" class="Symbol">:</a> <a id="1278" href="Cost.Base.html#898" class="Datatype">StepKind</a> <a id="1287" class="Symbol">→</a> <a id="1289" href="Agda.Builtin.String.html#335" class="Postulate">String</a>
+<a id="1296" href="Cost.Base.html#1263" class="Function">showStepKind</a> <a id="1309" href="Cost.Base.html#1309" class="Bound">s</a> <a id="1311" class="Symbol">=</a> <a id="1313" href="Data.Maybe.Base.html#1546" class="Function">fromMaybe</a> <a id="1323" class="String">&quot;&quot;</a> <a id="1326" class="Symbol">(</a><a id="1327" href="Data.String.Base.html#2168" class="Function">tail</a> <a id="1332" class="Symbol">(</a><a id="1333" href="Cost.Base.html#1162" class="Function">showStepKind&#39;</a> <a id="1347" href="Cost.Base.html#1309" class="Bound">s</a><a id="1348" class="Symbol">))</a>
+</pre>
+<p>and a list of constructors names</p>
+
+<pre class="Agda"><a id="stepKindList"></a><a id="1394" href="Cost.Base.html#1394" class="Function">stepKindList</a> <a id="1407" class="Symbol">:</a> <a id="1409" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="1414" href="Cost.Base.html#898" class="Datatype">StepKind</a>
+<a id="1423" class="Keyword">unquoteDef</a> <a id="1434" href="Cost.Base.html#1394" class="Function">stepKindList</a> <a id="1447" class="Symbol">=</a> <a id="1449" href="Utils.Reflection.html#3476" class="Function">defListConstructors</a> <a id="1469" class="Symbol">(</a><a id="1470" class="Keyword">quote</a> <a id="1476" href="Cost.Base.html#898" class="Datatype">StepKind</a><a id="1484" class="Symbol">)</a> <a id="1486" href="Cost.Base.html#1394" class="Function">stepKindList</a>
+</pre>
+<h2 id="recording-expenditure">Recording expenditure</h2>
+
+<p>The following data structure is used to define the categories for which we
+record expenditure.</p>
+
+<pre class="Agda"><a id="1630" class="Keyword">data</a> <a id="ExBudgetCategory"></a><a id="1635" href="Cost.Base.html#1635" class="Datatype">ExBudgetCategory</a> <a id="1652" class="Symbol">:</a> <a id="1654" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="1658" class="Keyword">where</a>
+      <a id="1670" class="Comment">-- Cost of Evaluating a machine step</a>
+    <a id="ExBudgetCategory.BStep"></a><a id="1711" href="Cost.Base.html#1711" class="InductiveConstructor">BStep</a>       <a id="1723" class="Symbol">:</a> <a id="1725" href="Cost.Base.html#898" class="Datatype">StepKind</a> <a id="1734" class="Symbol">→</a> <a id="1736" href="Cost.Base.html#1635" class="Datatype">ExBudgetCategory</a>
+
+     <a id="1759" class="Comment">-- Cost of evaluating a fully applied builtin function</a>
+    <a id="ExBudgetCategory.BBuiltinApp"></a><a id="1818" href="Cost.Base.html#1818" class="InductiveConstructor">BBuiltinApp</a> <a id="1830" class="Symbol">:</a> <a id="1832" class="Symbol">(</a><a id="1833" href="Cost.Base.html#1833" class="Bound">b</a> <a id="1835" class="Symbol">:</a> <a id="1837" href="Builtin.html#1434" class="Datatype">Builtin</a><a id="1844" class="Symbol">)</a> <a id="1846" class="Symbol">→</a> <a id="1848" href="Data.Vec.Base.html#1119" class="Datatype">Vec</a> <a id="1852" href="Untyped.CEK.html#1386" class="Datatype">Value</a> <a id="1858" class="Symbol">(</a><a id="1859" href="Builtin.html#17167" class="Function">arity</a> <a id="1865" href="Cost.Base.html#1833" class="Bound">b</a><a id="1866" class="Symbol">)</a> <a id="1868" class="Symbol">→</a> <a id="1870" href="Cost.Base.html#1635" class="Datatype">ExBudgetCategory</a>
+
+    <a id="1892" class="Comment">-- Startup Cost</a>
+    <a id="ExBudgetCategory.BStartup"></a><a id="1912" href="Cost.Base.html#1912" class="InductiveConstructor">BStartup</a>    <a id="1924" class="Symbol">:</a> <a id="1926" href="Cost.Base.html#1635" class="Datatype">ExBudgetCategory</a>
+</pre>
+<h2 id="machine-parameters">Machine Parameters</h2>
+
+<p>The CEK machine is parameterised by the following machine parameters.</p>
+
+<pre class="Agda"><a id="2046" class="Keyword">record</a> <a id="MachineParameters"></a><a id="2053" href="Cost.Base.html#2053" class="Record">MachineParameters</a> <a id="2071" class="Symbol">(</a><a id="2072" href="Cost.Base.html#2072" class="Bound">Cost</a> <a id="2077" class="Symbol">:</a> <a id="2079" href="Agda.Primitive.html#388" class="Primitive">Set</a><a id="2082" class="Symbol">)</a> <a id="2084" class="Symbol">:</a> <a id="2086" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="2090" class="Keyword">where</a>
+    <a id="2100" class="Keyword">field</a>
+      <a id="MachineParameters.cekMachineCost"></a><a id="2112" href="Cost.Base.html#2112" class="Field">cekMachineCost</a> <a id="2127" class="Symbol">:</a> <a id="2129" href="Cost.Base.html#1635" class="Datatype">ExBudgetCategory</a> <a id="2146" class="Symbol">→</a> <a id="2148" href="Cost.Base.html#2072" class="Bound">Cost</a>
+      <a id="MachineParameters.ε"></a><a id="2159" href="Cost.Base.html#2159" class="Field">ε</a> <a id="2161" class="Symbol">:</a> <a id="2163" href="Cost.Base.html#2072" class="Bound">Cost</a>
+      <a id="MachineParameters._∙_"></a><a id="2174" href="Cost.Base.html#2174" class="Field Operator">_∙_</a> <a id="2178" class="Symbol">:</a> <a id="2180" href="Cost.Base.html#2072" class="Bound">Cost</a> <a id="2185" class="Symbol">→</a> <a id="2187" href="Cost.Base.html#2072" class="Bound">Cost</a> <a id="2192" class="Symbol">→</a> <a id="2194" href="Cost.Base.html#2072" class="Bound">Cost</a>
+      <a id="MachineParameters.costMonoid"></a><a id="2205" href="Cost.Base.html#2205" class="Field">costMonoid</a> <a id="2216" class="Symbol">:</a> <a id="2218" href="Algebra.Structures.html#4825" class="Record">IsMonoid</a> <a id="2227" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a> <a id="2231" href="Cost.Base.html#2174" class="Field Operator">_∙_</a> <a id="2235" href="Cost.Base.html#2159" class="Field">ε</a>
+
+    <a id="MachineParameters.startupCost"></a><a id="2242" href="Cost.Base.html#2242" class="Function">startupCost</a> <a id="2254" class="Symbol">:</a> <a id="2256" href="Cost.Base.html#2072" class="Bound">Cost</a>
+    <a id="2265" href="Cost.Base.html#2242" class="Function">startupCost</a> <a id="2277" class="Symbol">=</a> <a id="2279" href="Cost.Base.html#2112" class="Field">cekMachineCost</a> <a id="2294" href="Cost.Base.html#1912" class="InductiveConstructor">BStartup</a>
+</pre>
+
+    </section>
+  </body>
+</html>

@@ -1,0 +1,144 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE AllowAmbiguousTypes #-}
+<span class="lineno">    2 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    5 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    6 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">    7 </span>{-# LANGUAGE StandaloneKindSignatures #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    9 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">   10 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   11 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>{-| Static loop unrolling utilities using type-level Peano numbers.
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>This module provides utilities for statically unrolling loops at compile time.
+<span class="lineno">   16 </span>GHC resolves the type class instances at compile time, resulting in unrolled
+<span class="lineno">   17 </span>code that avoids runtime overhead.
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>See Note [Static loop unrolling] for details on the technique. -}
+<span class="lineno">   20 </span>module PlutusCore.Unroll
+<span class="lineno">   21 </span>  ( -- * Peano numbers
+<span class="lineno">   22 </span>    Peano (..)
+<span class="lineno">   23 </span>  , NatToPeano
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>    -- * Statically unrolled list drop
+<span class="lineno">   26 </span>  , Drop (..)
+<span class="lineno">   27 </span>  , dropN
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>    -- * Statically unrolled effectful iteration
+<span class="lineno">   30 </span>  , UpwardsM (..)
+<span class="lineno">   31 </span>  ) where
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>import Data.Kind (Constraint, Type)
+<span class="lineno">   34 </span>import GHC.TypeNats (Nat, type (-))
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>{- Note [Static loop unrolling]
+<span class="lineno">   37 </span>To avoid runtime loop overhead, we use type-level Peano numbers to guide instance
+<span class="lineno">   38 </span>resolution. GHC resolves the instances at compile time and unrolls the loop into
+<span class="lineno">   39 </span>straight-line code.
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>For example, 'dropN @3' becomes pattern matching equivalent to:
+<span class="lineno">   42 </span>  case xs of
+<span class="lineno">   43 </span>    (_:_:_:rest) -&gt; Just rest
+<span class="lineno">   44 </span>    _ -&gt; Nothing
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>And 'upwardsM @_ @(NatToPeano 3) 0 k' becomes:
+<span class="lineno">   47 </span>  k 0 *&gt; k 1 *&gt; k 2
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>Benefits:
+<span class="lineno">   50 </span>1. No runtime recursion overhead
+<span class="lineno">   51 </span>2. No allocations for intermediate structures
+<span class="lineno">   52 </span>3. GHC can optimize the unrolled code very well
+<span class="lineno">   53 </span>4. Instance resolution happens entirely at compile time
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>The technique was originally used in the CEK machine step counter:
+<span class="lineno">   56 </span>https://github.com/IntersectMBO/plutus/pull/5265
+<span class="lineno">   57 </span>-}
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>--------------------------------------------------------------------------------
+<span class="lineno">   60 </span>-- Peano numbers ---------------------------------------------------------------
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>-- | Peano representation of natural numbers for type-level recursion.
+<span class="lineno">   63 </span>data Peano = Z | S Peano
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>-- | Convert a type-level 'Nat' to 'Peano' form for instance resolution.
+<span class="lineno">   66 </span>type family NatToPeano (n :: Nat) :: Peano where
+<span class="lineno">   67 </span>  NatToPeano 0 = 'Z
+<span class="lineno">   68 </span>  NatToPeano n = 'S (NatToPeano (n - 1))
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>--------------------------------------------------------------------------------
+<span class="lineno">   71 </span>-- Statically unrolled list drop -----------------------------------------------
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>{-| Statically unrolled drop: drops exactly @n@ elements if possible.
+<span class="lineno">   74 </span>Returns 'Nothing' if the list has fewer than @n@ elements.
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>The @n@ parameter is a 'Peano' number that guides instance resolution.
+<span class="lineno">   77 </span>Use 'dropN' for a more convenient interface with 'Nat' literals. -}
+<span class="lineno">   78 </span>class Drop (n :: Peano) where
+<span class="lineno">   79 </span>  drop' :: [a] -&gt; Maybe [a]
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>instance Drop 'Z where
+<span class="lineno">   82 </span>  <span class="decl"><span class="istickedoff">drop' = Just</span></span>
+<span class="lineno">   83 </span>  {-# INLINE drop' #-}
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>instance Drop n =&gt; Drop ('S n) where
+<span class="lineno">   86 </span>  <span class="decl"><span class="istickedoff">drop' [] = Nothing</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">drop' (_ : xs) = drop' @n xs</span></span>
+<span class="lineno">   88 </span>  {-# INLINE drop' #-}
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>{-| Drop exactly @n@ elements from a list, returning 'Nothing' if too short.
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>The drop count is statically unrolled at compile time via instance resolution.
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>@
+<span class="lineno">   95 </span>dropN \@3 [1,2,3,4,5] == Just [4,5]
+<span class="lineno">   96 </span>dropN \@3 [1,2]       == Nothing
+<span class="lineno">   97 </span>@ -}
+<span class="lineno">   98 </span>dropN :: forall n a. Drop (NatToPeano n) =&gt; [a] -&gt; Maybe [a]
+<span class="lineno">   99 </span><span class="decl"><span class="istickedoff">dropN = drop' @(NatToPeano n)</span></span>
+<span class="lineno">  100 </span>{-# INLINE dropN #-}
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>--------------------------------------------------------------------------------
+<span class="lineno">  103 </span>-- Statically unrolled effectful iteration -------------------------------------
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>{-| Statically unrolled effectful iteration over a range.
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>@upwardsM i k@ means @k i *&gt; k (i + 1) *&gt; ... *&gt; k (i + n - 1)@.
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>We use this to statically unroll loops through instance resolution.
+<span class="lineno">  110 </span>This makes validation benchmarks a couple of percent faster. -}
+<span class="lineno">  111 </span>type UpwardsM :: (Type -&gt; Type) -&gt; Peano -&gt; Constraint
+<span class="lineno">  112 </span>class Applicative f =&gt; UpwardsM f n where
+<span class="lineno">  113 </span>  upwardsM :: Int -&gt; (Int -&gt; f ()) -&gt; f ()
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>instance Applicative f =&gt; UpwardsM f 'Z where
+<span class="lineno">  116 </span>  <span class="decl"><span class="istickedoff">upwardsM _ _ = pure <span class="nottickedoff">()</span></span></span>
+<span class="lineno">  117 </span>  {-# INLINE upwardsM #-}
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>instance UpwardsM f n =&gt; UpwardsM f ('S n) where
+<span class="lineno">  120 </span>  <span class="decl"><span class="istickedoff">upwardsM !i k = k i *&gt; upwardsM @f @n (i + 1) k</span></span>
+<span class="lineno">  121 </span>  {-# INLINE upwardsM #-}
+
+</pre>
+</body>
+</html>

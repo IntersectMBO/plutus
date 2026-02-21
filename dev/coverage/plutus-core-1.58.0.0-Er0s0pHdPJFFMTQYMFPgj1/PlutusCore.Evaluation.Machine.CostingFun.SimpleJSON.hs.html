@@ -1,0 +1,229 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>{-| A JSON representation of costing functions for Plutus Core
+<span class="lineno">    5 </span>   builtins which produces a simple cost model which can be used from Agda and other
+<span class="lineno">    6 </span>   executables -}
+<span class="lineno">    7 </span>module PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Data.Aeson
+<span class="lineno">   10 </span>import Data.Text (Text)
+<span class="lineno">   11 </span>import Language.Haskell.TH.Syntax (Lift)
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>-------------- Types representing cost mode entries and functions for JSON parsing ----------------
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>data LinearFunction
+<span class="lineno">   16 </span>  = LinearFunction {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">intercept_</span></span></span> :: Integer, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slope_</span></span></span> :: Integer}
+<span class="lineno">   17 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON LinearFunction</span></span></span></span> where
+<span class="lineno">   20 </span>  <span class="decl"><span class="istickedoff">parseJSON = withObject <span class="nottickedoff">&quot;Linear function&quot;</span> $ \obj -&gt;</span>
+<span class="lineno">   21 </span><span class="spaces">    </span><span class="istickedoff">LinearFunction &lt;$&gt; obj .: &quot;intercept&quot; &lt;*&gt; obj .: &quot;slope&quot;</span></span>
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>data TwoVariableLinearFunction
+<span class="lineno">   24 </span>  = TwoVariableLinearFunction {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">intercept'_</span></span></span> :: Integer, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slope1_</span></span></span> :: Integer, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slope2_</span></span></span> :: Integer}
+<span class="lineno">   25 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON TwoVariableLinearFunction</span></span></span></span> where
+<span class="lineno">   28 </span>  <span class="decl"><span class="istickedoff">parseJSON = withObject <span class="nottickedoff">&quot;Linear function&quot;</span> $ \obj -&gt;</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="istickedoff">TwoVariableLinearFunction &lt;$&gt; obj .: &quot;intercept&quot; &lt;*&gt; obj .: &quot;slope1&quot; &lt;*&gt; obj .: &quot;slope2&quot;</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>data OneVariableQuadraticFunction
+<span class="lineno">   32 </span>  = OneVariableQuadraticFunction
+<span class="lineno">   33 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff0_</span></span></span> :: Integer
+<span class="lineno">   34 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff1_</span></span></span> :: Integer
+<span class="lineno">   35 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff2_</span></span></span> :: Integer
+<span class="lineno">   36 </span>  }
+<span class="lineno">   37 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON OneVariableQuadraticFunction</span></span></span></span> where
+<span class="lineno">   40 </span>  <span class="decl"><span class="istickedoff">parseJSON = withObject <span class="nottickedoff">&quot;One-variable quadratic function&quot;</span> $ \obj -&gt;</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">OneVariableQuadraticFunction &lt;$&gt; obj .: &quot;c0&quot; &lt;*&gt; obj .: &quot;c1&quot; &lt;*&gt; obj .: &quot;c2&quot;</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>data TwoVariableQuadraticFunction
+<span class="lineno">   44 </span>  = TwoVariableQuadraticFunction
+<span class="lineno">   45 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">minimum</span></span></span> :: Integer
+<span class="lineno">   46 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff00_</span></span></span> :: Integer
+<span class="lineno">   47 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff10_</span></span></span> :: Integer
+<span class="lineno">   48 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff01_</span></span></span> :: Integer
+<span class="lineno">   49 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff20_</span></span></span> :: Integer
+<span class="lineno">   50 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff11_</span></span></span> :: Integer
+<span class="lineno">   51 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff02_</span></span></span> :: Integer
+<span class="lineno">   52 </span>  }
+<span class="lineno">   53 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON TwoVariableQuadraticFunction</span></span></span></span> where
+<span class="lineno">   56 </span>  <span class="decl"><span class="istickedoff">parseJSON = withObject <span class="nottickedoff">&quot;Two-variable quadratic function&quot;</span> $ \obj -&gt;</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">TwoVariableQuadraticFunction</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">&lt;$&gt; obj .: &quot;minimum&quot;</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c00&quot;</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c10&quot;</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c01&quot;</span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c20&quot;</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c11&quot;</span>
+<span class="lineno">   64 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c02&quot;</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>data TwoVariableWithInteractionFunction
+<span class="lineno">   67 </span>  = TwoVariableWithInteractionFunction
+<span class="lineno">   68 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff00'_</span></span></span> :: Integer
+<span class="lineno">   69 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff10'_</span></span></span> :: Integer
+<span class="lineno">   70 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff01'_</span></span></span> :: Integer
+<span class="lineno">   71 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">coeff11'_</span></span></span> :: Integer
+<span class="lineno">   72 </span>  }
+<span class="lineno">   73 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON TwoVariableWithInteractionFunction</span></span></span></span> where
+<span class="lineno">   76 </span>  <span class="decl"><span class="istickedoff">parseJSON = withObject <span class="nottickedoff">&quot;Two variable with interaction function&quot;</span> $ \obj -&gt;</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">TwoVariableWithInteractionFunction</span></span>
+<span class="lineno">   78 </span><span class="spaces">      </span><span class="istickedoff">&lt;$&gt; obj .: &quot;c00&quot;</span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c10&quot;</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c01&quot;</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;c11&quot;</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>data ExpModCostingFunction
+<span class="lineno">   84 </span>  = ExpModCostingFunction
+<span class="lineno">   85 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">emcfcoeff00_</span></span></span> :: Integer
+<span class="lineno">   86 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">emcfcoeff11_</span></span></span> :: Integer
+<span class="lineno">   87 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">emcfcoeff12_</span></span></span> :: Integer
+<span class="lineno">   88 </span>  }
+<span class="lineno">   89 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON ExpModCostingFunction</span></span></span></span> where
+<span class="lineno">   92 </span>  <span class="decl"><span class="istickedoff">parseJSON = withObject <span class="nottickedoff">&quot;ExpMod costing function&quot;</span> $ \obj -&gt;</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff">ExpModCostingFunction</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="istickedoff">&lt;$&gt; obj .: &quot;coefficient00&quot;</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;coefficient11&quot;</span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="istickedoff">&lt;*&gt; obj .: &quot;coefficient12&quot;</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>{-| This type reflects what is actually in the JSON.  The stuff in
+<span class="lineno">   99 </span>   CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
+<span class="lineno">  100 </span>   for the model types applicable to the various ModelNArguments types; it also
+<span class="lineno">  101 </span>   requires entries for everything in DefaultFun. Using the type defined here
+<span class="lineno">  102 </span>   allows us to be more flexible and parse stuff that's not exactly what's
+<span class="lineno">  103 </span>   expected in builtinCostModel.json. -}
+<span class="lineno">  104 </span>data Model
+<span class="lineno">  105 </span>  = ConstantCost Integer
+<span class="lineno">  106 </span>  | AddedSizes LinearFunction
+<span class="lineno">  107 </span>  | MultipliedSizes LinearFunction
+<span class="lineno">  108 </span>  | MinSize LinearFunction
+<span class="lineno">  109 </span>  | MaxSize LinearFunction
+<span class="lineno">  110 </span>  | LinearInX LinearFunction
+<span class="lineno">  111 </span>  | LinearInY LinearFunction
+<span class="lineno">  112 </span>  | LinearInZ LinearFunction
+<span class="lineno">  113 </span>  | LinearInU LinearFunction
+<span class="lineno">  114 </span>  | LiteralInYOrLinearInZ LinearFunction
+<span class="lineno">  115 </span>  | LinearInMaxYZ LinearFunction
+<span class="lineno">  116 </span>  | LinearInXAndY TwoVariableLinearFunction
+<span class="lineno">  117 </span>  | LinearInYAndZ TwoVariableLinearFunction
+<span class="lineno">  118 </span>  | QuadraticInX OneVariableQuadraticFunction
+<span class="lineno">  119 </span>  | QuadraticInY OneVariableQuadraticFunction
+<span class="lineno">  120 </span>  | QuadraticInZ OneVariableQuadraticFunction
+<span class="lineno">  121 </span>  | QuadraticInXAndY TwoVariableQuadraticFunction
+<span class="lineno">  122 </span>  | WithInteractionInXAndY TwoVariableWithInteractionFunction
+<span class="lineno">  123 </span>  | -- | Linear model in x-y plus minimum value for the case x-y &lt; 0.
+<span class="lineno">  124 </span>    SubtractedSizes LinearFunction Integer
+<span class="lineno">  125 </span>  | ConstAboveDiagonal Integer Model
+<span class="lineno">  126 </span>  | ConstBelowDiagonal Integer Model
+<span class="lineno">  127 </span>  | ConstOffDiagonal Integer Model
+<span class="lineno">  128 </span>  | ExpModCost ExpModCostingFunction
+<span class="lineno">  129 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>{- The JSON representation consists of a list of pairs of (type, arguments)
+<span class="lineno">  132 </span>   values.  The &quot;type&quot; field corresponds to the possible constructors above, the
+<span class="lineno">  133 </span>   &quot;arguments&quot; field contains the arguments for that particular constructor.
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>   The JSON format is a bit inconsistent, which adds some complexity.  For
+<span class="lineno">  136 </span>   example, the &quot;arguments&quot; field is sometimes a constant, sometimes an object
+<span class="lineno">  137 </span>   representing a linear function, and sometimes an object which contains the
+<span class="lineno">  138 </span>   coefficients of a linear function together with some extra data. It would be
+<span class="lineno">  139 </span>   nice to rationalise this a bit, but it may be too late to do that.
+<span class="lineno">  140 </span>-}
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON Model</span></span></span></span> where
+<span class="lineno">  143 </span>  <span class="decl"><span class="istickedoff">parseJSON =</span>
+<span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">withObject <span class="nottickedoff">&quot;Model&quot;</span> $</span>
+<span class="lineno">  145 </span><span class="spaces">      </span><span class="istickedoff">\obj -&gt; do</span>
+<span class="lineno">  146 </span><span class="spaces">        </span><span class="istickedoff">ty :: Text &lt;- obj .: &quot;type&quot;</span>
+<span class="lineno">  147 </span><span class="spaces">        </span><span class="istickedoff">args :: Value &lt;- obj .: &quot;arguments&quot;</span>
+<span class="lineno">  148 </span><span class="spaces">        </span><span class="istickedoff">{- We always have an &quot;arguments&quot; field which is a Value.  Usually it's</span>
+<span class="lineno">  149 </span><span class="spaces">           </span><span class="istickedoff">actually an Object (ie, a map) representing a linear function, but</span>
+<span class="lineno">  150 </span><span class="spaces">           </span><span class="istickedoff">sometimes it contains other data, and in those cases we need to</span>
+<span class="lineno">  151 </span><span class="spaces">           </span><span class="istickedoff">coerce it to an Object (with objOf) to extract the relevant data.</span>
+<span class="lineno">  152 </span><span class="spaces">           </span><span class="istickedoff">We could do that once here and rely on laziness to save us in the</span>
+<span class="lineno">  153 </span><span class="spaces">           </span><span class="istickedoff">cases when we don't have an Object, but that looks a bit misleading. -}</span>
+<span class="lineno">  154 </span><span class="spaces">        </span><span class="istickedoff">case ty of</span>
+<span class="lineno">  155 </span><span class="spaces">          </span><span class="istickedoff">&quot;constant_cost&quot; -&gt; ConstantCost &lt;$&gt; parseJSON args</span>
+<span class="lineno">  156 </span><span class="spaces">          </span><span class="istickedoff">&quot;added_sizes&quot; -&gt; AddedSizes &lt;$&gt; parseJSON args</span>
+<span class="lineno">  157 </span><span class="spaces">          </span><span class="istickedoff">&quot;min_size&quot; -&gt; MinSize &lt;$&gt; parseJSON args</span>
+<span class="lineno">  158 </span><span class="spaces">          </span><span class="istickedoff">&quot;max_size&quot; -&gt; MaxSize &lt;$&gt; parseJSON args</span>
+<span class="lineno">  159 </span><span class="spaces">          </span><span class="istickedoff">&quot;multiplied_sizes&quot; -&gt; MultipliedSizes &lt;$&gt; parseJSON args</span>
+<span class="lineno">  160 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_in_x&quot; -&gt; LinearInX &lt;$&gt; parseJSON args</span>
+<span class="lineno">  161 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_in_y&quot; -&gt; LinearInY &lt;$&gt; parseJSON args</span>
+<span class="lineno">  162 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_in_z&quot; -&gt; LinearInZ &lt;$&gt; parseJSON args</span>
+<span class="lineno">  163 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_in_u&quot; -&gt; <span class="nottickedoff">LinearInU</span> &lt;$&gt; parseJSON args</span>
+<span class="lineno">  164 </span><span class="spaces">          </span><span class="istickedoff">&quot;quadratic_in_x&quot; -&gt; <span class="nottickedoff">QuadraticInX</span> &lt;$&gt; parseJSON args</span>
+<span class="lineno">  165 </span><span class="spaces">          </span><span class="istickedoff">&quot;quadratic_in_y&quot; -&gt; QuadraticInY &lt;$&gt; parseJSON args</span>
+<span class="lineno">  166 </span><span class="spaces">          </span><span class="istickedoff">&quot;quadratic_in_z&quot; -&gt; QuadraticInZ &lt;$&gt; parseJSON args</span>
+<span class="lineno">  167 </span><span class="spaces">          </span><span class="istickedoff">&quot;quadratic_in_x_and_y&quot; -&gt; QuadraticInXAndY &lt;$&gt; parseJSON args</span>
+<span class="lineno">  168 </span><span class="spaces">          </span><span class="istickedoff">&quot;exp_mod_cost&quot; -&gt; ExpModCost &lt;$&gt; parseJSON args</span>
+<span class="lineno">  169 </span><span class="spaces">          </span><span class="istickedoff">&quot;literal_in_y_or_linear_in_z&quot; -&gt; LiteralInYOrLinearInZ &lt;$&gt; parseJSON args</span>
+<span class="lineno">  170 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_in_max_yz&quot; -&gt; LinearInMaxYZ &lt;$&gt; parseJSON args</span>
+<span class="lineno">  171 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_in_x_and_y&quot; -&gt; <span class="nottickedoff">LinearInXAndY</span> &lt;$&gt; parseJSON args</span>
+<span class="lineno">  172 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_in_y_and_z&quot; -&gt; LinearInYAndZ &lt;$&gt; parseJSON args</span>
+<span class="lineno">  173 </span><span class="spaces">          </span><span class="istickedoff">&quot;with_interaction_in_x_and_y&quot; -&gt; <span class="nottickedoff">WithInteractionInXAndY</span> &lt;$&gt; parseJSON args</span>
+<span class="lineno">  174 </span><span class="spaces">          </span><span class="istickedoff">&quot;subtracted_sizes&quot; -&gt; SubtractedSizes &lt;$&gt; parseJSON args &lt;*&gt; objOf args .: &quot;minimum&quot;</span>
+<span class="lineno">  175 </span><span class="spaces">          </span><span class="istickedoff">&quot;const_above_diagonal&quot; -&gt; modelWithConstant ConstAboveDiagonal args</span>
+<span class="lineno">  176 </span><span class="spaces">          </span><span class="istickedoff">&quot;const_below_diagonal&quot; -&gt; <span class="nottickedoff">modelWithConstant ConstBelowDiagonal args</span></span>
+<span class="lineno">  177 </span><span class="spaces">          </span><span class="istickedoff">&quot;const_off_diagonal&quot; -&gt; <span class="nottickedoff">modelWithConstant ConstOffDiagonal args</span></span>
+<span class="lineno">  178 </span><span class="spaces">          </span><span class="istickedoff">{- An adaptor to deal with the old &quot;linear_on_diagonal&quot; tag.  See Note [Backward</span>
+<span class="lineno">  179 </span><span class="spaces">             </span><span class="istickedoff">compatibility for costing functions].  We never want to convert back to JSON</span>
+<span class="lineno">  180 </span><span class="spaces">             </span><span class="istickedoff">here, so it's OK to forget that we originally got something tagged with</span>
+<span class="lineno">  181 </span><span class="spaces">            </span><span class="istickedoff">&quot;linear_on_diagonal&quot;. -}</span>
+<span class="lineno">  182 </span><span class="spaces">          </span><span class="istickedoff">&quot;linear_on_diagonal&quot; -&gt;</span>
+<span class="lineno">  183 </span><span class="spaces">            </span><span class="istickedoff">let o = objOf args</span>
+<span class="lineno">  184 </span><span class="spaces">             </span><span class="istickedoff">in do</span>
+<span class="lineno">  185 </span><span class="spaces">                  </span><span class="istickedoff">constant &lt;- o .: &quot;constant&quot;</span>
+<span class="lineno">  186 </span><span class="spaces">                  </span><span class="istickedoff">intercept &lt;- o .: &quot;intercept&quot;</span>
+<span class="lineno">  187 </span><span class="spaces">                  </span><span class="istickedoff">slope &lt;- o .: &quot;slope&quot;</span>
+<span class="lineno">  188 </span><span class="spaces">                  </span><span class="istickedoff">pure $ ConstOffDiagonal constant (LinearInX $ LinearFunction intercept slope)</span>
+<span class="lineno">  189 </span><span class="spaces">          </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">errorWithoutStackTrace $ &quot;Unknown model type &quot; ++ show ty</span></span>
+<span class="lineno">  190 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  191 </span><span class="spaces">      </span><span class="istickedoff">objOf (Object o) = o</span>
+<span class="lineno">  192 </span><span class="spaces">      </span><span class="istickedoff">objOf _ =</span>
+<span class="lineno">  193 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">errorWithoutStackTrace &quot;Failed to get Object while parsing \&quot;arguments\&quot;&quot;</span></span>
+<span class="lineno">  194 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  195 </span><span class="spaces">      </span><span class="istickedoff">modelWithConstant constr x = constr &lt;$&gt; o .: &quot;constant&quot; &lt;*&gt; o .: &quot;model&quot;</span>
+<span class="lineno">  196 </span><span class="spaces">        </span><span class="istickedoff">where</span>
+<span class="lineno">  197 </span><span class="spaces">          </span><span class="istickedoff">o = objOf x</span></span>
+<span class="lineno">  198 </span>
+<span class="lineno">  199 </span>{-| A CPU usage modelling function and a memory usage modelling function bundled
+<span class="lineno">  200 </span>   together -}
+<span class="lineno">  201 </span>data CpuAndMemoryModel = CpuAndMemoryModel {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">cpuModel</span></span></span> :: Model, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">memoryModel</span></span></span> :: Model}
+<span class="lineno">  202 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">  203 </span>
+<span class="lineno">  204 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">FromJSON CpuAndMemoryModel</span></span></span></span> where
+<span class="lineno">  205 </span>  <span class="decl"><span class="istickedoff">parseJSON = withObject <span class="nottickedoff">&quot;CpuAndMemoryModel&quot;</span> $ \obj -&gt;</span>
+<span class="lineno">  206 </span><span class="spaces">    </span><span class="istickedoff">CpuAndMemoryModel &lt;$&gt; obj .: &quot;cpu&quot; &lt;*&gt; obj .: &quot;memory&quot;</span></span>
+
+</pre>
+</body>
+</html>

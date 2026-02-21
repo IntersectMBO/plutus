@@ -1,0 +1,3526 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Builtin.Result</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Builtin.Result.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Builtin.Result</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:EvaluationError"
+	      >EvaluationError</a
+	      > structural operational<ul class="subs"
+	      ><li
+		>= <a href="#v:StructuralError"
+		  >StructuralError</a
+		  > !structural</li
+		><li
+		>| <a href="#v:OperationalError"
+		  >OperationalError</a
+		  > !operational</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:UnliftingError"
+	      >UnliftingError</a
+	      > = <a href="#v:MkUnliftingError"
+	      >MkUnliftingError</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unUnliftingError"
+		  >unUnliftingError</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:UnliftingEvaluationError"
+	      >UnliftingEvaluationError</a
+	      > = <a href="#v:MkUnliftingEvaluationError"
+	      >MkUnliftingEvaluationError</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unUnliftingEvaluationError"
+		  >unUnliftingEvaluationError</a
+		  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		  >EvaluationError</a
+		  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		  >UnliftingError</a
+		  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		  >UnliftingError</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinError"
+	      >BuiltinError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:BuiltinUnliftingEvaluationError"
+		  >BuiltinUnliftingEvaluationError</a
+		  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		  >UnliftingEvaluationError</a
+		  ></li
+		><li
+		>| <a href="#v:BuiltinEvaluationFailure"
+		  >BuiltinEvaluationFailure</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinResult"
+	      >BuiltinResult</a
+	      > a<ul class="subs"
+	      ><li
+		>= <a href="#v:BuiltinSuccess"
+		  >BuiltinSuccess</a
+		  > a</li
+		><li
+		>| <a href="#v:BuiltinSuccessWithLogs"
+		  >BuiltinSuccessWithLogs</a
+		  > (<a href="https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html#t:DList" title="Data.DList"
+		  >DList</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  >) a</li
+		><li
+		>| <a href="#v:BuiltinFailure"
+		  >BuiltinFailure</a
+		  > (<a href="https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html#t:DList" title="Data.DList"
+		  >DList</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  >) <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+		  >BuiltinError</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:notAConstant"
+	      >notAConstant</a
+	      > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	      >BuiltinError</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:underTypeError"
+	      >underTypeError</a
+	      > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	      >BuiltinError</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:operationalUnliftingError"
+	      >operationalUnliftingError</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	      >BuiltinError</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:structuralUnliftingError"
+	      >structuralUnliftingError</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	      >BuiltinError</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:emit"
+	      >emit</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	      >BuiltinResult</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:withLogs"
+	      >withLogs</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html#t:DList" title="Data.DList"
+	      >DList</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	      >BuiltinResult</a
+	      > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	      >BuiltinResult</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:throwing"
+	      >throwing</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > e m &#8658; AReview e t &#8594; t &#8594; m x</li
+	    ><li class="src short"
+	    ><a href="#v:throwing_"
+	      >throwing_</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > e m &#8658; AReview e () &#8594; m x</li
+	    ><li class="src short"
+	    ><a href="#v:builtinResultFailure"
+	      >builtinResultFailure</a
+	      > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	      >BuiltinResult</a
+	      > a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:EvaluationError" class="def"
+	    >EvaluationError</a
+	    > structural operational <a href="src/PlutusCore.Evaluation.Error.html#EvaluationError" class="link"
+	    >Source</a
+	    > <a href="#t:EvaluationError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of errors that can occur during evaluation. There are two kinds of errors:</p
+	    ><ol
+	    ><li value="1"
+	      >Structural ones -- these are errors that are indicative of the _structure_ of the program being
+   wrong. For example, a free variable was encountered during evaluation, a non-function was
+   applied to an argument or <code
+		>tailList</code
+		> was applied to a non-list.</li
+	      ><li value="2"
+	      >Operational ones -- these are errors that are indicative of the _logic_ of the program being
+   wrong. For example, <code
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#v:error" title="Prelude"
+		  >error</a
+		  ></code
+		> was executed, <code
+		>tailList</code
+		> was applied to an empty list or evaluation
+   ran out of gas.</li
+	      ></ol
+	    ><p
+	    >On the chain both of these are just regular failures and we don't distinguish between them there:
+if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
+matter why the failure occurred: a structural error may indicate that the test was written
+incorrectly while an operational error may be entirely expected.</p
+	    ><p
+	    >In other words, structural errors are &quot;runtime type errors&quot; and operational errors are regular
+runtime errors. Which means that evaluating an (erased) well-typed program should never produce a
+structural error, only an operational one. This creates a sort of &quot;runtime type system&quot; for UPLC
+and it would be great to stick to it and enforce in tests etc, but we currently don't. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:StructuralError" class="def"
+		  >StructuralError</a
+		  > !structural</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:OperationalError" class="def"
+		  >OperationalError</a
+		  > !operational</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:EvaluationError"
+	    >Instances</h4
+	    ><details id="i:EvaluationError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Bifoldable:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bifoldable.html#t:Bifoldable" title="Data.Bifoldable"
+		      >Bifoldable</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Bifoldable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bifold"
+			  >bifold</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > m m &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bifoldMap"
+			  >bifoldMap</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; (b &#8594; m) &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a b &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifoldMap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bifoldr"
+			  >bifoldr</a
+			  > &#8759; (a &#8594; c &#8594; c) &#8594; (b &#8594; c &#8594; c) &#8594; c &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a b &#8594; c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifoldr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:bifoldl"
+			  >bifoldl</a
+			  > &#8759; (c &#8594; a &#8594; c) &#8594; (c &#8594; b &#8594; c) &#8594; c &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a b &#8594; c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bifoldl" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Bifunctor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bifunctor.html#t:Bifunctor" title="Data.Bifunctor"
+		      >Bifunctor</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Bifunctor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bimap"
+			  >bimap</a
+			  > &#8759; (a &#8594; b) &#8594; (c &#8594; d) &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a c &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > b d <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bimap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:first"
+			  >first</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a c &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > b c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:first" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:second"
+			  >second</a
+			  > &#8759; (b &#8594; c) &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a b &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:second" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Bitraversable:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bitraversable.html#t:Bitraversable" title="Data.Bitraversable"
+		      >Bitraversable</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Bitraversable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bitraverse"
+			  >bitraverse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+			  >Applicative</a
+			  > f &#8658; (a &#8594; f c) &#8594; (b &#8594; f d) &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > a b &#8594; f (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > c d) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bitraverse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:PrettyBy:4"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:HasPrettyDefaults" title="PlutusPrelude"
+		      >HasPrettyDefaults</a
+		      > config <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+		      >True</a
+		      >, <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config structural, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > operational) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:PrettyBy:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Functor:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Functor:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural a &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural b &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Generic:6"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Generic:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational) x &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Show:7"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > structural, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > operational) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Show:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:NFData:8"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > structural, <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > operational) &#8658; <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:NFData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Eq:9"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > structural, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > operational) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Eq:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Pretty:10"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > structural, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > operational) &#8658; <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Pretty:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > structural operational] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:MonadError:11"
+		      ></span
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+		      >ThrowableBuiltins</a
+		      > uni fun &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekEvaluationException</a
+		      > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		      >NamedDeBruijn</a
+		      > uni fun) (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekM</a
+		      > uni fun s)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-563" class="link"
+		    >Source</a
+		    > <a href="#t:MonadError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:MonadError:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekEvaluationException</a
+			  > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > uni fun &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a &#8594; (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekEvaluationException</a
+			  > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > uni fun &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:EvaluationError:Rep:12"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+		      >EvaluationError</a
+		      > structural operational)</span
+		    > <a href="src/PlutusCore.Evaluation.Error.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:EvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:EvaluationError:Rep:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Error.html"
+			>PlutusCore.Evaluation.Error</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			>EvaluationError</a
+			> structural operational) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;EvaluationError&quot; &quot;PlutusCore.Evaluation.Error&quot; &quot;plutus-core-1.58.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;StructuralError&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> structural)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;OperationalError&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> operational)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:UnliftingError" class="def"
+	    >UnliftingError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#UnliftingError" class="link"
+	    >Source</a
+	    > <a href="#t:UnliftingError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The error message part of an <code
+	      ><a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		>UnliftingEvaluationError</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MkUnliftingError" class="def"
+		  >MkUnliftingError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unUnliftingError" class="def"
+			  >unUnliftingError</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UnliftingError"
+	    >Instances</h4
+	    ><details id="i:UnliftingError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingError:IsString:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:IsString" title="Data.String"
+		      >IsString</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		      >UnliftingError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingError:IsString:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromString"
+			  >fromString</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromString" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingError:Monoid:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		      >UnliftingError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingError:Monoid:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  >] &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingError:Semigroup:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		      >UnliftingError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingError:Semigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingError:Show:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		      >UnliftingError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingError:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingError:NFData:5"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		      >UnliftingError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingError:NFData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingError:Eq:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		      >UnliftingError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingError:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingError:Pretty:7"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		      >UnliftingError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-92" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingError:Pretty:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:UnliftingEvaluationError" class="def"
+	    >UnliftingEvaluationError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#UnliftingEvaluationError" class="link"
+	    >Source</a
+	    > <a href="#t:UnliftingEvaluationError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >When unlifting of a PLC term into a Haskell value fails, this error is thrown.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MkUnliftingEvaluationError" class="def"
+		  >MkUnliftingEvaluationError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unUnliftingEvaluationError" class="def"
+			  >unUnliftingEvaluationError</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:EvaluationError" title="PlutusCore.Builtin.Result"
+			  >EvaluationError</a
+			  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+			  >UnliftingError</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UnliftingEvaluationError"
+	    >Instances</h4
+	    ><details id="i:UnliftingEvaluationError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingEvaluationError:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		      >UnliftingEvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingEvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingEvaluationError:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingEvaluationError:NFData:2"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		      >UnliftingEvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingEvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingEvaluationError:NFData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingEvaluationError:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		      >UnliftingEvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingEvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingEvaluationError:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnliftingEvaluationError:Pretty:4"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		      >UnliftingEvaluationError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:UnliftingEvaluationError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnliftingEvaluationError:Pretty:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+			  >UnliftingEvaluationError</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinError" class="def"
+	    >BuiltinError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#BuiltinError" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of errors that <code
+	      >readKnown</code
+	      > and <code
+	      >makeKnown</code
+	      > can return.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinUnliftingEvaluationError" class="def"
+		  >BuiltinUnliftingEvaluationError</a
+		  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		  >UnliftingEvaluationError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinEvaluationFailure" class="def"
+		  >BuiltinEvaluationFailure</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinError"
+	    >Instances</h4
+	    ><details id="i:BuiltinError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+		      >BuiltinError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+		      >BuiltinError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:Pretty:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+		      >BuiltinError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-102" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:MonadError:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+		      >BuiltinError</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-207" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    ><code
+		      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#v:throwError" title="Control.Monad.Error.Class"
+			>throwError</a
+			></code
+		      > puts every operational unlifting error into the <code
+		      ><a href="PlutusCore-Builtin-Result.html#v:BuiltinFailure" title="PlutusCore.Builtin.Result"
+			>BuiltinFailure</a
+			></code
+		      > logs. This is to
+compensate for the historical lack of error message content in operational errors (structural
+ones don't have this problem) in our evaluators (the CK and CEK machines). It would be better to
+fix the underlying issue and allow operational evaluation errors to carry some form of content,
+but for now we just fix the symptom in order for the end user to see the error message that they
+are supposed to see. The fix even makes some sense: what we do here is we emulate logging when
+the thrown unlifting error is an operational one, i.e. this is similar to what some builtins do
+manually (like when a crypto builtin fails and puts info about the failure into the logs). </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:MonadError:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; (<a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinResult" class="def"
+	    >BuiltinResult</a
+	    > a <a href="src/PlutusCore.Builtin.Result.html#BuiltinResult" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad that <code
+	      >makeKnown</code
+	      > runs in.
+Equivalent to <code
+	      >ExceptT BuiltinError (Writer (DList Text))</code
+	      >, except optimized in two ways:</p
+	    ><ol
+	    ><li value="1"
+	      >everything is strict</li
+	      ><li value="2"
+	      >has the <code
+		><a href="PlutusCore-Builtin-Result.html#v:BuiltinSuccess" title="PlutusCore.Builtin.Result"
+		  >BuiltinSuccess</a
+		  ></code
+		> constructor that is used for returning a value with no logs
+   attached, which is the most common case for us, so it helps a lot not to construct and
+   deconstruct a redundant tuple</li
+	      ></ol
+	    ><p
+	    >Moving from <code
+	      >ExceptT BuiltinError (Writer (DList Text))</code
+	      > to this data type gave us a speedup of
+8% of total evaluation time.</p
+	    ><p
+	    >Logs are represented as a <code
+	      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html#t:DList" title="Data.DList"
+		>DList</a
+		></code
+	      >, because we don't particularly care about the efficiency of
+logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
+we'd have to use <code
+	      >text-builder</code
+	      > or <code
+	      >text-builder-linear</code
+	      > or something of this sort. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinSuccess" class="def"
+		  >BuiltinSuccess</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinSuccessWithLogs" class="def"
+		  >BuiltinSuccessWithLogs</a
+		  > (<a href="https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html#t:DList" title="Data.DList"
+		  >DList</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  >) a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinFailure" class="def"
+		  >BuiltinFailure</a
+		  > (<a href="https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html#t:DList" title="Data.DList"
+		  >DList</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  >) <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+		  >BuiltinError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinResult"
+	    >Instances</h4
+	    ><details id="i:BuiltinResult" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:MonadFail:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-Fail.html#t:MonadFail" title="Control.Monad.Fail"
+		      >MonadFail</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-88" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:MonadFail:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fail"
+			  >fail</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fail" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:Foldable:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+		      >Foldable</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:Foldable:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fold"
+			  >fold</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > m &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap"
+			  >foldMap</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap-39-"
+			  >foldMap'</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr-39-"
+			  >foldr'</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl"
+			  >foldl</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl-39-"
+			  >foldl'</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr1"
+			  >foldr1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl1"
+			  >foldl1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toList"
+			  >toList</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:null"
+			  >null</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:null" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:length"
+			  >length</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:length" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:elem"
+			  >elem</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+			  >Eq</a
+			  > a &#8658; a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:elem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maximum"
+			  >maximum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maximum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:minimum"
+			  >minimum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minimum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sum"
+			  >sum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:product"
+			  >product</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:product" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:Applicative:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-174" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:Applicative:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > (a &#8594; b) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:Functor:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-162" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:Functor:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:Monad:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-190" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:Monad:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; (a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:MonadError:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+		      >BuiltinError</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-207" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    ><code
+		      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#v:throwError" title="Control.Monad.Error.Class"
+			>throwError</a
+			></code
+		      > puts every operational unlifting error into the <code
+		      ><a href="PlutusCore-Builtin-Result.html#v:BuiltinFailure" title="PlutusCore.Builtin.Result"
+			>BuiltinFailure</a
+			></code
+		      > logs. This is to
+compensate for the historical lack of error message content in operational errors (structural
+ones don't have this problem) in our evaluators (the CK and CEK machines). It would be better to
+fix the underlying issue and allow operational evaluation errors to carry some form of content,
+but for now we just fix the symptom in order for the end user to see the error message that they
+are supposed to see. The fix even makes some sense: what we do here is we emulate logging when
+the thrown unlifting error is an operational one, i.e. this is similar to what some builtins do
+manually (like when a crypto builtin fails and puts info about the failure into the logs). </p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:MonadError:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; (<a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:KnownTypeAst:7"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni a &#8658; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-257" class="link"
+		    >Source</a
+		    > <a href="#t:KnownTypeAst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:KnownTypeAst:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > uni (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > uni hole (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a) &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > uni acc (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a) &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#v:Type0" title="PlutusCore.Core.Type"
+			  >Type0</a
+			  > tyname uni () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:MakeKnownIn:8"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > uni val a &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > uni val (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Builtin.KnownType.html#line-447" class="link"
+		    >Source</a
+		    > <a href="#t:MakeKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:MakeKnownIn:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownType.html"
+			>PlutusCore.Builtin.KnownType</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > val <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:ReadKnownIn:9"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;\8216BuiltinResult\8217 cannot appear in the type of an argument&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >, uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		      >UniOf</a
+		      > val) &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownIn</a
+		      > uni val (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Builtin.KnownType.html#line-458" class="link"
+		    >Source</a
+		    > <a href="#t:ReadKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:ReadKnownIn:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownType.html"
+			>PlutusCore.Builtin.KnownType</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readKnown"
+			  >readKnown</a
+			  > &#8759; val &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a) <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+			  >Source</a
+			  > <a href="#v:readKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:Show:10"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:Show:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:ToBinds:11"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > uni acc (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-260" class="link"
+		    >Source</a
+		    > <a href="#t:ToBinds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:ToBinds:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni acc (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			>BuiltinResult</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni acc a</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:ToHoles:12"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > uni _1 (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-259" class="link"
+		    >Source</a
+		    > <a href="#t:ToHoles" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:ToHoles:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> uni _1 (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			>BuiltinResult</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '[<a href="PlutusCore-Builtin-KnownTypeAst.html#t:TypeHole" title="PlutusCore.Builtin.KnownTypeAst"
+			>TypeHole</a
+			> a &#8759; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			>Hole</a
+			>]</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinResult:IsBuiltin:13"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > uni (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-258" class="link"
+		    >Source</a
+		    > <a href="#t:IsBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinResult:IsBuiltin:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> uni (<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			>BuiltinResult</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:notAConstant" class="def"
+	    >notAConstant</a
+	    > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	    >BuiltinError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#notAConstant" class="link"
+	    >Source</a
+	    > <a href="#v:notAConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:underTypeError" class="def"
+	    >underTypeError</a
+	    > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	    >BuiltinError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#underTypeError" class="link"
+	    >Source</a
+	    > <a href="#v:underTypeError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:operationalUnliftingError" class="def"
+	    >operationalUnliftingError</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	    >BuiltinError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#operationalUnliftingError" class="link"
+	    >Source</a
+	    > <a href="#v:operationalUnliftingError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Construct a prism focusing on the <code
+	      >*EvaluationFailure</code
+	      > part of <code
+	      >err</code
+	      > by taking
+that <code
+	      >*EvaluationFailure</code
+	      > and</p
+	    ><ol
+	    ><li value="1"
+	      >pretty-printing and embedding it into an <code
+		><a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		  >UnliftingError</a
+		  ></code
+		> for the setter part of the prism</li
+	      ><li value="2"
+	      >returning it directly for the opposite direction (there's no other way to convert an
+   <code
+		><a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		  >UnliftingError</a
+		  ></code
+		> to an evaluation failure, since the latter doesn't carry any content)</li
+	      ></ol
+	    ><p
+	    >This is useful for providing <code
+	      >AsUnliftingError</code
+	      > instances for types such as <code
+	      >CkUserError</code
+	      > and
+<code
+	      >CekUserError</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:structuralUnliftingError" class="def"
+	    >structuralUnliftingError</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	    >BuiltinError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#structuralUnliftingError" class="link"
+	    >Source</a
+	    > <a href="#v:structuralUnliftingError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:emit" class="def"
+	    >emit</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	    >BuiltinResult</a
+	    > () <a href="src/PlutusCore.Builtin.Result.html#emit" class="link"
+	    >Source</a
+	    > <a href="#v:emit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a log line to the logs.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withLogs" class="def"
+	    >withLogs</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html#t:DList" title="Data.DList"
+	    >DList</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	    >BuiltinResult</a
+	    > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	    >BuiltinResult</a
+	    > a <a href="src/PlutusCore.Builtin.Result.html#withLogs" class="link"
+	    >Source</a
+	    > <a href="#v:withLogs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Prepend logs to a <code
+	      ><a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		>BuiltinResult</a
+		></code
+	      > computation.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:throwing" class="def"
+	    >throwing</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > e m &#8658; AReview e t &#8594; t &#8594; m x <a href="#v:throwing" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:throwing_" class="def"
+	    >throwing_</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > e m &#8658; AReview e () &#8594; m x <a href="#v:throwing_" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinResultFailure" class="def"
+	    >builtinResultFailure</a
+	    > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+	    >BuiltinResult</a
+	    > a <a href="src/PlutusCore.Builtin.Result.html#builtinResultFailure" class="link"
+	    >Source</a
+	    > <a href="#v:builtinResultFailure" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

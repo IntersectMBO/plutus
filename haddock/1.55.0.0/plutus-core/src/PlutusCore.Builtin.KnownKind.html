@@ -1,0 +1,2462 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Builtin.KnownKind</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>GHC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html"
+	><span class="hs-identifier"
+	  >GHC.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.html"
+	><span class="hs-identifier"
+	  >Universe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >infixr</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >5</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#SingKindArrow"
+	><span class="hs-operator hs-type"
+	  >`SingKindArrow`</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >-- | The type of singletonized Haskell kinds representing Plutus kinds.</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >-- Indexing by a Haskell kind allows us to avoid an 'error' call in the 'ToKind' instance of</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- 'DefaultUni' and not worry about proxies in the type of 'knownKind'.</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="SingKind"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	  ><span class="hs-identifier hs-var"
+	    >SingKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983597"
+      ><span class="annot"
+	><a href="#local-6989586621681983597"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span id="SingType"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#SingType"
+	  ><span class="hs-identifier hs-var"
+	    >SingType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	><span class="hs-identifier hs-type"
+	  >SingKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681983599"
+      ><span id="local-6989586621681983600"
+	><span id="SingKindArrow"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Builtin.KnownKind.html#SingKindArrow"
+	      ><span class="hs-identifier hs-var"
+		>SingKindArrow</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	    ><span class="hs-identifier hs-type"
+	      >SingKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983599"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	    ><span class="hs-identifier hs-type"
+	      >SingKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983600"
+	    ><span class="hs-identifier hs-type"
+	      >l</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	    ><span class="hs-identifier hs-type"
+	      >SingKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983599"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983600"
+	    ><span class="hs-identifier hs-type"
+	      >l</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Feed the 'SingKind' version of the given 'Kind' to the given continuation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621681983534"
+      ><span id="local-6989586621681983538"
+	><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#withSingKind"
+	    ><span class="hs-identifier hs-type"
+	      >withSingKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#Kind"
+	    ><span class="hs-identifier hs-type"
+	      >Kind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983534"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-keyword"
+	  >forall</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621681983536"
+	  ><span class="annot"
+	    ><a href="#local-6989586621681983536"
+	      ><span class="hs-identifier hs-type"
+		>k</span
+		></a
+	      ></span
+	    ></span
+	  ><span class="hs-operator"
+	  >.</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	    ><span class="hs-identifier hs-type"
+	      >SingKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983536"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983538"
+	    ><span class="hs-identifier hs-type"
+	      >r</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983538"
+	    ><span class="hs-identifier hs-type"
+	      >r</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="withSingKind"
+      ><span class="annot"
+	><span class="annottext"
+	  >withSingKind :: forall ann r. Kind ann -&gt; (forall k. SingKind k -&gt; r) -&gt; r
+</span
+	  ><a href="PlutusCore.Builtin.KnownKind.html#withSingKind"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withSingKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983603"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall k. SingKind k -&gt; r
+</span
+	  ><a href="#local-6989586621681983603"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind (*) -&gt; r
+forall k. SingKind k -&gt; r
+</span
+	><a href="#local-6989586621681983603"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind (*)
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#SingType"
+	><span class="hs-identifier hs-var"
+	  >SingType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#withSingKind"
+	><span class="hs-identifier hs-var"
+	  >withSingKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#KindArrow"
+	><span class="hs-identifier hs-type"
+	  >KindArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983605"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621681983605"
+	  ><span class="hs-identifier hs-var"
+	    >dom</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983606"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621681983606"
+	  ><span class="hs-identifier hs-var"
+	    >cod</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983607"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall k. SingKind k -&gt; r
+</span
+	  ><a href="#local-6989586621681983607"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann -&gt; (forall k. SingKind k -&gt; r) -&gt; r
+forall ann r. Kind ann -&gt; (forall k. SingKind k -&gt; r) -&gt; r
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#withSingKind"
+	><span class="hs-identifier hs-var"
+	  >withSingKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621681983605"
+	><span class="hs-identifier hs-var"
+	  >dom</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall k. SingKind k -&gt; r) -&gt; r)
+-&gt; (forall k. SingKind k -&gt; r) -&gt; r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681983608"
+      ><span class="annot"
+	><span class="annottext"
+	  >SingKind k
+</span
+	  ><a href="#local-6989586621681983608"
+	  ><span class="hs-identifier hs-var"
+	    >domS</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann -&gt; (forall k. SingKind k -&gt; r) -&gt; r
+forall ann r. Kind ann -&gt; (forall k. SingKind k -&gt; r) -&gt; r
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#withSingKind"
+	><span class="hs-identifier hs-var"
+	  >withSingKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621681983606"
+	><span class="hs-identifier hs-var"
+	  >cod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall k. SingKind k -&gt; r) -&gt; r)
+-&gt; (forall k. SingKind k -&gt; r) -&gt; r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681983609"
+      ><span class="annot"
+	><span class="annottext"
+	  >SingKind k
+</span
+	  ><a href="#local-6989586621681983609"
+	  ><span class="hs-identifier hs-var"
+	    >codS</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind (k -&gt; k) -&gt; r
+forall k. SingKind k -&gt; r
+</span
+	><a href="#local-6989586621681983607"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SingKind (k -&gt; k) -&gt; r) -&gt; SingKind (k -&gt; k) -&gt; r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k -&gt; SingKind k -&gt; SingKind (k -&gt; k)
+forall k l. SingKind k -&gt; SingKind l -&gt; SingKind (k -&gt; l)
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#SingKindArrow"
+	><span class="hs-identifier hs-var"
+	  >SingKindArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k
+</span
+	><a href="#local-6989586621681983608"
+	><span class="hs-identifier hs-var"
+	  >domS</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k
+</span
+	><a href="#local-6989586621681983609"
+	><span class="hs-identifier hs-var"
+	  >codS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | For reifying Haskell kinds representing Plutus kinds at the term level.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="KnownKind"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+	  ><span class="hs-identifier hs-var"
+	    >KnownKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983550"
+      ><span class="annot"
+	><a href="#local-6989586621681983550"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span id="knownKind"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#knownKind"
+	  ><span class="hs-identifier hs-type"
+	    >knownKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	><span class="hs-identifier hs-type"
+	  >SingKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681983550"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus only supports lifted types, hence the equality constraint.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983551"
+      ><span class="annot"
+	><a href="#local-6989586621681983551"
+	  ><span class="hs-identifier hs-type"
+	    >rep</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	  ><span class="hs-operator hs-type"
+	    >~</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LiftedRep"
+	  ><span class="hs-identifier hs-type"
+	    >LiftedRep</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+	  ><span class="hs-identifier hs-type"
+	    >KnownKind</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#TYPE"
+	  ><span class="hs-identifier hs-type"
+	    >TYPE</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681983551"
+	  ><span class="hs-identifier hs-type"
+	    >rep</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681983615"
+      ><span class="annot"
+	><span class="annottext"
+	  >knownKind :: SingKind (TYPE rep)
+</span
+	  ><a href="PlutusCore.Builtin.KnownKind.html#knownKind"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >knownKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind (TYPE rep)
+SingKind (*)
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#SingType"
+	><span class="hs-identifier hs-var"
+	  >SingType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983557"
+      ><span id="local-6989586621681983558"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+	    ><span class="hs-identifier hs-type"
+	      >KnownKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983557"
+	    ><span class="hs-identifier hs-type"
+	      >dom</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+	    ><span class="hs-identifier hs-type"
+	      >KnownKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983558"
+	    ><span class="hs-identifier hs-type"
+	      >cod</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+	    ><span class="hs-identifier hs-type"
+	      >KnownKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983557"
+	    ><span class="hs-identifier hs-type"
+	      >dom</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983558"
+	    ><span class="hs-identifier hs-type"
+	      >cod</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681983622"
+      ><span class="annot"
+	><span class="annottext"
+	  >knownKind :: SingKind (dom -&gt; cod)
+</span
+	  ><a href="PlutusCore.Builtin.KnownKind.html#knownKind"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >knownKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind dom -&gt; SingKind cod -&gt; SingKind (dom -&gt; cod)
+forall k l. SingKind k -&gt; SingKind l -&gt; SingKind (k -&gt; l)
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#SingKindArrow"
+	><span class="hs-identifier hs-var"
+	  >SingKindArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall k. KnownKind k =&gt; SingKind k
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#knownKind"
+	><span class="hs-identifier hs-var"
+	  >knownKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681983557"
+	><span class="hs-identifier hs-type"
+	  >dom</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall k. KnownKind k =&gt; SingKind k
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#knownKind"
+	><span class="hs-identifier hs-var"
+	  >knownKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681983558"
+	><span class="hs-identifier hs-type"
+	  >cod</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Satisfy the 'KnownKind' constraint of a continuation using the given 'SingKind'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="local-6989586621681983559"
+      ><span id="local-6989586621681983560"
+	><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#bringKnownKind"
+	    ><span class="hs-identifier hs-type"
+	      >bringKnownKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	    ><span class="hs-identifier hs-type"
+	      >SingKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983559"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+	    ><span class="hs-identifier hs-type"
+	      >KnownKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983559"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983560"
+	    ><span class="hs-identifier hs-type"
+	      >r</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983560"
+	    ><span class="hs-identifier hs-type"
+	      >r</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="bringKnownKind"
+      ><span class="annot"
+	><span class="annottext"
+	  >bringKnownKind :: forall k r. SingKind k -&gt; (KnownKind k =&gt; r) -&gt; r
+</span
+	  ><a href="PlutusCore.Builtin.KnownKind.html#bringKnownKind"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >bringKnownKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#SingType"
+	><span class="hs-identifier hs-var"
+	  >SingType</span
+	  ></a
+	></span
+      ><span
+      >                </span
+      ><span id="local-6989586621681983628"
+      ><span class="annot"
+	><span class="annottext"
+	  >KnownKind k =&gt; r
+</span
+	  ><a href="#local-6989586621681983628"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+KnownKind k =&gt; r
+</span
+	><a href="#local-6989586621681983628"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#bringKnownKind"
+	><span class="hs-identifier hs-var"
+	  >bringKnownKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#SingKindArrow"
+	><span class="hs-identifier hs-type"
+	  >SingKindArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983630"
+      ><span class="annot"
+	><span class="annottext"
+	  >SingKind k
+</span
+	  ><a href="#local-6989586621681983630"
+	  ><span class="hs-identifier hs-var"
+	    >dom</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983631"
+      ><span class="annot"
+	><span class="annottext"
+	  >SingKind l
+</span
+	  ><a href="#local-6989586621681983631"
+	  ><span class="hs-identifier hs-var"
+	    >cod</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983632"
+      ><span class="annot"
+	><span class="annottext"
+	  >KnownKind k =&gt; r
+</span
+	  ><a href="#local-6989586621681983632"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k -&gt; (KnownKind k =&gt; r) -&gt; r
+forall k r. SingKind k -&gt; (KnownKind k =&gt; r) -&gt; r
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#bringKnownKind"
+	><span class="hs-identifier hs-var"
+	  >bringKnownKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k
+</span
+	><a href="#local-6989586621681983630"
+	><span class="hs-identifier hs-var"
+	  >dom</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((KnownKind k =&gt; r) -&gt; r) -&gt; (KnownKind k =&gt; r) -&gt; r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind l -&gt; (KnownKind l =&gt; r) -&gt; r
+forall k r. SingKind k -&gt; (KnownKind k =&gt; r) -&gt; r
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#bringKnownKind"
+	><span class="hs-identifier hs-var"
+	  >bringKnownKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind l
+</span
+	><a href="#local-6989586621681983631"
+	><span class="hs-identifier hs-var"
+	  >cod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+KnownKind k =&gt; r
+KnownKind l =&gt; r
+</span
+	><a href="#local-6989586621681983632"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="local-6989586621681983565"
+      ><span id="local-6989586621681983568"
+	><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#withKnownKind"
+	    ><span class="hs-identifier hs-type"
+	      >withKnownKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#Kind"
+	    ><span class="hs-identifier hs-type"
+	      >Kind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983565"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-keyword"
+	  >forall</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621681983566"
+	  ><span class="annot"
+	    ><a href="#local-6989586621681983566"
+	      ><span class="hs-identifier hs-type"
+		>k</span
+		></a
+	      ></span
+	    ></span
+	  ><span class="hs-operator"
+	  >.</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#KnownKind"
+	    ><span class="hs-identifier hs-type"
+	      >KnownKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983566"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	    ><span class="hs-identifier hs-type"
+	      >Proxy</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983566"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983568"
+	    ><span class="hs-identifier hs-type"
+	      >r</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983568"
+	    ><span class="hs-identifier hs-type"
+	      >r</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="withKnownKind"
+      ><span class="annot"
+	><span class="annottext"
+	  >withKnownKind :: forall ann r.
+Kind ann -&gt; (forall k. KnownKind k =&gt; Proxy k -&gt; r) -&gt; r
+</span
+	  ><a href="PlutusCore.Builtin.KnownKind.html#withKnownKind"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withKnownKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983638"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621681983638"
+	  ><span class="hs-identifier hs-var"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983639"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall k. KnownKind k =&gt; Proxy k -&gt; r
+</span
+	  ><a href="#local-6989586621681983639"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann -&gt; (forall {k}. SingKind k -&gt; r) -&gt; r
+forall ann r. Kind ann -&gt; (forall k. SingKind k -&gt; r) -&gt; r
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#withSingKind"
+	><span class="hs-identifier hs-var"
+	  >withSingKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621681983638"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall {k}. SingKind k -&gt; r) -&gt; r)
+-&gt; (forall {k}. SingKind k -&gt; r) -&gt; r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681983640"
+      ><span id="local-6989586621681983641"
+	><span class="annot"
+	  ><span class="annottext"
+	    >SingKind k
+</span
+	    ><a href="#local-6989586621681983641"
+	    ><span class="hs-identifier hs-var"
+	      >kindS</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	  ><span class="hs-identifier hs-type"
+	    >SingKind</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681983640"
+	  ><span class="hs-identifier hs-type"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k -&gt; (KnownKind k =&gt; r) -&gt; r
+forall k r. SingKind k -&gt; (KnownKind k =&gt; r) -&gt; r
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#bringKnownKind"
+	><span class="hs-identifier hs-var"
+	  >bringKnownKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k
+</span
+	><a href="#local-6989586621681983641"
+	><span class="hs-identifier hs-var"
+	  >kindS</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((KnownKind k =&gt; r) -&gt; r) -&gt; (KnownKind k =&gt; r) -&gt; r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy k -&gt; r
+forall k. KnownKind k =&gt; Proxy k -&gt; r
+</span
+	><a href="#local-6989586621681983639"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Proxy k -&gt; r) -&gt; Proxy k -&gt; r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681983640"
+	><span class="hs-identifier hs-type"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- We need this for type checking Plutus, however we get Plutus types/terms/programs by either</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-comment"
+      >-- producing them directly or by parsing/decoding them and in both the cases we have access to the</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-comment"
+      >-- @Typeable@ information for the Haskell kind of a type and so we could just keep it around</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-comment"
+      >-- (instead of throwing it away like we do now) and compute the Plutus kind directly from that.</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-comment"
+      >-- That might be less efficient and probably requires updating the Plutus Tx compiler, so we went</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- with the simplest option for now and it's to have a class. Providing an instance per universe is</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- no big deal.</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | For computing the Plutus kind of a built-in type. See 'kindOfBuiltinType'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="ToKind"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#ToKind"
+	  ><span class="hs-identifier hs-var"
+	    >ToKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681983593"
+      ><span class="annot"
+	><a href="#local-6989586621681983593"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- | Reify the kind of a type from the universe at the term level.</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span id="toSingKind"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#toSingKind"
+	  ><span class="hs-identifier hs-type"
+	    >toSingKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983591"
+      ><span id="local-6989586621681983592"
+	><span class="annot"
+	  ><a href="#local-6989586621681983593"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Esc"
+	    ><span class="hs-identifier hs-type"
+	      >Esc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983592"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983591"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	    ><span class="hs-identifier hs-type"
+	      >SingKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983591"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a reified Haskell kind to a Plutus kind.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621681983575"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#demoteKind"
+	  ><span class="hs-identifier hs-type"
+	    >demoteKind</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.KnownKind.html#SingKind"
+	  ><span class="hs-identifier hs-type"
+	    >SingKind</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681983575"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Core.Type.html#Kind"
+	  ><span class="hs-identifier hs-type"
+	    >Kind</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="demoteKind"
+      ><span class="annot"
+	><span class="annottext"
+	  >demoteKind :: forall k. SingKind k -&gt; Kind ()
+</span
+	  ><a href="PlutusCore.Builtin.KnownKind.html#demoteKind"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >demoteKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#SingType"
+	><span class="hs-identifier hs-var"
+	  >SingType</span
+	  ></a
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Kind ()
+forall ann. ann -&gt; Kind ann
+</span
+	><a href="PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-var"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#demoteKind"
+	><span class="hs-identifier hs-var"
+	  >demoteKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownKind.html#SingKindArrow"
+	><span class="hs-identifier hs-type"
+	  >SingKindArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983650"
+      ><span class="annot"
+	><span class="annottext"
+	  >SingKind k
+</span
+	  ><a href="#local-6989586621681983650"
+	  ><span class="hs-identifier hs-var"
+	    >dom</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983651"
+      ><span class="annot"
+	><span class="annottext"
+	  >SingKind l
+</span
+	  ><a href="#local-6989586621681983651"
+	  ><span class="hs-identifier hs-var"
+	    >cod</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Kind () -&gt; Kind () -&gt; Kind ()
+forall ann. ann -&gt; Kind ann -&gt; Kind ann -&gt; Kind ann
+</span
+	><a href="PlutusCore.Core.Type.html#KindArrow"
+	><span class="hs-identifier hs-var"
+	  >KindArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k -&gt; Kind ()
+forall k. SingKind k -&gt; Kind ()
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#demoteKind"
+	><span class="hs-identifier hs-var"
+	  >demoteKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k
+</span
+	><a href="#local-6989586621681983650"
+	><span class="hs-identifier hs-var"
+	  >dom</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind l -&gt; Kind ()
+forall k. SingKind k -&gt; Kind ()
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#demoteKind"
+	><span class="hs-identifier hs-var"
+	  >demoteKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind l
+</span
+	><a href="#local-6989586621681983651"
+	><span class="hs-identifier hs-var"
+	  >cod</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compute the kind of a type from a universe.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="local-6989586621681983581"
+      ><span id="local-6989586621681983583"
+	><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#kindOfBuiltinType"
+	    ><span class="hs-identifier hs-type"
+	      >kindOfBuiltinType</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.KnownKind.html#ToKind"
+	    ><span class="hs-identifier hs-type"
+	      >ToKind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983581"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983581"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="Universe.Core.html#Esc"
+	    ><span class="hs-identifier hs-type"
+	      >Esc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983583"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#Kind"
+	    ><span class="hs-identifier hs-type"
+	      >Kind</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="kindOfBuiltinType"
+      ><span class="annot"
+	><span class="annottext"
+	  >kindOfBuiltinType :: forall {k} (uni :: * -&gt; *) (a :: k).
+ToKind uni =&gt;
+uni (Esc a) -&gt; Kind ()
+</span
+	  ><a href="PlutusCore.Builtin.KnownKind.html#kindOfBuiltinType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >kindOfBuiltinType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SingKind k -&gt; Kind ()
+forall k. SingKind k -&gt; Kind ()
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#demoteKind"
+	><span class="hs-identifier hs-var"
+	  >demoteKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SingKind k -&gt; Kind ())
+-&gt; (uni (Esc a) -&gt; SingKind k) -&gt; uni (Esc a) -&gt; Kind ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>uni (Esc a) -&gt; SingKind k
+forall k (a :: k). uni (Esc a) -&gt; SingKind k
+forall (uni :: * -&gt; *) k (a :: k).
+ToKind uni =&gt;
+uni (Esc a) -&gt; SingKind k
+</span
+	><a href="PlutusCore.Builtin.KnownKind.html#toSingKind"
+	><span class="hs-identifier hs-var"
+	  >toSingKind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    5 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    6 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>module UntypedPlutusCore.Core.Instance.Eq () where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import PlutusPrelude
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import UntypedPlutusCore.Core.Type
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import PlutusCore.DeBruijn
+<span class="lineno">   15 </span>import PlutusCore.Eq
+<span class="lineno">   16 </span>import PlutusCore.Name.Unique
+<span class="lineno">   17 </span>import PlutusCore.Rename.Monad
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Universe
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Data.Hashable
+<span class="lineno">   22 </span>import Data.Vector qualified as V
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>instance
+<span class="lineno">   25 </span>  <span class="decl"><span class="istickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">=&gt; Eq (Term Name uni fun ann)</span></span>
+<span class="lineno">   27 </span>  where
+<span class="lineno">   28 </span>  <span class="decl"><span class="istickedoff">term1 == term2 = runEqRename $ eqTermM term1 term2</span></span>
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>type HashableTermConstraints uni fun ann =
+<span class="lineno">   31 </span>  ( GEq uni
+<span class="lineno">   32 </span>  , Closed uni
+<span class="lineno">   33 </span>  , uni `Everywhere` Eq
+<span class="lineno">   34 </span>  , uni `Everywhere` Hashable
+<span class="lineno">   35 </span>  , Hashable ann
+<span class="lineno">   36 </span>  , Hashable fun
+<span class="lineno">   37 </span>  )
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- This instance is the only logical one, and exists also in the package `vector-instances`.
+<span class="lineno">   40 </span>-- Since this is the same implementation as that one, there isn't even much risk of incoherence.
+<span class="lineno">   41 </span>instance <span class="decl"><span class="nottickedoff">Hashable a =&gt; Hashable (V.Vector a)</span></span> where
+<span class="lineno">   42 </span>  <span class="decl"><span class="istickedoff">hashWithSalt s = hashWithSalt s . toList</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">HashableTermConstraints uni fun ann =&gt; Hashable (Term Name uni fun ann)</span></span></span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>-- Simple Structural Equality of a `Term NamedDeBruijn`. This implies three things:
+<span class="lineno">   47 </span>-- a) We ignore the name part of the nameddebruijn
+<span class="lineno">   48 </span>-- b) We do not do equality &quot;modulo init index, see deBruijnInitIndex&quot;. E.g. `LamAbs 0 (Var 0) /= LamAbs 1 (Var 1)`.
+<span class="lineno">   49 </span>-- c) We do not do equality &quot;&quot;modulo annotations&quot;.
+<span class="lineno">   50 </span>-- If a user wants to ignore annotations he must prior do `void &lt;$&gt; term`, to throw away any annotations.
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Term NamedDeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">HashableTermConstraints uni fun ann =&gt; Hashable (Term NamedDeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Term FakeNamedDeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">HashableTermConstraints uni fun ann =&gt; Hashable (Term FakeNamedDeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Term DeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">HashableTermConstraints uni fun ann =&gt; Hashable (Term DeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">( GEq uni</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">, Closed uni</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">, uni `Everywhere` Eq</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">, Eq fun</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">, Eq ann</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">, Eq (Term name uni fun ann)</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">)</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Program name uni fun ann)</span></span></span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>-- | Check equality of two 'Term's.
+<span class="lineno">   80 </span>eqTermM
+<span class="lineno">   81 </span>  :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann, HasUnique name TermUnique)
+<span class="lineno">   82 </span>  =&gt; Term name uni fun ann -&gt; Term name uni fun ann -&gt; EqRename (Renaming TermUnique)
+<span class="lineno">   83 </span><span class="decl"><span class="istickedoff">eqTermM (Constant ann1 con1) (Constant ann2 con2) = do</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">eqM con1 con2</span>
+<span class="lineno">   86 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Builtin ann1 bi1) (Builtin ann2 bi2) = do</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">eqM bi1 bi2</span>
+<span class="lineno">   89 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Var ann1 name1) (Var ann2 name2) = do</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">eqNameM name1 name2</span>
+<span class="lineno">   92 </span><span class="spaces"></span><span class="istickedoff">eqTermM (LamAbs ann1 name1 body1) (LamAbs ann2 name2 body2) = do</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="istickedoff">withTwinBindings name1 name2 $ eqTermM body1 body2</span>
+<span class="lineno">   95 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Apply ann1 fun1 arg1) (Apply ann2 fun2 arg2) = do</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">eqTermM fun1 fun2</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">eqTermM arg1 arg2</span>
+<span class="lineno">   99 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Delay ann1 term1) (Delay ann2 term2) = do</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">eqTermM term1 term2</span>
+<span class="lineno">  102 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Force ann1 term1) (Force ann2 term2) = do</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="istickedoff">eqTermM term1 term2</span>
+<span class="lineno">  105 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Error ann1) (Error ann2) = eqM ann1 ann2</span>
+<span class="lineno">  106 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Constr ann1 i1 args1) (Constr ann2 i2 args2) = do</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">eqM i1 i2</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">case zipExact args1 args2 of</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="istickedoff">Just ps -&gt; for_ ps $ \(t1, t2) -&gt; eqTermM t1 t2</span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; empty</span>
+<span class="lineno">  112 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">eqTermM a1 a2</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">case zipExact (toList cs1) (toList cs2) of</span>
+<span class="lineno">  116 </span><span class="spaces">    </span><span class="istickedoff">Just ps -&gt; for_ ps $ \(t1, t2) -&gt; eqTermM t1 t2</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">empty</span></span>
+<span class="lineno">  118 </span><span class="spaces"></span><span class="istickedoff">eqTermM Constant {} _ = empty</span>
+<span class="lineno">  119 </span><span class="spaces"></span><span class="istickedoff">eqTermM Builtin {} _ = empty</span>
+<span class="lineno">  120 </span><span class="spaces"></span><span class="istickedoff">eqTermM Var {} _ = empty</span>
+<span class="lineno">  121 </span><span class="spaces"></span><span class="istickedoff">eqTermM LamAbs {} _ = empty</span>
+<span class="lineno">  122 </span><span class="spaces"></span><span class="istickedoff">eqTermM Apply {} _ = empty</span>
+<span class="lineno">  123 </span><span class="spaces"></span><span class="istickedoff">eqTermM Delay {} _ = empty</span>
+<span class="lineno">  124 </span><span class="spaces"></span><span class="istickedoff">eqTermM Force {} _ = empty</span>
+<span class="lineno">  125 </span><span class="spaces"></span><span class="istickedoff">eqTermM Error {} _ = empty</span>
+<span class="lineno">  126 </span><span class="spaces"></span><span class="istickedoff">eqTermM Constr {} _ = empty</span>
+<span class="lineno">  127 </span><span class="spaces"></span><span class="istickedoff">eqTermM Case {} _ = empty</span></span>
+
+</pre>
+</body>
+</html>

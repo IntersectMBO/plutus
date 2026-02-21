@@ -1,0 +1,1286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE AllowAmbiguousTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Definition.Derive</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	><span class="hs-identifier"
+	  >HasBlueprintSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Internal.html#Definition"
+	><span class="hs-identifier"
+	  >Definition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Internal.html#Definitions"
+	><span class="hs-identifier"
+	  >Definitions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Internal.html#addDefinition"
+	><span class="hs-identifier"
+	  >addDefinition</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition.Unroll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html#definitionId"
+	><span class="hs-identifier"
+	  >definitionId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html#UnrollAll"
+	><span class="hs-identifier"
+	  >UnrollAll</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Derive a 'Definitions' value for a list of types.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Derive.html#deriveDefinitions"
+	><span class="hs-identifier hs-type"
+	  >deriveDefinitions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680039252"
+      ><span class="annot"
+	><a href="#local-6989586621680039252"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor"
+	><span class="hs-identifier hs-type"
+	  >DefinitionsFor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html#UnrollAll"
+	><span class="hs-identifier hs-type"
+	  >UnrollAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039252"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Internal.html#Definitions"
+	><span class="hs-identifier hs-type"
+	  >Definitions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html#UnrollAll"
+	><span class="hs-identifier hs-type"
+	  >UnrollAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039252"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="deriveDefinitions"
+      ><span class="annot"
+	><span class="annottext"
+	  >deriveDefinitions :: forall (ts :: [*]).
+DefinitionsFor (UnrollAll ts) =&gt;
+Definitions (UnrollAll ts)
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Derive.html#deriveDefinitions"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >deriveDefinitions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (ts :: [*]). DefinitionsFor ts =&gt; Definitions ts
+</span
+	><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor"
+	><span class="hs-identifier hs-var"
+	  >definitionsFor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html#UnrollAll"
+	><span class="hs-identifier hs-type"
+	  >UnrollAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039252"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Construct a 'Schema' that is a reference to a schema definition.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	><span class="hs-identifier hs-type"
+	  >definitionRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680039258"
+      ><span class="annot"
+	><a href="#local-6989586621680039258"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680039260"
+      ><span class="annot"
+	><a href="#local-6989586621680039260"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier hs-type"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039258"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier hs-type"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039260"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span id="definitionRef"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionRef :: forall t (ts :: [*]). HasBlueprintDefinition t =&gt; Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionRef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefinitionId -&gt; Schema ts
+forall (referencedTypes :: [*]).
+DefinitionId -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaDefinitionRef"
+	><span class="hs-identifier hs-var"
+	  >SchemaDefinitionRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. HasBlueprintDefinition t =&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Unroll.html#definitionId"
+	><span class="hs-identifier hs-var"
+	  >definitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680039258"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| This class and its two instances are used internally to derive 'Definitions'
+for a given list of types. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="DefinitionsFor"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor"
+	  ><span class="hs-identifier hs-var"
+	    >DefinitionsFor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680039302"
+      ><span class="annot"
+	><a href="#local-6989586621680039302"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor%27"
+	><span class="hs-identifier hs-type"
+	  >DefinitionsFor'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039302"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039302"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor"
+	><span class="hs-identifier hs-type"
+	  >definitionsFor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680039257"
+      ><span class="annot"
+	><a href="#local-6989586621680039257"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor"
+	><span class="hs-identifier hs-type"
+	  >DefinitionsFor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039257"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Internal.html#Definitions"
+	><span class="hs-identifier hs-type"
+	  >Definitions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039257"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="definitionsFor"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionsFor :: forall (ts :: [*]). DefinitionsFor ts =&gt; Definitions ts
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >definitionsFor</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (referencedTypes :: [*]) (acc :: [*]).
+DefinitionsFor' referencedTypes acc =&gt;
+Definitions referencedTypes
+forall {k} (referencedTypes :: [*]) (acc :: k).
+DefinitionsFor' referencedTypes acc =&gt;
+Definitions referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27"
+	><span class="hs-identifier hs-var"
+	  >definitionsFor'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680039257"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680039257"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="DefinitionsFor%27"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor%27"
+	  ><span class="hs-identifier hs-var"
+	    >DefinitionsFor'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680039268"
+      ><span class="annot"
+	><a href="#local-6989586621680039268"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680039269"
+      ><span class="annot"
+	><a href="#local-6989586621680039269"
+	  ><span class="hs-identifier hs-type"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span id="definitionsFor%27"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27"
+	  ><span class="hs-identifier hs-type"
+	    >definitionsFor'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Internal.html#Definitions"
+	><span class="hs-identifier hs-type"
+	  >Definitions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680039268"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680039275"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor%27"
+	  ><span class="hs-identifier hs-type"
+	    >DefinitionsFor'</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680039275"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680039309"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionsFor' :: Definitions referencedTypes
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >definitionsFor'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Definitions referencedTypes
+forall (referencedTypes :: [*]). Definitions referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Definition.Internal.html#NoDefinitions"
+	><span class="hs-identifier hs-var"
+	  >NoDefinitions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680039280"
+      ><span id="local-6989586621680039281"
+	><span id="local-6989586621680039282"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	      ><span class="hs-identifier hs-type"
+		>HasBlueprintDefinition</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039280"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-41"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	      ><span class="hs-identifier hs-type"
+		>HasBlueprintSchema</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039280"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039281"
+	      ><span class="hs-identifier hs-type"
+		>referencedTypes</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-42"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor%27"
+	      ><span class="hs-identifier hs-type"
+		>DefinitionsFor'</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039281"
+	      ><span class="hs-identifier hs-type"
+		>referencedTypes</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039282"
+	      ><span class="hs-identifier hs-type"
+		>ts</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-43"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-44"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Blueprint.Definition.Derive.html#DefinitionsFor%27"
+	      ><span class="hs-identifier hs-type"
+		>DefinitionsFor'</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039281"
+	      ><span class="hs-identifier hs-type"
+		>referencedTypes</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039280"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="hs-glyph"
+	    >:</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680039282"
+	      ><span class="hs-identifier hs-type"
+		>ts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680039319"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionsFor' :: Definitions referencedTypes
+</span
+	  ><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >definitionsFor'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Definitions referencedTypes
+-&gt; Definition Any referencedTypes -&gt; Definitions referencedTypes
+forall {k} (ts :: [*]) (t :: k).
+Definitions ts -&gt; Definition t ts -&gt; Definitions ts
+</span
+	><a href="PlutusTx.Blueprint.Definition.Internal.html#addDefinition"
+	><span class="hs-identifier hs-var"
+	  >addDefinition</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (referencedTypes :: [*]) (acc :: [*]).
+DefinitionsFor' referencedTypes acc =&gt;
+Definitions referencedTypes
+forall {k} (referencedTypes :: [*]) (acc :: k).
+DefinitionsFor' referencedTypes acc =&gt;
+Definitions referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionsFor%27"
+	><span class="hs-identifier hs-var"
+	  >definitionsFor'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680039281"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680039282"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefinitionId
+-&gt; Schema referencedTypes -&gt; Definition Any referencedTypes
+forall {k} (t :: k) (ts :: [*]).
+DefinitionId -&gt; Schema ts -&gt; Definition t ts
+</span
+	><a href="PlutusTx.Blueprint.Definition.Internal.html#MkDefinition"
+	><span class="hs-identifier hs-var"
+	  >MkDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. HasBlueprintDefinition t =&gt; DefinitionId
+</span
+	><a href="PlutusTx.Blueprint.Definition.Unroll.html#definitionId"
+	><span class="hs-identifier hs-var"
+	  >definitionId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680039280"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (referencedTypes :: [*]).
+HasBlueprintSchema t referencedTypes =&gt;
+Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-identifier hs-var"
+	  >schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621680039280"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,555 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.RewriteRules</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.RewriteRules.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.RewriteRules</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:rewriteWith"
+	      >rewriteWith</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a, t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > t, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m) &#8658; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	      >RewriteRules</a
+	      > uni fun &#8594; t &#8594; m t</li
+	    ><li class="src short"
+	    ><a href="#v:rewritePass"
+	      >rewritePass</a
+	      > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > a, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	      >RewriteRules</a
+	      > uni fun &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:rewritePassSC"
+	      >rewritePassSC</a
+	      > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > a, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	      >RewriteRules</a
+	      > uni fun &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:RewriteRules"
+	      >RewriteRules</a
+	      > uni fun</li
+	    ><li class="src short"
+	    ><a href="#v:unRewriteRules"
+	      >unRewriteRules</a
+	      > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	      >RewriteRules</a
+	      > uni fun &#8594; &#8704; tyname m a. (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a) &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:defaultUniRewriteRules"
+	      >defaultUniRewriteRules</a
+	      > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	      >RewriteRules</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rewriteWith" class="def"
+	    >rewriteWith</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a, t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > t, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m) &#8658; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	    >RewriteRules</a
+	    > uni fun &#8594; t &#8594; m t <a href="src/PlutusIR.Transform.RewriteRules.html#rewriteWith" class="link"
+	    >Source</a
+	    > <a href="#v:rewriteWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rewrite a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      > using the given <code
+	      ><a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+		>RewriteRules</a
+		></code
+	      > (similar to functions of Term -&gt; Term)
+Normally the rewrite rules are configured at entrypoint time of the compiler.</p
+	    ><p
+	    >It goes without saying that the supplied rewrite rules must be type-preserving.
+MAYBE: enforce this with a `through typeCheckTerm`?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rewritePass" class="def"
+	    >rewritePass</a
+	    > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > a, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	    >RewriteRules</a
+	    > uni fun &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	    >Pass</a
+	    > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a <a href="src/PlutusIR.Transform.RewriteRules.html#rewritePass" class="link"
+	    >Source</a
+	    > <a href="#v:rewritePass" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rewritePassSC" class="def"
+	    >rewritePassSC</a
+	    > &#8759; &#8704; m uni fun a. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > a, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a) &#8658; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	    >PirTCConfig</a
+	    > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	    >RewriteRules</a
+	    > uni fun &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	    >Pass</a
+	    > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a <a href="src/PlutusIR.Transform.RewriteRules.html#rewritePassSC" class="link"
+	    >Source</a
+	    > <a href="#v:rewritePassSC" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:RewriteRules" class="def"
+	    >RewriteRules</a
+	    > uni fun <a href="src/PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules" class="link"
+	    >Source</a
+	    > <a href="#t:RewriteRules" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A bundle of composed <code
+	      ><a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+		>RewriteRules</a
+		></code
+	      >, to be passed at entrypoint of the compiler.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:RewriteRules"
+	    >Instances</h4
+	    ><details id="i:RewriteRules" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RewriteRules:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+		      >RewriteRules</a
+		      > uni fun)</span
+		    > <a href="src/PlutusIR.Transform.RewriteRules.Internal.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:RewriteRules" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RewriteRules:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-RewriteRules-Internal.html"
+			>PlutusIR.Transform.RewriteRules.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun] &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RewriteRules:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+		      >RewriteRules</a
+		      > uni fun)</span
+		    > <a href="src/PlutusIR.Transform.RewriteRules.Internal.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:RewriteRules" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RewriteRules:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-RewriteRules-Internal.html"
+			>PlutusIR.Transform.RewriteRules.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun) &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun &#8594; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RewriteRules:Default:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+		      >RewriteRules</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      >)</span
+		    > <a href="src/PlutusIR.Transform.RewriteRules.Internal.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:RewriteRules" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RewriteRules:Default:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Transform-RewriteRules-Internal.html"
+			>PlutusIR.Transform.RewriteRules.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:def"
+			  >def</a
+			  > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+			  >RewriteRules</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > <a href="#v:def" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unRewriteRules" class="def"
+	    >unRewriteRules</a
+	    > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	    >RewriteRules</a
+	    > uni fun &#8594; &#8704; tyname m a. (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a) &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a) <a href="src/PlutusIR.Transform.RewriteRules.Internal.html#unRewriteRules" class="link"
+	    >Source</a
+	    > <a href="#v:unRewriteRules" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultUniRewriteRules" class="def"
+	    >defaultUniRewriteRules</a
+	    > &#8759; <a href="PlutusIR-Transform-RewriteRules.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules"
+	    >RewriteRules</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="src/PlutusIR.Transform.RewriteRules.Internal.html#defaultUniRewriteRules" class="link"
+	    >Source</a
+	    > <a href="#v:defaultUniRewriteRules" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The rules for the Default Universe/Builtin.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

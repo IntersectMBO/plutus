@@ -1,0 +1,304 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    2 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    3 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    8 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ViewPatterns #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>-- Stripped-down version of PlutusIR.Purity
+<span class="lineno">   12 </span>module UntypedPlutusCore.Purity
+<span class="lineno">   13 </span>  ( isPure
+<span class="lineno">   14 </span>  , isWorkFree
+<span class="lineno">   15 </span>  , EvalOrder
+<span class="lineno">   16 </span>  , unEvalOrder
+<span class="lineno">   17 </span>  , EvalTerm (..)
+<span class="lineno">   18 </span>  , Purity (..)
+<span class="lineno">   19 </span>  , WorkFreedom (..)
+<span class="lineno">   20 </span>  , termEvaluationOrder
+<span class="lineno">   21 </span>  ) where
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import Data.DList qualified as DList
+<span class="lineno">   24 </span>import Data.Typeable (Proxy (..))
+<span class="lineno">   25 </span>import PlutusCore.Arity (Param (..), builtinArity)
+<span class="lineno">   26 </span>import PlutusCore.Builtin.Meaning (ToBuiltinMeaning (..))
+<span class="lineno">   27 </span>import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy))
+<span class="lineno">   28 </span>import Prettyprinter (vsep, (&lt;+&gt;))
+<span class="lineno">   29 </span>import Universe.Core (Closed, Everywhere, GShow)
+<span class="lineno">   30 </span>import UntypedPlutusCore.Contexts (AppCtx (..), fillAppCtx, splitAppCtx)
+<span class="lineno">   31 </span>import UntypedPlutusCore.Core (Term (..))
+<span class="lineno">   32 </span>import UntypedPlutusCore.Core.Instance.Eq ()
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>-- | Is this pure? Either yes, or maybe not.
+<span class="lineno">   35 </span>data Purity = MaybeImpure | Pure
+<span class="lineno">   36 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>instance <span class="decl"><span class="nottickedoff">Pretty Purity</span></span> where
+<span class="lineno">   39 </span>  <span class="decl"><span class="istickedoff">pretty MaybeImpure = &quot;impure?&quot;</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">pretty Pure = &quot;pure&quot;</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>-- | Is this term essentially work-free? Either yes, or maybe not.
+<span class="lineno">   43 </span>data WorkFreedom = MaybeWork | WorkFree
+<span class="lineno">   44 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>instance <span class="decl"><span class="nottickedoff">Pretty WorkFreedom</span></span> where
+<span class="lineno">   47 </span>  <span class="decl"><span class="istickedoff">pretty MaybeWork = &quot;maybe work?&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">pretty WorkFree = &quot;work-free&quot;</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>{-| Either the &quot;next&quot; term to be evaluated, along with its 'Purity' and 'WorkFreedom',
+<span class="lineno">   51 </span>or we don't know what comes next. -}
+<span class="lineno">   52 </span>data EvalTerm name uni fun a
+<span class="lineno">   53 </span>  = Unknown
+<span class="lineno">   54 </span>  | EvalTerm Purity WorkFreedom (Term name uni fun a)
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>instance
+<span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">( Show name</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">, Everywhere uni Show</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">, Show fun</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">, Show a</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">, GShow uni</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">, Closed uni</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">)</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Show (EvalTerm name uni fun a)</span></span></span></span>
+<span class="lineno">   65 </span>  where
+<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">show = \case</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">Unknown -&gt; &quot;&lt;unknown&gt;&quot;</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">EvalTerm purity work t -&gt;</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="nottickedoff">&quot;EvalTerm &quot; &lt;&gt; show purity &lt;&gt; &quot; &quot; &lt;&gt; show work &lt;&gt; &quot; &quot; &lt;&gt; show t</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>instance
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">PrettyBy config (Term name uni fun a)</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy config (EvalTerm name uni fun a)</span></span>
+<span class="lineno">   74 </span>  where
+<span class="lineno">   75 </span>  <span class="decl"><span class="istickedoff">prettyBy _ Unknown = &quot;&lt;unknown&gt;&quot;</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">prettyBy config (EvalTerm eff work t) =</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff">pretty eff &lt;+&gt; pretty work &lt;&gt; &quot;:&quot; &lt;+&gt; prettyBy config t</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>instance <span class="decl"><span class="nottickedoff">Eq (Term name uni fun a) =&gt; Eq (EvalTerm name uni fun a)</span></span> where
+<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">Unknown == Unknown = True</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">(EvalTerm p1 w1 t1) == (EvalTerm p2 w2 t2) = p1 == p2 &amp;&amp; w1 == w2 &amp;&amp; t1 == t2</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">_ == _ = False</span></span>
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>-- We use a DList here for efficient and lazy concatenation
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>-- | The order in which terms get evaluated, along with their purities.
+<span class="lineno">   87 </span>newtype EvalOrder name uni fun a = EvalOrder (DList.DList (EvalTerm name uni fun a))
+<span class="lineno">   88 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>{-| Get the evaluation order as a list of 'EvalTerm's. Either terminates in a single
+<span class="lineno">   91 </span>'Unknown', which means that we got to a point where evaluation continues but we don't
+<span class="lineno">   92 </span>know where; or terminates normally, in which case we actually got to the end of the
+<span class="lineno">   93 </span>evaluation order for the term. -}
+<span class="lineno">   94 </span>unEvalOrder :: EvalOrder name uni fun a -&gt; [EvalTerm name uni fun a]
+<span class="lineno">   95 </span><span class="decl"><span class="istickedoff">unEvalOrder (EvalOrder ts) =</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">-- This is where we avoid traversing the whole program beyond the first Unknown,</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">-- since DList is lazy and we convert to a lazy list and then filter it.</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">takeWhileInclusive (\case Unknown -&gt; False; _ -&gt; True) (DList.toList ts)</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="istickedoff">takeWhileInclusive :: (a -&gt; Bool) -&gt; [a] -&gt; [a]</span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="istickedoff">takeWhileInclusive p = foldr (\x ys -&gt; if p x then x : ys else [x]) []</span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>evalThis :: EvalTerm name uni fun a -&gt; EvalOrder name uni fun a
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">evalThis = EvalOrder . DList.singleton</span></span>
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>instance
+<span class="lineno">  107 </span>  <span class="decl"><span class="nottickedoff">PrettyBy config (Term name uni fun a)</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy config (EvalOrder name uni fun a)</span></span>
+<span class="lineno">  109 </span>  where
+<span class="lineno">  110 </span>  <span class="decl"><span class="istickedoff">prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>{-| Given a term, return the order in which it and its sub-terms will be evaluated.
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>This aims to be a sound under-approximation: if we don't know, we just say 'Unknown'.
+<span class="lineno">  115 </span>Typically there will be a sequence of terms that we do know, which will terminate
+<span class="lineno">  116 </span>in 'Unknown' once we do something like call a function.
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>This makes some assumptions about the evaluator, in particular about the order in
+<span class="lineno">  119 </span>which we evaluate sub-terms, but these match the current evaluator and we are not
+<span class="lineno">  120 </span>planning on changing it. -}
+<span class="lineno">  121 </span>termEvaluationOrder
+<span class="lineno">  122 </span>  :: forall name uni fun a
+<span class="lineno">  123 </span>   . ToBuiltinMeaning uni fun
+<span class="lineno">  124 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  125 </span>  -&gt; Term name uni fun a
+<span class="lineno">  126 </span>  -&gt; EvalOrder name uni fun a
+<span class="lineno">  127 </span><span class="decl"><span class="istickedoff">termEvaluationOrder builtinSemanticsVariant = goTerm</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="istickedoff">goTerm :: Term name uni fun a -&gt; EvalOrder name uni fun a</span>
+<span class="lineno">  130 </span><span class="spaces">    </span><span class="istickedoff">goTerm = \case</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">(splitAppCtx -&gt; (builtin@(Builtin _ann fun), appCtx)) -&gt;</span>
+<span class="lineno">  132 </span><span class="spaces">        </span><span class="istickedoff">appCtxEvalOrder appCtx &lt;&gt; go arity appCtx</span>
+<span class="lineno">  133 </span><span class="spaces">        </span><span class="istickedoff">where</span>
+<span class="lineno">  134 </span><span class="spaces">          </span><span class="istickedoff">arity = builtinArity @uni @fun <span class="nottickedoff">(Proxy @uni)</span> builtinSemanticsVariant fun</span>
+<span class="lineno">  135 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  136 </span><span class="spaces">          </span><span class="istickedoff">appCtxEvalOrder :: AppCtx name uni fun a -&gt; EvalOrder name uni fun a</span>
+<span class="lineno">  137 </span><span class="spaces">          </span><span class="istickedoff">appCtxEvalOrder = \case</span>
+<span class="lineno">  138 </span><span class="spaces">            </span><span class="istickedoff">AppCtxEnd -&gt; mempty</span>
+<span class="lineno">  139 </span><span class="spaces">            </span><span class="istickedoff">AppCtxTerm _ t rest -&gt; goTerm t &lt;&gt; appCtxEvalOrder rest</span>
+<span class="lineno">  140 </span><span class="spaces">            </span><span class="istickedoff">AppCtxType _ rest -&gt; appCtxEvalOrder rest</span>
+<span class="lineno">  141 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  142 </span><span class="spaces">          </span><span class="istickedoff">go :: [Param] -&gt; AppCtx name uni fun a -&gt; EvalOrder name uni fun a</span>
+<span class="lineno">  143 </span><span class="spaces">          </span><span class="istickedoff">go parameters appContext =</span>
+<span class="lineno">  144 </span><span class="spaces">            </span><span class="istickedoff">case parameters of</span>
+<span class="lineno">  145 </span><span class="spaces">              </span><span class="istickedoff">-- All builtin parameters have been applied,</span>
+<span class="lineno">  146 </span><span class="spaces">              </span><span class="istickedoff">-- (such term is considered impure).</span>
+<span class="lineno">  147 </span><span class="spaces">              </span><span class="istickedoff">[] -&gt; maybeImpureWork</span>
+<span class="lineno">  148 </span><span class="spaces">              </span><span class="istickedoff">-- A term parameter is waiting to be applied</span>
+<span class="lineno">  149 </span><span class="spaces">              </span><span class="istickedoff">TermParam : otherParams -&gt;</span>
+<span class="lineno">  150 </span><span class="spaces">                </span><span class="istickedoff">case appContext of</span>
+<span class="lineno">  151 </span><span class="spaces">                  </span><span class="istickedoff">AppCtxEnd -&gt;</span>
+<span class="lineno">  152 </span><span class="spaces">                    </span><span class="istickedoff">-- Builtin is not fully saturated with term arguments, thus pure.</span>
+<span class="lineno">  153 </span><span class="spaces">                    </span><span class="istickedoff">pureWorkFree</span>
+<span class="lineno">  154 </span><span class="spaces">                  </span><span class="istickedoff">AppCtxType _ann _remainingAppCtx -&gt;</span>
+<span class="lineno">  155 </span><span class="spaces">                    </span><span class="istickedoff">-- Term parameter expected, type argument applied.</span>
+<span class="lineno">  156 </span><span class="spaces">                    </span><span class="istickedoff">-- Error is impure.</span>
+<span class="lineno">  157 </span><span class="spaces">                    </span><span class="istickedoff">maybeImpureWork</span>
+<span class="lineno">  158 </span><span class="spaces">                  </span><span class="istickedoff">AppCtxTerm _ann _argTerm remainingAppCtx -&gt;</span>
+<span class="lineno">  159 </span><span class="spaces">                    </span><span class="istickedoff">go otherParams remainingAppCtx</span>
+<span class="lineno">  160 </span><span class="spaces">              </span><span class="istickedoff">-- A type parameter is waiting to be forced</span>
+<span class="lineno">  161 </span><span class="spaces">              </span><span class="istickedoff">TypeParam : otherParams -&gt;</span>
+<span class="lineno">  162 </span><span class="spaces">                </span><span class="istickedoff">case appContext of</span>
+<span class="lineno">  163 </span><span class="spaces">                  </span><span class="istickedoff">AppCtxEnd -&gt;</span>
+<span class="lineno">  164 </span><span class="spaces">                    </span><span class="istickedoff">-- Builtin is not fully saturated with type arguments, thus pure.</span>
+<span class="lineno">  165 </span><span class="spaces">                    </span><span class="istickedoff">pureWorkFree</span>
+<span class="lineno">  166 </span><span class="spaces">                  </span><span class="istickedoff">AppCtxTerm _ann _term _remainingAppCtx -&gt;</span>
+<span class="lineno">  167 </span><span class="spaces">                    </span><span class="istickedoff">-- Type parameter expected, term argument applied.</span>
+<span class="lineno">  168 </span><span class="spaces">                    </span><span class="istickedoff">-- Error is impure.</span>
+<span class="lineno">  169 </span><span class="spaces">                    </span><span class="istickedoff">maybeImpureWork</span>
+<span class="lineno">  170 </span><span class="spaces">                  </span><span class="istickedoff">AppCtxType _ann remainingAppCtx -&gt;</span>
+<span class="lineno">  171 </span><span class="spaces">                    </span><span class="istickedoff">go otherParams remainingAppCtx</span>
+<span class="lineno">  172 </span><span class="spaces">            </span><span class="istickedoff">where</span>
+<span class="lineno">  173 </span><span class="spaces">              </span><span class="istickedoff">maybeImpureWork :: EvalOrder name uni fun a</span>
+<span class="lineno">  174 </span><span class="spaces">              </span><span class="istickedoff">maybeImpureWork = evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)</span>
+<span class="lineno">  175 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  176 </span><span class="spaces">              </span><span class="istickedoff">pureWorkFree :: EvalOrder name uni fun a</span>
+<span class="lineno">  177 </span><span class="spaces">              </span><span class="istickedoff">pureWorkFree = evalThis (EvalTerm Pure WorkFree reconstructed)</span>
+<span class="lineno">  178 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  179 </span><span class="spaces">              </span><span class="istickedoff">reconstructed :: Term name uni fun a</span>
+<span class="lineno">  180 </span><span class="spaces">              </span><span class="istickedoff">reconstructed = fillAppCtx builtin appCtx</span>
+<span class="lineno">  181 </span><span class="spaces">      </span><span class="istickedoff">t@(Apply _ fun arg) -&gt;</span>
+<span class="lineno">  182 </span><span class="spaces">        </span><span class="istickedoff">-- first the function</span>
+<span class="lineno">  183 </span><span class="spaces">        </span><span class="istickedoff">goTerm fun</span>
+<span class="lineno">  184 </span><span class="spaces">          </span><span class="istickedoff">-- then the arg</span>
+<span class="lineno">  185 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; goTerm arg</span>
+<span class="lineno">  186 </span><span class="spaces">          </span><span class="istickedoff">-- then the whole term, which means environment manipulation, so work</span>
+<span class="lineno">  187 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; evalThis (EvalTerm Pure MaybeWork t)</span>
+<span class="lineno">  188 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; case fun of</span>
+<span class="lineno">  189 </span><span class="spaces">            </span><span class="istickedoff">-- known function body</span>
+<span class="lineno">  190 </span><span class="spaces">            </span><span class="istickedoff">LamAbs _ _ body -&gt; goTerm body</span>
+<span class="lineno">  191 </span><span class="spaces">            </span><span class="istickedoff">-- unknown function body</span>
+<span class="lineno">  192 </span><span class="spaces">            </span><span class="istickedoff">_ -&gt; evalThis Unknown</span>
+<span class="lineno">  193 </span><span class="spaces">      </span><span class="istickedoff">t@(Force _ dterm) -&gt;</span>
+<span class="lineno">  194 </span><span class="spaces">        </span><span class="istickedoff">-- first delayed term</span>
+<span class="lineno">  195 </span><span class="spaces">        </span><span class="istickedoff">goTerm dterm</span>
+<span class="lineno">  196 </span><span class="spaces">          </span><span class="istickedoff">-- then the whole term, which will mean forcing, so work</span>
+<span class="lineno">  197 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; evalThis (EvalTerm Pure MaybeWork t)</span>
+<span class="lineno">  198 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; case dterm of</span>
+<span class="lineno">  199 </span><span class="spaces">            </span><span class="istickedoff">-- known delayed term</span>
+<span class="lineno">  200 </span><span class="spaces">            </span><span class="istickedoff">Delay _ body -&gt; goTerm body</span>
+<span class="lineno">  201 </span><span class="spaces">            </span><span class="istickedoff">-- unknown delayed term</span>
+<span class="lineno">  202 </span><span class="spaces">            </span><span class="istickedoff">_ -&gt; evalThis Unknown</span>
+<span class="lineno">  203 </span><span class="spaces">      </span><span class="istickedoff">t@(Constr _ _ ts) -&gt;</span>
+<span class="lineno">  204 </span><span class="spaces">        </span><span class="istickedoff">-- first the arguments, in left-to-right order</span>
+<span class="lineno">  205 </span><span class="spaces">        </span><span class="istickedoff">foldMap goTerm ts</span>
+<span class="lineno">  206 </span><span class="spaces">          </span><span class="istickedoff">-- then the whole term, which means constructing the value, so work, unless there's no</span>
+<span class="lineno">  207 </span><span class="spaces">          </span><span class="istickedoff">-- arguments, in which case it's not more work than evaluating, say, a @Delay@ node</span>
+<span class="lineno">  208 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; evalThis (EvalTerm Pure (if null ts then WorkFree else MaybeWork) t)</span>
+<span class="lineno">  209 </span><span class="spaces">      </span><span class="istickedoff">t@(Case _ scrut _) -&gt;</span>
+<span class="lineno">  210 </span><span class="spaces">        </span><span class="istickedoff">-- first the scrutinee</span>
+<span class="lineno">  211 </span><span class="spaces">        </span><span class="istickedoff">goTerm scrut</span>
+<span class="lineno">  212 </span><span class="spaces">          </span><span class="istickedoff">-- then the whole term, which means finding the case so work</span>
+<span class="lineno">  213 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; evalThis (EvalTerm Pure MaybeWork t)</span>
+<span class="lineno">  214 </span><span class="spaces">          </span><span class="istickedoff">-- then we go to an unknown scrutinee</span>
+<span class="lineno">  215 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; evalThis Unknown</span>
+<span class="lineno">  216 </span><span class="spaces">      </span><span class="istickedoff">-- Leaf terms</span>
+<span class="lineno">  217 </span><span class="spaces">      </span><span class="istickedoff">t@Var {} -&gt;</span>
+<span class="lineno">  218 </span><span class="spaces">        </span><span class="istickedoff">evalThis (EvalTerm Pure WorkFree t)</span>
+<span class="lineno">  219 </span><span class="spaces">      </span><span class="istickedoff">t@Error {} -&gt;</span>
+<span class="lineno">  220 </span><span class="spaces">        </span><span class="istickedoff">-- definitely effectful! but not relevant from a work perspective</span>
+<span class="lineno">  221 </span><span class="spaces">        </span><span class="istickedoff">evalThis (EvalTerm MaybeImpure WorkFree t)</span>
+<span class="lineno">  222 </span><span class="spaces">          </span><span class="istickedoff">-- program terminates</span>
+<span class="lineno">  223 </span><span class="spaces">          </span><span class="istickedoff">&lt;&gt; evalThis Unknown</span>
+<span class="lineno">  224 </span><span class="spaces">      </span><span class="istickedoff">t@Builtin {} -&gt;</span>
+<span class="lineno">  225 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">evalThis (EvalTerm Pure WorkFree t)</span></span>
+<span class="lineno">  226 </span><span class="spaces">      </span><span class="istickedoff">t@Delay {} -&gt;</span>
+<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">evalThis (EvalTerm Pure WorkFree t)</span>
+<span class="lineno">  228 </span><span class="spaces">      </span><span class="istickedoff">t@LamAbs {} -&gt;</span>
+<span class="lineno">  229 </span><span class="spaces">        </span><span class="istickedoff">evalThis (EvalTerm Pure WorkFree t)</span>
+<span class="lineno">  230 </span><span class="spaces">      </span><span class="istickedoff">t@Constant {} -&gt;</span>
+<span class="lineno">  231 </span><span class="spaces">        </span><span class="istickedoff">evalThis (EvalTerm Pure WorkFree t)</span></span>
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>{-| Will evaluating this term have side effects (looping or error)?
+<span class="lineno">  234 </span>This is slightly wider than the definition of a value, as
+<span class="lineno">  235 </span>it includes applications that are known to be pure, as well as
+<span class="lineno">  236 </span>things that can't be returned from the machine (as they'd be ill-scoped). -}
+<span class="lineno">  237 </span>isPure
+<span class="lineno">  238 </span>  :: ToBuiltinMeaning uni fun
+<span class="lineno">  239 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  240 </span>  -&gt; Term name uni fun a
+<span class="lineno">  241 </span>  -&gt; Bool
+<span class="lineno">  242 </span><span class="decl"><span class="istickedoff">isPure builtinSemanticsVariant term =</span>
+<span class="lineno">  243 </span><span class="spaces">  </span><span class="istickedoff">-- to work out if the term is pure, we see if we can look through</span>
+<span class="lineno">  244 </span><span class="spaces">  </span><span class="istickedoff">-- the whole evaluation order without hitting something that might be</span>
+<span class="lineno">  245 </span><span class="spaces">  </span><span class="istickedoff">-- effectful</span>
+<span class="lineno">  246 </span><span class="spaces">  </span><span class="istickedoff">go (unEvalOrder (termEvaluationOrder <span class="nottickedoff">builtinSemanticsVariant</span> term))</span>
+<span class="lineno">  247 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  248 </span><span class="spaces">    </span><span class="istickedoff">go :: [EvalTerm name uni fun a] -&gt; Bool</span>
+<span class="lineno">  249 </span><span class="spaces">    </span><span class="istickedoff">go [] = True</span>
+<span class="lineno">  250 </span><span class="spaces">    </span><span class="istickedoff">go (et : rest) = case et of</span>
+<span class="lineno">  251 </span><span class="spaces">      </span><span class="istickedoff">-- Might be an effect here!</span>
+<span class="lineno">  252 </span><span class="spaces">      </span><span class="istickedoff">EvalTerm MaybeImpure _ _ -&gt; False</span>
+<span class="lineno">  253 </span><span class="spaces">      </span><span class="istickedoff">-- This term is fine, what about the rest?</span>
+<span class="lineno">  254 </span><span class="spaces">      </span><span class="istickedoff">EvalTerm Pure _ _ -&gt; go rest</span>
+<span class="lineno">  255 </span><span class="spaces">      </span><span class="istickedoff">-- We don't know what will happen, so be conservative</span>
+<span class="lineno">  256 </span><span class="spaces">      </span><span class="istickedoff">Unknown -&gt; False</span></span>
+<span class="lineno">  257 </span>
+<span class="lineno">  258 </span>{-| Is the given term 'work-free'?
+<span class="lineno">  259 </span>
+<span class="lineno">  260 </span>Note: The definition of 'work-free' is a little unclear, but the idea is that
+<span class="lineno">  261 </span>evaluating this term should do very a trivial amount of work. -}
+<span class="lineno">  262 </span>isWorkFree
+<span class="lineno">  263 </span>  :: ToBuiltinMeaning uni fun
+<span class="lineno">  264 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  265 </span>  -&gt; Term name uni fun a
+<span class="lineno">  266 </span>  -&gt; Bool
+<span class="lineno">  267 </span><span class="decl"><span class="istickedoff">isWorkFree builtinSemanticsVariant term =</span>
+<span class="lineno">  268 </span><span class="spaces">  </span><span class="istickedoff">-- to work out if the term is pure, we see if we can look through</span>
+<span class="lineno">  269 </span><span class="spaces">  </span><span class="istickedoff">-- the whole evaluation order without hitting something that might be</span>
+<span class="lineno">  270 </span><span class="spaces">  </span><span class="istickedoff">-- effectful</span>
+<span class="lineno">  271 </span><span class="spaces">  </span><span class="istickedoff">go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant term))</span>
+<span class="lineno">  272 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  273 </span><span class="spaces">    </span><span class="istickedoff">go :: [EvalTerm name uni fun a] -&gt; Bool</span>
+<span class="lineno">  274 </span><span class="spaces">    </span><span class="istickedoff">go [] = True</span>
+<span class="lineno">  275 </span><span class="spaces">    </span><span class="istickedoff">go (et : rest) = case et of</span>
+<span class="lineno">  276 </span><span class="spaces">      </span><span class="istickedoff">-- Might be an effect here!</span>
+<span class="lineno">  277 </span><span class="spaces">      </span><span class="istickedoff">EvalTerm _ MaybeWork _ -&gt; False</span>
+<span class="lineno">  278 </span><span class="spaces">      </span><span class="istickedoff">-- This term is fine, what about the rest?</span>
+<span class="lineno">  279 </span><span class="spaces">      </span><span class="istickedoff">EvalTerm _ WorkFree _ -&gt; go rest</span>
+<span class="lineno">  280 </span><span class="spaces">      </span><span class="istickedoff">-- We don't know what will happen, so be conservative</span>
+<span class="lineno">  281 </span><span class="spaces">      </span><span class="istickedoff">Unknown -&gt; False</span></span>
+
+</pre>
+</body>
+</html>

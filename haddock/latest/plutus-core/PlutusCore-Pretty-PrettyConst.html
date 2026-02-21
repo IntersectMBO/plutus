@@ -1,0 +1,2149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Pretty.PrettyConst</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Pretty.PrettyConst.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Pretty.PrettyConst</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ConstConfig"
+	      >ConstConfig</a
+	      > = <a href="#v:ConstConfig"
+	      >ConstConfig</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unConstConfig"
+		  >unConstConfig</a
+		  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:RenderContext" title="PlutusCore.Pretty.Readable"
+		  >RenderContext</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PrettyConst"
+	      >PrettyConst</a
+	      > = <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	      >PrettyBy</a
+	      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+	      >ConstConfig</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PrettyUni"
+	      >PrettyUni</a
+	      > uni = (<a href="PlutusCore-Pretty-Extra.html#t:PrettyParens" title="PlutusCore.Pretty.Extra"
+	      >PrettyParens</a
+	      > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	      >SomeTypeIn</a
+	      > uni), <a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyConst</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:ThrowableBuiltins"
+	      >ThrowableBuiltins</a
+	      > uni fun = (<a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	      >Pretty</a
+	      > fun, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > uni, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	      >Typeable</a
+	      > fun)</li
+	    ><li class="src short"
+	    ><a href="#v:prettyConst"
+	      >prettyConst</a
+	      > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyConst</a
+	      > a &#8658; <a href="PlutusCore-Pretty-Readable.html#t:RenderContext" title="PlutusCore.Pretty.Readable"
+	      >RenderContext</a
+	      > &#8594; a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:NoParens"
+	      >NoParens</a
+	      > a = <a href="#v:NoParens"
+	      >NoParens</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unNoParens"
+		  >unNoParens</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:asBytes"
+	      >asBytes</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	      >Word8</a
+	      > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:toBytes"
+	      >toBytes</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ConstConfig" class="def"
+	    >ConstConfig</a
+	    > <a href="src/PlutusCore.Pretty.PrettyConst.html#ConstConfig" class="link"
+	    >Source</a
+	    > <a href="#t:ConstConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of configs used for pretty-printing constants. Has a <code
+	      ><a href="PlutusCore-Pretty-Readable.html#t:RenderContext" title="PlutusCore.Pretty.Readable"
+		>RenderContext</a
+		></code
+	      > inside, so that
+we don't add redundant parens to the output. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ConstConfig" class="def"
+		  >ConstConfig</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unConstConfig" class="def"
+			  >unConstConfig</a
+			  > &#8759; <a href="PlutusCore-Pretty-Readable.html#t:RenderContext" title="PlutusCore.Pretty.Readable"
+			  >RenderContext</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ConstConfig"
+	    >Instances</h4
+	    ><details id="i:ConstConfig" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:HasRenderContext:1"
+		      ></span
+		      > <a href="PlutusCore-Pretty-Readable.html#t:HasRenderContext" title="PlutusCore.Pretty.Readable"
+		      >HasRenderContext</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:HasRenderContext:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:renderContext"
+			  >renderContext</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/Lens-Micro-Type.html#t:Lens-39-" title="Lens.Micro.Type"
+			  >Lens'</a
+			  > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > <a href="PlutusCore-Pretty-Readable.html#t:RenderContext" title="PlutusCore.Pretty.Readable"
+			  >RenderContext</a
+			  > <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:renderContext" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		      >Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-112" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-125" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > ()</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-123" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; () &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [()] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:6"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-172" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:7"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.G1.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyBy" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-G1.html"
+			>PlutusCore.Crypto.BLS12_381.G1</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:8"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.G2.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyBy" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-G2.html"
+			>PlutusCore.Crypto.BLS12_381.G2</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:9"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Crypto.BLS12_381.Pairing.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:PrettyBy" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Crypto-BLS12_381-Pairing.html"
+			>PlutusCore.Crypto.BLS12_381.Pairing</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:10"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-155" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:11"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Value.html#t:K" title="PlutusCore.Value"
+		      >K</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-163" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Value.html#t:K" title="PlutusCore.Value"
+			  >K</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Value.html#t:K" title="PlutusCore.Value"
+			  >K</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:12"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Value.html#t:Quantity" title="PlutusCore.Value"
+		      >Quantity</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-166" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Value.html#t:Quantity" title="PlutusCore.Value"
+			  >Quantity</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Value.html#t:Quantity" title="PlutusCore.Value"
+			  >Quantity</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:13"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		      >Value</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-169" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			  >Value</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			  >Value</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:DefaultPrettyBy:14"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:DefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >DefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+		      >PrettyAny</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:DefaultPrettyBy:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:defaultPrettyBy"
+			  >defaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+			  >PrettyAny</a
+			  > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:defaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:defaultPrettyListBy"
+			  >defaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+			  >PrettyAny</a
+			  > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:defaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:15"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:DefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >DefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+		      >PrettyAny</a
+		      > a) &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+		      >PrettyAny</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+			  >PrettyAny</a
+			  > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+			  >PrettyAny</a
+			  > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:16"
+		      ></span
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+		      >Vector</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-138" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+			  >Vector</a
+			  > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+			  >Vector</a
+			  > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:17"
+		      ></span
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > [a]</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-136" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [[a]] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:18"
+		      ></span
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      > a &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="PlutusCore-Pretty-PrettyConst.html#t:NoParens" title="PlutusCore.Pretty.PrettyConst"
+		      >NoParens</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-132" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Pretty-PrettyConst.html#t:NoParens" title="PlutusCore.Pretty.PrettyConst"
+			  >NoParens</a
+			  > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Pretty-PrettyConst.html#t:NoParens" title="PlutusCore.Pretty.PrettyConst"
+			  >NoParens</a
+			  > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:19"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:DefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >DefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+		      >PrettyAny</a
+		      > a) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+		      >PrettyAny</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+			  >PrettyAny</a
+			  > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusPrelude.html#t:PrettyAny" title="PlutusPrelude"
+			  >PrettyAny</a
+			  > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:NonDefaultPrettyBy:20"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      > a, <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      > b) &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/Text-PrettyBy-Internal.html#t:NonDefaultPrettyBy" title="Text.PrettyBy.Internal"
+		      >NonDefaultPrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (a, b)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-140" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:NonDefaultPrettyBy:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyBy"
+			  >nonDefaultPrettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; (a, b) &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:nonDefaultPrettyListBy"
+			  >nonDefaultPrettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [(a, b)] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:nonDefaultPrettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:21"
+		      ></span
+		      > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      >) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > uni a)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-179" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:PrettyBy:22"
+		      ></span
+		      > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      >) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > uni))</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-184" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:PrettyBy:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni) &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni)] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ConstConfig:HasPrettyDefaults:23"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusPrelude.html#t:HasPrettyDefaults" title="PlutusPrelude"
+		      >HasPrettyDefaults</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      ></span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-80" class="link"
+		    >Source</a
+		    > <a href="#t:ConstConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ConstConfig:HasPrettyDefaults:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusPrelude.html#t:HasPrettyDefaults" title="PlutusPrelude"
+			>HasPrettyDefaults</a
+			> <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			>ConstConfig</a
+			> = '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PrettyConst" class="def"
+	    >PrettyConst</a
+	    > = <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	    >PrettyBy</a
+	    > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+	    >ConstConfig</a
+	    > <a href="src/PlutusCore.Pretty.PrettyConst.html#PrettyConst" class="link"
+	    >Source</a
+	    > <a href="#t:PrettyConst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PrettyUni" class="def"
+	    >PrettyUni</a
+	    > uni = (<a href="PlutusCore-Pretty-Extra.html#t:PrettyParens" title="PlutusCore.Pretty.Extra"
+	    >PrettyParens</a
+	    > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+	    >SomeTypeIn</a
+	    > uni), <a href="Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyConst</a
+	    >) <a href="src/PlutusCore.Pretty.PrettyConst.html#PrettyUni" class="link"
+	    >Source</a
+	    > <a href="#t:PrettyUni" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The set of constraints we need to be able to print built-in types and their values.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:ThrowableBuiltins" class="def"
+	    >ThrowableBuiltins</a
+	    > uni fun = (<a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+	    >Pretty</a
+	    > fun, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > uni, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+	    >Typeable</a
+	    > fun) <a href="src/PlutusCore.Pretty.PrettyConst.html#ThrowableBuiltins" class="link"
+	    >Source</a
+	    > <a href="#t:ThrowableBuiltins" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The set of constraints we need to be able to throw exceptions with things with built-in types
+and functions in them. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyConst" class="def"
+	    >prettyConst</a
+	    > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyConst</a
+	    > a &#8658; <a href="PlutusCore-Pretty-Readable.html#t:RenderContext" title="PlutusCore.Pretty.Readable"
+	    >RenderContext</a
+	    > &#8594; a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusCore.Pretty.PrettyConst.html#prettyConst" class="link"
+	    >Source</a
+	    > <a href="#v:prettyConst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:NoParens" class="def"
+	    >NoParens</a
+	    > a <a href="src/PlutusCore.Pretty.PrettyConst.html#NoParens" class="link"
+	    >Source</a
+	    > <a href="#t:NoParens" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For rendering values without parens, i.e. in <code
+	      ><a href="PlutusCore-Pretty-Readable.html#v:botRenderContext" title="PlutusCore.Pretty.Readable"
+		>botRenderContext</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NoParens" class="def"
+		  >NoParens</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unNoParens" class="def"
+			  >unNoParens</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:NoParens"
+	    >Instances</h4
+	    ><details id="i:NoParens" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoParens:PrettyBy:1"
+		      ></span
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyConst</a
+		      > a &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+		      >ConstConfig</a
+		      > (<a href="PlutusCore-Pretty-PrettyConst.html#t:NoParens" title="PlutusCore.Pretty.PrettyConst"
+		      >NoParens</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Pretty.PrettyConst.html#line-132" class="link"
+		    >Source</a
+		    > <a href="#t:NoParens" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoParens:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Pretty-PrettyConst.html"
+			>PlutusCore.Pretty.PrettyConst</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; <a href="PlutusCore-Pretty-PrettyConst.html#t:NoParens" title="PlutusCore.Pretty.PrettyConst"
+			  >NoParens</a
+			  > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="PlutusCore-Pretty-PrettyConst.html#t:ConstConfig" title="PlutusCore.Pretty.PrettyConst"
+			  >ConstConfig</a
+			  > &#8594; [<a href="PlutusCore-Pretty-PrettyConst.html#t:NoParens" title="PlutusCore.Pretty.PrettyConst"
+			  >NoParens</a
+			  > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asBytes" class="def"
+	    >asBytes</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+	    >Word8</a
+	    > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusCore.Pretty.PrettyConst.html#asBytes" class="link"
+	    >Source</a
+	    > <a href="#v:asBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toBytes" class="def"
+	    >toBytes</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusCore.Pretty.PrettyConst.html#toBytes" class="link"
+	    >Source</a
+	    > <a href="#v:toBytes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Pretty:Pretty:1"
+		  ></span
+		  > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		  >Pretty</a
+		  > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		  >SomeTypeIn</a
+		  > uni) &#8658; <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		  >Pretty</a
+		  > (<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		  >SomeTypeIn</a
+		  > (<a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+		  >Kinded</a
+		  > uni))</span
+		> <a href="src/PlutusCore.Pretty.PrettyConst.html#line-175" class="link"
+		>Source</a
+		> <a href="#v:-36-fPrettySomeTypeIn" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Pretty:Pretty:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:pretty"
+		      >pretty</a
+		      > &#8759; <a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		      >SomeTypeIn</a
+		      > (<a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+		      >Kinded</a
+		      > uni) &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pretty" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:prettyList"
+		      >prettyList</a
+		      > &#8759; [<a href="Universe-Core.html#t:SomeTypeIn" title="Universe.Core"
+		      >SomeTypeIn</a
+		      > (<a href="Universe-Core.html#t:Kinded" title="Universe.Core"
+		      >Kinded</a
+		      > uni)] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:prettyList" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Pretty:Pretty:2"
+		  ></span
+		  > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		  >Closed</a
+		  > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		  >Everywhere</a
+		  > uni <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		  >PrettyConst</a
+		  >) &#8658; <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		  >Pretty</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni a)</span
+		> <a href="src/PlutusCore.Pretty.PrettyConst.html#line-190" class="link"
+		>Source</a
+		> <a href="#v:-36-fPrettyValueOf" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Pretty:Pretty:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:pretty"
+		      >pretty</a
+		      > &#8759; <a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > uni a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pretty" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:prettyList"
+		      >prettyList</a
+		      > &#8759; [<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > uni a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:prettyList" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Pretty:Pretty:3"
+		  ></span
+		  > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		  >Closed</a
+		  > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		  >Everywhere</a
+		  > uni <a href="PlutusCore-Pretty-PrettyConst.html#t:PrettyConst" title="PlutusCore.Pretty.PrettyConst"
+		  >PrettyConst</a
+		  >) &#8658; <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		  >Pretty</a
+		  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni))</span
+		> <a href="src/PlutusCore.Pretty.PrettyConst.html#line-194" class="link"
+		>Source</a
+		> <a href="#v:-36-fPrettySome" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Pretty:Pretty:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:pretty"
+		      >pretty</a
+		      > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > uni) &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pretty" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:prettyList"
+		      >prettyList</a
+		      > &#8759; [<a href="Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > uni)] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+		      >Doc</a
+		      > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:prettyList" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

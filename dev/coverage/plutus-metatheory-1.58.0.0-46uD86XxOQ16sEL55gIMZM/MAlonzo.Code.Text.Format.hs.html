@@ -1,0 +1,104 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Text.Format where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Char qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Maybe qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.String qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Data.Sum.Base qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Text.Format.Generic qualified
+<span class="lineno">   21 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   22 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   23 </span>                    word64ToNat)
+<span class="lineno">   24 </span>import MAlonzo.RTE qualified
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- Text.Format.ArgChunk
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">d_ArgChunk_4 = ()</span></span>
+<span class="lineno">   28 </span>data T_ArgChunk_4
+<span class="lineno">   29 </span>  = C_ℕArg_6 | C_ℤArg_8 | C_FloatArg_10 | C_CharArg_12 |
+<span class="lineno">   30 </span>    C_StringArg_14
+<span class="lineno">   31 </span>-- Text.Format.ArgType
+<span class="lineno">   32 </span>d_ArgType_18 :: T_ArgChunk_4 -&gt; ()
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">d_ArgType_18 = erased</span></span>
+<span class="lineno">   34 </span>-- Text.Format.lexArg
+<span class="lineno">   35 </span>d_lexArg_20 ::
+<span class="lineno">   36 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe T_ArgChunk_4
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">d_lexArg_20 v0</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">= let v1 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">   40 </span><span class="spaces">      </span><span class="nottickedoff">(case coe v0 of</span>
+<span class="lineno">   41 </span><span class="spaces">         </span><span class="nottickedoff">'c'</span>
+<span class="lineno">   42 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_CharArg_12)</span>
+<span class="lineno">   43 </span><span class="spaces">         </span><span class="nottickedoff">'d' -&gt; coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_ℤArg_8)</span>
+<span class="lineno">   44 </span><span class="spaces">         </span><span class="nottickedoff">'f'</span>
+<span class="lineno">   45 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   46 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_FloatArg_10)</span>
+<span class="lineno">   47 </span><span class="spaces">         </span><span class="nottickedoff">'i' -&gt; coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_ℤArg_8)</span>
+<span class="lineno">   48 </span><span class="spaces">         </span><span class="nottickedoff">'s'</span>
+<span class="lineno">   49 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   50 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_StringArg_14)</span>
+<span class="lineno">   51 </span><span class="spaces">         </span><span class="nottickedoff">'u' -&gt; coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_ℕArg_6)</span>
+<span class="lineno">   52 </span><span class="spaces">         </span><span class="nottickedoff">_ -&gt; coe v1)</span></span>
+<span class="lineno">   53 </span>-- Text.Format.formatSpec
+<span class="lineno">   54 </span>d_formatSpec_22 :: MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">d_formatSpec_22</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Text.Format.Generic.C_FormatSpec'46'constructor_27</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">d_lexArg_20</span></span>
+<span class="lineno">   59 </span>-- Text.Format._.Chunk
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">d_Chunk_28 = ()</span></span>
+<span class="lineno">   61 </span>-- Text.Format._.Error
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">d_Error_30 = ()</span></span>
+<span class="lineno">   63 </span>-- Text.Format._.Format
+<span class="lineno">   64 </span>d_Format_32 :: ()
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">d_Format_32 = erased</span></span>
+<span class="lineno">   66 </span>-- Text.Format._.lexer
+<span class="lineno">   67 </span>d_lexer_40 ::
+<span class="lineno">   68 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">   69 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">d_lexer_40</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Text.Format.Generic.d_lexer_88 (coe d_formatSpec_22)</span></span>
+<span class="lineno">   73 </span>-- Text.Format._.size
+<span class="lineno">   74 </span>d_size_42 ::
+<span class="lineno">   75 </span>  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -&gt; Integer
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">d_size_42 = coe MAlonzo.Code.Text.Format.Generic.du_size_68</span></span>
+<span class="lineno">   77 </span>-- Text.Format._.⟦_⟧
+<span class="lineno">   78 </span>d_'10214'_'10215'_44 ::
+<span class="lineno">   79 </span>  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -&gt; AgdaAny
+<span class="lineno">   80 </span><span class="decl"><span class="nottickedoff">d_'10214'_'10215'_44</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Text.Format.Generic.du_'10214'_'10215'_74</span></span>
+
+</pre>
+</body>
+</html>

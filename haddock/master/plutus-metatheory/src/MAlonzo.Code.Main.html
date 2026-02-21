@@ -1,0 +1,6522 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyDataDecls #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ExistentialQuantification #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >MAlonzo.Code.Main</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier"
+	  >coe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier"
+	  >erased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#addInt"
+	><span class="hs-identifier"
+	  >addInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#subInt"
+	><span class="hs-identifier"
+	  >subInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mulInt"
+	><span class="hs-identifier"
+	  >mulInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quotInt"
+	><span class="hs-identifier"
+	  >quotInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#remInt"
+	><span class="hs-identifier"
+	  >remInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#geqInt"
+	><span class="hs-identifier"
+	  >geqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#ltInt"
+	><span class="hs-identifier"
+	  >ltInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eqInt"
+	><span class="hs-identifier"
+	  >eqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#add64"
+	><span class="hs-identifier"
+	  >add64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#sub64"
+	><span class="hs-identifier"
+	  >sub64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mul64"
+	><span class="hs-identifier"
+	  >mul64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quot64"
+	><span class="hs-identifier"
+	  >quot64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#rem64"
+	><span class="hs-identifier"
+	  >rem64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#lt64"
+	><span class="hs-identifier"
+	  >lt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eq64"
+	><span class="hs-identifier"
+	  >eq64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64FromNat"
+	><span class="hs-identifier"
+	  >word64FromNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64ToNat"
+	><span class="hs-identifier"
+	  >word64ToNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.IO</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Unit.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.Unit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Cost.Raw.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Cost.Raw</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Base.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Evaluator.Base</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Evaluator.Program</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.IO.Primitive.Core.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.IO.Primitive.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.IO.html"
+	><span class="hs-identifier"
+	  >Data.Text.IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TextIO</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/System.Exit.html"
+	><span class="hs-identifier"
+	  >System.Exit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html"
+	><span class="hs-identifier"
+	  >FFI.Opts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Common.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Executable.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Executable.Parsers.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Executable.Parsers</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.putStrLn</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_putStrLn_12"
+	><span class="hs-identifier hs-type"
+	  >d_putStrLn_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Unit.html#T_%278868%27_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="d_putStrLn_12"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_putStrLn_12 :: T_String_6 -&gt; T_IO_8 () ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_putStrLn_12"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_putStrLn_12</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_IO_8 () ()
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.IO.html#putStrLn"
+	><span class="hs-identifier hs-var"
+	  >TextIO.putStrLn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.IOMonad</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-type"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T_Monad_216"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T_Monad_216</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="d_IOMonad_14"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_IOMonad_14 :: T_Monad_216
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_IOMonad_14</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((() -&gt; Any -&gt; Any)
+ -&gt; (() -&gt; () -&gt; Any -&gt; (Any -&gt; Any) -&gt; Any) -&gt; T_Monad_216)
+-&gt; (Any -&gt; Any) -&gt; Any -&gt; T_Monad_216
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(() -&gt; Any -&gt; Any)
+-&gt; (() -&gt; () -&gt; Any -&gt; (Any -&gt; Any) -&gt; Any) -&gt; T_Monad_216
+</span
+	><a href="MAlonzo.Code.Utils.html#C_Monad%2746%27constructor_13569"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.C_Monad'46'constructor_13569</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682581957"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682581957"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(() -&gt; Any -&gt; T_IO_8 Any Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Any -&gt; T_IO_8 Any Any
+</span
+	><a href="MAlonzo.Code.IO.Primitive.Core.html#du_return_16"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.IO.Primitive.Core.du_return_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682581959"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682581959"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(()
+ -&gt; ()
+ -&gt; ()
+ -&gt; ()
+ -&gt; T_IO_8 Any Any
+ -&gt; (Any -&gt; T_IO_8 Any Any)
+ -&gt; T_IO_8 Any Any)
+-&gt; () -&gt; Any -&gt; () -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 Any Any
+-&gt; (Any -&gt; T_IO_8 Any Any)
+-&gt; T_IO_8 Any Any
+forall xA'46'a xA xB'46'a xB.
+()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 xA'46'a xA
+-&gt; (xA -&gt; T_IO_8 xB'46'a xB)
+-&gt; T_IO_8 xB'46'a xB
+</span
+	><a href="MAlonzo.Code.IO.Primitive.Core.html#d__%2762%27%2762%27%2761%27__14"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.IO.Primitive.Core.d__'62''62''61'__14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.FilePath</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="T_FilePath_16"
+      ><span class="annot"
+	><a href="MAlonzo.Code.Main.html#T_FilePath_16"
+	  ><span class="hs-identifier hs-var"
+	    >T_FilePath_16</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="d_FilePath_16"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_FilePath_16 :: a
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_FilePath_16"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_FilePath_16</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; a
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char]
+</span
+	><span class="hs-string"
+	>&quot;MAlonzo Runtime Error: postulate evaluated: Main.FilePath&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.exitFailure</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_exitFailure_18"
+	><span class="hs-identifier hs-type"
+	  >d_exitFailure_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Unit.html#T_%278868%27_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="d_exitFailure_18"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_exitFailure_18 :: T_IO_8 () ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_exitFailure_18"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_exitFailure_18</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+forall a. IO a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/System.Exit.html#exitFailure"
+	><span class="hs-identifier hs-var"
+	  >exitFailure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.exitSuccess</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_exitSuccess_20"
+	><span class="hs-identifier hs-type"
+	  >d_exitSuccess_20</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Unit.html#T_%278868%27_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="d_exitSuccess_20"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_exitSuccess_20 :: T_IO_8 () ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_exitSuccess_20"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_exitSuccess_20</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+forall a. IO a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/System.Exit.html#exitSuccess"
+	><span class="hs-identifier hs-var"
+	  >exitSuccess</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.EvalOptions</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="d_EvalOptions_24"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_EvalOptions_24 :: p -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_EvalOptions_24"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_EvalOptions_24</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581972"
+      ><span class="annot"
+	><span class="annottext"
+	  >p
+</span
+	  ><a href="#local-6989586621682581972"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="T_EvalOptions_24"
+      ><span class="annot"
+	><a href="MAlonzo.Code.Main.html#T_EvalOptions_24"
+	  ><span class="hs-identifier hs-var"
+	    >T_EvalOptions_24</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581974"
+      ><span class="annot"
+	><a href="#local-6989586621682581974"
+	  ><span class="hs-identifier hs-type"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#EvalOptions"
+	><span class="hs-identifier hs-type"
+	  >EvalOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581974"
+	><span class="hs-identifier hs-type"
+	  >a0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_EvalOpts_28"
+      ><span id="%24mC_EvalOpts_28"
+	><span id="%24bC_EvalOpts_28"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_EvalOpts_28 :: forall {r} {a}.
+EvalOptions a
+-&gt; (Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode a -&gt; r)
+-&gt; ((# #) -&gt; r)
+-&gt; r
+$bC_EvalOpts_28 :: forall {a}.
+Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode a -&gt; EvalOptions a
+</span
+	      ><a href="MAlonzo.Code.Main.html#C_EvalOpts_28"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_EvalOpts_28</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581978"
+	><span class="hs-identifier hs-type"
+	  >a0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581979"
+	><span class="hs-identifier hs-type"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581980"
+	><span class="hs-identifier hs-type"
+	  >a2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581981"
+	><span class="hs-identifier hs-type"
+	  >a3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#EvalOpts"
+	><span class="hs-identifier hs-type"
+	  >EvalOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581978"
+      ><span class="annot"
+	><a href="#local-6989586621682581978"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581979"
+      ><span class="annot"
+	><a href="#local-6989586621682581979"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581980"
+      ><span class="annot"
+	><a href="#local-6989586621682581980"
+	  ><span class="hs-identifier hs-var"
+	    >a2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581981"
+      ><span class="annot"
+	><a href="#local-6989586621682581981"
+	  ><span class="hs-identifier hs-var"
+	    >a3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#check_EvalOpts_28"
+	><span class="hs-identifier hs-type"
+	  >check_EvalOpts_28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682581984"
+      ><span class="annot"
+	><a href="#local-6989586621682581984"
+	  ><span class="hs-identifier hs-type"
+	    >xA</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Input_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Input_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Format_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Format_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_EvalMode_46"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_EvalMode_46</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_BudgetMode_36"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_BudgetMode_36</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581984"
+	><span class="hs-identifier hs-type"
+	  >xA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_EvalOptions_24"
+	><span class="hs-identifier hs-type"
+	  >T_EvalOptions_24</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581984"
+	><span class="hs-identifier hs-type"
+	  >xA</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="check_EvalOpts_28"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_EvalOpts_28 :: forall {a}.
+Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode a -&gt; EvalOptions a
+</span
+	  ><a href="MAlonzo.Code.Main.html#check_EvalOpts_28"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_EvalOpts_28</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode xA -&gt; EvalOptions xA
+forall {a}.
+Input -&gt; Format -&gt; EvalMode -&gt; BudgetMode a -&gt; EvalOptions a
+</span
+	><a href="FFI.Opts.html#EvalOpts"
+	><span class="hs-identifier hs-var"
+	  >EvalOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="local-6989586621682581884"
+      ><span class="annot"
+	><a href="MAlonzo.Code.Main.html#cover_EvalOptions_24"
+	  ><span class="hs-identifier hs-type"
+	    >cover_EvalOptions_24</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="FFI.Opts.html#EvalOptions"
+	  ><span class="hs-identifier hs-type"
+	    >EvalOptions</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682581884"
+	  ><span class="hs-identifier hs-type"
+	    >a1</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="cover_EvalOptions_24"
+      ><span class="annot"
+	><span class="annottext"
+	  >cover_EvalOptions_24 :: forall a1. EvalOptions a1 -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#cover_EvalOptions_24"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cover_EvalOptions_24</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581989"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvalOptions a1
+</span
+	  ><a href="#local-6989586621682581989"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOptions a1
+</span
+	><a href="#local-6989586621682581989"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#EvalOpts"
+	><span class="hs-identifier hs-type"
+	  >EvalOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BudgetMode a1
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.TypecheckOptions</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="d_TypecheckOptions_30"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_TypecheckOptions_30 :: ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_TypecheckOptions_30"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_TypecheckOptions_30</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="T_TypecheckOptions_30"
+      ><span class="annot"
+	><a href="MAlonzo.Code.Main.html#T_TypecheckOptions_30"
+	  ><span class="hs-identifier hs-var"
+	    >T_TypecheckOptions_30</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#TypecheckOptions"
+	><span class="hs-identifier hs-type"
+	  >TypecheckOptions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_TCOpts_32"
+      ><span id="%24mC_TCOpts_32"
+	><span id="%24bC_TCOpts_32"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_TCOpts_32 :: forall {r}.
+TypecheckOptions -&gt; (Input -&gt; Format -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_TCOpts_32 :: Input -&gt; Format -&gt; TypecheckOptions
+</span
+	      ><a href="MAlonzo.Code.Main.html#C_TCOpts_32"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_TCOpts_32</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581995"
+	><span class="hs-identifier hs-type"
+	  >a0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682581996"
+	><span class="hs-identifier hs-type"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#TCOpts"
+	><span class="hs-identifier hs-type"
+	  >TCOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581995"
+      ><span class="annot"
+	><a href="#local-6989586621682581995"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682581996"
+      ><span class="annot"
+	><a href="#local-6989586621682581996"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#check_TCOpts_32"
+	><span class="hs-identifier hs-type"
+	  >check_TCOpts_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Input_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Input_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Format_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Format_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_TypecheckOptions_30"
+	><span class="hs-identifier hs-type"
+	  >T_TypecheckOptions_30</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="check_TCOpts_32"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_TCOpts_32 :: Input -&gt; Format -&gt; TypecheckOptions
+</span
+	  ><a href="MAlonzo.Code.Main.html#check_TCOpts_32"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_TCOpts_32</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input -&gt; Format -&gt; TypecheckOptions
+</span
+	><a href="FFI.Opts.html#TCOpts"
+	><span class="hs-identifier hs-var"
+	  >TCOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#cover_TypecheckOptions_30"
+	><span class="hs-identifier hs-type"
+	  >cover_TypecheckOptions_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#TypecheckOptions"
+	><span class="hs-identifier hs-type"
+	  >TypecheckOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="cover_TypecheckOptions_30"
+      ><span class="annot"
+	><span class="annottext"
+	  >cover_TypecheckOptions_30 :: TypecheckOptions -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#cover_TypecheckOptions_30"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cover_TypecheckOptions_30</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582000"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypecheckOptions
+</span
+	  ><a href="#local-6989586621682582000"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypecheckOptions
+</span
+	><a href="#local-6989586621682582000"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#TCOpts"
+	><span class="hs-identifier hs-type"
+	  >TCOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.Command</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="d_Command_36"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_Command_36 :: p -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_Command_36"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_Command_36</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582002"
+      ><span class="annot"
+	><span class="annottext"
+	  >p
+</span
+	  ><a href="#local-6989586621682582002"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="T_Command_36"
+      ><span class="annot"
+	><a href="MAlonzo.Code.Main.html#T_Command_36"
+	  ><span class="hs-identifier hs-var"
+	    >T_Command_36</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582003"
+      ><span class="annot"
+	><a href="#local-6989586621682582003"
+	  ><span class="hs-identifier hs-type"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#Command"
+	><span class="hs-identifier hs-type"
+	  >Command</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682582003"
+	><span class="hs-identifier hs-type"
+	  >a0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_Eval_40"
+      ><span id="%24mC_Eval_40"
+	><span id="%24bC_Eval_40"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_Eval_40 :: forall {r} {a}.
+Command a -&gt; (EvalOptions a -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_Eval_40 :: forall {a}. EvalOptions a -&gt; Command a
+</span
+	      ><a href="MAlonzo.Code.Main.html#C_Eval_40"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_Eval_40</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682582007"
+	><span class="hs-identifier hs-type"
+	  >a0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#Eval"
+	><span class="hs-identifier hs-type"
+	  >Eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582007"
+      ><span class="annot"
+	><a href="#local-6989586621682582007"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_Typecheck_42"
+      ><span id="%24mC_Typecheck_42"
+	><span id="%24bC_Typecheck_42"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_Typecheck_42 :: forall {r} {a}.
+Command a -&gt; (TypecheckOptions -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_Typecheck_42 :: forall {a}. TypecheckOptions -&gt; Command a
+</span
+	      ><a href="MAlonzo.Code.Main.html#C_Typecheck_42"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_Typecheck_42</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682582012"
+	><span class="hs-identifier hs-type"
+	  >a0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#Typecheck"
+	><span class="hs-identifier hs-type"
+	  >Typecheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582012"
+      ><span class="annot"
+	><a href="#local-6989586621682582012"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#check_Eval_40"
+	><span class="hs-identifier hs-type"
+	  >check_Eval_40</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682582015"
+      ><span class="annot"
+	><a href="#local-6989586621682582015"
+	  ><span class="hs-identifier hs-type"
+	    >xA</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_EvalOptions_24"
+	><span class="hs-identifier hs-type"
+	  >T_EvalOptions_24</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682582015"
+	><span class="hs-identifier hs-type"
+	  >xA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_Command_36"
+	><span class="hs-identifier hs-type"
+	  >T_Command_36</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682582015"
+	><span class="hs-identifier hs-type"
+	  >xA</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="check_Eval_40"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_Eval_40 :: forall {a}. EvalOptions a -&gt; Command a
+</span
+	  ><a href="MAlonzo.Code.Main.html#check_Eval_40"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_Eval_40</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOptions xA -&gt; Command xA
+forall {a}. EvalOptions a -&gt; Command a
+</span
+	><a href="FFI.Opts.html#Eval"
+	><span class="hs-identifier hs-var"
+	  >Eval</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#check_Typecheck_42"
+	><span class="hs-identifier hs-type"
+	  >check_Typecheck_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621682582017"
+      ><span class="annot"
+	><a href="#local-6989586621682582017"
+	  ><span class="hs-identifier hs-type"
+	    >xA</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_TypecheckOptions_30"
+	><span class="hs-identifier hs-type"
+	  >T_TypecheckOptions_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_Command_36"
+	><span class="hs-identifier hs-type"
+	  >T_Command_36</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682582017"
+	><span class="hs-identifier hs-type"
+	  >xA</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span id="check_Typecheck_42"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_Typecheck_42 :: forall {a}. TypecheckOptions -&gt; Command a
+</span
+	  ><a href="MAlonzo.Code.Main.html#check_Typecheck_42"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_Typecheck_42</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypecheckOptions -&gt; Command xA
+forall {a}. TypecheckOptions -&gt; Command a
+</span
+	><a href="FFI.Opts.html#Typecheck"
+	><span class="hs-identifier hs-var"
+	  >Typecheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="local-6989586621682581901"
+      ><span class="annot"
+	><a href="MAlonzo.Code.Main.html#cover_Command_36"
+	  ><span class="hs-identifier hs-type"
+	    >cover_Command_36</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="FFI.Opts.html#Command"
+	  ><span class="hs-identifier hs-type"
+	    >Command</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682581901"
+	  ><span class="hs-identifier hs-type"
+	    >a1</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span id="cover_Command_36"
+      ><span class="annot"
+	><span class="annottext"
+	  >cover_Command_36 :: forall a1. Command a1 -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#cover_Command_36"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cover_Command_36</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582019"
+      ><span class="annot"
+	><span class="annottext"
+	  >Command a1
+</span
+	  ><a href="#local-6989586621682582019"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Command a1
+</span
+	><a href="#local-6989586621682582019"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#Eval"
+	><span class="hs-identifier hs-type"
+	  >Eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOptions a1
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="FFI.Opts.html#Typecheck"
+	><span class="hs-identifier hs-type"
+	  >Typecheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypecheckOptions
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.execP</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_execP_44"
+	><span class="hs-identifier hs-type"
+	  >d_execP_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_Command_36"
+	><span class="hs-identifier hs-type"
+	  >T_Command_36</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T__%27215%27__396"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T__'215'__396</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Cost.Raw.html#T_HCekMachineCosts_4"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T_List_414"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T_List_414</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T__%27215%27__396"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T__'215'__396</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Cost.Raw.html#T_CpuAndMemoryModel_192"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span id="d_execP_44"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_execP_44 :: T_IO_8
+  ()
+  (T_Command_36
+     (T__'215'__396
+        T_HCekMachineCosts_4
+        (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192))))
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_execP_44"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_execP_44</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8
+  ()
+  (T_Command_36
+     (T__'215'__396
+        T_HCekMachineCosts_4
+        (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192))))
+</span
+	><a href="FFI.Opts.html#execP"
+	><span class="hs-identifier hs-var"
+	  >execP</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.parse</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_parse_46"
+	><span class="hs-identifier hs-type"
+	  >d_parse_46</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Format_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Format_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Input_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Input_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_ProgramN_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_ProgramN_18</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span id="d_parse_46"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_parse_46 :: Format
+-&gt; Input
+-&gt; T_IO_8 () (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_parse_46"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_parse_46</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+-&gt; Input
+-&gt; T_IO_8 () (Program TyName Name DefaultUni DefaultFun SrcSpan)
+forall (p :: * -&gt; *).
+(ProgramLike p, Functor p, Rename (p SrcSpan)) =&gt;
+Format -&gt; Input -&gt; IO (p SrcSpan)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Executable.Common.html#readProgram"
+	><span class="hs-identifier hs-var"
+	  >readProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.parseU</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_parseU_48"
+	><span class="hs-identifier hs-type"
+	  >d_parseU_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Format_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Format_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Input_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Input_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_ProgramNU_26"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_ProgramNU_26</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span id="d_parseU_48"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_parseU_48 :: Format
+-&gt; Input -&gt; T_IO_8 () (Program Name DefaultUni DefaultFun SrcSpan)
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_parseU_48"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_parseU_48</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+-&gt; Input -&gt; T_IO_8 () (Program Name DefaultUni DefaultFun SrcSpan)
+forall (p :: * -&gt; *).
+(ProgramLike p, Functor p, Rename (p SrcSpan)) =&gt;
+Format -&gt; Input -&gt; IO (p SrcSpan)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Executable.Common.html#readProgram"
+	><span class="hs-identifier hs-var"
+	  >readProgram</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.evalInput</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_evalInput_50"
+	><span class="hs-identifier hs-type"
+	  >d_evalInput_50</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_EvalMode_46"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_EvalMode_46</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_BudgetMode_36"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_BudgetMode_36</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T__%27215%27__396"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T__'215'__396</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Cost.Raw.html#T_HCekMachineCosts_4"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T_List_414"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T_List_414</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T__%27215%27__396"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T__'215'__396</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Cost.Raw.html#T_CpuAndMemoryModel_192"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Format_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Format_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Input_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Input_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T_Either_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T_Either_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Base.html#T_ERROR_12"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Base.T_ERROR_12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span id="d_evalInput_50"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_evalInput_50 :: EvalMode
+-&gt; T_BudgetMode_36
+     (T__'215'__396
+        T_HCekMachineCosts_4
+        (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+-&gt; Format
+-&gt; Input
+-&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_evalInput_50"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_evalInput_50</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582028"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvalMode
+</span
+	  ><a href="#local-6989586621682582028"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582029"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_BudgetMode_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+</span
+	  ><a href="#local-6989586621682582029"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582030"
+      ><span class="annot"
+	><span class="annottext"
+	  >Format
+</span
+	  ><a href="#local-6989586621682582030"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582031"
+      ><span class="annot"
+	><span class="annottext"
+	  >Input
+</span
+	  ><a href="#local-6989586621682582031"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682582032"
+      ><span class="annot"
+	><span class="annottext"
+	  >v4 :: Any
+</span
+	  ><a href="#local-6989586621682582032"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Monad_216 -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Utils.html#du_fmap_254"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.du_fmap_254</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216
+</span
+	><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-var"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(EvalMode
+ -&gt; Program TyName Name DefaultUni DefaultFun SrcSpan
+ -&gt; T_Either_6 T_ERROR_12 T_String_6)
+-&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+-&gt; Program TyName Name DefaultUni DefaultFun SrcSpan
+-&gt; T_Either_6 T_ERROR_12 T_String_6
+</span
+	><a href="MAlonzo.Code.Evaluator.Program.html#d_evalProgramN_212"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Evaluator.Program.d_evalProgramN_212</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+</span
+	><a href="#local-6989586621682582028"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Format
+ -&gt; Input
+ -&gt; T_IO_8 () (Program TyName Name DefaultUni DefaultFun SrcSpan))
+-&gt; Format -&gt; Input -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+-&gt; Input
+-&gt; T_IO_8 () (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	><a href="MAlonzo.Code.Main.html#d_parse_46"
+	><span class="hs-identifier hs-var"
+	  >d_parse_46</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+</span
+	><a href="#local-6989586621682582030"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input
+</span
+	><a href="#local-6989586621682582031"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode -&gt; EvalMode
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+</span
+	><a href="#local-6989586621682582028"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+</span
+	><a href="MAlonzo.Code.Evaluator.Program.html#C_U_48"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Evaluator.Program.C_U_48</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Monad_216 -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Utils.html#du_fmap_254"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.du_fmap_254</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216
+</span
+	><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-var"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_BudgetMode_36
+   (T__'215'__396
+      T_HCekMachineCosts_4
+      (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+ -&gt; Program Name DefaultUni DefaultFun SrcSpan
+ -&gt; T_Either_6 T_ERROR_12 T_String_6)
+-&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_BudgetMode_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+-&gt; Program Name DefaultUni DefaultFun SrcSpan
+-&gt; T_Either_6 T_ERROR_12 T_String_6
+</span
+	><a href="MAlonzo.Code.Evaluator.Program.html#d_evalProgramNU_204"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Evaluator.Program.d_evalProgramNU_204</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_BudgetMode_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_BudgetMode_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+</span
+	><a href="#local-6989586621682582029"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Format
+ -&gt; Input -&gt; T_IO_8 () (Program Name DefaultUni DefaultFun SrcSpan))
+-&gt; Format -&gt; Input -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+-&gt; Input -&gt; T_IO_8 () (Program Name DefaultUni DefaultFun SrcSpan)
+</span
+	><a href="MAlonzo.Code.Main.html#d_parseU_48"
+	><span class="hs-identifier hs-var"
+	  >d_parseU_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+</span
+	><a href="#local-6989586621682582030"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input
+</span
+	><a href="#local-6989586621682582031"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682582032"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.tcInput</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_tcInput_64"
+	><span class="hs-identifier hs-type"
+	  >d_tcInput_64</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Format_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Format_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Program.html#T_Input_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Program.T_Input_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T_Either_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T_Either_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Evaluator.Base.html#T_ERROR_12"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Evaluator.Base.T_ERROR_12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span id="d_tcInput_64"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_tcInput_64 :: Format -&gt; Input -&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_tcInput_64"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_tcInput_64</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582038"
+      ><span class="annot"
+	><span class="annottext"
+	  >Format
+</span
+	  ><a href="#local-6989586621682582038"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582039"
+      ><span class="annot"
+	><span class="annottext"
+	  >Input
+</span
+	  ><a href="#local-6989586621682582039"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Monad_216 -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any)
+-&gt; Any
+-&gt; Any
+-&gt; Any
+-&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Utils.html#du_fmap_254"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.du_fmap_254</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216
+</span
+	><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-var"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program TyName Name DefaultUni DefaultFun SrcSpan
+ -&gt; T_Either_6 T_ERROR_12 T_String_6)
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name DefaultUni DefaultFun SrcSpan
+-&gt; T_Either_6 T_ERROR_12 T_String_6
+</span
+	><a href="MAlonzo.Code.Evaluator.Program.html#d_typeCheckProgramN_220"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Evaluator.Program.d_typeCheckProgramN_220</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Format
+ -&gt; Input
+ -&gt; T_IO_8 () (Program TyName Name DefaultUni DefaultFun SrcSpan))
+-&gt; Format -&gt; Input -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+-&gt; Input
+-&gt; T_IO_8 () (Program TyName Name DefaultUni DefaultFun SrcSpan)
+</span
+	><a href="MAlonzo.Code.Main.html#d_parse_46"
+	><span class="hs-identifier hs-var"
+	  >d_parse_46</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+</span
+	><a href="#local-6989586621682582038"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input
+</span
+	><a href="#local-6989586621682582039"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.main'</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_main%27%27_70"
+	><span class="hs-identifier hs-type"
+	  >d_main''_70</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#T_Command_36"
+	><span class="hs-identifier hs-type"
+	  >T_Command_36</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T__%27215%27__396"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T__'215'__396</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Cost.Raw.html#T_HCekMachineCosts_4"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T_List_414"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T_List_414</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#T__%27215%27__396"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.T__'215'__396</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Cost.Raw.html#T_CpuAndMemoryModel_192"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Unit.html#T_%278868%27_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span id="d_main%27%27_70"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_main''_70 :: T_Command_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+-&gt; T_IO_8 () ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_main%27%27_70"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_main''_70</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582042"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Command_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+</span
+	  ><a href="#local-6989586621682582042"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Command_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+-&gt; Command Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Command_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+</span
+	><a href="#local-6989586621682582042"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#C_Eval_40"
+	><span class="hs-identifier hs-type"
+	  >C_Eval_40</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582043"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvalOptions Any
+</span
+	  ><a href="#local-6989586621682582043"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOptions Any -&gt; EvalOptions Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOptions Any
+</span
+	><a href="#local-6989586621682582043"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#C_EvalOpts_28"
+	><span class="hs-identifier hs-type"
+	  >C_EvalOpts_28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582044"
+      ><span class="annot"
+	><span class="annottext"
+	  >Input
+</span
+	  ><a href="#local-6989586621682582044"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582045"
+      ><span class="annot"
+	><span class="annottext"
+	  >Format
+</span
+	  ><a href="#local-6989586621682582045"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582046"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvalMode
+</span
+	  ><a href="#local-6989586621682582046"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582047"
+      ><span class="annot"
+	><span class="annottext"
+	  >BudgetMode Any
+</span
+	  ><a href="#local-6989586621682582047"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(()
+ -&gt; ()
+ -&gt; ()
+ -&gt; ()
+ -&gt; T_IO_8 Any Any
+ -&gt; (Any -&gt; T_IO_8 Any Any)
+ -&gt; T_IO_8 Any Any)
+-&gt; ()
+-&gt; Any
+-&gt; ()
+-&gt; Any
+-&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+-&gt; (Any -&gt; Any)
+-&gt; T_IO_8 () ()
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 Any Any
+-&gt; (Any -&gt; T_IO_8 Any Any)
+-&gt; T_IO_8 Any Any
+forall xA'46'a xA xB'46'a xB.
+()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 xA'46'a xA
+-&gt; (xA -&gt; T_IO_8 xB'46'a xB)
+-&gt; T_IO_8 xB'46'a xB
+</span
+	><a href="MAlonzo.Code.IO.Primitive.Core.html#d__%2762%27%2762%27%2761%27__14"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.IO.Primitive.Core.d__'62''62''61'__14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+-&gt; T_BudgetMode_36
+     (T__'215'__396
+        T_HCekMachineCosts_4
+        (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+-&gt; Format
+-&gt; Input
+-&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+</span
+	><a href="MAlonzo.Code.Main.html#d_evalInput_50"
+	><span class="hs-identifier hs-var"
+	  >d_evalInput_50</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode -&gt; EvalMode
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalMode
+</span
+	><a href="#local-6989586621682582046"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BudgetMode Any
+-&gt; T_BudgetMode_36
+     (T__'215'__396
+        T_HCekMachineCosts_4
+        (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BudgetMode Any
+</span
+	><a href="#local-6989586621682582047"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format -&gt; Format
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+</span
+	><a href="#local-6989586621682582045"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input -&gt; Input
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input
+</span
+	><a href="#local-6989586621682582044"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682582048"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682582048"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Either Any Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682582048"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#C_inj%278321%27_12"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.C_inj'8321'_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582050"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682582050"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Monad_216 -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Utils.html#du__%2762%27%2762%27__244"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.du__'62''62'__244</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216
+</span
+	><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-var"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_IO_8 () ()) -&gt; T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_putStrLn_12"
+	><span class="hs-identifier hs-var"
+	  >d_putStrLn_12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ERROR_12 -&gt; T_String_6
+</span
+	><a href="MAlonzo.Code.Evaluator.Base.html#d_reportError_66"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Evaluator.Base.d_reportError_66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_ERROR_12
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682582050"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () () -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_exitFailure_18"
+	><span class="hs-identifier hs-var"
+	  >d_exitFailure_18</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#C_inj%278322%27_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.C_inj'8322'_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582054"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682582054"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Monad_216 -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Utils.html#du__%2762%27%2762%27__244"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.du__'62''62'__244</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216
+</span
+	><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-var"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_IO_8 () ()) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_putStrLn_12"
+	><span class="hs-identifier hs-var"
+	  >d_putStrLn_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682582054"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () () -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_exitSuccess_20"
+	><span class="hs-identifier hs-var"
+	  >d_exitSuccess_20</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either Any Any
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvalOptions Any
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#C_Typecheck_42"
+	><span class="hs-identifier hs-type"
+	  >C_Typecheck_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582056"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypecheckOptions
+</span
+	  ><a href="#local-6989586621682582056"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypecheckOptions -&gt; TypecheckOptions
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypecheckOptions
+</span
+	><a href="#local-6989586621682582056"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#C_TCOpts_32"
+	><span class="hs-identifier hs-type"
+	  >C_TCOpts_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582057"
+      ><span class="annot"
+	><span class="annottext"
+	  >Input
+</span
+	  ><a href="#local-6989586621682582057"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582058"
+      ><span class="annot"
+	><span class="annottext"
+	  >Format
+</span
+	  ><a href="#local-6989586621682582058"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(()
+ -&gt; ()
+ -&gt; ()
+ -&gt; ()
+ -&gt; T_IO_8 Any Any
+ -&gt; (Any -&gt; T_IO_8 Any Any)
+ -&gt; T_IO_8 Any Any)
+-&gt; ()
+-&gt; Any
+-&gt; ()
+-&gt; Any
+-&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+-&gt; (Any -&gt; Any)
+-&gt; T_IO_8 () ()
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 Any Any
+-&gt; (Any -&gt; T_IO_8 Any Any)
+-&gt; T_IO_8 Any Any
+forall xA'46'a xA xB'46'a xB.
+()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 xA'46'a xA
+-&gt; (xA -&gt; T_IO_8 xB'46'a xB)
+-&gt; T_IO_8 xB'46'a xB
+</span
+	><a href="MAlonzo.Code.IO.Primitive.Core.html#d__%2762%27%2762%27%2761%27__14"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.IO.Primitive.Core.d__'62''62''61'__14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format -&gt; Input -&gt; T_IO_8 Any (T_Either_6 T_ERROR_12 T_String_6)
+</span
+	><a href="MAlonzo.Code.Main.html#d_tcInput_64"
+	><span class="hs-identifier hs-var"
+	  >d_tcInput_64</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format -&gt; Format
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Format
+</span
+	><a href="#local-6989586621682582058"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input -&gt; Input
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Input
+</span
+	><a href="#local-6989586621682582057"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682582059"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682582059"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Either Any Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682582059"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#C_inj%278321%27_12"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.C_inj'8321'_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582060"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682582060"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Monad_216 -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Utils.html#du__%2762%27%2762%27__244"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.du__'62''62'__244</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216
+</span
+	><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-var"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_IO_8 () ()) -&gt; T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_putStrLn_12"
+	><span class="hs-identifier hs-var"
+	  >d_putStrLn_12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ERROR_12 -&gt; T_String_6
+</span
+	><a href="MAlonzo.Code.Evaluator.Base.html#d_reportError_66"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Evaluator.Base.d_reportError_66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; T_ERROR_12
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682582060"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () () -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_exitFailure_18"
+	><span class="hs-identifier hs-var"
+	  >d_exitFailure_18</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Utils.html#C_inj%278322%27_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Utils.C_inj'8322'_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682582061"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682582061"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Monad_216 -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span
+      >                                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Utils.html#du__%2762%27%2762%27__244"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Utils.du__'62''62'__244</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Monad_216
+</span
+	><a href="MAlonzo.Code.Main.html#d_IOMonad_14"
+	><span class="hs-identifier hs-var"
+	  >d_IOMonad_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >                                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_IO_8 () ()) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_putStrLn_12"
+	><span class="hs-identifier hs-var"
+	  >d_putStrLn_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682582061"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () () -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_exitSuccess_20"
+	><span class="hs-identifier hs-var"
+	  >d_exitSuccess_20</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either Any Any
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypecheckOptions
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Command Any
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span id="main"
+      ><span class="annot"
+	><span class="annottext"
+	  >main :: b
+</span
+	  ><a href="MAlonzo.Code.Main.html#main"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >main</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () () -&gt; b
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_main_96"
+	><span class="hs-identifier hs-var"
+	  >d_main_96</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span class="hs-comment"
+      >-- Main.main</span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Main.html#d_main_96"
+	><span class="hs-identifier hs-type"
+	  >d_main_96</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.IO.html#T_IO_8"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.IO.T_IO_8</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Unit.html#T_%278868%27_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span id="d_main_96"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_main_96 :: T_IO_8 () ()
+</span
+	  ><a href="MAlonzo.Code.Main.html#d_main_96"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_main_96</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(()
+ -&gt; ()
+ -&gt; ()
+ -&gt; ()
+ -&gt; T_IO_8 Any Any
+ -&gt; (Any -&gt; T_IO_8 Any Any)
+ -&gt; T_IO_8 Any Any)
+-&gt; ()
+-&gt; Any
+-&gt; ()
+-&gt; Any
+-&gt; T_IO_8
+     ()
+     (T_Command_36
+        (T__'215'__396
+           T_HCekMachineCosts_4
+           (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192))))
+-&gt; (T_Command_36
+      (T__'215'__396
+         T_HCekMachineCosts_4
+         (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+    -&gt; T_IO_8 () ())
+-&gt; T_IO_8 () ()
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 Any Any
+-&gt; (Any -&gt; T_IO_8 Any Any)
+-&gt; T_IO_8 Any Any
+forall xA'46'a xA xB'46'a xB.
+()
+-&gt; ()
+-&gt; ()
+-&gt; ()
+-&gt; T_IO_8 xA'46'a xA
+-&gt; (xA -&gt; T_IO_8 xB'46'a xB)
+-&gt; T_IO_8 xB'46'a xB
+</span
+	><a href="MAlonzo.Code.IO.Primitive.Core.html#d__%2762%27%2762%27%2761%27__14"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.IO.Primitive.Core.d__'62''62''61'__14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IO_8
+  ()
+  (T_Command_36
+     (T__'215'__396
+        T_HCekMachineCosts_4
+        (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192))))
+</span
+	><a href="MAlonzo.Code.Main.html#d_execP_44"
+	><span class="hs-identifier hs-var"
+	  >d_execP_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Command_36
+  (T__'215'__396
+     T_HCekMachineCosts_4
+     (T_List_414 (T__'215'__396 T_String_6 T_CpuAndMemoryModel_192)))
+-&gt; T_IO_8 () ()
+</span
+	><a href="MAlonzo.Code.Main.html#d_main%27%27_70"
+	><span class="hs-identifier hs-var"
+	  >d_main''_70</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

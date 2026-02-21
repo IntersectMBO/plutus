@@ -1,0 +1,657 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Data.ZigZag</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Data.ZigZag.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Data.ZigZag</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  ><a href="https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba"
+	    >ZigZag encoding</a
+	    > of signed integrals.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	      >Integral</a
+	      > signed, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	      >Integral</a
+	      > unsigned) &#8658; <a href="#t:ZigZag"
+	      >ZigZag</a
+	      > signed unsigned | unsigned &#8594; signed, signed &#8594; unsigned <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:zigZag"
+		  >zigZag</a
+		  > &#8759; signed &#8594; unsigned</li
+		><li
+		><a href="#v:zagZig"
+		  >zagZig</a
+		  > &#8759; unsigned &#8594; signed</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	    >Integral</a
+	    > signed, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+	    >Integral</a
+	    > unsigned) &#8658; <a id="t:ZigZag" class="def"
+	    >ZigZag</a
+	    > signed unsigned | unsigned &#8594; signed, signed &#8594; unsigned <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Flat.Data.ZigZag.html#ZigZag" class="link"
+	    >Source</a
+	    > <a href="#t:ZigZag" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert between a signed integral and the corresponding ZigZag encoded unsigned integral (e.g. between Int8 and Word8 or Integral and Natural).</p
+	    ><p
+	    >Allow conversion only between compatible types, invalid conversions produce a type error:</p
+	    ><pre
+	    >zigZag (-1::Int64) :: Word32
+...
+... Couldn't match type ...
+...
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (0::Int8)
+</code
+		></strong
+	      >0
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (-1::Int16)
+</code
+		></strong
+	      >1
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (1::Int32)
+</code
+		></strong
+	      >2
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (-2::Int16)
+</code
+		></strong
+	      >3
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (-50::Integer)
+</code
+		></strong
+	      >99
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (50::Integer)
+</code
+		></strong
+	      >100
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (64::Integer)
+</code
+		></strong
+	      >128
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (-256::Integer)
+</code
+		></strong
+	      >511
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>zigZag (256::Integer)
+</code
+		></strong
+	      >512
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>map zigZag [-3..3::Integer]
+</code
+		></strong
+	      >[5,3,1,0,2,4,6]
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>map zagZig [0..6::Word8]
+</code
+		></strong
+	      >[0,-1,1,-2,2,-3,3]
+</pre
+	    ><pre
+	    >\(f::Integer) -&gt; zagZig (zigZag f) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(f::Natural) -&gt; zigZag (zagZig f) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(f::Int8) -&gt; zagZig (zigZag f) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(f::Word8) -&gt; zigZag (zagZig f) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(s::Int8) -&gt; zigZag s == fromIntegral (zigZag (fromIntegral s :: Integer))</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(u::Word8) -&gt; zagZig u == fromIntegral (zagZig (fromIntegral u :: Natural))</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(f::Int64) -&gt; zagZig (zigZag f) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(f::Word64) -&gt; zigZag (zagZig f) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(s::Int64) -&gt; zigZag s == fromIntegral (zigZag (fromIntegral s :: Integer))</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre
+	    >\(u::Word64) -&gt; zagZig u == fromIntegral (zagZig (fromIntegral u :: Natural))</pre
+	    ><p
+	    >+++ OK, passed 100 tests. </p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    >Nothing</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:zigZag" class="def"
+	      >zigZag</a
+	      > &#8759; signed &#8594; unsigned <a href="src/PlutusCore.Flat.Data.ZigZag.html#zigZag" class="link"
+	      >Source</a
+	      > <a href="#v:zigZag" class="selflink"
+	      >#</a
+	      ></p
+	    > <div class="subs default"
+	    ><p class="caption"
+	      ></p
+	      ><p class="src"
+	      ><span class="keyword"
+		>default</span
+		> <a id="v:zigZag" class="def"
+		>zigZag</a
+		> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bits.html#t:FiniteBits" title="Data.Bits"
+		>FiniteBits</a
+		> signed &#8658; signed &#8594; unsigned <a href="src/PlutusCore.Flat.Data.ZigZag.html#zigZag" class="link"
+		>Source</a
+		> <a href="#v:zigZag" class="selflink"
+		>#</a
+		></p
+	      ></div
+	    ><p class="src"
+	    ><a id="v:zagZig" class="def"
+	      >zagZig</a
+	      > &#8759; unsigned &#8594; signed <a href="src/PlutusCore.Flat.Data.ZigZag.html#zagZig" class="link"
+	      >Source</a
+	      > <a href="#v:zagZig" class="selflink"
+	      >#</a
+	      ></p
+	    > <div class="subs default"
+	    ><p class="caption"
+	      ></p
+	      ><p class="src"
+	      ><span class="keyword"
+		>default</span
+		> <a id="v:zagZig" class="def"
+		>zagZig</a
+		> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bits.html#t:Bits" title="Data.Bits"
+		>Bits</a
+		> unsigned &#8658; unsigned &#8594; signed <a href="src/PlutusCore.Flat.Data.ZigZag.html#zagZig" class="link"
+		>Source</a
+		> <a href="#v:zagZig" class="selflink"
+		>#</a
+		></p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ZigZag"
+	    >Instances</h4
+	    ><details id="i:ZigZag" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ZigZag:ZigZag:1"
+		      ></span
+		      > <a href="PlutusCore-Flat-Data-ZigZag.html#t:ZigZag" title="PlutusCore.Flat.Data.ZigZag"
+		      >ZigZag</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+		      >Int16</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+		      >Word16</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Data.ZigZag.html#line-116" class="link"
+		    >Source</a
+		    > <a href="#t:ZigZag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ZigZag:ZigZag:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Data-ZigZag.html"
+			>PlutusCore.Flat.Data.ZigZag</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zigZag"
+			  >zigZag</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+			  >Int16</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+			  >Word16</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zigZag" class="link"
+			  >Source</a
+			  > <a href="#v:zigZag" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zagZig"
+			  >zagZig</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word16" title="Data.Word"
+			  >Word16</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int16" title="Data.Int"
+			  >Int16</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zagZig" class="link"
+			  >Source</a
+			  > <a href="#v:zagZig" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ZigZag:ZigZag:2"
+		      ></span
+		      > <a href="PlutusCore-Flat-Data-ZigZag.html#t:ZigZag" title="PlutusCore.Flat.Data.ZigZag"
+		      >ZigZag</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+		      >Int32</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+		      >Word32</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Data.ZigZag.html#line-118" class="link"
+		    >Source</a
+		    > <a href="#t:ZigZag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ZigZag:ZigZag:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Data-ZigZag.html"
+			>PlutusCore.Flat.Data.ZigZag</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zigZag"
+			  >zigZag</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+			  >Int32</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+			  >Word32</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zigZag" class="link"
+			  >Source</a
+			  > <a href="#v:zigZag" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zagZig"
+			  >zagZig</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+			  >Word32</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int32" title="Data.Int"
+			  >Int32</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zagZig" class="link"
+			  >Source</a
+			  > <a href="#v:zagZig" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ZigZag:ZigZag:3"
+		      ></span
+		      > <a href="PlutusCore-Flat-Data-ZigZag.html#t:ZigZag" title="PlutusCore.Flat.Data.ZigZag"
+		      >ZigZag</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+		      >Int64</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+		      >Word64</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Data.ZigZag.html#line-120" class="link"
+		    >Source</a
+		    > <a href="#t:ZigZag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ZigZag:ZigZag:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Data-ZigZag.html"
+			>PlutusCore.Flat.Data.ZigZag</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zigZag"
+			  >zigZag</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			  >Int64</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+			  >Word64</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zigZag" class="link"
+			  >Source</a
+			  > <a href="#v:zigZag" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zagZig"
+			  >zagZig</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+			  >Word64</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			  >Int64</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zagZig" class="link"
+			  >Source</a
+			  > <a href="#v:zagZig" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ZigZag:ZigZag:4"
+		      ></span
+		      > <a href="PlutusCore-Flat-Data-ZigZag.html#t:ZigZag" title="PlutusCore.Flat.Data.ZigZag"
+		      >ZigZag</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+		      >Int8</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+		      >Word8</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Data.ZigZag.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:ZigZag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ZigZag:ZigZag:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Data-ZigZag.html"
+			>PlutusCore.Flat.Data.ZigZag</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zigZag"
+			  >zigZag</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+			  >Int8</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+			  >Word8</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zigZag" class="link"
+			  >Source</a
+			  > <a href="#v:zigZag" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zagZig"
+			  >zagZig</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word8" title="Data.Word"
+			  >Word8</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int8" title="Data.Int"
+			  >Int8</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zagZig" class="link"
+			  >Source</a
+			  > <a href="#v:zagZig" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ZigZag:ZigZag:5"
+		      ></span
+		      > <a href="PlutusCore-Flat-Data-ZigZag.html#t:ZigZag" title="PlutusCore.Flat.Data.ZigZag"
+		      >ZigZag</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      > <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+		      >Natural</a
+		      ></span
+		    > <a href="src/PlutusCore.Flat.Data.ZigZag.html#line-122" class="link"
+		    >Source</a
+		    > <a href="#t:ZigZag" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ZigZag:ZigZag:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-Data-ZigZag.html"
+			>PlutusCore.Flat.Data.ZigZag</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zigZag"
+			  >zigZag</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+			  >Natural</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zigZag" class="link"
+			  >Source</a
+			  > <a href="#v:zigZag" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:zagZig"
+			  >zagZig</a
+			  > &#8759; <a href="PlutusCore-Flat-Types.html#t:Natural" title="PlutusCore.Flat.Types"
+			  >Natural</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > <a href="src/PlutusCore.Flat.Data.ZigZag.html#zagZig" class="link"
+			  >Source</a
+			  > <a href="#v:zagZig" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

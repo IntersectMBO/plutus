@@ -1,0 +1,3814 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.CostStream</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#unconsCost"
+	><span class="hs-identifier"
+	  >unconsCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#reconsCost"
+	><span class="hs-identifier"
+	  >reconsCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStream"
+	><span class="hs-identifier"
+	  >sumCostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#mapCostStream"
+	><span class="hs-identifier"
+	  >mapCostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStream"
+	><span class="hs-identifier"
+	  >addCostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStream"
+	><span class="hs-identifier"
+	  >minCostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExMemory</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Single-element streams]
+Both 'CostStream' and 'ExBudgetStream' are semantically equivalent to 'NonEmpty' (modulo strictness)
+except instead of making the first element of each of these stream types a special one, we make
+special the last one. The reason for this is that we want to maximally optimize the case of a
+single-element stream, because it's the most common one and with a 'NonEmpty'-style data type we'd
+have to pattern match twice in order to extract the value from the head of the stream and make sure
+it's a single one, while with our approach it's only one pattern match. Plus we don't need to touch
+any recursive parts at all when we're operating with single-element streams. It comes at a cost
+however: recursive functions over streams often need to have the single-element case hardcoded even
+when the general recursion would suffice, because GHC can't inline recursive functions and we rely
+on inlining heavily. So we often manually unwrap one step of recursion just to make the wrapper
+inlineable allowing for optimized handling of single-element streams.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Single-element streams]</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >-- | A lazy stream of 'CostingInteger's. Basically @NonEmpty CostingInteger@, except the elements</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-comment"
+      >-- are stored strictly.</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- The semantics of a stream are those of the sum of its elements. I.e. a stream that is a reordered</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- version of another stream is considered equal to that stream.</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-comment"
+      >-- All costs are assumed not to be negative and functions handling 'CostStream's may rely on this</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-comment"
+      >-- assumption. Negative costs (a.k.a. allowing the user to forge execution units at runtime)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >-- wouldn't make sense.</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CostStream"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	  ><span class="hs-identifier hs-var"
+	    >CostStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CostLast"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	  ><span class="hs-identifier hs-var"
+	    >CostLast</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# UNPACK</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CostCons"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	  ><span class="hs-identifier hs-var"
+	    >CostCons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# UNPACK</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681827353"
+      ><span id="local-6989586621681827363"
+	><span id="local-6989586621681827366"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; CostStream -&gt; ShowS
+[CostStream] -&gt; ShowS
+CostStream -&gt; String
+(Int -&gt; CostStream -&gt; ShowS)
+-&gt; (CostStream -&gt; String)
+-&gt; ([CostStream] -&gt; ShowS)
+-&gt; Show CostStream
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; CostStream -&gt; ShowS
+showsPrec :: Int -&gt; CostStream -&gt; ShowS
+$cshow :: CostStream -&gt; String
+show :: CostStream -&gt; String
+$cshowList :: [CostStream] -&gt; ShowS
+showList :: [CostStream] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO: (# CostingInteger, (# (# #) | CostStream #) #)?</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Uncons an element from a 'CostStream' and return the rest of the stream, if not empty.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#unconsCost"
+	><span class="hs-identifier hs-type"
+	  >unconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="unconsCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >unconsCost :: CostStream -&gt; (CostingInteger, Maybe CostStream)
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#unconsCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unconsCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827369"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827369"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827369"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#unconsCost"
+	><span class="hs-identifier hs-var"
+	  >unconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827370"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827370"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827371"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827371"
+	  ><span class="hs-identifier hs-var"
+	    >costs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827370"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; Maybe CostStream
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827371"
+	><span class="hs-identifier hs-var"
+	  >costs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#unconsCost"
+	><span class="hs-pragma hs-type"
+	  >unconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >-- | Cons an element to a 'CostStream', if given any. Otherwise create a new 'CostStream' using</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-comment"
+      >-- 'CostLast'.</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#reconsCost"
+	><span class="hs-identifier hs-type"
+	  >reconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="reconsCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >reconsCost :: CostingInteger -&gt; Maybe CostStream -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#reconsCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reconsCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827372"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827372"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+-&gt; (CostStream -&gt; CostStream) -&gt; Maybe CostStream -&gt; CostStream
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-var"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827372"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827372"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#reconsCost"
+	><span class="hs-pragma hs-type"
+	  >reconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Global local functions]
+Normally when defining a helper function one would put it into a @where@ or a @let@ block.
+However if the enclosing function gets inlined, then the definition of the helper one gets inlined
+too, which when happens in multiple places can create serious GHC Core bloat, making it really hard
+to analyze the generated code. Hence in some cases we optimize for lower amounts of produced GHC
+Core by turning some helper functions into global ones.
+
+This doesn't work as well when the helper function captures a variable bound by the enclosing one,
+so we leave such helper functions local. We could probably create a global helper and a local
+function within it instead, but so far it doesn't appear as those capturing helpers actually get
+duplicated in the generated Core.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Global local functions].</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStreamGo"
+	><span class="hs-identifier hs-type"
+	  >sumCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="sumCostStreamGo"
+      ><span class="annot"
+	><span class="annottext"
+	  >sumCostStreamGo :: CostingInteger -&gt; CostStream -&gt; CostingInteger
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStreamGo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sumCostStreamGo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827375"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827375"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827376"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827376"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827375"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; CostingInteger
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827376"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >sumCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827378"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827378"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827379"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827379"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827380"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827380"
+	  ><span class="hs-identifier hs-var"
+	    >costs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostingInteger
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >sumCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827378"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; CostingInteger
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827379"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827380"
+	><span class="hs-identifier hs-var"
+	  >costs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Add up all the costs in a 'CostStream'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStream"
+	><span class="hs-identifier hs-type"
+	  >sumCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="sumCostStream"
+      ><span class="annot"
+	><span class="annottext"
+	  >sumCostStream :: CostStream -&gt; CostingInteger
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStream"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sumCostStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827381"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827381"
+	  ><span class="hs-identifier hs-var"
+	    >cost0</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827381"
+	><span class="hs-identifier hs-var"
+	  >cost0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStream"
+	><span class="hs-identifier hs-var"
+	  >sumCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827382"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827382"
+	  ><span class="hs-identifier hs-var"
+	    >cost0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827383"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827383"
+	  ><span class="hs-identifier hs-var"
+	    >costs0</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostingInteger
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >sumCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827382"
+	><span class="hs-identifier hs-var"
+	  >cost0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827383"
+	><span class="hs-identifier hs-var"
+	  >costs0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#sumCostStream"
+	><span class="hs-pragma hs-type"
+	  >sumCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Global local functions].</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Map a function over a 'CostStream'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#mapCostStream"
+	><span class="hs-identifier hs-type"
+	  >mapCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Single-element streams]</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="mapCostStream"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapCostStream :: (CostingInteger -&gt; CostingInteger) -&gt; CostStream -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#mapCostStream"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapCostStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827384"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger -&gt; CostingInteger
+</span
+	  ><a href="#local-6989586621681827384"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827385"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827385"
+	  ><span class="hs-identifier hs-var"
+	    >cost0</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-var"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger
+</span
+	><a href="#local-6989586621681827384"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827385"
+	><span class="hs-identifier hs-var"
+	  >cost0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#mapCostStream"
+	><span class="hs-identifier hs-var"
+	  >mapCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827386"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger -&gt; CostingInteger
+</span
+	  ><a href="#local-6989586621681827386"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827387"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827387"
+	  ><span class="hs-identifier hs-var"
+	    >cost0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827388"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827388"
+	  ><span class="hs-identifier hs-var"
+	    >costs0</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger
+</span
+	><a href="#local-6989586621681827386"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827387"
+	><span class="hs-identifier hs-var"
+	  >cost0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; CostStream) -&gt; CostStream -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream
+</span
+	><a href="#local-6989586621681827389"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827388"
+	><span class="hs-identifier hs-var"
+	  >costs0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621681827389"
+	><span class="hs-identifier hs-type"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681827389"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: CostStream -&gt; CostStream
+</span
+	  ><a href="#local-6989586621681827389"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827390"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827390"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-var"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger
+</span
+	><a href="#local-6989586621681827386"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827390"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621681827389"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827391"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827391"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827392"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827392"
+	  ><span class="hs-identifier hs-var"
+	    >costs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger
+</span
+	><a href="#local-6989586621681827386"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827391"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; CostStream) -&gt; CostStream -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream
+</span
+	><a href="#local-6989586621681827389"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827392"
+	><span class="hs-identifier hs-var"
+	  >costs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#mapCostStream"
+	><span class="hs-pragma hs-type"
+	  >mapCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Global local functions].</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStreamGo"
+	><span class="hs-identifier hs-type"
+	  >addCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span id="addCostStreamGo"
+      ><span class="annot"
+	><span class="annottext"
+	  >addCostStreamGo :: CostStream -&gt; CostStream -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStreamGo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addCostStreamGo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827394"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827394"
+	  ><span class="hs-identifier hs-var"
+	    >costL</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >        </span
+      ><span id="local-6989586621681827395"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827395"
+	  ><span class="hs-identifier hs-var"
+	    >costsR</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827394"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827395"
+	><span class="hs-identifier hs-var"
+	  >costsR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >addCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-type"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827396"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827396"
+	  ><span class="hs-identifier hs-var"
+	    >costL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827397"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827397"
+	  ><span class="hs-identifier hs-var"
+	    >costsL</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827398"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827398"
+	  ><span class="hs-identifier hs-var"
+	    >costsR</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827396"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; CostStream) -&gt; CostStream -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >addCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827398"
+	><span class="hs-identifier hs-var"
+	  >costsR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827397"
+	><span class="hs-identifier hs-var"
+	  >costsL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-comment"
+      >-- | Add two streams by interleaving their elements (as opposed to draining out one of the streams</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-comment"
+      >-- before starting to take elements from the other one). No particular reason to prefer</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-comment"
+      >-- interleaving over draining out one of the streams first.</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStream"
+	><span class="hs-identifier hs-type"
+	  >addCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="addCostStream"
+      ><span class="annot"
+	><span class="annottext"
+	  >addCostStream :: CostStream -&gt; CostStream -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStream"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addCostStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827399"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827399"
+	  ><span class="hs-identifier hs-var"
+	    >costsL0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827400"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827400"
+	  ><span class="hs-identifier hs-var"
+	    >costsR0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827399"
+	><span class="hs-identifier hs-var"
+	  >costsL0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827400"
+	><span class="hs-identifier hs-var"
+	  >costsR0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Single-element streams].</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827401"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827401"
+	  ><span class="hs-identifier hs-var"
+	    >costL</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827402"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827402"
+	  ><span class="hs-identifier hs-var"
+	    >costR</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-var"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostStream) -&gt; CostingInteger -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827401"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; CostingInteger
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827402"
+	><span class="hs-identifier hs-var"
+	  >costR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream, CostStream)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                                </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >addCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827399"
+	><span class="hs-identifier hs-var"
+	  >costsL0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827400"
+	><span class="hs-identifier hs-var"
+	  >costsR0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#addCostStream"
+	><span class="hs-pragma hs-type"
+	  >addCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Global local functions].</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="hs-comment"
+      >-- Didn't attempt to optimize it.</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStreamGo"
+	><span class="hs-identifier hs-type"
+	  >minCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span id="minCostStreamGo"
+      ><span class="annot"
+	><span class="annottext"
+	  >minCostStreamGo :: CostStream -&gt; CostStream -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStreamGo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >minCostStreamGo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827404"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827404"
+	  ><span class="hs-identifier hs-var"
+	    >costsL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827405"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827405"
+	  ><span class="hs-identifier hs-var"
+	    >costsR</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Peel off a cost from each of the streams, if there's any, compare the two costs, emit</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- the minimum cost to the outside and recurse. If the two elements aren't equal, then we put</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- the difference between them back to the stream that had the greatest cost (thus subtracting</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- the minimum cost from the stream -- since we just accounted for it by lazily emitting it to</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- the outside). Proceed until one of the streams is drained out.</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827406"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827406"
+	  ><span class="hs-identifier hs-var"
+	    >costL</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827407"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe CostStream
+</span
+	  ><a href="#local-6989586621681827407"
+	  ><span class="hs-identifier hs-var"
+	    >mayCostsL'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; (CostingInteger, Maybe CostStream)
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#unconsCost"
+	><span class="hs-identifier hs-var"
+	  >unconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827404"
+	><span class="hs-identifier hs-var"
+	  >costsL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827408"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827408"
+	  ><span class="hs-identifier hs-var"
+	    >costR</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827409"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe CostStream
+</span
+	  ><a href="#local-6989586621681827409"
+	  ><span class="hs-identifier hs-var"
+	    >mayCostsR'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; (CostingInteger, Maybe CostStream)
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#unconsCost"
+	><span class="hs-identifier hs-var"
+	  >unconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827405"
+	><span class="hs-identifier hs-var"
+	  >costsR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827415"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827415"
+	  ><span class="hs-identifier hs-var"
+	    >costMin</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827416"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe CostStream
+</span
+	  ><a href="#local-6989586621681827416"
+	  ><span class="hs-identifier hs-var"
+	    >mayCostsL''</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span id="local-6989586621681827417"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe CostStream
+</span
+	  ><a href="#local-6989586621681827417"
+	  ><span class="hs-identifier hs-var"
+	    >mayCostsR''</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827406"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#compare"
+	><span class="hs-operator hs-var"
+	  >`compare`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827408"
+	><span class="hs-identifier hs-var"
+	  >costR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827406"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827407"
+	><span class="hs-identifier hs-var"
+	  >mayCostsL'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; Maybe CostStream
+forall a. a -&gt; Maybe a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; Maybe CostStream) -&gt; CostStream -&gt; Maybe CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Maybe CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#reconsCost"
+	><span class="hs-identifier hs-var"
+	  >reconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827408"
+	><span class="hs-identifier hs-var"
+	  >costR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; CostingInteger
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827406"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827409"
+	><span class="hs-identifier hs-var"
+	  >mayCostsR'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827406"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827407"
+	><span class="hs-identifier hs-var"
+	  >mayCostsL'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827409"
+	><span class="hs-identifier hs-var"
+	  >mayCostsR'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827408"
+	><span class="hs-identifier hs-var"
+	  >costR</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; Maybe CostStream
+forall a. a -&gt; Maybe a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; Maybe CostStream) -&gt; CostStream -&gt; Maybe CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Maybe CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#reconsCost"
+	><span class="hs-identifier hs-var"
+	  >reconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827406"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; CostingInteger
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827408"
+	><span class="hs-identifier hs-var"
+	  >costR</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827407"
+	><span class="hs-identifier hs-var"
+	  >mayCostsL'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827409"
+	><span class="hs-identifier hs-var"
+	  >mayCostsR'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Maybe CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#reconsCost"
+	><span class="hs-identifier hs-var"
+	  >reconsCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827415"
+	><span class="hs-identifier hs-var"
+	  >costMin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe CostStream -&gt; CostStream) -&gt; Maybe CostStream -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >minCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; CostStream -&gt; CostStream)
+-&gt; Maybe CostStream -&gt; Maybe (CostStream -&gt; CostStream)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827416"
+	><span class="hs-identifier hs-var"
+	  >mayCostsL''</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (CostStream -&gt; CostStream)
+-&gt; Maybe CostStream -&gt; Maybe CostStream
+forall a b. Maybe (a -&gt; b) -&gt; Maybe a -&gt; Maybe b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostStream
+</span
+	><a href="#local-6989586621681827417"
+	><span class="hs-identifier hs-var"
+	  >mayCostsR''</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-comment"
+      >-- | Calculate the minimum of two 'CostStream's. May return a stream that is longer than either of</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="hs-comment"
+      >-- the two (but not more than twice).</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStream"
+	><span class="hs-identifier hs-type"
+	  >minCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span id="minCostStream"
+      ><span class="annot"
+	><span class="annottext"
+	  >minCostStream :: CostStream -&gt; CostStream -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStream"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >minCostStream</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827420"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827420"
+	  ><span class="hs-identifier hs-var"
+	    >costsL0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827421"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostStream
+</span
+	  ><a href="#local-6989586621681827421"
+	  ><span class="hs-identifier hs-var"
+	    >costsR0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827420"
+	><span class="hs-identifier hs-var"
+	  >costsL0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827421"
+	><span class="hs-identifier hs-var"
+	  >costsR0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Single-element streams].</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827422"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827422"
+	  ><span class="hs-identifier hs-var"
+	    >costL</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-type"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827423"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681827423"
+	  ><span class="hs-identifier hs-var"
+	    >costR</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-var"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostStream) -&gt; CostingInteger -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; CostingInteger
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#min"
+	><span class="hs-identifier hs-var"
+	  >min</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827422"
+	><span class="hs-identifier hs-var"
+	  >costL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681827423"
+	><span class="hs-identifier hs-var"
+	  >costR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream, CostStream)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                                </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStreamGo"
+	><span class="hs-identifier hs-var"
+	  >minCostStreamGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827420"
+	><span class="hs-identifier hs-var"
+	  >costsL0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostStream
+</span
+	><a href="#local-6989586621681827421"
+	><span class="hs-identifier hs-var"
+	  >costsR0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#minCostStream"
+	><span class="hs-pragma hs-type"
+	  >minCostStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

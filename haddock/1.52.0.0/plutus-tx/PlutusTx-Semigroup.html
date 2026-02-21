@@ -1,0 +1,1339 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Semigroup</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Semigroup.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Semigroup</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Semigroup"
+	      >Semigroup</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:-60--62-"
+		  >(&lt;&gt;)</a
+		  > &#8759; a &#8594; a &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Max"
+	      >Max</a
+	      > a = <a href="#v:Max"
+	      >Max</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:getMax"
+		  >getMax</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Min"
+	      >Min</a
+	      > a = <a href="#v:Min"
+	      >Min</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:getMin"
+		  >getMin</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Semigroup" class="def"
+	    >Semigroup</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Semigroup.html#Semigroup" class="link"
+	    >Source</a
+	    > <a href="#t:Semigroup" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Semigroup.html#v:Semigroup" title="Data.Semigroup"
+		>Semigroup</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:-60--62-" class="def"
+	      >(&lt;&gt;)</a
+	      > &#8759; a &#8594; a &#8594; a <span class="fixity"
+	      >infixr 6</span
+	      ><span class="rightedge"
+	      ></span
+	      > <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+	      >Source</a
+	      > <a href="#v:-60--62-" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Plutus Tx version of <code
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Semigroup.html#v:-60--62-" title="Data.Semigroup"
+		  >(&lt;&gt;)</a
+		  ></code
+		>.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Semigroup"
+	    >Instances</h4
+	    ><details id="i:Semigroup" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:1"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+		      >Ordering</a
+		      ></span
+		    > <a href="src/PlutusTx.Semigroup.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.Semigroup.html#line-28" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:3"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      ></span
+		    > <a href="src/PlutusTx.Semigroup.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:4"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > ()</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-55" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; () &#8594; () &#8594; () <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:5"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:First" title="Data.Monoid"
+		      >First</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:First" title="Data.Monoid"
+			  >First</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:First" title="Data.Monoid"
+			  >First</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:First" title="Data.Monoid"
+			  >First</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:6"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Dual" title="Data.Monoid"
+		      >Dual</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Dual" title="Data.Monoid"
+			  >Dual</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Dual" title="Data.Monoid"
+			  >Dual</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Dual" title="Data.Monoid"
+			  >Dual</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:7"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Endo" title="Data.Monoid"
+		      >Endo</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-62" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Endo" title="Data.Monoid"
+			  >Endo</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Endo" title="Data.Monoid"
+			  >Endo</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Endo" title="Data.Monoid"
+			  >Endo</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:8"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		      >MultiplicativeSemigroup</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+		      >Product</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-148" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+			  >Product</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+			  >Product</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+			  >Product</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:9"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+		      >Sum</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-140" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+			  >Sum</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+			  >Sum</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+			  >Sum</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:10"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:11"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+		      >JoinSemiLattice</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+		      >Join</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+			  >Join</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+			  >Join</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Join" title="PlutusTx.Lattice"
+			  >Join</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:12"
+		      ></span
+		      > <a href="PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+		      >MeetSemiLattice</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+		      >Meet</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Lattice.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Lattice.html"
+			>PlutusTx.Lattice</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+			  >Meet</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+			  >Meet</a
+			  > a &#8594; <a href="PlutusTx-Lattice.html#t:Meet" title="PlutusTx.Lattice"
+			  >Meet</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:13"
+		      ></span
+		      > <a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+		      >Max</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:14"
+		      ></span
+		      > <a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+		      >Min</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-87" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:15"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-44" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:16"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > [a]</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; [a] &#8594; [a] &#8594; [a] <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:17"
+		      ></span
+		      > (<a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > k, <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > v) &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-215" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Semigroup:Semigroup:18"
+		      ></span
+		      > (<a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > a, <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > b) &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (a, b)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:Semigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Semigroup:Semigroup:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; (a, b) &#8594; (a, b) &#8594; (a, b) <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Max" class="def"
+	    >Max</a
+	    > a <a href="src/PlutusTx.Semigroup.html#Max" class="link"
+	    >Source</a
+	    > <a href="#t:Max" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Max" class="def"
+		  >Max</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:getMax" class="def"
+			  >getMax</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Max"
+	    >Instances</h4
+	    ><details id="i:Max" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Max:Functor:1"
+		      ></span
+		      > <a href="PlutusTx-Functor.html#t:Functor" title="PlutusTx.Functor"
+		      >Functor</a
+		      > <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+		      >Max</a
+		      ></span
+		    > <a href="src/PlutusTx.Semigroup.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:Max" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Max:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > b <a href="src/PlutusTx.Functor.html#fmap" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Max:Semigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+		      >Max</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:Max" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Max:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Max" title="PlutusTx.Semigroup"
+			  >Max</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Min" class="def"
+	    >Min</a
+	    > a <a href="src/PlutusTx.Semigroup.html#Min" class="link"
+	    >Source</a
+	    > <a href="#t:Min" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Min" class="def"
+		  >Min</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:getMin" class="def"
+			  >getMin</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Min"
+	    >Instances</h4
+	    ><details id="i:Min" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Min:Functor:1"
+		      ></span
+		      > <a href="PlutusTx-Functor.html#t:Functor" title="PlutusTx.Functor"
+		      >Functor</a
+		      > <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+		      >Min</a
+		      ></span
+		    > <a href="src/PlutusTx.Semigroup.html#line-83" class="link"
+		    >Source</a
+		    > <a href="#t:Min" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Min:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > b <a href="src/PlutusTx.Functor.html#fmap" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Min:Semigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+		      >Min</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Semigroup.html#line-87" class="link"
+		    >Source</a
+		    > <a href="#t:Min" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Min:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Semigroup.html"
+			>PlutusTx.Semigroup</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > a &#8594; <a href="PlutusTx-Semigroup.html#t:Min" title="PlutusTx.Semigroup"
+			  >Min</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

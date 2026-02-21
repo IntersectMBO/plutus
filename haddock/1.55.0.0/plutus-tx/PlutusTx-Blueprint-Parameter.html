@@ -1,0 +1,589 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Parameter</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.55.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Parameter.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Parameter</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ParameterBlueprint"
+	      >ParameterBlueprint</a
+	      > (referencedTypes &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >]) = <a href="#v:MkParameterBlueprint"
+	      >MkParameterBlueprint</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:parameterTitle"
+		  >parameterTitle</a
+		  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		><a href="#v:parameterDescription"
+		  >parameterDescription</a
+		  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		><a href="#v:parameterPurpose"
+		  >parameterPurpose</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+		  >Set</a
+		  > <a href="PlutusTx-Blueprint-Purpose.html#t:Purpose" title="PlutusTx.Blueprint.Purpose"
+		  >Purpose</a
+		  ></li
+		><li
+		><a href="#v:parameterSchema"
+		  >parameterSchema</a
+		  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+		  >Schema</a
+		  > referencedTypes</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:oneOfASet"
+	      >oneOfASet</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+	      >ToJSON</a
+	      > a &#8658; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > Value</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ParameterBlueprint" class="def"
+	    >ParameterBlueprint</a
+	    > (referencedTypes &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >]) <a href="src/PlutusTx.Blueprint.Parameter.html#ParameterBlueprint" class="link"
+	    >Source</a
+	    > <a href="#t:ParameterBlueprint" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Blueprint that defines validator's compile-time parameter.</p
+	    ><p
+	    >The <code
+	      >referencedTypes</code
+	      > phantom type parameter is used to track the types used in the contract
+  making sure their schemas are included in the blueprint and that they are referenced
+  in a type-safe way.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MkParameterBlueprint" class="def"
+		  >MkParameterBlueprint</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:parameterTitle" class="def"
+			  >parameterTitle</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >A short and descriptive name for the parameter.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:parameterDescription" class="def"
+			  >parameterDescription</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >An informative description of the parameter.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:parameterPurpose" class="def"
+			  >parameterPurpose</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+			  >Set</a
+			  > <a href="PlutusTx-Blueprint-Purpose.html#t:Purpose" title="PlutusTx.Blueprint.Purpose"
+			  >Purpose</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >One of &quot;spend&quot;, &quot;mint&quot;, &quot;withdraw&quot; or &quot;publish&quot;, or a oneOf applicator of those.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:parameterSchema" class="def"
+			  >parameterSchema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes</dfn
+			><div class="doc"
+			><p
+			  >A Plutus Data Schema.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ParameterBlueprint"
+	    >Instances</h4
+	    ><details id="i:ParameterBlueprint" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParameterBlueprint:ToJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > (<a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+		      >ParameterBlueprint</a
+		      > referencedTypes)</span
+		    > <a href="src/PlutusTx.Blueprint.Parameter.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:ParameterBlueprint" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParameterBlueprint:ToJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Parameter.html"
+			>PlutusTx.Blueprint.Parameter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParameterBlueprint:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+		      >ParameterBlueprint</a
+		      > referencedTypes)</span
+		    > <a href="src/PlutusTx.Blueprint.Parameter.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:ParameterBlueprint" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParameterBlueprint:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Parameter.html"
+			>PlutusTx.Blueprint.Parameter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParameterBlueprint:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+		      >ParameterBlueprint</a
+		      > referencedTypes)</span
+		    > <a href="src/PlutusTx.Blueprint.Parameter.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:ParameterBlueprint" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParameterBlueprint:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Parameter.html"
+			>PlutusTx.Blueprint.Parameter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParameterBlueprint:Ord:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+		      >ParameterBlueprint</a
+		      > referencedTypes)</span
+		    > <a href="src/PlutusTx.Blueprint.Parameter.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:ParameterBlueprint" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParameterBlueprint:Ord:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Parameter.html"
+			>PlutusTx.Blueprint.Parameter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes &#8594; <a href="PlutusTx-Blueprint-Parameter.html#t:ParameterBlueprint" title="PlutusTx.Blueprint.Parameter"
+			  >ParameterBlueprint</a
+			  > referencedTypes <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:oneOfASet" class="def"
+	    >oneOfASet</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+	    >ToJSON</a
+	    > a &#8658; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > Value <a href="src/PlutusTx.Blueprint.Parameter.html#oneOfASet" class="link"
+	    >Source</a
+	    > <a href="#v:oneOfASet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

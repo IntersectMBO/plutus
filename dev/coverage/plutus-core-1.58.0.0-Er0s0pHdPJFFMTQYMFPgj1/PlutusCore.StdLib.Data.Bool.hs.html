@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>-- | @boolean@ and related functions.
+<span class="lineno">    6 </span>module PlutusCore.StdLib.Data.Bool
+<span class="lineno">    7 </span>  ( bool
+<span class="lineno">    8 </span>  , true
+<span class="lineno">    9 </span>  , false
+<span class="lineno">   10 </span>  , ifThenElse
+<span class="lineno">   11 </span>  ) where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusCore.Core
+<span class="lineno">   14 </span>import PlutusCore.Default.Builtins
+<span class="lineno">   15 </span>import PlutusCore.MkPlc
+<span class="lineno">   16 </span>import PlutusCore.Name.Unique
+<span class="lineno">   17 </span>import PlutusCore.Quote
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusCore.StdLib.Data.Unit
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>-- | 'Bool' as a PLC type.
+<span class="lineno">   22 </span>bool :: uni `HasTypeLevel` Bool =&gt; Type tyname uni ()
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">bool = mkTyBuiltin @_ @Bool ()</span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- | 'True' as a PLC term.
+<span class="lineno">   26 </span>true :: (TermLike term tyname name uni fun, uni `HasTermLevel` Bool) =&gt; term ()
+<span class="lineno">   27 </span><span class="decl"><span class="istickedoff">true = mkConstant () True</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- | 'False' as a PLC term.
+<span class="lineno">   30 </span>false :: (TermLike term tyname name uni fun, uni `HasTermLevel` Bool) =&gt; term ()
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">false = mkConstant () False</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>{-| @if_then_else_@ as a PLC term.
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>&gt; /\(A :: *) -&gt; \(b : Bool) (x y : () -&gt; A) -&gt; IfThenElse {() -&gt; A} b x y () -}
+<span class="lineno">   36 </span>ifThenElse
+<span class="lineno">   37 </span>  :: forall term uni
+<span class="lineno">   38 </span>   . ( TermLike term TyName Name uni DefaultFun
+<span class="lineno">   39 </span>     , uni `HasTypeAndTermLevel` Bool
+<span class="lineno">   40 </span>     , uni `HasTypeAndTermLevel` ()
+<span class="lineno">   41 </span>     )
+<span class="lineno">   42 </span>  =&gt; term ()
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">ifThenElse = runQuote $ do</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshName &quot;b&quot;</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">y &lt;- freshName &quot;y&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">let unitFunA = TyFun () unit (TyVar () a)</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type ())</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterLamAbs</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">[ VarDecl () b bool</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="istickedoff">, VarDecl () x unitFunA</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="istickedoff">, VarDecl () y unitFunA</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff">]</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff">(tyInst () (builtin () IfThenElse) unitFunA)</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">[var () b, var () x, var () y, unitval]</span></span>
+
+</pre>
+</body>
+</html>

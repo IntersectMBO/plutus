@@ -1,0 +1,1814 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Encoding and decoding functions</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Run</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#flat"
+	><span class="hs-identifier"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#flatRaw"
+	><span class="hs-identifier"
+	  >flatRaw</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#unflat"
+	><span class="hs-identifier"
+	  >unflat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#unflatWith"
+	><span class="hs-identifier"
+	  >unflatWith</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#unflatRaw"
+	><span class="hs-identifier"
+	  >unflatRaw</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#unflatRawWith"
+	><span class="hs-identifier"
+	  >unflatRawWith</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#unflatRawWithOffset"
+	><span class="hs-identifier"
+	  >unflatRawWithOffset</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>B</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier"
+	  >decode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#encode"
+	><span class="hs-identifier"
+	  >encode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#getSize"
+	><span class="hs-identifier"
+	  >getSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.ByteString.Convert.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Data.ByteString.Convert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.ByteString.Convert.html#AsByteString"
+	><span class="hs-identifier"
+	  >AsByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Decoded"
+	><span class="hs-identifier"
+	  >Decoded</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier"
+	  >Get</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder"
+	><span class="hs-identifier"
+	  >strictDecoder</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Types.html#NumBits"
+	><span class="hs-identifier"
+	  >NumBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>E</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Filler</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#postAligned"
+	><span class="hs-identifier"
+	  >postAligned</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Filler.html#postAlignedDecoder"
+	><span class="hs-identifier"
+	  >postAlignedDecoder</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Encode padded value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="local-6989586621679107334"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Run.html#flat"
+	  ><span class="hs-identifier hs-type"
+	    >flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107334"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107334"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	  ><span class="hs-identifier hs-type"
+	    >B.ByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="flat"
+      ><span class="annot"
+	><span class="annottext"
+	  >flat :: forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Flat.Run.html#flat"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PostAligned a -&gt; ByteString
+forall a b. (Flat a, AsByteString b) =&gt; a -&gt; b
+</span
+	><a href="PlutusCore.Flat.Run.html#flatRaw"
+	><span class="hs-identifier hs-var"
+	  >flatRaw</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PostAligned a -&gt; ByteString)
+-&gt; (a -&gt; PostAligned a) -&gt; a -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; PostAligned a
+forall a. a -&gt; PostAligned a
+</span
+	><a href="PlutusCore.Flat.Filler.html#postAligned"
+	><span class="hs-identifier hs-var"
+	  >postAligned</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Decode padded value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="local-6989586621679107347"
+      ><span id="local-6989586621679107348"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Run.html#unflat"
+	    ><span class="hs-identifier hs-type"
+	      >unflat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107347"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ByteString.Convert.html#AsByteString"
+	    ><span class="hs-identifier hs-type"
+	      >AsByteString</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107348"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107348"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Decoded"
+	    ><span class="hs-identifier hs-type"
+	      >Decoded</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107347"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="unflat"
+      ><span class="annot"
+	><span class="annottext"
+	  >unflat :: forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	  ><a href="PlutusCore.Flat.Run.html#unflat"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unflat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; b -&gt; Decoded a
+forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; Decoded a
+</span
+	><a href="PlutusCore.Flat.Run.html#unflatWith"
+	><span class="hs-identifier hs-var"
+	  >unflatWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Decode padded value, using the provided unpadded decoder.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="local-6989586621679107353"
+      ><span id="local-6989586621679107354"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Run.html#unflatWith"
+	    ><span class="hs-identifier hs-type"
+	      >unflatWith</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ByteString.Convert.html#AsByteString"
+	    ><span class="hs-identifier hs-type"
+	      >AsByteString</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107353"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	    ><span class="hs-identifier hs-type"
+	      >Get</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107354"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107353"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Decoded"
+	    ><span class="hs-identifier hs-type"
+	      >Decoded</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107354"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="unflatWith"
+      ><span class="annot"
+	><span class="annottext"
+	  >unflatWith :: forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; Decoded a
+</span
+	  ><a href="PlutusCore.Flat.Run.html#unflatWith"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unflatWith</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107403"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get a
+</span
+	  ><a href="#local-6989586621679107403"
+	  ><span class="hs-identifier hs-var"
+	    >dec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; b -&gt; Decoded a
+forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; Decoded a
+</span
+	><a href="PlutusCore.Flat.Run.html#unflatRawWith"
+	><span class="hs-identifier hs-var"
+	  >unflatRawWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; Get a
+forall b. Get b -&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Filler.html#postAlignedDecoder"
+	><span class="hs-identifier hs-var"
+	  >postAlignedDecoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+</span
+	><a href="#local-6989586621679107403"
+	><span class="hs-identifier hs-var"
+	  >dec</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Decode unpadded value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="local-6989586621679107404"
+      ><span id="local-6989586621679107405"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Run.html#unflatRaw"
+	    ><span class="hs-identifier hs-type"
+	      >unflatRaw</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107404"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ByteString.Convert.html#AsByteString"
+	    ><span class="hs-identifier hs-type"
+	      >AsByteString</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107405"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107405"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Decoded"
+	    ><span class="hs-identifier hs-type"
+	      >Decoded</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107404"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="unflatRaw"
+      ><span class="annot"
+	><span class="annottext"
+	  >unflatRaw :: forall a b. (Flat a, AsByteString b) =&gt; b -&gt; Decoded a
+</span
+	  ><a href="PlutusCore.Flat.Run.html#unflatRaw"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unflatRaw</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; b -&gt; Decoded a
+forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; Decoded a
+</span
+	><a href="PlutusCore.Flat.Run.html#unflatRawWith"
+	><span class="hs-identifier hs-var"
+	  >unflatRawWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Unflat unpadded value, using provided decoder</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="local-6989586621679107410"
+      ><span id="local-6989586621679107411"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Run.html#unflatRawWith"
+	    ><span class="hs-identifier hs-type"
+	      >unflatRawWith</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ByteString.Convert.html#AsByteString"
+	    ><span class="hs-identifier hs-type"
+	      >AsByteString</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107410"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	    ><span class="hs-identifier hs-type"
+	      >Get</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107411"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107410"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Decoded"
+	    ><span class="hs-identifier hs-type"
+	      >Decoded</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107411"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="unflatRawWith"
+      ><span class="annot"
+	><span class="annottext"
+	  >unflatRawWith :: forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; Decoded a
+</span
+	  ><a href="PlutusCore.Flat.Run.html#unflatRawWith"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unflatRawWith</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107414"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get a
+</span
+	  ><a href="#local-6989586621679107414"
+	  ><span class="hs-identifier hs-var"
+	    >dec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107415"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679107415"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; b -&gt; NumBits -&gt; Decoded a
+forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; NumBits -&gt; Decoded a
+</span
+	><a href="PlutusCore.Flat.Run.html#unflatRawWithOffset"
+	><span class="hs-identifier hs-var"
+	  >unflatRawWithOffset</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+</span
+	><a href="#local-6989586621679107414"
+	><span class="hs-identifier hs-var"
+	  >dec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679107415"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621679107364"
+      ><span id="local-6989586621679107365"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Run.html#unflatRawWithOffset"
+	    ><span class="hs-identifier hs-type"
+	      >unflatRawWithOffset</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ByteString.Convert.html#AsByteString"
+	    ><span class="hs-identifier hs-type"
+	      >AsByteString</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107364"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	    ><span class="hs-identifier hs-type"
+	      >Get</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107365"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107364"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Types.html#NumBits"
+	    ><span class="hs-identifier hs-type"
+	      >NumBits</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Decoder.Types.html#Decoded"
+	    ><span class="hs-identifier hs-type"
+	      >Decoded</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107365"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="unflatRawWithOffset"
+      ><span class="annot"
+	><span class="annottext"
+	  >unflatRawWithOffset :: forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; NumBits -&gt; Decoded a
+</span
+	  ><a href="PlutusCore.Flat.Run.html#unflatRawWithOffset"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unflatRawWithOffset</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107418"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get a
+</span
+	  ><a href="#local-6989586621679107418"
+	  ><span class="hs-identifier hs-var"
+	    >dec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107419"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679107419"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; ByteString -&gt; NumBits -&gt; Either DecodeException a
+forall a.
+Get a -&gt; ByteString -&gt; NumBits -&gt; Either DecodeException a
+</span
+	><a href="PlutusCore.Flat.Decoder.Run.html#strictDecoder"
+	><span class="hs-identifier hs-var"
+	  >strictDecoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+</span
+	><a href="#local-6989586621679107418"
+	><span class="hs-identifier hs-var"
+	  >dec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; ByteString
+forall a. AsByteString a =&gt; a -&gt; ByteString
+</span
+	><a href="PlutusCore.Flat.Data.ByteString.Convert.html#toByteString"
+	><span class="hs-identifier hs-var"
+	  >toByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679107419"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-comment"
+      >-- unflatRawWith :: AsByteString b =&gt; Get a -&gt; b -&gt; Decoded a</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >-- unflatRawWith dec bs = unflatRawWithOffset dec bs 0</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- unflatRawWithOffset :: AsByteString b =&gt; Get a -&gt; b -&gt; Int -&gt; Decoded a</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >-- unflatRawWithOffset dec bs = strictDecoder dec (toByteString bs)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Encode unpadded value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="local-6989586621679107341"
+      ><span id="local-6989586621679107342"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Run.html#flatRaw"
+	    ><span class="hs-identifier hs-type"
+	      >flatRaw</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107341"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ByteString.Convert.html#AsByteString"
+	    ><span class="hs-identifier hs-type"
+	      >AsByteString</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107342"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107341"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679107342"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="flatRaw"
+      ><span class="annot"
+	><span class="annottext"
+	  >flatRaw :: forall a b. (Flat a, AsByteString b) =&gt; a -&gt; b
+</span
+	  ><a href="PlutusCore.Flat.Run.html#flatRaw"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flatRaw</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107426"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679107426"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; b
+forall a. AsByteString a =&gt; ByteString -&gt; a
+</span
+	><a href="PlutusCore.Flat.Data.ByteString.Convert.html#fromByteString"
+	><span class="hs-identifier hs-var"
+	  >fromByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; b) -&gt; ByteString -&gt; b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NumBits -&gt; Encoding -&gt; ByteString
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#strictEncoder"
+	><span class="hs-identifier hs-var"
+	  >E.strictEncoder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; NumBits
+forall a. Flat a =&gt; a -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Class.html#getSize"
+	><span class="hs-identifier hs-var"
+	  >getSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107426"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+
+#ifdef ETA_VERSION
+</span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >E.trampolineEncoding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >encode</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >a</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Encoding
+forall a. Flat a =&gt; a -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107426"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-comment"
+      >-- #ifdef ETA_VERSION</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-comment"
+      >--   deriving (Show, Eq, Ord, Typeable, Generic, NFData)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- instance Flat a =&gt; Flat (PostAligned a) where</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >--   encode (PostAligned val fill) = trampolineEncoding (encode val) &lt;&gt; encode fill</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- #else</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-comment"
+      >--   deriving (Show, Eq, Ord, Typeable, Generic, NFData,Flat)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-comment"
+      >-- #endif</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Agda.Builtin.Nat where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   17 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   18 </span>                    word64ToNat)
+<span class="lineno">   19 </span>import MAlonzo.RTE qualified
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>-- Agda.Builtin.Nat.Nat
+<span class="lineno">   22 </span><span class="decl"><span class="nottickedoff">d_Nat_6 = ()</span></span>
+<span class="lineno">   23 </span>data T_Nat_6 = C_zero_8 | C_suc_12 Integer
+<span class="lineno">   24 </span>-- Agda.Builtin.Nat._+_
+<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">d__'43'__14 = ((+) :: Integer -&gt; Integer -&gt; Integer)</span></span>
+<span class="lineno">   26 </span>-- Agda.Builtin.Nat._-_
+<span class="lineno">   27 </span><span class="decl"><span class="istickedoff">d__'45'__22</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="istickedoff">= ((\ x y -&gt; max 0 (x - y)) :: Integer -&gt; Integer -&gt; Integer)</span></span>
+<span class="lineno">   29 </span>-- Agda.Builtin.Nat._*_
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">d__'42'__32 = ((*) :: Integer -&gt; Integer -&gt; Integer)</span></span>
+<span class="lineno">   31 </span>-- Agda.Builtin.Nat._==_
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">d__'61''61'__40 = ((==) :: Integer -&gt; Integer -&gt; Bool)</span></span>
+<span class="lineno">   33 </span>-- Agda.Builtin.Nat._&lt;_
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">d__'60'__46 = ((&lt;) :: Integer -&gt; Integer -&gt; Bool)</span></span>
+<span class="lineno">   35 </span>-- Agda.Builtin.Nat.div-helper
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">d_div'45'helper_60</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">= ((\ k m n j -&gt; k + div (max 0 $ n + m - j) (m + 1)) :: Integer -&gt; Integer -&gt; Integer -&gt; Integer -&gt; Integer)</span></span>
+<span class="lineno">   38 </span>-- Agda.Builtin.Nat.mod-helper
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">d_mod'45'helper_90</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">= ((\ k m n j -&gt; if n &gt; j then mod (n - j - 1) (m + 1) else (k + n)) :: Integer -&gt; Integer -&gt; Integer -&gt; Integer -&gt; Integer)</span></span>
+
+</pre>
+</body>
+</html>

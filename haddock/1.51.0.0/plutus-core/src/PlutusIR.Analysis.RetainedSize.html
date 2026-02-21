@@ -1,0 +1,7545 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Analysis.RetainedSize</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#RetainedSize"
+	><span class="hs-identifier"
+	  >RetainedSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#termRetentionMap"
+	><span class="hs-identifier"
+	  >termRetentionMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#annotateWithRetainedSize"
+	><span class="hs-identifier"
+	  >annotateWithRetainedSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Dependencies</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Size.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Size</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.html"
+	><span class="hs-identifier"
+	  >Algebra.Graph</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>C</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.ToGraph.html"
+	><span class="hs-identifier"
+	  >Algebra.Graph.ToGraph</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dom-lt-0.2.3/docs/src/Data.Graph.Dom.html"
+	><span class="hs-identifier"
+	  >Data.Graph.Dom</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dom-lt-0.2.3/docs/src/Data.Graph.Dom.html#domTree"
+	><span class="hs-identifier"
+	  >domTree</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.html"
+	><span class="hs-identifier"
+	  >Data.IntMap.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#IntMap"
+	><span class="hs-identifier"
+	  >IntMap</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.html"
+	><span class="hs-identifier"
+	  >Data.IntMap.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>IntMap</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html"
+	><span class="hs-identifier"
+	  >Data.Tree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UMap</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Builtins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.VarInfo.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.VarInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Retained size analysis]
+WARNING: everything in this module assumes global uniqueness of variables.
+
+For calculating the size that each binding retains we use a classic graph algorithm for dominance.
+The @algebraic-graphs@ library does not provide one out of the box, so we convert an algebraic graph
+to a @fgl@-based representation and use the @dom-lt@ library for calculating the dominator tree
+(note that @fgl@ itself has an algorithm for dominance [1], but that was only found out after
+everything below was implemented, plus that algorithm does not return a 'Tree', so it's not as
+convenient to use).
+
+The procedure for computing the retained size of each binding is two-staged:
+
+1. First we compute how much size each let-binding in a term retains directly.
+   For example, a 'TermBind' directly retains only the type signature and the body of the binding.
+2. Then we compute the dominator tree for the dependency graph of the term and annotate it with the
+   retained size of each binding by adding up the directly retained size of the binding computed at
+   stage one and the size retained by all the dependencies of the binding
+
+We don't make any assumptions as to whether, say, a constructor of a data type directly retains the
+entire data type (its other constructors, the kind signature of the data type etc). Instead, we
+specify that each constructor directly retains only its type signature, each parameter directly
+retains only its kind signature etc and we let dependency and dominator tree analysis figure out
+whether the constructor in fact retains the entire data type by virtue of the constructor being
+connected (or not connected) with other parts of the data type. This has a funny effect: if only
+one constructor of the data type is actually used, then it's closer to the root of the dependency
+graph and so every other part of the data type is considered a dependency (due to them all being
+interconnected) and so that constructor gets annotated with the size of the whole data type, while
+every other constructor is only annotated with the size that it directly retains (i.e. the size of
+its type signature).
+
+Our main motivation for implementing retained size analysis is to calculate what bindings retain
+most size, so that we can prioritize certain optimization passes, however we mostly care about the
+size of the final untyped program and given that we do take types and kinds into account during
+retained size analysis, results do not translate directly to the untyped setting. So beware of this
+pitfall.
+
+Even the most efficient dominator tree algorithms are still not linear and our programs are quite
+huge, so before jumping into computing the dominator tree we filter the dependency graph and remove
+from it everything that does not directly retain any size, i.e. everything that is not a let-binding.
+For example, the dependency graph contains lambda-bound variables and we filter them out as they're
+irrelevant for computing dominance. So we're relying on the fact that nodes that don't retain any
+size are also not interesting for dominator analysis. Which might be wrong. An example is needed.
+
+[1] https://hackage.haskell.org/package/fgl-5.7.0.3/docs/Data-Graph-Inductive-Query-Dominators.html#v:dom
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Handling the root]
+The dominator tree algorithm works on the assumption that each node is an 'Int'. It's easy to
+convert the 'Unique' of a variable to an 'Int', but the dominator tree algorithm needs a root to
+walk from and that root also has to be an 'Int' and our uniques start from zero, so we made an
+awkward decision to assign the root @-1@ as its index.
+
+Given that the root appears in the dominator tree, we also need to specify the size that it directly
+retains. But there doesn't seem to be a sensible way of doing that. Should it be
+
+    rootSize :: Term tyname name uni fun ann -&gt; Size
+    rootSize (Let _ _ _ term) = rootSize term
+    rootSize term             = termSize term
+
+? But what about bindings inside the final non-let term? However we don't need that directly
+retained size of the root for anything that is not &quot;don't throw an error on encountering the root
+node that does not correspond to any binding&quot; and since we only annotate bindings, the size retained
+by the root is not supposed to appear in the final annotated term anyway, so we just make the root
+directly retain some ridiculously huge _negative_ number. Now if it ends up being in the final term,
+we know there's a bug somewhere and if it doesn't, we don't care about it.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="RetainedSize"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.RetainedSize.html#RetainedSize"
+	  ><span class="hs-identifier hs-var"
+	    >RetainedSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Retains"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.RetainedSize.html#Retains"
+	  ><span class="hs-identifier hs-var"
+	    >Retains</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-type"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="NotARetainer"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.RetainedSize.html#NotARetainer"
+	  ><span class="hs-identifier hs-var"
+	    >NotARetainer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679473936"
+      ><span id="local-6989586621679473941"
+	><span id="local-6989586621679473945"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; RetainedSize -&gt; ShowS
+[RetainedSize] -&gt; ShowS
+RetainedSize -&gt; String
+(Int -&gt; RetainedSize -&gt; ShowS)
+-&gt; (RetainedSize -&gt; String)
+-&gt; ([RetainedSize] -&gt; ShowS)
+-&gt; Show RetainedSize
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; RetainedSize -&gt; ShowS
+showsPrec :: Int -&gt; RetainedSize -&gt; ShowS
+$cshow :: RetainedSize -&gt; String
+show :: RetainedSize -&gt; String
+$cshowList :: [RetainedSize] -&gt; ShowS
+showList :: [RetainedSize] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679473950"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusIR.Analysis.RetainedSize.html#RetainedSize"
+	  ><span class="hs-identifier hs-type"
+	    >RetainedSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473964"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. RetainedSize -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679473964"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#Retains"
+	><span class="hs-identifier hs-type"
+	  >Retains</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473966"
+      ><span class="annot"
+	><span class="annottext"
+	  >Size
+</span
+	  ><a href="#local-6989586621679473966"
+	  ><span class="hs-identifier hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;$&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Size -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size
+</span
+	><a href="#local-6989586621679473966"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;$&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RetainedSize
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#NotARetainer"
+	><span class="hs-identifier hs-var"
+	  >NotARetainer</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Handling the root].</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The 'Int' index of the root.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#rootInt"
+	><span class="hs-identifier hs-type"
+	  >rootInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="rootInt"
+      ><span class="annot"
+	><span class="annottext"
+	  >rootInt :: Int
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#rootInt"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >rootInt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Handling the root].</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#nodeToInt"
+	><span class="hs-identifier hs-type"
+	  >nodeToInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	><span class="hs-identifier hs-type"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="nodeToInt"
+      ><span class="annot"
+	><span class="annottext"
+	  >nodeToInt :: Node -&gt; Int
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#nodeToInt"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >nodeToInt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Variable"
+	><span class="hs-identifier hs-type"
+	  >Variable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >PLC.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473971"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679473971"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679473971"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#nodeToInt"
+	><span class="hs-identifier hs-var"
+	  >nodeToInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Node
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#Root"
+	><span class="hs-identifier hs-var"
+	  >Root</span
+	  ></a
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#rootInt"
+	><span class="hs-identifier hs-var"
+	  >rootInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A mapping from the index of a binding to what it directly retains.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="DirectionRetentionMap"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	  ><span class="hs-identifier hs-var"
+	    >DirectionRetentionMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="DirectionRetentionMap"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	  ><span class="hs-identifier hs-var"
+	    >DirectionRetentionMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#IntMap"
+	><span class="hs-identifier hs-type"
+	  >IntMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-type"
+	  >Size</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#lookupSize"
+	><span class="hs-identifier hs-type"
+	  >lookupSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	><span class="hs-identifier hs-type"
+	  >DirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-type"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="lookupSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupSize :: Int -&gt; DirectionRetentionMap -&gt; Size
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#lookupSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473975"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679473975"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	><span class="hs-identifier hs-type"
+	  >DirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473976"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntMap Size
+</span
+	  ><a href="#local-6989586621679473976"
+	  ><span class="hs-identifier hs-var"
+	    >ss</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap Size
+</span
+	><a href="#local-6989586621679473976"
+	><span class="hs-identifier hs-var"
+	  >ss</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap Size -&gt; Int -&gt; Size
+forall a. IntMap a -&gt; Int -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#%21"
+	><span class="hs-operator hs-var"
+	  >IntMap.!</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679473975"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-comment"
+      >-- | Annotate the dominator tree with the retained size of each entry. The retained size is computed</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="hs-comment"
+      >-- as the size directly retained by the binding plus the size of all its dependencies.</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#annotateWithSizes"
+	><span class="hs-identifier hs-type"
+	  >annotateWithSizes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	><span class="hs-identifier hs-type"
+	  >DirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html#Tree"
+	><span class="hs-identifier hs-type"
+	  >Tree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html#Tree"
+	><span class="hs-identifier hs-type"
+	  >Tree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-type"
+	  >Size</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span id="annotateWithSizes"
+      ><span class="annot"
+	><span class="annottext"
+	  >annotateWithSizes :: DirectionRetentionMap -&gt; Tree Int -&gt; Tree (Int, Size)
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#annotateWithSizes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >annotateWithSizes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473979"
+      ><span class="annot"
+	><span class="annottext"
+	  >DirectionRetentionMap
+</span
+	  ><a href="#local-6989586621679473979"
+	  ><span class="hs-identifier hs-var"
+	    >sizeInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Tree Int -&gt; Tree (Int, Size)
+</span
+	><a href="#local-6989586621679473980"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679473980"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: Tree Int -&gt; Tree (Int, Size)
+</span
+	  ><a href="#local-6989586621679473980"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html#Node"
+	><span class="hs-identifier hs-type"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473982"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679473982"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473983"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Tree Int]
+</span
+	  ><a href="#local-6989586621679473983"
+	  ><span class="hs-identifier hs-var"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int, Size) -&gt; [Tree (Int, Size)] -&gt; Tree (Int, Size)
+forall a. a -&gt; [Tree a] -&gt; Tree a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html#Node"
+	><span class="hs-identifier hs-var"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679473982"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size
+</span
+	><a href="#local-6989586621679473984"
+	><span class="hs-identifier hs-var"
+	  >sizeI</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Tree (Int, Size)]
+</span
+	><a href="#local-6989586621679473985"
+	><span class="hs-identifier hs-var"
+	  >rs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679473985"
+      ><span class="annot"
+	><span class="annottext"
+	  >rs :: [Tree (Int, Size)]
+</span
+	  ><a href="#local-6989586621679473985"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >rs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Tree Int -&gt; Tree (Int, Size)) -&gt; [Tree Int] -&gt; [Tree (Int, Size)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Tree Int -&gt; Tree (Int, Size)
+</span
+	><a href="#local-6989586621679473980"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Tree Int]
+</span
+	><a href="#local-6989586621679473983"
+	><span class="hs-identifier hs-var"
+	  >ts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679473984"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeI :: Size
+</span
+	  ><a href="#local-6989586621679473984"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeI</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; DirectionRetentionMap -&gt; Size
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#lookupSize"
+	><span class="hs-identifier hs-var"
+	  >lookupSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679473982"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap
+</span
+	><a href="#local-6989586621679473979"
+	><span class="hs-identifier hs-var"
+	  >sizeInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; Size -&gt; Size
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Tree (Int, Size) -&gt; Size) -&gt; [Tree (Int, Size)] -&gt; Size
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; [a] -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldMap"
+	><span class="hs-identifier hs-var"
+	  >foldMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int, Size) -&gt; Size
+forall a b. (a, b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#snd"
+	><span class="hs-identifier hs-var"
+	  >snd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Int, Size) -&gt; Size)
+-&gt; (Tree (Int, Size) -&gt; (Int, Size)) -&gt; Tree (Int, Size) -&gt; Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Tree (Int, Size) -&gt; (Int, Size)
+forall a. Tree a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html#rootLabel"
+	><span class="hs-identifier hs-var"
+	  >rootLabel</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Tree (Int, Size)]
+</span
+	><a href="#local-6989586621679473985"
+	><span class="hs-identifier hs-var"
+	  >rs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compute the dominator tree of a graph.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#toDomTree"
+	><span class="hs-identifier hs-type"
+	  >toDomTree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.html#Graph"
+	><span class="hs-identifier hs-type"
+	  >C.Graph</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	><span class="hs-identifier hs-type"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html#Tree"
+	><span class="hs-identifier hs-type"
+	  >Tree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span id="toDomTree"
+      ><span class="annot"
+	><span class="annottext"
+	  >toDomTree :: Graph Node -&gt; Tree Int
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#toDomTree"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toDomTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rooted -&gt; Tree Int
+</span
+	><a href="https://hackage.haskell.org/package/dom-lt-0.2.3/docs/src/Data.Graph.Dom.html#domTree"
+	><span class="hs-identifier hs-var"
+	  >domTree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Rooted -&gt; Tree Int)
+-&gt; (Graph Node -&gt; Rooted) -&gt; Graph Node -&gt; Tree Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#rootInt"
+	><span class="hs-identifier hs-var"
+	  >rootInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Graph -&gt; Rooted) -&gt; (Graph Node -&gt; Graph) -&gt; Graph Node -&gt; Rooted
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Graph Int -&gt; Graph
+forall t. (ToGraph t, ToVertex t ~ Int) =&gt; t -&gt; Graph
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.ToGraph.html#adjacencyIntMap"
+	><span class="hs-identifier hs-var"
+	  >adjacencyIntMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Graph Int -&gt; Graph)
+-&gt; (Graph Node -&gt; Graph Int) -&gt; Graph Node -&gt; Graph
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Node -&gt; Int) -&gt; Graph Node -&gt; Graph Int
+forall a b. (a -&gt; b) -&gt; Graph a -&gt; Graph b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Node -&gt; Int
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#nodeToInt"
+	><span class="hs-identifier hs-var"
+	  >nodeToInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compute the retention map of a graph.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#depsRetentionMap"
+	><span class="hs-identifier hs-type"
+	  >depsRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	><span class="hs-identifier hs-type"
+	  >DirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.html#Graph"
+	><span class="hs-identifier hs-type"
+	  >C.Graph</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	><span class="hs-identifier hs-type"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#IntMap"
+	><span class="hs-identifier hs-type"
+	  >IntMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-type"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span id="depsRetentionMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >depsRetentionMap :: DirectionRetentionMap -&gt; Graph Node -&gt; IntMap Size
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#depsRetentionMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >depsRetentionMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473999"
+      ><span class="annot"
+	><span class="annottext"
+	  >DirectionRetentionMap
+</span
+	  ><a href="#local-6989586621679473999"
+	  ><span class="hs-identifier hs-var"
+	    >sizeInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Int, Size)] -&gt; IntMap Size
+forall a. [(Int, a)] -&gt; IntMap a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >IntMap.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(Int, Size)] -&gt; IntMap Size)
+-&gt; (Graph Node -&gt; [(Int, Size)]) -&gt; Graph Node -&gt; IntMap Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Tree (Int, Size) -&gt; [(Int, Size)]
+forall a. Tree a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Tree.html#flatten"
+	><span class="hs-identifier hs-var"
+	  >flatten</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Tree (Int, Size) -&gt; [(Int, Size)])
+-&gt; (Graph Node -&gt; Tree (Int, Size)) -&gt; Graph Node -&gt; [(Int, Size)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap -&gt; Tree Int -&gt; Tree (Int, Size)
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#annotateWithSizes"
+	><span class="hs-identifier hs-var"
+	  >annotateWithSizes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap
+</span
+	><a href="#local-6989586621679473999"
+	><span class="hs-identifier hs-var"
+	  >sizeInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Tree Int -&gt; Tree (Int, Size))
+-&gt; (Graph Node -&gt; Tree Int) -&gt; Graph Node -&gt; Tree (Int, Size)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Graph Node -&gt; Tree Int
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#toDomTree"
+	><span class="hs-identifier hs-var"
+	  >toDomTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Construct a 'UniqueMap' having size information for each individual part of a 'Binding'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span id="local-6989586621679473701"
+      ><span id="local-6989586621679473704"
+	><span id="local-6989586621679473706"
+	  ><span id="local-6989586621679473707"
+	    ><span id="local-6989586621679473708"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#bindingSize"
+		  ><span class="hs-identifier hs-type"
+		    >bindingSize</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-143"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473701"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473704"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-144"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Binding"
+		  ><span class="hs-identifier hs-type"
+		    >Binding</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473701"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473704"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473706"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473707"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473708"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#UniqueMap"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.UniqueMap</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+		  ><span class="hs-identifier hs-type"
+		    >Unique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+		  ><span class="hs-identifier hs-type"
+		    >Size</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span id="bindingSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >bindingSize :: forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Binding tyname name uni fun ann -&gt; UniqueMap Unique Size
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#bindingSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >bindingSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-type"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474028"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474028"
+	  ><span class="hs-identifier hs-var"
+	    >var</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474029"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474029"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+-&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >UMap.insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621679474028"
+	><span class="hs-identifier hs-var"
+	  >var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann -&gt; Size
+forall tyname name (uni :: * -&gt; *) ann.
+VarDecl tyname name uni ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#varDeclSize"
+	><span class="hs-identifier hs-var"
+	  >varDeclSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621679474028"
+	><span class="hs-identifier hs-var"
+	  >var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; Size -&gt; Size
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; Size
+forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann -&gt; Size
+</span
+	><a href="PlutusIR.Analysis.Size.html#termSize"
+	><span class="hs-identifier hs-var"
+	  >termSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474029"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap Unique Size
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#bindingSize"
+	><span class="hs-identifier hs-var"
+	  >bindingSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TypeBind"
+	><span class="hs-identifier hs-type"
+	  >TypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474034"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname ann
+</span
+	  ><a href="#local-6989586621679474034"
+	  ><span class="hs-identifier hs-var"
+	    >tyVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474035"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621679474035"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+-&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >UMap.insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474034"
+	><span class="hs-identifier hs-var"
+	  >tyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann -&gt; Size
+forall tyname ann. TyVarDecl tyname ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#tyVarDeclSize"
+	><span class="hs-identifier hs-var"
+	  >tyVarDeclSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474034"
+	><span class="hs-identifier hs-var"
+	  >tyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; Size -&gt; Size
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; Size
+forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#typeSize"
+	><span class="hs-identifier hs-var"
+	  >typeSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621679474035"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap Unique Size
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#bindingSize"
+	><span class="hs-identifier hs-var"
+	  >bindingSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#DatatypeBind"
+	><span class="hs-identifier hs-type"
+	  >DatatypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Datatype"
+	><span class="hs-identifier hs-type"
+	  >Datatype</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474040"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname ann
+</span
+	  ><a href="#local-6989586621679474040"
+	  ><span class="hs-identifier hs-var"
+	    >dataDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474041"
+      ><span class="annot"
+	><span class="annottext"
+	  >[TyVarDecl tyname ann]
+</span
+	  ><a href="#local-6989586621679474041"
+	  ><span class="hs-identifier hs-var"
+	    >params</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474042"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679474042"
+	  ><span class="hs-identifier hs-var"
+	    >matchName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474043"
+      ><span class="annot"
+	><span class="annottext"
+	  >[VarDecl tyname name uni ann]
+</span
+	  ><a href="#local-6989586621679474043"
+	  ><span class="hs-identifier hs-var"
+	    >constrs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+-&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >UMap.insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474040"
+	><span class="hs-identifier hs-var"
+	  >dataDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann -&gt; Size
+forall tyname ann. TyVarDecl tyname ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#tyVarDeclSize"
+	><span class="hs-identifier hs-var"
+	  >tyVarDeclSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474040"
+	><span class="hs-identifier hs-var"
+	  >dataDecl</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; (UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+-&gt; UniqueMap Unique Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap Unique Size
+ -&gt; [TyVarDecl tyname ann] -&gt; UniqueMap Unique Size)
+-&gt; [TyVarDecl tyname ann]
+-&gt; UniqueMap Unique Size
+-&gt; UniqueMap Unique Size
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TyVarDecl tyname ann
+ -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+-&gt; [TyVarDecl tyname ann]
+-&gt; UniqueMap Unique Size
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TyVarDecl tyname ann
+  -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+ -&gt; UniqueMap Unique Size
+ -&gt; [TyVarDecl tyname ann]
+ -&gt; UniqueMap Unique Size)
+-&gt; (TyVarDecl tyname ann
+    -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+-&gt; [TyVarDecl tyname ann]
+-&gt; UniqueMap Unique Size
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679474046"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname ann
+</span
+	  ><a href="#local-6989586621679474046"
+	  ><span class="hs-identifier hs-var"
+	    >param</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+-&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >UMap.insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474046"
+	><span class="hs-identifier hs-var"
+	  >param</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann -&gt; Size
+forall tyname ann. TyVarDecl tyname ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#tyVarDeclSize"
+	><span class="hs-identifier hs-var"
+	  >tyVarDeclSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474046"
+	><span class="hs-identifier hs-var"
+	  >param</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TyVarDecl tyname ann]
+</span
+	><a href="#local-6989586621679474041"
+	><span class="hs-identifier hs-var"
+	  >params</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; (UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+-&gt; UniqueMap Unique Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >UMap.insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679474042"
+	><span class="hs-identifier hs-var"
+	  >matchName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-var"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; (UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+-&gt; UniqueMap Unique Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap Unique Size
+ -&gt; [VarDecl tyname name uni ann] -&gt; UniqueMap Unique Size)
+-&gt; [VarDecl tyname name uni ann]
+-&gt; UniqueMap Unique Size
+-&gt; UniqueMap Unique Size
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(VarDecl tyname name uni ann
+ -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+-&gt; [VarDecl tyname name uni ann]
+-&gt; UniqueMap Unique Size
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((VarDecl tyname name uni ann
+  -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+ -&gt; UniqueMap Unique Size
+ -&gt; [VarDecl tyname name uni ann]
+ -&gt; UniqueMap Unique Size)
+-&gt; (VarDecl tyname name uni ann
+    -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+-&gt; [VarDecl tyname name uni ann]
+-&gt; UniqueMap Unique Size
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679474048"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474048"
+	  ><span class="hs-identifier hs-var"
+	    >constr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+-&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >UMap.insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621679474048"
+	><span class="hs-identifier hs-var"
+	  >constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; Size -&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann -&gt; Size
+forall tyname name (uni :: * -&gt; *) ann.
+VarDecl tyname name uni ann -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#varDeclSize"
+	><span class="hs-identifier hs-var"
+	  >varDeclSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621679474048"
+	><span class="hs-identifier hs-var"
+	  >constr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[VarDecl tyname name uni ann]
+</span
+	><a href="#local-6989586621679474043"
+	><span class="hs-identifier hs-var"
+	  >constrs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap Unique Size -&gt; UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap Unique Size
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span class="hs-comment"
+      >-- | Construct a 'UniqueMap' having size information for each individual part of every 'Binding'</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span class="hs-comment"
+      >-- in a term.</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span id="local-6989586621679473756"
+      ><span id="local-6989586621679473757"
+	><span id="local-6989586621679473758"
+	  ><span id="local-6989586621679473759"
+	    ><span id="local-6989586621679473760"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#bindingSizes"
+		  ><span class="hs-identifier hs-type"
+		    >bindingSizes</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-159"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473756"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473757"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-160"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473756"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473757"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473758"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473759"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473760"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#UniqueMap"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.UniqueMap</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+		  ><span class="hs-identifier hs-type"
+		    >Unique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+		  ><span class="hs-identifier hs-type"
+		    >Size</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span id="bindingSizes"
+      ><span class="annot"
+	><span class="annottext"
+	  >bindingSizes :: forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Term tyname name uni fun ann -&gt; UniqueMap Unique Size
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#bindingSizes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >bindingSizes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Let"
+	><span class="hs-identifier hs-type"
+	  >Let</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474070"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty (Binding tyname name uni fun ann)
+</span
+	  ><a href="#local-6989586621679474070"
+	  ><span class="hs-identifier hs-var"
+	    >binds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474071"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474071"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Binding tyname name uni fun ann -&gt; UniqueMap Unique Size)
+-&gt; NonEmpty (Binding tyname name uni fun ann)
+-&gt; UniqueMap Unique Size
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; NonEmpty a -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldMap"
+	><span class="hs-identifier hs-var"
+	  >foldMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun ann -&gt; UniqueMap Unique Size
+forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Binding tyname name uni fun ann -&gt; UniqueMap Unique Size
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#bindingSize"
+	><span class="hs-identifier hs-var"
+	  >bindingSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (Binding tyname name uni fun ann)
+</span
+	><a href="#local-6989586621679474070"
+	><span class="hs-identifier hs-var"
+	  >binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap Unique Size
+-&gt; UniqueMap Unique Size -&gt; UniqueMap Unique Size
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; UniqueMap Unique Size
+forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Term tyname name uni fun ann -&gt; UniqueMap Unique Size
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#bindingSizes"
+	><span class="hs-identifier hs-var"
+	  >bindingSizes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474071"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#bindingSizes"
+	><span class="hs-identifier hs-var"
+	  >bindingSizes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474072"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474072"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                 </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474072"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Getting
+     (UniqueMap Unique Size)
+     (Term tyname name uni fun ann)
+     (UniqueMap Unique Size)
+-&gt; UniqueMap Unique Size
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Const (UniqueMap Unique Size) (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Const (UniqueMap Unique Size) (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term tyname name uni fun ann
+  -&gt; Const (UniqueMap Unique Size) (Term tyname name uni fun ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Const (UniqueMap Unique Size) (Term tyname name uni fun ann))
+-&gt; Getting
+     (UniqueMap Unique Size)
+     (Term tyname name uni fun ann)
+     (UniqueMap Unique Size)
+-&gt; Getting
+     (UniqueMap Unique Size)
+     (Term tyname name uni fun ann)
+     (UniqueMap Unique Size)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; UniqueMap Unique Size)
+-&gt; Getting
+     (UniqueMap Unique Size)
+     (Term tyname name uni fun ann)
+     (UniqueMap Unique Size)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; UniqueMap Unique Size
+forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Term tyname name uni fun ann -&gt; UniqueMap Unique Size
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#bindingSizes"
+	><span class="hs-identifier hs-var"
+	  >bindingSizes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Same as 'bindingSizes' but is wrapped in a newtype and has a bogus entry for the root.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span id="local-6989586621679473788"
+      ><span id="local-6989586621679473789"
+	><span id="local-6989586621679473790"
+	  ><span id="local-6989586621679473791"
+	    ><span id="local-6989586621679473792"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#toDirectionRetentionMap"
+		  ><span class="hs-identifier hs-type"
+		    >toDirectionRetentionMap</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-166"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473788"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473789"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-167"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473788"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473789"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473790"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473791"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473792"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+		  ><span class="hs-identifier hs-type"
+		    >DirectionRetentionMap</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span id="toDirectionRetentionMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >toDirectionRetentionMap :: forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Term tyname name uni fun ann -&gt; DirectionRetentionMap
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#toDirectionRetentionMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toDirectionRetentionMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474081"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474081"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap Size -&gt; DirectionRetentionMap
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	><span class="hs-identifier hs-var"
+	  >DirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntMap Size -&gt; DirectionRetentionMap)
+-&gt; (UniqueMap Unique Size -&gt; IntMap Size)
+-&gt; UniqueMap Unique Size
+-&gt; DirectionRetentionMap
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Size -&gt; IntMap Size -&gt; IntMap Size
+forall a. Int -&gt; a -&gt; IntMap a -&gt; IntMap a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >IntMap.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#rootInt"
+	><span class="hs-identifier hs-var"
+	  >rootInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size
+</span
+	><a href="#local-6989586621679474083"
+	><span class="hs-identifier hs-var"
+	  >rootSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IntMap Size -&gt; IntMap Size)
+-&gt; (UniqueMap Unique Size -&gt; IntMap Size)
+-&gt; UniqueMap Unique Size
+-&gt; IntMap Size
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueMap Unique Size -&gt; IntMap Size
+forall unique a. UniqueMap unique a -&gt; IntMap a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.UniqueMap.html#unUniqueMap"
+	><span class="hs-identifier hs-var"
+	  >PLC.unUniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueMap Unique Size -&gt; DirectionRetentionMap)
+-&gt; UniqueMap Unique Size -&gt; DirectionRetentionMap
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; UniqueMap Unique Size
+forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Term tyname name uni fun ann -&gt; UniqueMap Unique Size
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#bindingSizes"
+	><span class="hs-identifier hs-var"
+	  >bindingSizes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474081"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- See Note [Handling the root].</span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679474083"
+      ><span class="annot"
+	><span class="annottext"
+	  >rootSize :: Size
+</span
+	  ><a href="#local-6989586621679474083"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >rootSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-var"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>10</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Int -&gt; Integer
+forall a b. (Num a, Integral b) =&gt; a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#%5E"
+	><span class="hs-operator hs-var"
+	  >^</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>10</span
+	></span
+      ><span class="hs-glyph"
+      >::</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Check if a 'Node' appears in 'DirectionRetentionMap'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#hasSizeIn"
+	><span class="hs-identifier hs-type"
+	  >hasSizeIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	><span class="hs-identifier hs-type"
+	  >DirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Node"
+	><span class="hs-identifier hs-type"
+	  >Node</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span id="hasSizeIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >hasSizeIn :: DirectionRetentionMap -&gt; Node -&gt; Bool
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#hasSizeIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >hasSizeIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Node
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#Root"
+	><span class="hs-identifier hs-var"
+	  >Root</span
+	  ></a
+	></span
+      ><span
+      >                                   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#hasSizeIn"
+	><span class="hs-identifier hs-var"
+	  >hasSizeIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.RetainedSize.html#DirectionRetentionMap"
+	><span class="hs-identifier hs-type"
+	  >DirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474093"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntMap Size
+</span
+	  ><a href="#local-6989586621679474093"
+	  ><span class="hs-identifier hs-var"
+	    >ss</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Dependencies.html#Variable"
+	><span class="hs-identifier hs-type"
+	  >Variable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >PLC.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474094"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679474094"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679474094"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; IntMap Size -&gt; Bool
+forall a. Int -&gt; IntMap a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#member"
+	><span class="hs-operator hs-var"
+	  >`IntMap.member`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap Size
+</span
+	><a href="#local-6989586621679474093"
+	><span class="hs-identifier hs-var"
+	  >ss</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compute the retention map of a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span id="local-6989586621679473804"
+      ><span id="local-6989586621679473805"
+	><span id="local-6989586621679473806"
+	  ><span id="local-6989586621679473807"
+	    ><span id="local-6989586621679473810"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#termRetentionMap"
+		  ><span class="hs-identifier hs-type"
+		    >termRetentionMap</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-180"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473804"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473805"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		  ><span class="hs-identifier hs-type"
+		    >ToBuiltinMeaning</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473806"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473807"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-181"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinsInfo</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473806"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473807"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-182"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.VarInfo.html#VarsInfo"
+		  ><span class="hs-identifier hs-type"
+		    >VarsInfo</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473804"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473805"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473806"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473810"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-183"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473804"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473805"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473806"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473807"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473810"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-184"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#IntMap"
+		  ><span class="hs-identifier hs-type"
+		    >IntMap</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+		  ><span class="hs-identifier hs-type"
+		    >Size</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span id="termRetentionMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >termRetentionMap :: forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; IntMap Size
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#termRetentionMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termRetentionMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474115"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679474115"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474116"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarsInfo tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474116"
+	  ><span class="hs-identifier hs-var"
+	    >vinfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474117"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474117"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap -&gt; Graph Node -&gt; IntMap Size
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#depsRetentionMap"
+	><span class="hs-identifier hs-var"
+	  >depsRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap
+</span
+	><a href="#local-6989586621679474118"
+	><span class="hs-identifier hs-var"
+	  >sizeInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Graph Node
+</span
+	><a href="#local-6989586621679474119"
+	><span class="hs-identifier hs-var"
+	  >deps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474118"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeInfo :: DirectionRetentionMap
+</span
+	  ><a href="#local-6989586621679474118"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; DirectionRetentionMap
+forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique) =&gt;
+Term tyname name uni fun ann -&gt; DirectionRetentionMap
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#toDirectionRetentionMap"
+	><span class="hs-identifier hs-var"
+	  >toDirectionRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474117"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474119"
+      ><span class="annot"
+	><span class="annottext"
+	  >deps :: Graph Node
+</span
+	  ><a href="#local-6989586621679474119"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >deps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Node -&gt; Bool) -&gt; Graph Node -&gt; Graph Node
+forall a. (a -&gt; Bool) -&gt; Graph a -&gt; Graph a
+</span
+	><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/src/Algebra.Graph.html#induce"
+	><span class="hs-identifier hs-var"
+	  >C.induce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap -&gt; Node -&gt; Bool
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#hasSizeIn"
+	><span class="hs-identifier hs-var"
+	  >hasSizeIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DirectionRetentionMap
+</span
+	><a href="#local-6989586621679474118"
+	><span class="hs-identifier hs-var"
+	  >sizeInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Graph Node -&gt; Graph Node) -&gt; Graph Node -&gt; Graph Node
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Graph Node
+forall g tyname name (uni :: * -&gt; *) fun a.
+(DepGraph g, HasUnique tyname TypeUnique,
+ HasUnique name TermUnique, ToBuiltinMeaning uni fun) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni a -&gt; Term tyname name uni fun a -&gt; g
+</span
+	><a href="PlutusIR.Analysis.Dependencies.html#runTermDeps"
+	><span class="hs-identifier hs-var"
+	  >runTermDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679474115"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname name uni ann
+</span
+	><a href="#local-6989586621679474116"
+	><span class="hs-identifier hs-var"
+	  >vinfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474117"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Apply a function to the annotation of each part of every 'Binding' in a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span id="local-6989586621679473833"
+      ><span id="local-6989586621679473834"
+	><span id="local-6989586621679473835"
+	  ><span id="local-6989586621679473836"
+	    ><span id="local-6989586621679473837"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#reannotateBindings"
+		  ><span class="hs-identifier hs-type"
+		    >reannotateBindings</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-191"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473833"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473834"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-192"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+		  ><span class="hs-identifier hs-type"
+		    >Unique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473835"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473835"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-193"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473834"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473833"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473836"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473837"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473835"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-194"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473834"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473833"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473836"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473837"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473835"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span id="reannotateBindings"
+      ><span class="annot"
+	><span class="annottext"
+	  >reannotateBindings :: forall name tyname ann (uni :: * -&gt; *) fun.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+(Unique -&gt; ann -&gt; ann)
+-&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#reannotateBindings"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reannotateBindings</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474151"
+      ><span class="annot"
+	><span class="annottext"
+	  >Unique -&gt; ann -&gt; ann
+</span
+	  ><a href="#local-6989586621679474151"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+forall {unique} {unique} {tyname} {name} {uni :: * -&gt; *} {fun}.
+(Coercible unique Int, Coercible unique Int,
+ HasUnique tyname unique, HasUnique name unique) =&gt;
+Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474152"
+	><span class="hs-identifier hs-var"
+	  >goTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- We don't need these helper functions anywhere else, so we make them into local definitions.</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474160"
+      ><span class="annot"
+	><span class="annottext"
+	  >goVarDecl :: VarDecl tyname name uni ann -&gt; VarDecl tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474160"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goVarDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-type"
+	  >VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474162"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679474162"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474163"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679474163"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474164"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621679474164"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; name -&gt; Type tyname uni ann -&gt; VarDecl tyname name uni ann
+forall tyname name (uni :: * -&gt; *) ann.
+ann -&gt; name -&gt; Type tyname uni ann -&gt; VarDecl tyname name uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-var"
+	  >VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; ann -&gt; ann
+</span
+	><a href="#local-6989586621679474151"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679474163"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Getting Unique name Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679474162"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679474163"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621679474164"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474172"
+      ><span class="annot"
+	><span class="annottext"
+	  >goTyVarDecl :: TyVarDecl tyname ann -&gt; TyVarDecl tyname ann
+</span
+	  ><a href="#local-6989586621679474172"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goTyVarDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-type"
+	  >TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474174"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679474174"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474175"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621679474175"
+	  ><span class="hs-identifier hs-var"
+	    >tyname</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474176"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621679474176"
+	  ><span class="hs-identifier hs-var"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; tyname -&gt; Kind ann -&gt; TyVarDecl tyname ann
+forall tyname ann.
+ann -&gt; tyname -&gt; Kind ann -&gt; TyVarDecl tyname ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-var"
+	  >TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; ann -&gt; ann
+</span
+	><a href="#local-6989586621679474151"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621679474175"
+	><span class="hs-identifier hs-var"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; Getting Unique tyname Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique tyname Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' tyname Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679474174"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621679474175"
+	><span class="hs-identifier hs-var"
+	  >tyname</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621679474176"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474196"
+      ><span class="annot"
+	><span class="annottext"
+	  >goDatatype :: Datatype tyname name uni ann -&gt; Datatype tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474196"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goDatatype</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Datatype"
+	><span class="hs-identifier hs-type"
+	  >Datatype</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474197"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679474197"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474198"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname ann
+</span
+	  ><a href="#local-6989586621679474198"
+	  ><span class="hs-identifier hs-var"
+	    >dataTyDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474199"
+      ><span class="annot"
+	><span class="annottext"
+	  >[TyVarDecl tyname ann]
+</span
+	  ><a href="#local-6989586621679474199"
+	  ><span class="hs-identifier hs-var"
+	    >paramTyDecls</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474200"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679474200"
+	  ><span class="hs-identifier hs-var"
+	    >matchName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474201"
+      ><span class="annot"
+	><span class="annottext"
+	  >[VarDecl tyname name uni ann]
+</span
+	  ><a href="#local-6989586621679474201"
+	  ><span class="hs-identifier hs-var"
+	    >constrDecls</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; TyVarDecl tyname ann
+-&gt; [TyVarDecl tyname ann]
+-&gt; name
+-&gt; [VarDecl tyname name uni ann]
+-&gt; Datatype tyname name uni ann
+forall tyname name (uni :: * -&gt; *) a.
+a
+-&gt; TyVarDecl tyname a
+-&gt; [TyVarDecl tyname a]
+-&gt; name
+-&gt; [VarDecl tyname name uni a]
+-&gt; Datatype tyname name uni a
+</span
+	><a href="PlutusIR.Core.Type.html#Datatype"
+	><span class="hs-identifier hs-var"
+	  >Datatype</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- We don't have any other suitable place to associate the name of the matcher with an</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- annotation, so we do it here. Fortunately, the matcher is the only thing that</span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- survives erasure, so this even makes some sense.</span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; ann -&gt; ann
+</span
+	><a href="#local-6989586621679474151"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679474200"
+	><span class="hs-identifier hs-var"
+	  >matchName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Getting Unique name Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679474197"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann -&gt; TyVarDecl tyname ann
+forall {unique} {tyname}.
+(Coercible unique Int, HasUnique tyname unique) =&gt;
+TyVarDecl tyname ann -&gt; TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474172"
+	><span class="hs-identifier hs-var"
+	  >goTyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474198"
+	><span class="hs-identifier hs-var"
+	  >dataTyDecl</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann -&gt; TyVarDecl tyname ann
+forall {unique} {tyname}.
+(Coercible unique Int, HasUnique tyname unique) =&gt;
+TyVarDecl tyname ann -&gt; TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474172"
+	><span class="hs-identifier hs-var"
+	  >goTyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TyVarDecl tyname ann -&gt; TyVarDecl tyname ann)
+-&gt; [TyVarDecl tyname ann] -&gt; [TyVarDecl tyname ann]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TyVarDecl tyname ann]
+</span
+	><a href="#local-6989586621679474199"
+	><span class="hs-identifier hs-var"
+	  >paramTyDecls</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679474200"
+	><span class="hs-identifier hs-var"
+	  >matchName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann -&gt; VarDecl tyname name uni ann
+forall {unique} {name} {tyname} {uni :: * -&gt; *}.
+(Coercible unique Int, HasUnique name unique) =&gt;
+VarDecl tyname name uni ann -&gt; VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621679474160"
+	><span class="hs-identifier hs-var"
+	  >goVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(VarDecl tyname name uni ann -&gt; VarDecl tyname name uni ann)
+-&gt; [VarDecl tyname name uni ann] -&gt; [VarDecl tyname name uni ann]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[VarDecl tyname name uni ann]
+</span
+	><a href="#local-6989586621679474201"
+	><span class="hs-identifier hs-var"
+	  >constrDecls</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Note that @goBind@ and @goTerm@ are mutually recursive.</span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474223"
+      ><span class="annot"
+	><span class="annottext"
+	  >goBind :: Binding tyname name uni fun ann -&gt; Binding tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474223"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goBind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-type"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474224"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679474224"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474225"
+      ><span class="annot"
+	><span class="annottext"
+	  >Strictness
+</span
+	  ><a href="#local-6989586621679474225"
+	  ><span class="hs-identifier hs-var"
+	    >str</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474226"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474226"
+	  ><span class="hs-identifier hs-var"
+	    >var</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474227"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474227"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Strictness
+-&gt; VarDecl tyname name uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Binding tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; Strictness
+-&gt; VarDecl tyname name uni a
+-&gt; Term tyname name uni fun a
+-&gt; Binding tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#TermBind"
+	><span class="hs-identifier hs-var"
+	  >TermBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679474224"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="#local-6989586621679474225"
+	><span class="hs-identifier hs-var"
+	  >str</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann -&gt; VarDecl tyname name uni ann
+forall {unique} {name} {tyname} {uni :: * -&gt; *}.
+(Coercible unique Int, HasUnique name unique) =&gt;
+VarDecl tyname name uni ann -&gt; VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621679474160"
+	><span class="hs-identifier hs-var"
+	  >goVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621679474226"
+	><span class="hs-identifier hs-var"
+	  >var</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; Binding tyname name uni fun ann)
+-&gt; Term tyname name uni fun ann -&gt; Binding tyname name uni fun ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474152"
+	><span class="hs-identifier hs-var"
+	  >goTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474227"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679474223"
+	><span class="hs-identifier hs-var"
+	  >goBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#TypeBind"
+	><span class="hs-identifier hs-type"
+	  >TypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474228"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679474228"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474229"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname ann
+</span
+	  ><a href="#local-6989586621679474229"
+	  ><span class="hs-identifier hs-var"
+	    >tyVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474230"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621679474230"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; TyVarDecl tyname ann
+-&gt; Type tyname uni ann
+-&gt; Binding tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; TyVarDecl tyname a
+-&gt; Type tyname uni a
+-&gt; Binding tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#TypeBind"
+	><span class="hs-identifier hs-var"
+	  >TypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679474228"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann -&gt; TyVarDecl tyname ann
+forall {unique} {tyname}.
+(Coercible unique Int, HasUnique tyname unique) =&gt;
+TyVarDecl tyname ann -&gt; TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474172"
+	><span class="hs-identifier hs-var"
+	  >goTyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621679474229"
+	><span class="hs-identifier hs-var"
+	  >tyVar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621679474230"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679474223"
+	><span class="hs-identifier hs-var"
+	  >goBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#DatatypeBind"
+	><span class="hs-identifier hs-type"
+	  >DatatypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474231"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679474231"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474232"
+      ><span class="annot"
+	><span class="annottext"
+	  >Datatype tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474232"
+	  ><span class="hs-identifier hs-var"
+	    >datatype</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Datatype tyname name uni ann -&gt; Binding tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun a.
+a -&gt; Datatype tyname name uni a -&gt; Binding tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#DatatypeBind"
+	><span class="hs-identifier hs-var"
+	  >DatatypeBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679474231"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Datatype tyname name uni ann -&gt; Binding tyname name uni fun ann)
+-&gt; Datatype tyname name uni ann -&gt; Binding tyname name uni fun ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Datatype tyname name uni ann -&gt; Datatype tyname name uni ann
+forall {unique} {unique} {tyname} {name} {uni :: * -&gt; *}.
+(Coercible unique Int, Coercible unique Int,
+ HasUnique tyname unique, HasUnique name unique) =&gt;
+Datatype tyname name uni ann -&gt; Datatype tyname name uni ann
+</span
+	><a href="#local-6989586621679474196"
+	><span class="hs-identifier hs-var"
+	  >goDatatype</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Datatype tyname name uni ann
+</span
+	><a href="#local-6989586621679474232"
+	><span class="hs-identifier hs-var"
+	  >datatype</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474152"
+      ><span class="annot"
+	><span class="annottext"
+	  >goTerm :: Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474152"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >goTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Let"
+	><span class="hs-identifier hs-type"
+	  >Let</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474233"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679474233"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474234"
+      ><span class="annot"
+	><span class="annottext"
+	  >Recursivity
+</span
+	  ><a href="#local-6989586621679474234"
+	  ><span class="hs-identifier hs-var"
+	    >recy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474235"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty (Binding tyname name uni fun ann)
+</span
+	  ><a href="#local-6989586621679474235"
+	  ><span class="hs-identifier hs-var"
+	    >binds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474236"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474236"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Recursivity
+-&gt; NonEmpty (Binding tyname name uni fun ann)
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; Recursivity
+-&gt; NonEmpty (Binding tyname name uni fun a)
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#Let"
+	><span class="hs-identifier hs-var"
+	  >Let</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679474233"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Recursivity
+</span
+	><a href="#local-6989586621679474234"
+	><span class="hs-identifier hs-var"
+	  >recy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Binding tyname name uni fun ann -&gt; Binding tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474223"
+	><span class="hs-identifier hs-var"
+	  >goBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Binding tyname name uni fun ann
+ -&gt; Binding tyname name uni fun ann)
+-&gt; NonEmpty (Binding tyname name uni fun ann)
+-&gt; NonEmpty (Binding tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (Binding tyname name uni fun ann)
+</span
+	><a href="#local-6989586621679474235"
+	><span class="hs-identifier hs-var"
+	  >binds</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474152"
+	><span class="hs-identifier hs-var"
+	  >goTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474236"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679474152"
+	><span class="hs-identifier hs-var"
+	  >goTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474237"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474237"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474237"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; Term tyname name uni fun ann
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Identity (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Identity (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term tyname name uni fun ann
+  -&gt; Identity (Term tyname name uni fun ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Identity (Term tyname name uni fun ann))
+-&gt; (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>%~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474152"
+	><span class="hs-identifier hs-var"
+	  >goTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span class="hs-comment"
+      >-- Ideally we should have a separate step putting uniques into annotations, so that we can reuse it</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span class="hs-comment"
+      >-- both here and for scoping analysis.</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Retained size analysis]</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Annotate each part of every 'Binding' in a term with the size that it retains.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span id="local-6989586621679473896"
+      ><span id="local-6989586621679473897"
+	><span id="local-6989586621679473898"
+	  ><span id="local-6989586621679473899"
+	    ><span id="local-6989586621679473900"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#annotateWithRetainedSize"
+		  ><span class="hs-identifier hs-type"
+		    >annotateWithRetainedSize</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-223"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473896"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473897"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		  ><span class="hs-identifier hs-type"
+		    >ToBuiltinMeaning</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473898"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473899"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-224"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinsInfo</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473898"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473899"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-225"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473897"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473896"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473898"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473899"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473900"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-226"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473897"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473896"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473898"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473899"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.RetainedSize.html#RetainedSize"
+		  ><span class="hs-identifier hs-type"
+		    >RetainedSize</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span class="hs-comment"
+      >-- @reannotateBindings@ only processes annotations &quot;associated with&quot; a unique, so it can't change</span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span class="hs-comment"
+      >-- the type. Therefore we need to set all the bindings to an appropriate type beforehand.</span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span id="annotateWithRetainedSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >annotateWithRetainedSize :: forall name tyname (uni :: * -&gt; *) fun ann.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+BuiltinsInfo uni fun
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun RetainedSize
+</span
+	  ><a href="PlutusIR.Analysis.RetainedSize.html#annotateWithRetainedSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >annotateWithRetainedSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474255"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsInfo uni fun
+</span
+	  ><a href="#local-6989586621679474255"
+	  ><span class="hs-identifier hs-var"
+	    >binfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474256"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621679474256"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; RetainedSize -&gt; RetainedSize)
+-&gt; Term tyname name uni fun RetainedSize
+-&gt; Term tyname name uni fun RetainedSize
+forall name tyname ann (uni :: * -&gt; *) fun.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+(Unique -&gt; ann -&gt; ann)
+-&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#reannotateBindings"
+	><span class="hs-identifier hs-var"
+	  >reannotateBindings</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; RetainedSize -&gt; RetainedSize
+forall {p}. Int -&gt; p -&gt; RetainedSize
+</span
+	><a href="#local-6989586621679474257"
+	><span class="hs-identifier hs-var"
+	  >upd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; RetainedSize -&gt; RetainedSize)
+-&gt; (Unique -&gt; Int) -&gt; Unique -&gt; RetainedSize -&gt; RetainedSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#unUnique"
+	><span class="hs-identifier hs-var"
+	  >unUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun RetainedSize
+ -&gt; Term tyname name uni fun RetainedSize)
+-&gt; Term tyname name uni fun RetainedSize
+-&gt; Term tyname name uni fun RetainedSize
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RetainedSize
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#NotARetainer"
+	><span class="hs-identifier hs-var"
+	  >NotARetainer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RetainedSize
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun RetainedSize
+forall a b.
+a -&gt; Term tyname name uni fun b -&gt; Term tyname name uni fun a
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474256"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474273"
+      ><span class="annot"
+	><span class="annottext"
+	  >retentionMap :: IntMap Size
+</span
+	  ><a href="#local-6989586621679474273"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >retentionMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; IntMap Size
+forall tyname name (uni :: * -&gt; *) fun ann.
+(HasUnique tyname TypeUnique, HasUnique name TermUnique,
+ ToBuiltinMeaning uni fun) =&gt;
+BuiltinsInfo uni fun
+-&gt; VarsInfo tyname name uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; IntMap Size
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#termRetentionMap"
+	><span class="hs-identifier hs-var"
+	  >termRetentionMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo uni fun
+</span
+	><a href="#local-6989586621679474255"
+	><span class="hs-identifier hs-var"
+	  >binfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname name uni ann
+</span
+	><a href="#local-6989586621679474274"
+	><span class="hs-identifier hs-var"
+	  >vinfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474256"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474274"
+      ><span class="annot"
+	><span class="annottext"
+	  >vinfo :: VarsInfo tyname name uni ann
+</span
+	  ><a href="#local-6989586621679474274"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >vinfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; VarsInfo tyname name uni ann
+forall name tyname (uni :: * -&gt; *) fun a.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+Term tyname name uni fun a -&gt; VarsInfo tyname name uni a
+</span
+	><a href="PlutusIR.Analysis.VarInfo.html#termVarInfo"
+	><span class="hs-identifier hs-var"
+	  >termVarInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621679474256"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- If a binding is not in the retention map, then it's still a retainer, just retains zero size.</span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679474257"
+      ><span class="annot"
+	><span class="annottext"
+	  >upd :: Int -&gt; p -&gt; RetainedSize
+</span
+	  ><a href="#local-6989586621679474257"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >upd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679474280"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679474280"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; RetainedSize
+</span
+	><a href="PlutusIR.Analysis.RetainedSize.html#Retains"
+	><span class="hs-identifier hs-var"
+	  >Retains</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Size -&gt; RetainedSize) -&gt; Size -&gt; RetainedSize
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; Int -&gt; IntMap Size -&gt; Size
+forall a. a -&gt; Int -&gt; IntMap a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.Internal.html#findWithDefault"
+	><span class="hs-identifier hs-var"
+	  >IntMap.findWithDefault</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Size
+</span
+	><a href="../../plutus-core/src/PlutusCore.Size.html#Size"
+	><span class="hs-identifier hs-var"
+	  >Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679474280"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap Size
+</span
+	><a href="#local-6989586621679474273"
+	><span class="hs-identifier hs-var"
+	  >retentionMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

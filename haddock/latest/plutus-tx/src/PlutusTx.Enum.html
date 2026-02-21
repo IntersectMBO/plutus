@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Enum</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Enum.Class.html#Enum"
+	><span class="hs-identifier"
+	  >Enum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Enum.TH.html#deriveEnum"
+	><span class="hs-identifier"
+	  >deriveEnum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Enum.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Enum.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Enum.TH.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Enum.TH</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ord</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span id="local-6989586621680051298"
+      ><span id="local-6989586621680051300"
+	><span id="local-6989586621680051302"
+	  ><span id="local-6989586621680051310"
+	    ><span id="local-6989586621680051312"
+	      ><span id="local-6989586621680051316"
+		><span class="hs-identifier"
+		  >deriveEnum</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >''</span
+		  ><span class="hs-identifier"
+		  >Bool</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span id="local-6989586621680051328"
+      ><span id="local-6989586621680051330"
+	><span id="local-6989586621680051332"
+	  ><span id="local-6989586621680051340"
+	    ><span id="local-6989586621680051342"
+	      ><span id="local-6989586621680051346"
+		><span class="hs-identifier"
+		  >deriveEnum</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >''</span
+		  ><span class="hs-identifier"
+		  >Ordering</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span id="local-6989586621680051349"
+      ><span id="local-6989586621680051351"
+	><span id="local-6989586621680051353"
+	  ><span id="local-6989586621680051357"
+	    ><span id="local-6989586621680051359"
+	      ><span id="local-6989586621680051363"
+		><span class="hs-identifier"
+		  >deriveEnum</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >''</span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

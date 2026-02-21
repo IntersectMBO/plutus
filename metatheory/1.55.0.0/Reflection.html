@@ -1,0 +1,187 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Reflection</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Support for reflection</a>
+<a id="132" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="206" class="Symbol">{-#</a> <a id="210" class="Keyword">OPTIONS</a> <a id="218" class="Pragma">--cubical-compatible</a> <a id="239" class="Pragma">--safe</a> <a id="246" class="Symbol">#-}</a>
+
+<a id="251" class="Keyword">module</a> <a id="258" href="Reflection.html" class="Module">Reflection</a> <a id="269" class="Keyword">where</a>
+
+<a id="276" class="Comment">------------------------------------------------------------------------</a>
+<a id="349" class="Comment">-- Re-export contents publicly</a>
+
+<a id="381" class="Keyword">open</a> <a id="386" class="Keyword">import</a> <a id="393" href="Reflection.AST.html" class="Module">Reflection.AST</a> <a id="408" class="Keyword">public</a>
+<a id="415" class="Keyword">open</a> <a id="420" class="Keyword">import</a> <a id="427" href="Reflection.TCM.html" class="Module">Reflection.TCM</a> <a id="442" class="Keyword">public</a>
+<a id="449" class="Keyword">open</a> <a id="454" class="Keyword">import</a> <a id="461" href="Reflection.TCM.Syntax.html" class="Module">Reflection.TCM.Syntax</a> <a id="483" class="Keyword">public</a>
+  <a id="492" class="Keyword">using</a> <a id="498" class="Symbol">(</a><a id="499" href="Reflection.TCM.Syntax.html#623" class="Function Operator">_&gt;&gt;=_</a><a id="504" class="Symbol">;</a> <a id="506" href="Reflection.TCM.Syntax.html#693" class="Function Operator">_&gt;&gt;_</a><a id="510" class="Symbol">)</a>
+
+
+<a id="514" class="Comment">------------------------------------------------------------------------</a>
+<a id="587" class="Comment">-- DEPRECATED NAMES</a>
+<a id="607" class="Comment">------------------------------------------------------------------------</a>
+<a id="680" class="Comment">-- Please use the new names as continuing support for the old names is</a>
+<a id="751" class="Comment">-- not guaranteed.</a>
+
+<a id="771" class="Keyword">import</a> <a id="778" href="Reflection.AST.Abstraction.html" class="Module">Reflection.AST.Abstraction</a> <a id="805" class="Symbol">as</a> <a id="808" class="Module">Abstraction</a>
+<a id="820" class="Keyword">import</a> <a id="827" href="Reflection.AST.Argument.html" class="Module">Reflection.AST.Argument</a> <a id="851" class="Symbol">as</a> <a id="854" class="Module">Argument</a>
+<a id="863" class="Keyword">import</a> <a id="870" href="Reflection.AST.Definition.html" class="Module">Reflection.AST.Definition</a> <a id="896" class="Symbol">as</a> <a id="899" class="Module">Definition</a>
+<a id="910" class="Keyword">import</a> <a id="917" href="Reflection.AST.Meta.html" class="Module">Reflection.AST.Meta</a> <a id="937" class="Symbol">as</a> <a id="940" class="Module">Meta</a>
+<a id="945" class="Keyword">import</a> <a id="952" href="Reflection.AST.Name.html" class="Module">Reflection.AST.Name</a> <a id="972" class="Symbol">as</a> <a id="975" class="Module">Name</a>
+<a id="980" class="Keyword">import</a> <a id="987" href="Reflection.AST.Literal.html" class="Module">Reflection.AST.Literal</a> <a id="1010" class="Symbol">as</a> <a id="1013" class="Module">Literal</a>
+<a id="1021" class="Keyword">import</a> <a id="1028" href="Reflection.AST.Pattern.html" class="Module">Reflection.AST.Pattern</a> <a id="1051" class="Symbol">as</a> <a id="1054" class="Module">Pattern</a>
+<a id="1062" class="Keyword">import</a> <a id="1069" href="Reflection.AST.Term.html" class="Module">Reflection.AST.Term</a> <a id="1089" class="Symbol">as</a> <a id="1092" class="Module">Term</a>
+<a id="1097" class="Keyword">import</a> <a id="1104" href="Reflection.AST.Argument.Modality.html" class="Module">Reflection.AST.Argument.Modality</a> <a id="1137" class="Symbol">as</a> <a id="1140" class="Module">Modality</a>
+<a id="1149" class="Keyword">import</a> <a id="1156" href="Reflection.AST.Argument.Quantity.html" class="Module">Reflection.AST.Argument.Quantity</a> <a id="1189" class="Symbol">as</a> <a id="1192" class="Module">Quantity</a>
+<a id="1201" class="Keyword">import</a> <a id="1208" href="Reflection.AST.Argument.Relevance.html" class="Module">Reflection.AST.Argument.Relevance</a> <a id="1242" class="Symbol">as</a> <a id="1245" class="Module">Relevance</a>
+<a id="1255" class="Keyword">import</a> <a id="1262" href="Reflection.AST.Argument.Visibility.html" class="Module">Reflection.AST.Argument.Visibility</a> <a id="1297" class="Symbol">as</a> <a id="1300" class="Module">Visibility</a>
+<a id="1311" class="Keyword">import</a> <a id="1318" href="Reflection.AST.Argument.Information.html" class="Module">Reflection.AST.Argument.Information</a> <a id="1354" class="Symbol">as</a> <a id="1357" class="Module">Information</a>
+
+<a id="1370" class="Comment">-- Version 1.3</a>
+
+<a id="Arg-info"></a><a id="1386" href="Reflection.html#1386" class="Function">Arg-info</a> <a id="1395" class="Symbol">=</a> <a id="1397" href="Agda.Builtin.Reflection.html#3615" class="Datatype">Information.ArgInfo</a>
+<a id="1417" class="Symbol">{-#</a> <a id="1421" class="Keyword">WARNING_ON_USAGE</a> <a id="1438" class="Pragma">Arg-info</a>
+<a id="1447" class="String">&quot;Warning: Arg-info was deprecated in v1.3.
+Please use Reflection.AST.Argument.Information&#39;s ArgInfo instead.&quot;</a>
+<a id="1557" class="Symbol">#-}</a>
+
+<a id="1562" class="Keyword">infix</a> <a id="1568" class="Number">4</a> <a id="1570" href="Reflection.html#1675" class="Function Operator">_≟-Lit_</a> <a id="1578" href="Reflection.html#1823" class="Function Operator">_≟-Name_</a> <a id="1587" href="Reflection.html#1968" class="Function Operator">_≟-Meta_</a> <a id="1596" href="Reflection.html#2113" class="Function Operator">_≟-Visibility_</a> <a id="1611" href="Reflection.html#2297" class="Function Operator">_≟-Relevance_</a> <a id="1625" href="Reflection.html#2476" class="Function Operator">_≟-Arg-info_</a>
+        <a id="1646" href="Reflection.html#2656" class="Function Operator">_≟-Pattern_</a> <a id="1658" href="Reflection.html#2816" class="Function Operator">_≟-ArgPatterns_</a>
+
+<a id="_≟-Lit_"></a><a id="1675" href="Reflection.html#1675" class="Function Operator">_≟-Lit_</a> <a id="1683" class="Symbol">=</a> <a id="1685" href="Reflection.AST.Literal.html#1746" class="Function Operator">Literal._≟_</a>
+<a id="1697" class="Symbol">{-#</a> <a id="1701" class="Keyword">WARNING_ON_USAGE</a> <a id="1718" class="Pragma">_≟-Lit_</a>
+<a id="1726" class="String">&quot;Warning: _≟-Lit_ was deprecated in v1.3.
+Please use Reflection.AST.Literal&#39;s _≟_ instead.&quot;</a>
+<a id="1818" class="Symbol">#-}</a>
+
+<a id="_≟-Name_"></a><a id="1823" href="Reflection.html#1823" class="Function Operator">_≟-Name_</a> <a id="1832" class="Symbol">=</a> <a id="1834" href="Reflection.AST.Name.html#1747" class="Function Operator">Name._≟_</a>
+<a id="1843" class="Symbol">{-#</a> <a id="1847" class="Keyword">WARNING_ON_USAGE</a> <a id="1864" class="Pragma">_≟-Name_</a>
+<a id="1873" class="String">&quot;Warning: _≟-Name_ was deprecated in v1.3.
+Please use Reflection.AST.Name&#39;s _≟_ instead.&quot;</a>
+<a id="1963" class="Symbol">#-}</a>
+
+<a id="_≟-Meta_"></a><a id="1968" href="Reflection.html#1968" class="Function Operator">_≟-Meta_</a> <a id="1977" class="Symbol">=</a> <a id="1979" href="Reflection.AST.Meta.html#1126" class="Function Operator">Meta._≟_</a>
+<a id="1988" class="Symbol">{-#</a> <a id="1992" class="Keyword">WARNING_ON_USAGE</a> <a id="2009" class="Pragma">_≟-Meta_</a>
+<a id="2018" class="String">&quot;Warning: _≟-Meta_ was deprecated in v1.3.
+Please use Reflection.AST.Meta&#39;s _≟_ instead.&quot;</a>
+<a id="2108" class="Symbol">#-}</a>
+
+<a id="_≟-Visibility_"></a><a id="2113" href="Reflection.html#2113" class="Function Operator">_≟-Visibility_</a> <a id="2128" class="Symbol">=</a> <a id="2130" href="Reflection.AST.Argument.Visibility.html#858" class="Function Operator">Visibility._≟_</a>
+<a id="2145" class="Symbol">{-#</a> <a id="2149" class="Keyword">WARNING_ON_USAGE</a> <a id="2166" class="Pragma">_≟-Visibility_</a>
+<a id="2181" class="String">&quot;Warning: _≟-Visibility_ was deprecated in v1.3.
+Please use Reflection.AST.Argument.Visibility&#39;s _≟_ instead.&quot;</a>
+<a id="2292" class="Symbol">#-}</a>
+
+<a id="_≟-Relevance_"></a><a id="2297" href="Reflection.html#2297" class="Function Operator">_≟-Relevance_</a> <a id="2311" class="Symbol">=</a> <a id="2313" href="Reflection.AST.Argument.Relevance.html#854" class="Function Operator">Relevance._≟_</a>
+<a id="2327" class="Symbol">{-#</a> <a id="2331" class="Keyword">WARNING_ON_USAGE</a> <a id="2348" class="Pragma">_≟-Relevance_</a>
+<a id="2362" class="String">&quot;Warning: _≟-Relevance_ was deprecated in v1.3.
+Please use Reflection.AST.Argument.Relevance&#39;s _≟_ instead.&quot;</a>
+<a id="2471" class="Symbol">#-}</a>
+
+<a id="_≟-Arg-info_"></a><a id="2476" href="Reflection.html#2476" class="Function Operator">_≟-Arg-info_</a> <a id="2489" class="Symbol">=</a> <a id="2491" href="Reflection.AST.Argument.Information.html#1709" class="Function Operator">Information._≟_</a>
+<a id="2507" class="Symbol">{-#</a> <a id="2511" class="Keyword">WARNING_ON_USAGE</a> <a id="2528" class="Pragma">_≟-Arg-info_</a>
+<a id="2541" class="String">&quot;Warning: _≟-Arg-info_ was deprecated in v1.3.
+Please use Reflection.AST.Argument.Information&#39;s _≟_ instead.&quot;</a>
+<a id="2651" class="Symbol">#-}</a>
+
+<a id="_≟-Pattern_"></a><a id="2656" href="Reflection.html#2656" class="Function Operator">_≟-Pattern_</a> <a id="2668" class="Symbol">=</a> <a id="2670" href="Reflection.AST.Term.html#5709" class="Function Operator">Pattern._≟_</a>
+<a id="2682" class="Symbol">{-#</a> <a id="2686" class="Keyword">WARNING_ON_USAGE</a> <a id="2703" class="Pragma">_≟-Pattern_</a>
+<a id="2715" class="String">&quot;Warning: _≟-Pattern_ was deprecated in v1.3.
+Please use Reflection.AST.Pattern&#39;s _≟_ instead.&quot;</a>
+<a id="2811" class="Symbol">#-}</a>
+
+<a id="_≟-ArgPatterns_"></a><a id="2816" href="Reflection.html#2816" class="Function Operator">_≟-ArgPatterns_</a> <a id="2832" class="Symbol">=</a> <a id="2834" href="Reflection.AST.Term.html#5661" class="Function Operator">Pattern._≟s_</a>
+<a id="2847" class="Symbol">{-#</a> <a id="2851" class="Keyword">WARNING_ON_USAGE</a> <a id="2868" class="Pragma">_≟-ArgPatterns_</a>
+<a id="2884" class="String">&quot;Warning: _≟-ArgPatterns_ was deprecated in v1.3.
+Please use Reflection.AST.Pattern&#39;s _≟s_ instead.&quot;</a>
+<a id="2985" class="Symbol">#-}</a>
+
+<a id="map-Abs"></a><a id="2990" href="Reflection.html#2990" class="Function">map-Abs</a> <a id="2998" class="Symbol">=</a> <a id="3000" href="Reflection.AST.Abstraction.html#1167" class="Function">Abstraction.map</a>
+<a id="3016" class="Symbol">{-#</a> <a id="3020" class="Keyword">WARNING_ON_USAGE</a> <a id="3037" class="Pragma">map-Abs</a>
+<a id="3045" class="String">&quot;Warning: map-Abs was deprecated in v1.3.
+Please use Reflection.AST.Abstraction&#39;s map instead.&quot;</a>
+<a id="3141" class="Symbol">#-}</a>
+
+<a id="map-Arg"></a><a id="3146" href="Reflection.html#3146" class="Function">map-Arg</a> <a id="3154" class="Symbol">=</a> <a id="3156" href="Reflection.AST.Argument.html#1935" class="Function">Argument.map</a>
+<a id="3169" class="Symbol">{-#</a> <a id="3173" class="Keyword">WARNING_ON_USAGE</a> <a id="3190" class="Pragma">map-Arg</a>
+<a id="3198" class="String">&quot;Warning: map-Arg was deprecated in v1.3.
+Please use Reflection.AST.Argument&#39;s map instead.&quot;</a>
+<a id="3291" class="Symbol">#-}</a>
+
+<a id="map-Args"></a><a id="3296" href="Reflection.html#3296" class="Function">map-Args</a> <a id="3305" class="Symbol">=</a> <a id="3307" href="Reflection.AST.Argument.html#1996" class="Function">Argument.map-Args</a>
+<a id="3325" class="Symbol">{-#</a> <a id="3329" class="Keyword">WARNING_ON_USAGE</a> <a id="3346" class="Pragma">map-Args</a>
+<a id="3355" class="String">&quot;Warning: map-Args was deprecated in v1.3.
+Please use Reflection.AST.Argument&#39;s map-Args instead.&quot;</a>
+<a id="3454" class="Symbol">#-}</a>
+
+<a id="visibility"></a><a id="3459" href="Reflection.html#3459" class="Function">visibility</a> <a id="3470" class="Symbol">=</a> <a id="3472" href="Reflection.AST.Argument.Information.html#1151" class="Function">Information.visibility</a>
+<a id="3495" class="Symbol">{-#</a> <a id="3499" class="Keyword">WARNING_ON_USAGE</a> <a id="3516" class="Pragma">visibility</a>
+<a id="3527" class="String">&quot;Warning: visibility was deprecated in v1.3.
+Please use Reflection.AST.Argument.Information&#39;s visibility instead.&quot;</a>
+<a id="3642" class="Symbol">#-}</a>
+
+<a id="relevance"></a><a id="3647" href="Reflection.html#3647" class="Function">relevance</a> <a id="3657" class="Symbol">=</a> <a id="3659" href="Reflection.AST.Argument.Modality.html#1136" class="Function">Modality.relevance</a>
+<a id="3678" class="Symbol">{-#</a> <a id="3682" class="Keyword">WARNING_ON_USAGE</a> <a id="3699" class="Pragma">relevance</a>
+<a id="3709" class="String">&quot;Warning: relevance was deprecated in v1.3.
+Please use Reflection.AST.Argument.Modality&#39;s relevance instead.&quot;</a>
+<a id="3819" class="Symbol">#-}</a>
+
+<a id="3824" class="Keyword">infix</a> <a id="3830" class="Number">4</a> <a id="3832" href="Reflection.html#3942" class="Function Operator">_≟-AbsTerm_</a> <a id="3844" href="Reflection.html#4112" class="Function Operator">_≟-AbsType_</a> <a id="3856" href="Reflection.html#4282" class="Function Operator">_≟-ArgTerm_</a> <a id="3868" href="Reflection.html#4452" class="Function Operator">_≟-ArgType_</a> <a id="3880" href="Reflection.html#4622" class="Function Operator">_≟-Args_</a>
+        <a id="3897" href="Reflection.html#4780" class="Function Operator">_≟-Clause_</a> <a id="3908" href="Reflection.html#4946" class="Function Operator">_≟-Clauses_</a> <a id="3920" href="Reflection.html#5116" class="Function Operator">_≟_</a>
+        <a id="3932" href="Reflection.html#5254" class="Function Operator">_≟-Sort_</a>
+
+<a id="_≟-AbsTerm_"></a><a id="3942" href="Reflection.html#3942" class="Function Operator">_≟-AbsTerm_</a> <a id="3954" class="Symbol">=</a> <a id="3956" href="Reflection.AST.Term.html#5283" class="Function Operator">Term._≟-AbsTerm_</a>
+<a id="3973" class="Symbol">{-#</a> <a id="3977" class="Keyword">WARNING_ON_USAGE</a> <a id="3994" class="Pragma">_≟-AbsTerm_</a>
+<a id="4006" class="String">&quot;Warning: _≟-AbsTerm_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-AbsTerm_ instead.&quot;</a>
+<a id="4107" class="Symbol">#-}</a>
+
+<a id="_≟-AbsType_"></a><a id="4112" href="Reflection.html#4112" class="Function Operator">_≟-AbsType_</a> <a id="4124" class="Symbol">=</a> <a id="4126" href="Reflection.AST.Term.html#5327" class="Function Operator">Term._≟-AbsType_</a>
+<a id="4143" class="Symbol">{-#</a> <a id="4147" class="Keyword">WARNING_ON_USAGE</a> <a id="4164" class="Pragma">_≟-AbsType_</a>
+<a id="4176" class="String">&quot;Warning: _≟-AbsType_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-AbsType_ instead.&quot;</a>
+<a id="4277" class="Symbol">#-}</a>
+
+<a id="_≟-ArgTerm_"></a><a id="4282" href="Reflection.html#4282" class="Function Operator">_≟-ArgTerm_</a> <a id="4294" class="Symbol">=</a> <a id="4296" href="Reflection.AST.Term.html#5371" class="Function Operator">Term._≟-ArgTerm_</a>
+<a id="4313" class="Symbol">{-#</a> <a id="4317" class="Keyword">WARNING_ON_USAGE</a> <a id="4334" class="Pragma">_≟-ArgTerm_</a>
+<a id="4346" class="String">&quot;Warning: _≟-ArgTerm_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-ArgTerm_ instead.&quot;</a>
+<a id="4447" class="Symbol">#-}</a>
+
+<a id="_≟-ArgType_"></a><a id="4452" href="Reflection.html#4452" class="Function Operator">_≟-ArgType_</a> <a id="4464" class="Symbol">=</a> <a id="4466" href="Reflection.AST.Term.html#5415" class="Function Operator">Term._≟-ArgType_</a>
+<a id="4483" class="Symbol">{-#</a> <a id="4487" class="Keyword">WARNING_ON_USAGE</a> <a id="4504" class="Pragma">_≟-ArgType_</a>
+<a id="4516" class="String">&quot;Warning: _≟-ArgType_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-ArgType_ instead.&quot;</a>
+<a id="4617" class="Symbol">#-}</a>
+
+<a id="_≟-Args_"></a><a id="4622" href="Reflection.html#4622" class="Function Operator">_≟-Args_</a>    <a id="4634" class="Symbol">=</a> <a id="4636" href="Reflection.AST.Term.html#5459" class="Function Operator">Term._≟-Args_</a>
+<a id="4650" class="Symbol">{-#</a> <a id="4654" class="Keyword">WARNING_ON_USAGE</a> <a id="4671" class="Pragma">_≟-Args_</a>
+<a id="4680" class="String">&quot;Warning: _≟-Args_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-Args_ instead.&quot;</a>
+<a id="4775" class="Symbol">#-}</a>
+
+<a id="_≟-Clause_"></a><a id="4780" href="Reflection.html#4780" class="Function Operator">_≟-Clause_</a>  <a id="4792" class="Symbol">=</a> <a id="4794" href="Reflection.AST.Term.html#5504" class="Function Operator">Term._≟-Clause_</a>
+<a id="4810" class="Symbol">{-#</a> <a id="4814" class="Keyword">WARNING_ON_USAGE</a> <a id="4831" class="Pragma">_≟-Clause_</a>
+<a id="4842" class="String">&quot;Warning: _≟-Clause_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-Clause_ instead.&quot;</a>
+<a id="4941" class="Symbol">#-}</a>
+
+<a id="_≟-Clauses_"></a><a id="4946" href="Reflection.html#4946" class="Function Operator">_≟-Clauses_</a> <a id="4958" class="Symbol">=</a> <a id="4960" href="Reflection.AST.Term.html#5544" class="Function Operator">Term._≟-Clauses_</a>
+<a id="4977" class="Symbol">{-#</a> <a id="4981" class="Keyword">WARNING_ON_USAGE</a> <a id="4998" class="Pragma">_≟-Clauses_</a>
+<a id="5010" class="String">&quot;Warning: _≟-Clauses_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-Clauses_ instead.&quot;</a>
+<a id="5111" class="Symbol">#-}</a>
+
+<a id="_≟_"></a><a id="5116" href="Reflection.html#5116" class="Function Operator">_≟_</a>         <a id="5128" class="Symbol">=</a> <a id="5130" href="Reflection.AST.Term.html#5585" class="Function Operator">Term._≟_</a>
+<a id="5139" class="Symbol">{-#</a> <a id="5143" class="Keyword">WARNING_ON_USAGE</a> <a id="5160" class="Pragma">_≟_</a>
+<a id="5164" class="String">&quot;Warning: _≟_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟_ instead.&quot;</a>
+<a id="5249" class="Symbol">#-}</a>
+
+<a id="_≟-Sort_"></a><a id="5254" href="Reflection.html#5254" class="Function Operator">_≟-Sort_</a>    <a id="5266" class="Symbol">=</a> <a id="5268" href="Reflection.AST.Term.html#5623" class="Function Operator">Term._≟-Sort_</a>
+<a id="5282" class="Symbol">{-#</a> <a id="5286" class="Keyword">WARNING_ON_USAGE</a> <a id="5303" class="Pragma">_≟-Sort_</a>
+<a id="5312" class="String">&quot;Warning: _≟-Sort_ was deprecated in v1.3.
+Please use Reflection.AST.Term&#39;s _≟-Sort_ instead.&quot;</a>
+<a id="5407" class="Symbol">#-}</a>
+</pre></body></html>

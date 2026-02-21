@@ -1,0 +1,3464 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.CostingFun.JSON</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.CostingFun.JSON</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >A separate module for JSON instances, so that we can stick <code
+	    >-O0</code
+	    > on it and avoid spending
+a lot of time optimizing loads of Core whose performance doesn't matter. </p
+	  ></div
+	></div
+      ><div id="interface"
+      ><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:1"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient0</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-44" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient0" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:2"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient00</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-50" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient00" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:3"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient01</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-54" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient01" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:4"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient02</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-60" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient02" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:5"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient1</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-46" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient1" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:5"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:6"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient10</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-52" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient10" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:6"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:7"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient11</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-58" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient11" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:7"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:8"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient12</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-62" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient12" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:8"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:9"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient2</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-48" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient2" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:9"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:10"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient20</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-56" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCoefficient20" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:10"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:11"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ExpModCostingFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-154" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONExpModCostingFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:11"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:12"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Intercept</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-40" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONIntercept" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:12"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:13"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelConstantOrLinear</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-180" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelConstantOrLinear" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:13"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:14"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelConstantOrOneArgument</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-162" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelConstantOrOneArgument" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:14"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:15"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelConstantOrTwoArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-170" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelConstantOrTwoArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:15"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:16"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelFiveArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-97" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelFiveArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:16"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:17"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelFourArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-89" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelFourArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:17"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:18"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelOneArgument</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-65" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelOneArgument" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:18"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:19"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelSixArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-105" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelSixArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:19"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:20"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelSubtractedSizes</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-114" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelSubtractedSizes" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:20"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:21"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelThreeArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-81" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelThreeArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:21"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:22"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelTwoArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-73" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONModelTwoArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:22"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:23"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >OneVariableLinearFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-122" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONOneVariableLinearFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:23"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:24"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >OneVariableQuadraticFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-138" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONOneVariableQuadraticFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:24"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:25"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Slope</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-42" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONSlope" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:25"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:26"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >TwoVariableLinearFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-130" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONTwoVariableLinearFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:26"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:27"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >TwoVariableQuadraticFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-146" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONTwoVariableQuadraticFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:27"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:28"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >TwoVariableWithInteractionFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-188" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONTwoVariableWithInteractionFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:28"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      >]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:29"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient0</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-45" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient0" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:29"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient0" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient0</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:30"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient00</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-51" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient00" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:30"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient00" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient00</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:31"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient01</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-55" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient01" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:31"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient01" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient01</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:32"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient02</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-61" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient02" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:32"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient02" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient02</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:33"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient1</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-47" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient1" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:33"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient1" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient1</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:34"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient10</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-53" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient10" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:34"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient10" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient10</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:35"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient11</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-59" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient11" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:35"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient11" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient11</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:36"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient12</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-63" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient12" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:36"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient12" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient12</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:37"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient2</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-49" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient2" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:37"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient2" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient2</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:38"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Coefficient20</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-57" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCoefficient20" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:38"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Coefficient20" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Coefficient20</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:39"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ExpModCostingFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-158" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONExpModCostingFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:39"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ExpModCostingFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ExpModCostingFunction</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:40"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Intercept</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-41" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONIntercept" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:40"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Intercept" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Intercept</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:41"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelConstantOrLinear</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-184" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelConstantOrLinear" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:41"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrLinear" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrLinear</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:42"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelConstantOrOneArgument</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-166" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelConstantOrOneArgument" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:42"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrOneArgument</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:43"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelConstantOrTwoArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-174" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelConstantOrTwoArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:43"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelConstantOrTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelConstantOrTwoArguments</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:44"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelFiveArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-101" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelFiveArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:44"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFiveArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFiveArguments</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:45"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelFourArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-93" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelFourArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:45"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelFourArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelFourArguments</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:46"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelOneArgument</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-69" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelOneArgument" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:46"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelOneArgument" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelOneArgument</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:47"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelSixArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-109" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelSixArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:47"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSixArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSixArguments</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:48"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelSubtractedSizes</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-118" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelSubtractedSizes" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:48"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelSubtractedSizes" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelSubtractedSizes</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:49"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelThreeArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-85" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelThreeArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:49"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelThreeArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelThreeArguments</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:50"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >ModelTwoArguments</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-77" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONModelTwoArguments" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:50"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:ModelTwoArguments" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >ModelTwoArguments</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:51"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >OneVariableLinearFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-126" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONOneVariableLinearFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:51"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableLinearFunction</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:52"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >OneVariableQuadraticFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-142" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONOneVariableQuadraticFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:52"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:OneVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >OneVariableQuadraticFunction</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:53"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >Slope</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-43" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONSlope" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:53"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Slope" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Slope</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:54"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >TwoVariableLinearFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-134" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONTwoVariableLinearFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:54"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableLinearFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableLinearFunction</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:55"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >TwoVariableQuadraticFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-150" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONTwoVariableQuadraticFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:55"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableQuadraticFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableQuadraticFunction</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:56"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >TwoVariableWithInteractionFunction</a
+		  ></span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-192" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONTwoVariableWithInteractionFunction" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:56"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      > &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      > &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      >] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      >] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:TwoVariableWithInteractionFunction" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >TwoVariableWithInteractionFunction</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:FromJSON:FromJSON:57"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > model &#8658; <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		  >FromJSON</a
+		  > (<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >CostingFun</a
+		  > model)</span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-31" class="link"
+		>Source</a
+		> <a href="#v:-36-fFromJSONCostingFun" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:FromJSON:FromJSON:57"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:parseJSON"
+		      >parseJSON</a
+		      > &#8759; Value &#8594; Parser (<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model)</p
+		    ><p class="src"
+		    ><a href="#v:parseJSONList"
+		      >parseJSONList</a
+		      > &#8759; Value &#8594; Parser [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model]</p
+		    ><p class="src"
+		    ><a href="#v:omittedField"
+		      >omittedField</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		      >Maybe</a
+		      > (<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model)</p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToJSON:ToJSON:58"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > model &#8658; <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		  >ToJSON</a
+		  > (<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		  >CostingFun</a
+		  > model)</span
+		> <a href="src/PlutusCore.Evaluation.Machine.CostingFun.JSON.html#line-35" class="link"
+		>Source</a
+		> <a href="#v:-36-fToJSONCostingFun" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToJSON:ToJSON:58"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toJSON"
+		      >toJSON</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncoding"
+		      >toEncoding</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:toJSONList"
+		      >toJSONList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model] &#8594; Value</p
+		    ><p class="src"
+		    ><a href="#v:toEncodingList"
+		      >toEncodingList</a
+		      > &#8759; [<a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model] &#8594; Encoding</p
+		    ><p class="src"
+		    ><a href="#v:omitField"
+		      >omitField</a
+		      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:CostingFun" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >CostingFun</a
+		      > model &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

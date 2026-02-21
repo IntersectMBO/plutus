@@ -1,0 +1,213 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable
+<span class="lineno">    2 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    3 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module PlutusCore.Crypto.BLS12_381.G1
+<span class="lineno">    7 </span>  ( Element (..)
+<span class="lineno">    8 </span>  , add
+<span class="lineno">    9 </span>  , neg
+<span class="lineno">   10 </span>  , scalarMul
+<span class="lineno">   11 </span>  , hashToGroup
+<span class="lineno">   12 </span>  , compress
+<span class="lineno">   13 </span>  , uncompress
+<span class="lineno">   14 </span>  , offchain_zero
+<span class="lineno">   15 </span>  , compressed_zero
+<span class="lineno">   16 </span>  , compressed_generator
+<span class="lineno">   17 </span>  , memSizeBytes
+<span class="lineno">   18 </span>  , compressedSizeBytes
+<span class="lineno">   19 </span>  , multiScalarMul
+<span class="lineno">   20 </span>  ) where
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
+<span class="lineno">   23 </span>import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>import PlutusCore.Builtin.Result (BuiltinResult (..))
+<span class="lineno">   26 </span>import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
+<span class="lineno">   27 </span>import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error (..))
+<span class="lineno">   28 </span>import PlutusCore.Crypto.Utils (byteStringAsHex)
+<span class="lineno">   29 </span>import PlutusCore.Pretty.PrettyConst (ConstConfig)
+<span class="lineno">   30 </span>import Text.PrettyBy (PrettyBy)
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import Control.DeepSeq
+<span class="lineno">   33 </span>  ( NFData
+<span class="lineno">   34 </span>  , rnf
+<span class="lineno">   35 </span>  , rwhnf
+<span class="lineno">   36 </span>  )
+<span class="lineno">   37 </span>import Data.ByteString
+<span class="lineno">   38 </span>  ( ByteString
+<span class="lineno">   39 </span>  , length
+<span class="lineno">   40 </span>  )
+<span class="lineno">   41 </span>import Data.Coerce (coerce)
+<span class="lineno">   42 </span>import Data.Hashable
+<span class="lineno">   43 </span>import Data.Proxy (Proxy (..))
+<span class="lineno">   44 </span>import PlutusCore.Flat
+<span class="lineno">   45 </span>import Prettyprinter
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>{- Note [Wrapping the BLS12-381 types in Plutus Core].  In the Haskell bindings
+<span class="lineno">   48 </span>to the `blst` library in cardano-crypto-class, points in G1 and G2 are
+<span class="lineno">   49 </span>represented as ForeignPtrs pointing to C objects, with a phantom type
+<span class="lineno">   50 </span>determining which group is involved. We have to wrap these in a newtype here
+<span class="lineno">   51 </span>because otherwise the builtin machinery spots that they're applications and
+<span class="lineno">   52 </span>can't find the relevant type parameters.  In theory I think we could add a
+<span class="lineno">   53 </span>couple of phantom types to the default universe, but it seemed simpler and safer
+<span class="lineno">   54 </span>to use monomorphic types instead, even though it requires a bit of code
+<span class="lineno">   55 </span>duplication between G1 and G2.  Much of the code here has apparently identical
+<span class="lineno">   56 </span>versions in PlutusCore.Crypto.BLS12_381.G2, but the signatures of the functions
+<span class="lineno">   57 </span>in the two versions are invisibly instantiating the cardano-crypto-class
+<span class="lineno">   58 </span>functions at the appropriate phantom types.
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>See also Note [Wrapping the BLS12-381 types in PlutusTx].
+<span class="lineno">   61 </span>-}
+<span class="lineno">   62 </span>newtype Element = Element {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">unElement</span></span></span> :: BlstBindings.Point1}
+<span class="lineno">   63 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>)
+<span class="lineno">   64 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show Element</span></span></span></span> where
+<span class="lineno">   65 </span>  <span class="decl"><span class="istickedoff">show = byteStringAsHex . compress</span></span>
+<span class="lineno">   66 </span>instance <span class="decl"><span class="nottickedoff">Pretty Element</span></span> where
+<span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">pretty = pretty . show</span></span>
+<span class="lineno">   68 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">PrettyBy ConstConfig Element</span></span></span></span>
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>{-| We don't support direct flat encoding of G2 elements because of the expense
+<span class="lineno">   71 </span>   of on-chain uncompression.  Users should convert between G2 elements and
+<span class="lineno">   72 </span>   bytestrings using `compress` and `uncompress`: the bytestrings can be
+<span class="lineno">   73 </span>   flat-encoded in the usual way. -}
+<span class="lineno">   74 </span>instance Flat Element where
+<span class="lineno">   75 </span>  -- This might happen on the chain, so `fail` rather than `error`.
+<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">decode = fail &quot;Flat decoding is not supported for objects of type bls12_381_G1_element: use bls12_381_G1_uncompress on a bytestring instead.&quot;</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>  -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
+<span class="lineno">   79 </span>  -- so it's not too bad.
+<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">encode = error &quot;Flat encoding is not supported for objects of type bls12_381_G1_element: use bls12_381_G1_compress to obtain a bytestring instead.&quot;</span></span>
+<span class="lineno">   81 </span>  <span class="decl"><span class="nottickedoff">size _ = id</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>instance NFData Element where
+<span class="lineno">   84 </span>  <span class="decl"><span class="nottickedoff">rnf (Element x) = rwhnf x</span></span> -- Just to be on the safe side.
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>instance <span class="decl"><span class="nottickedoff">Hashable Element</span></span> where
+<span class="lineno">   87 </span>  <span class="decl"><span class="istickedoff">hashWithSalt salt = hashWithSalt salt . compress</span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>-- | Add two G1 group elements
+<span class="lineno">   90 </span>add :: Element -&gt; Element -&gt; Element
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">add = coerce (BlstBindings.blsAddOrDouble @BlstBindings.Curve1)</span></span>
+<span class="lineno">   92 </span>{-# INLINE add #-}
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>-- | Negate a G1 group element
+<span class="lineno">   95 </span>neg :: Element -&gt; Element
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">neg = coerce (BlstBindings.blsNeg @BlstBindings.Curve1)</span></span>
+<span class="lineno">   97 </span>{-# INLINE neg #-}
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>{-| Multiplication of group elements by scalars. In the blst library the
+<span class="lineno">  100 </span>arguments are the other way round, but scalars acting on the left is more
+<span class="lineno">  101 </span>consistent with standard mathematical practice. -}
+<span class="lineno">  102 </span>scalarMul :: Integer -&gt; Element -&gt; Element
+<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">scalarMul = coerce $ flip (BlstBindings.blsMult @BlstBindings.Curve1)</span></span>
+<span class="lineno">  104 </span>{-# INLINE scalarMul #-}
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>{-| Compress a G1 element to a bytestring. This serialises a curve point to its
+<span class="lineno">  107 </span> x coordinate only.  The compressed bytestring is 48 bytes long, with three
+<span class="lineno">  108 </span> spare bits used to convey extra information about the point, including
+<span class="lineno">  109 </span> determining which of two possible y coordinates the point has and whether the
+<span class="lineno">  110 </span> point is the point at infinity. See
+<span class="lineno">  111 </span> https://github.com/supranational/blst#serialization-format -}
+<span class="lineno">  112 </span>compress :: Element -&gt; ByteString
+<span class="lineno">  113 </span><span class="decl"><span class="istickedoff">compress = coerce (BlstBindings.blsCompress @BlstBindings.Curve1)</span></span>
+<span class="lineno">  114 </span>{-# INLINE compress #-}
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>{-| Uncompress a bytestring to get a G1 point.  This will fail if any of the
+<span class="lineno">  117 </span>   following are true.
+<span class="lineno">  118 </span>     * The bytestring is not exactly 48 bytes long.
+<span class="lineno">  119 </span>     * The most significant three bits are used incorrectly.
+<span class="lineno">  120 </span>     * The bytestring encodes a field element which is not the
+<span class="lineno">  121 </span>       x coordinate of a point on the E1 curve.
+<span class="lineno">  122 </span>     * The bytestring does represent a point on the E1 curve, but the
+<span class="lineno">  123 </span>       point is not in the G1 subgroup. -}
+<span class="lineno">  124 </span>uncompress :: ByteString -&gt; Either BlstBindings.BLSTError Element
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff">uncompress = coerce (BlstBindings.blsUncompress @BlstBindings.Curve1)</span></span>
+<span class="lineno">  126 </span>{-# INLINE uncompress #-}
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>{-  Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
+<span class="lineno">  129 </span>   bytestring and hash it to obtain an element in the relevant group, as
+<span class="lineno">  130 </span>   described in
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>   https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve.
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>   In addition to the input bytestring (the &quot;message&quot;), the hashing function
+<span class="lineno">  135 </span>   also takes another (possibly empty) bytestring argument, a &quot;Domain Separation
+<span class="lineno">  136 </span>   Tag&quot; (DST), which is incorporated in the hashing process; the intention is
+<span class="lineno">  137 </span>   that for security purposes different protocols should use different DSTs to
+<span class="lineno">  138 </span>   ensure that hashes are unique to the protocol in use: see Section 2.2.5 of
+<span class="lineno">  139 </span>   the above specification.  In principle, arbitrary-length DSTs can be used,
+<span class="lineno">  140 </span>   but we only allow DSTs of up to 255 bytes, failing if a larger DST is
+<span class="lineno">  141 </span>   supplied.  If a larger DST is required, it should be hashed beforehand to
+<span class="lineno">  142 </span>   obtain a hash of accpetable size, as described in Section 5.3.3 of the
+<span class="lineno">  143 </span>   specification.
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>   The hashing functions in the blst library allow a third argument as well (an
+<span class="lineno">  146 </span>   &quot;augmentation string&quot;).  We don't support this functionality directly because
+<span class="lineno">  147 </span>   precisely the same effect can be achieved by prepending the augmentation
+<span class="lineno">  148 </span>   string to the message.
+<span class="lineno">  149 </span>-}
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>{-| Take an arbitrary bytestring and a Domain Separation Tag (DST) and hash
+<span class="lineno">  152 </span>them to a get point in G1. -}
+<span class="lineno">  153 </span>hashToGroup :: ByteString -&gt; ByteString -&gt; Either BLS12_381_Error Element
+<span class="lineno">  154 </span><span class="decl"><span class="istickedoff">hashToGroup msg dst =</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="istickedoff">if Data.ByteString.length dst &gt; 255</span>
+<span class="lineno">  156 </span><span class="spaces">    </span><span class="istickedoff">then Left <span class="nottickedoff">HashToCurveDstTooBig</span></span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="istickedoff">else Right . Element $ BlstBindings.blsHash @BlstBindings.Curve1 msg (Just dst) Nothing</span></span>
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>{-| The zero element of G1.  This cannot be flat-serialised and is provided
+<span class="lineno">  160 </span>only for off-chain testing. -}
+<span class="lineno">  161 </span>offchain_zero :: Element
+<span class="lineno">  162 </span><span class="decl"><span class="istickedoff">offchain_zero = coerce (BlstBindings.Internal.blsZero @BlstBindings.Curve1)</span></span>
+<span class="lineno">  163 </span>
+<span class="lineno">  164 </span>{-| The zero element of G1 compressed into a bytestring.  This is provided for
+<span class="lineno">  165 </span>convenience in PlutusTx and is not exported as a builtin. -}
+<span class="lineno">  166 </span>compressed_zero :: ByteString
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">compressed_zero = compress $ coerce (BlstBindings.Internal.blsZero @BlstBindings.Curve1)</span></span>
+<span class="lineno">  168 </span>{-# INLINEABLE compressed_zero #-}
+<span class="lineno">  169 </span>
+<span class="lineno">  170 </span>{-| The standard generator of G1 compressed into a bytestring.  This is
+<span class="lineno">  171 </span>provided for convenience in PlutusTx and is not exported as a builtin. -}
+<span class="lineno">  172 </span>compressed_generator :: ByteString
+<span class="lineno">  173 </span><span class="decl"><span class="istickedoff">compressed_generator = compress $ coerce (BlstBindings.Internal.blsGenerator @BlstBindings.Curve1)</span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>-- Utilities (not exposed as builtins)
+<span class="lineno">  176 </span>
+<span class="lineno">  177 </span>-- | Memory usage of a G1 point (144 bytes)
+<span class="lineno">  178 </span>memSizeBytes :: Int
+<span class="lineno">  179 </span><span class="decl"><span class="istickedoff">memSizeBytes = BlstBindings.Internal.sizePoint <span class="nottickedoff">(Proxy @BlstBindings.Curve1)</span></span></span>
+<span class="lineno">  180 </span>
+<span class="lineno">  181 </span>-- | Compressed size of a G1 point (48 bytes)
+<span class="lineno">  182 </span>compressedSizeBytes :: Int
+<span class="lineno">  183 </span><span class="decl"><span class="nottickedoff">compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve1)</span></span>
+<span class="lineno">  184 </span>
+<span class="lineno">  185 </span>{-| Multi-scalar multiplication of G1 points.  We limit the allowable size of
+<span class="lineno">  186 </span>scalars to simplify costing. -}
+<span class="lineno">  187 </span>multiScalarMul :: [Integer] -&gt; [Element] -&gt; BuiltinResult Element
+<span class="lineno">  188 </span><span class="decl"><span class="istickedoff">multiScalarMul ss p</span>
+<span class="lineno">  189 </span><span class="spaces">  </span><span class="istickedoff">| any msmScalarOutOfBounds ss = fail <span class="nottickedoff">&quot;Scalar exceeds 512-byte bound for G1.multiScalarMul&quot;</span></span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = pure . coerce $ BlstBindings.blsMSM @BlstBindings.Curve1 (zip ss (coerce p))</span></span>
+
+</pre>
+</body>
+</html>

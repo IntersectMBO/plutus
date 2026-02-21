@@ -1,0 +1,533 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BlockArguments #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Transform.RewriteRules.RemoveTrace</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.RemoveTrace.html#rewriteRuleRemoveTrace"
+	><span class="hs-identifier"
+	  >rewriteRuleRemoveTrace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Builtin</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.RewriteRules.Common</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html#A"
+	><span class="hs-identifier"
+	  >A</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html#B"
+	><span class="hs-identifier"
+	  >B</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html#I"
+	><span class="hs-identifier"
+	  >I</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.RewriteRules.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Impure trace messages]
+
+Removing of traces could change behavior of those programs that use impure trace messages
+e.g. `trace (error ()) foo`.
+
+While it is possible to force evaluation of a trace message when removing a trace call
+for the sake of a behavior preservation, this has a downside that pure messages remain
+in the program and are not elimitated as a &quot;dead&quot; code.
+
+This downside would defeat the purpose of removing traces, so we decided to not force.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="local-6989586621679479014"
+      ><span class="annot"
+	><a href="PlutusIR.Transform.RewriteRules.RemoveTrace.html#rewriteRuleRemoveTrace"
+	  ><span class="hs-identifier hs-type"
+	    >rewriteRuleRemoveTrace</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	  ><span class="hs-identifier hs-type"
+	    >RewriteRules</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679479014"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultFun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="rewriteRuleRemoveTrace"
+      ><span class="annot"
+	><span class="annottext"
+	  >rewriteRuleRemoveTrace :: forall (uni :: * -&gt; *). RewriteRules uni DefaultFun
+</span
+	  ><a href="PlutusIR.Transform.RewriteRules.RemoveTrace.html#rewriteRuleRemoveTrace"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >rewriteRuleRemoveTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name uni a
+ -&gt; Term tyname Name uni DefaultFun a
+ -&gt; m (Term tyname Name uni DefaultFun a))
+-&gt; RewriteRules uni DefaultFun
+forall (uni :: * -&gt; *) fun.
+(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name uni a
+ -&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; RewriteRules uni fun
+</span
+	><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-var"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679479048"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarsInfo tyname Name uni a
+</span
+	  ><a href="#local-6989586621679479048"
+	  ><span class="hs-identifier hs-var"
+	    >_varsInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html#B"
+	><span class="hs-identifier hs-type"
+	  >B</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Trace"
+	><span class="hs-identifier hs-var"
+	  >Builtin.Trace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html#I"
+	><span class="hs-operator hs-type"
+	  >`I`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479050"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni a
+</span
+	  ><a href="#local-6989586621679479050"
+	  ><span class="hs-identifier hs-var"
+	    >_argTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html#A"
+	><span class="hs-operator hs-type"
+	  >`A`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479051"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname Name uni DefaultFun a
+</span
+	  ><a href="#local-6989586621679479051"
+	  ><span class="hs-identifier hs-var"
+	    >_msg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Common.html#A"
+	><span class="hs-operator hs-type"
+	  >`A`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479052"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname Name uni DefaultFun a
+</span
+	  ><a href="#local-6989586621679479052"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname Name uni DefaultFun a
+-&gt; m (Term tyname Name uni DefaultFun a)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname Name uni DefaultFun a
+</span
+	><a href="#local-6989586621679479052"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679479053"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname Name uni DefaultFun a
+</span
+	  ><a href="#local-6989586621679479053"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname Name uni DefaultFun a
+-&gt; m (Term tyname Name uni DefaultFun a)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname Name uni DefaultFun a
+</span
+	><a href="#local-6989586621679479053"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,1646 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TupleSections #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Test.Common.EvaluationContext</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCostModel"
+	><span class="hs-identifier"
+	  >MCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCekMachineCosts"
+	><span class="hs-identifier"
+	  >MCekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MBuiltinCostModel"
+	><span class="hs-identifier"
+	  >MBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#toMCostModel"
+	><span class="hs-identifier"
+	  >toMCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#extractCostModelParamsLedgerOrder"
+	><span class="hs-identifier"
+	  >extractCostModelParamsLedgerOrder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.BuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostModelInterface</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.MachineParameters</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Common</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Barbies</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html"
+	><span class="hs-identifier"
+	  >Data.Functor.Identity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Int.html"
+	><span class="hs-identifier"
+	  >Data.Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- A lifted cost model to `Maybe`, so we can easily clear some of its fields when extracting JSON.</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="MCostModel"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCostModel"
+	  ><span class="hs-identifier hs-var"
+	    >MCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	><span class="hs-identifier hs-type"
+	  >CostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCekMachineCosts"
+	><span class="hs-identifier hs-type"
+	  >MCekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MBuiltinCostModel"
+	><span class="hs-identifier hs-type"
+	  >MBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="MCekMachineCosts"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCekMachineCosts"
+	  ><span class="hs-identifier hs-var"
+	    >MCekMachineCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCostsBase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="MBuiltinCostModel"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MBuiltinCostModel"
+	  ><span class="hs-identifier hs-var"
+	    >MBuiltinCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModelBase"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostModelBase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#MCostingFun"
+	><span class="hs-identifier hs-type"
+	  >MCostingFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A helper function to lift to a &quot;full&quot; `MCostModel`, by mapping *all* of its fields to `Just`.
+The fields can be later on cleared, by assigning them to `Nothing`. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#toMCostModel"
+	><span class="hs-identifier hs-type"
+	  >toMCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	><span class="hs-identifier hs-type"
+	  >CostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#BuiltinCostModel"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCostModel"
+	><span class="hs-identifier hs-type"
+	  >MCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="toMCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >toMCostModel :: CostModel CekMachineCosts BuiltinCostModel -&gt; MCostModel
+</span
+	  ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#toMCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toMCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679227164"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModel CekMachineCosts BuiltinCostModel
+</span
+	  ><a href="#local-6989586621679227164"
+	  ><span class="hs-identifier hs-var"
+	    >cm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel CekMachineCosts BuiltinCostModel
+</span
+	><a href="#local-6989586621679227164"
+	><span class="hs-identifier hs-var"
+	  >cm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel CekMachineCosts BuiltinCostModel
+-&gt; (CostModel CekMachineCosts BuiltinCostModel
+    -&gt; CostModel (CekMachineCostsBase Maybe) BuiltinCostModel)
+-&gt; CostModel (CekMachineCostsBase Maybe) BuiltinCostModel
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekMachineCosts -&gt; Identity (CekMachineCostsBase Maybe))
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+-&gt; Identity
+     (CostModel (CekMachineCostsBase Maybe) BuiltinCostModel)
+forall machinecosts1 builtincosts machinecosts2 (f :: * -&gt; *).
+Functor f =&gt;
+(machinecosts1 -&gt; f machinecosts2)
+-&gt; CostModel machinecosts1 builtincosts
+-&gt; f (CostModel machinecosts2 builtincosts)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#machineCostModel"
+	><span class="hs-identifier hs-var"
+	  >machineCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CekMachineCosts -&gt; Identity (CekMachineCostsBase Maybe))
+ -&gt; CostModel CekMachineCosts BuiltinCostModel
+ -&gt; Identity
+      (CostModel (CekMachineCostsBase Maybe) BuiltinCostModel))
+-&gt; (CekMachineCosts -&gt; CekMachineCostsBase Maybe)
+-&gt; CostModel CekMachineCosts BuiltinCostModel
+-&gt; CostModel (CekMachineCostsBase Maybe) BuiltinCostModel
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>%~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall a. Identity a -&gt; Maybe a)
+-&gt; CekMachineCosts -&gt; CekMachineCostsBase Maybe
+forall k (b :: (k -&gt; *) -&gt; *) (f :: k -&gt; *) (g :: k -&gt; *).
+FunctorB b =&gt;
+(forall (a :: k). f a -&gt; g a) -&gt; b f -&gt; b g
+forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; CekMachineCostsBase f -&gt; CekMachineCostsBase g
+</span
+	><span class="hs-identifier hs-var"
+	>bmap</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Maybe a
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; Maybe a) -&gt; (Identity a -&gt; a) -&gt; Identity a -&gt; Maybe a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity a -&gt; a
+forall a. Identity a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#runIdentity"
+	><span class="hs-identifier hs-var"
+	  >runIdentity</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel (CekMachineCostsBase Maybe) BuiltinCostModel
+-&gt; (CostModel (CekMachineCostsBase Maybe) BuiltinCostModel
+    -&gt; MCostModel)
+-&gt; MCostModel
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinCostModel -&gt; Identity MBuiltinCostModel)
+-&gt; CostModel (CekMachineCostsBase Maybe) BuiltinCostModel
+-&gt; Identity MCostModel
+forall machinecosts builtincosts1 builtincosts2 (f :: * -&gt; *).
+Functor f =&gt;
+(builtincosts1 -&gt; f builtincosts2)
+-&gt; CostModel machinecosts builtincosts1
+-&gt; f (CostModel machinecosts builtincosts2)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#builtinCostModel"
+	><span class="hs-identifier hs-var"
+	  >builtinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((BuiltinCostModel -&gt; Identity MBuiltinCostModel)
+ -&gt; CostModel (CekMachineCostsBase Maybe) BuiltinCostModel
+ -&gt; Identity MCostModel)
+-&gt; (BuiltinCostModel -&gt; MBuiltinCostModel)
+-&gt; CostModel (CekMachineCostsBase Maybe) BuiltinCostModel
+-&gt; MCostModel
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>%~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall a. CostingFun a -&gt; MCostingFun a)
+-&gt; BuiltinCostModel -&gt; MBuiltinCostModel
+forall k (b :: (k -&gt; *) -&gt; *) (f :: k -&gt; *) (g :: k -&gt; *).
+FunctorB b =&gt;
+(forall (a :: k). f a -&gt; g a) -&gt; b f -&gt; b g
+forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; BuiltinCostModelBase f -&gt; BuiltinCostModelBase g
+</span
+	><span class="hs-identifier hs-var"
+	>bmap</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (CostingFun a) -&gt; MCostingFun a
+forall a. Maybe (CostingFun a) -&gt; MCostingFun a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.BuiltinCostModel.html#MCostingFun"
+	><span class="hs-identifier hs-var"
+	  >MCostingFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe (CostingFun a) -&gt; MCostingFun a)
+-&gt; (CostingFun a -&gt; Maybe (CostingFun a))
+-&gt; CostingFun a
+-&gt; MCostingFun a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingFun a -&gt; Maybe (CostingFun a)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A variant of `extractCostModelParams` to make a mapping of params not in alphabetical order,
+but in the `ParamName` order, i.e. the order expected by the ledger.
+
+Here, overconstrained to `MCostModel`, but it could also work with `CostModel mcosts bcosts`. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="local-6989586621679227105"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#extractCostModelParamsLedgerOrder"
+	  ><span class="hs-identifier hs-type"
+	    >extractCostModelParamsLedgerOrder</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-49"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.ParamName.html#IsParamName"
+	  ><span class="hs-identifier hs-type"
+	    >Common.IsParamName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679227105"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+	  ><span class="hs-identifier hs-type"
+	    >Ord</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679227105"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-50"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#MCostModel"
+	  ><span class="hs-identifier hs-type"
+	    >MCostModel</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-51"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	  ><span class="hs-identifier hs-type"
+	    >Maybe</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	  ><span class="hs-identifier hs-type"
+	    >Map.Map</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679227105"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	  ><span class="hs-identifier hs-type"
+	    >Int64</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="extractCostModelParamsLedgerOrder"
+      ><span class="annot"
+	><span class="annottext"
+	  >extractCostModelParamsLedgerOrder :: forall p.
+(IsParamName p, Ord p) =&gt;
+MCostModel -&gt; Maybe (Map p Int64)
+</span
+	  ><a href="PlutusLedgerApi.Test.Common.EvaluationContext.html#extractCostModelParamsLedgerOrder"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >extractCostModelParamsLedgerOrder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MCostModel -&gt; Maybe CostModelParams
+</span
+	><a href="#local-6989586621679227184"
+	><span class="hs-identifier hs-var"
+	  >extractInAlphaOrder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(MCostModel -&gt; Maybe CostModelParams)
+-&gt; (CostModelParams -&gt; Maybe (Map p Int64))
+-&gt; MCostModel
+-&gt; Maybe (Map p Int64)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams -&gt; Maybe (Map p Int64)
+forall {a}. Map Text a -&gt; Maybe (Map p a)
+</span
+	><a href="#local-6989586621679227186"
+	><span class="hs-identifier hs-var"
+	  >toLedgerOrder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679227184"
+      ><span class="annot"
+	><span class="annottext"
+	  >extractInAlphaOrder :: MCostModel -&gt; Maybe CostModelParams
+</span
+	  ><a href="#local-6989586621679227184"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >extractInAlphaOrder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MCostModel -&gt; Maybe CostModelParams
+forall machinecosts builtincosts.
+(ToJSON machinecosts, ToJSON builtincosts) =&gt;
+CostModel machinecosts builtincosts -&gt; Maybe CostModelParams
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#extractCostModelParams"
+	><span class="hs-identifier hs-var"
+	  >extractCostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679227186"
+      ><span class="annot"
+	><span class="annottext"
+	  >toLedgerOrder :: Map Text a -&gt; Maybe (Map p a)
+</span
+	  ><a href="#local-6989586621679227186"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toLedgerOrder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Maybe p) -&gt; Map Text a -&gt; Maybe (Map p a)
+forall (m :: * -&gt; *) k2 k1 a.
+(Monad m, Ord k2) =&gt;
+(k1 -&gt; m k2) -&gt; Map k1 a -&gt; m (Map k2 a)
+</span
+	><a href="#local-6989586621679227197"
+	><span class="hs-identifier hs-var"
+	  >mapKeysM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Maybe p
+forall a. IsParamName a =&gt; Text -&gt; Maybe a
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Common.ParamName.html#readParamName"
+	><span class="hs-identifier hs-var"
+	  >readParamName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679227121"
+      ><span id="local-6989586621679227122"
+	><span id="local-6989586621679227123"
+	  ><span id="local-6989586621679227124"
+	    ><span class="annot"
+	      ><a href="#local-6989586621679227197"
+		><span class="hs-identifier hs-type"
+		  >mapKeysM</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		><span class="hs-identifier hs-type"
+		  >Monad</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227121"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		><span class="hs-identifier hs-type"
+		  >Ord</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227122"
+		><span class="hs-identifier hs-type"
+		  >k2</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227123"
+		><span class="hs-identifier hs-type"
+		  >k1</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227121"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227122"
+		><span class="hs-identifier hs-type"
+		  >k2</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+		><span class="hs-identifier hs-type"
+		  >Map.Map</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227123"
+		><span class="hs-identifier hs-type"
+		  >k1</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227124"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227121"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+		><span class="hs-identifier hs-type"
+		  >Map.Map</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227122"
+		><span class="hs-identifier hs-type"
+		  >k2</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679227124"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679227197"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapKeysM :: forall (m :: * -&gt; *) k2 k1 a.
+(Monad m, Ord k2) =&gt;
+(k1 -&gt; m k2) -&gt; Map k1 a -&gt; m (Map k2 a)
+</span
+	  ><a href="#local-6989586621679227197"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapKeysM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(k1, a)] -&gt; m [(k2, a)]) -&gt; Map k1 a -&gt; m (Map k2 a)
+forall {f :: * -&gt; *} {k} {k} {a} {a}.
+(Functor f, Ord k) =&gt;
+([(k, a)] -&gt; f [(k, a)]) -&gt; Map k a -&gt; f (Map k a)
+</span
+	><a href="#local-6989586621679227211"
+	><span class="hs-identifier hs-var"
+	  >viaListM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(([(k1, a)] -&gt; m [(k2, a)]) -&gt; Map k1 a -&gt; m (Map k2 a))
+-&gt; ((k1 -&gt; m k2) -&gt; [(k1, a)] -&gt; m [(k2, a)])
+-&gt; (k1 -&gt; m k2)
+-&gt; Map k1 a
+-&gt; m (Map k2 a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((k1, a) -&gt; m (k2, a)) -&gt; [(k1, a)] -&gt; m [(k2, a)]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m (t b)
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; [a] -&gt; m [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#mapM"
+	><span class="hs-identifier hs-var"
+	  >mapM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((k1, a) -&gt; m (k2, a)) -&gt; [(k1, a)] -&gt; m [(k2, a)])
+-&gt; ((k1 -&gt; m k2) -&gt; (k1, a) -&gt; m (k2, a))
+-&gt; (k1 -&gt; m k2)
+-&gt; [(k1, a)]
+-&gt; m [(k2, a)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(k1 -&gt; m k2) -&gt; (k1, a) -&gt; m (k2, a)
+forall {f :: * -&gt; *} {t} {a} {t}.
+Functor f =&gt;
+(t -&gt; f a) -&gt; (t, t) -&gt; f (a, t)
+</span
+	><a href="#local-6989586621679227213"
+	><span class="hs-identifier hs-var"
+	  >firstM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679227211"
+      ><span class="annot"
+	><span class="annottext"
+	  >viaListM :: ([(k, a)] -&gt; f [(k, a)]) -&gt; Map k a -&gt; f (Map k a)
+</span
+	  ><a href="#local-6989586621679227211"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >viaListM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679227220"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(k, a)] -&gt; f [(k, a)]
+</span
+	  ><a href="#local-6989586621679227220"
+	  ><span class="hs-identifier hs-var"
+	    >op</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(k, a)] -&gt; Map k a) -&gt; f [(k, a)] -&gt; f (Map k a)
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(k, a)] -&gt; Map k a
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(f [(k, a)] -&gt; f (Map k a))
+-&gt; (Map k a -&gt; f [(k, a)]) -&gt; Map k a -&gt; f (Map k a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(k, a)] -&gt; f [(k, a)]
+</span
+	><a href="#local-6989586621679227220"
+	><span class="hs-identifier hs-var"
+	  >op</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(k, a)] -&gt; f [(k, a)])
+-&gt; (Map k a -&gt; [(k, a)]) -&gt; Map k a -&gt; f [(k, a)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map k a -&gt; [(k, a)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679227213"
+      ><span class="annot"
+	><span class="annottext"
+	  >firstM :: (t -&gt; f a) -&gt; (t, t) -&gt; f (a, t)
+</span
+	  ><a href="#local-6989586621679227213"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >firstM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679227225"
+      ><span class="annot"
+	><span class="annottext"
+	  >t -&gt; f a
+</span
+	  ><a href="#local-6989586621679227225"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679227226"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679227226"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679227227"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679227227"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >,</span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679227227"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; (a, t)) -&gt; f a -&gt; f (a, t)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t -&gt; f a
+</span
+	><a href="#local-6989586621679227225"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679227226"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

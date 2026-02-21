@@ -1,0 +1,4335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Examples.Builtins</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Examples.Builtins.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Examples.Builtins</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:size"
+	      >size</a
+	      > &#8759; &#8704; a. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > a) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ExtensionFun"
+	      >ExtensionFun</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Factorial"
+		  >Factorial</a
+		  ></li
+		><li
+		>| <a href="#v:ForallFortyTwo"
+		  >ForallFortyTwo</a
+		  ></li
+		><li
+		>| <a href="#v:SumInteger"
+		  >SumInteger</a
+		  ></li
+		><li
+		>| <a href="#v:Const"
+		  >Const</a
+		  ></li
+		><li
+		>| <a href="#v:Id"
+		  >Id</a
+		  ></li
+		><li
+		>| <a href="#v:IdAssumeBool"
+		  >IdAssumeBool</a
+		  ></li
+		><li
+		>| <a href="#v:IdAssumeCheckBool"
+		  >IdAssumeCheckBool</a
+		  ></li
+		><li
+		>| <a href="#v:IdSomeConstantBool"
+		  >IdSomeConstantBool</a
+		  ></li
+		><li
+		>| <a href="#v:IdIntegerAsBool"
+		  >IdIntegerAsBool</a
+		  ></li
+		><li
+		>| <a href="#v:IdFInteger"
+		  >IdFInteger</a
+		  ></li
+		><li
+		>| <a href="#v:IdList"
+		  >IdList</a
+		  ></li
+		><li
+		>| <a href="#v:IdRank2"
+		  >IdRank2</a
+		  ></li
+		><li
+		>| <a href="#v:ScottToMetaUnit"
+		  >ScottToMetaUnit</a
+		  ></li
+		><li
+		>| <a href="#v:FailingSucc"
+		  >FailingSucc</a
+		  ></li
+		><li
+		>| <a href="#v:ExpensiveSucc"
+		  >ExpensiveSucc</a
+		  ></li
+		><li
+		>| <a href="#v:FailingPlus"
+		  >FailingPlus</a
+		  ></li
+		><li
+		>| <a href="#v:ExpensivePlus"
+		  >ExpensivePlus</a
+		  ></li
+		><li
+		>| <a href="#v:IsConstant"
+		  >IsConstant</a
+		  ></li
+		><li
+		>| <a href="#v:UnsafeCoerce"
+		  >UnsafeCoerce</a
+		  ></li
+		><li
+		>| <a href="#v:UnsafeCoerceEl"
+		  >UnsafeCoerceEl</a
+		  ></li
+		><li
+		>| <a href="#v:Undefined"
+		  >Undefined</a
+		  ></li
+		><li
+		>| <a href="#v:Absurd"
+		  >Absurd</a
+		  ></li
+		><li
+		>| <a href="#v:ErrorPrime"
+		  >ErrorPrime</a
+		  ></li
+		><li
+		>| <a href="#v:Comma"
+		  >Comma</a
+		  ></li
+		><li
+		>| <a href="#v:BiconstPair"
+		  >BiconstPair</a
+		  ></li
+		><li
+		>| <a href="#v:Swap"
+		  >Swap</a
+		  ></li
+		><li
+		>| <a href="#v:SwapEls"
+		  >SwapEls</a
+		  ></li
+		><li
+		>| <a href="#v:ExtensionVersion"
+		  >ExtensionVersion</a
+		  ></li
+		><li
+		>| <a href="#v:TrackCosts"
+		  >TrackCosts</a
+		  ></li
+		><li
+		>| <a href="#v:IntNoIntegerNoWord"
+		  >IntNoIntegerNoWord</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:MetaForall"
+	      >MetaForall</a
+	      > name a = <a href="#v:MetaForall"
+	      >MetaForall</a
+	      > a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PlcListRep"
+	      >PlcListRep</a
+	      > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinErrorCall"
+	      >BuiltinErrorCall</a
+	      > = <a href="#v:BuiltinErrorCall"
+	      >BuiltinErrorCall</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Whatever"
+	      >Whatever</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:whatever"
+		  >whatever</a
+		  > &#8759; a</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:size" class="def"
+	    >size</a
+	    > &#8759; &#8704; a. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Examples.Builtins.html#size" class="link"
+	    >Source</a
+	    > <a href="#v:size" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ExtensionFun" class="def"
+	    >ExtensionFun</a
+	    > <a href="src/PlutusCore.Examples.Builtins.html#ExtensionFun" class="link"
+	    >Source</a
+	    > <a href="#t:ExtensionFun" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Factorial" class="def"
+		  >Factorial</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ForallFortyTwo" class="def"
+		  >ForallFortyTwo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:SumInteger" class="def"
+		  >SumInteger</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Const" class="def"
+		  >Const</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Id" class="def"
+		  >Id</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IdAssumeBool" class="def"
+		  >IdAssumeBool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IdAssumeCheckBool" class="def"
+		  >IdAssumeCheckBool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IdSomeConstantBool" class="def"
+		  >IdSomeConstantBool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IdIntegerAsBool" class="def"
+		  >IdIntegerAsBool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IdFInteger" class="def"
+		  >IdFInteger</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IdList" class="def"
+		  >IdList</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IdRank2" class="def"
+		  >IdRank2</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ScottToMetaUnit" class="def"
+		  >ScottToMetaUnit</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:FailingSucc" class="def"
+		  >FailingSucc</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExpensiveSucc" class="def"
+		  >ExpensiveSucc</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:FailingPlus" class="def"
+		  >FailingPlus</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExpensivePlus" class="def"
+		  >ExpensivePlus</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IsConstant" class="def"
+		  >IsConstant</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnsafeCoerce" class="def"
+		  >UnsafeCoerce</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnsafeCoerceEl" class="def"
+		  >UnsafeCoerceEl</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Undefined" class="def"
+		  >Undefined</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Absurd" class="def"
+		  >Absurd</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ErrorPrime" class="def"
+		  >ErrorPrime</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Comma" class="def"
+		  >Comma</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BiconstPair" class="def"
+		  >BiconstPair</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Swap" class="def"
+		  >Swap</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:SwapEls" class="def"
+		  >SwapEls</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExtensionVersion" class="def"
+		  >ExtensionVersion</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TrackCosts" class="def"
+		  >TrackCosts</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IntNoIntegerNoWord" class="def"
+		  >IntNoIntegerNoWord</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExtensionFun"
+	    >Instances</h4
+	    ><details id="i:ExtensionFun" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Bounded:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Bounded:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Enum:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Enum:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Generic:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > x &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Ix:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+		      >Ix</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Ix:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:range"
+			  >range</a
+			  > &#8759; (<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >, <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) &#8594; [<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:range" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:index"
+			  >index</a
+			  > &#8759; (<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >, <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:index" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:unsafeIndex"
+			  >unsafeIndex</a
+			  > &#8759; (<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >, <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeIndex" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:inRange"
+			  >inRange</a
+			  > &#8759; (<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >, <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:inRange" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:rangeSize"
+			  >rangeSize</a
+			  > &#8759; (<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >, <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rangeSize" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:unsafeRangeSize"
+			  >unsafeRangeSize</a
+			  > &#8759; (<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >, <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeRangeSize" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Show:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Show:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Eq:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Ord:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Ord:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Hashable:8"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-CostingFun-Core.html#t:Hashable" title="PlutusCore.Evaluation.Machine.CostingFun.Core"
+		      >Hashable</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-143" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Hashable:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:hashWithSalt"
+			  >hashWithSalt</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hashWithSalt" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:hash"
+			  >hash</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hash" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Pretty:9"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-145" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Pretty:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:ToBuiltinMeaning:10"
+		      ></span
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >ToBuiltinMeaning</a
+		      > uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-247" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:ToBuiltinMeaning:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="src/PlutusCore.Builtin.Meaning.html#CostingPart" class="link"
+			  >Source</a
+			  > <a href="#t:CostingPart" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >data</span
+			  > <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant" class="link"
+			  >Source</a
+			  > <a href="#t:BuiltinSemanticsVariant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinMeaning"
+			  >toBuiltinMeaning</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+			  >HasMeaningIn</a
+			  > uni val &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinMeaning</a
+			  > val (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			  >CostingPart</a
+			  > uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >) <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinMeaning" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinMeaning" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Bounded:11"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-256" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Bounded:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Enum:12"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-256" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Enum:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; [<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Show:13"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-256" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Show:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Default:14"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		      >Default</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-544" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Default:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:def"
+			  >def</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="#v:def" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Eq:15"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-256" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Eq:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Ord:16"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-256" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Ord:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			  >ExtensionFun</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:Rep:17"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:Rep:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			>ExtensionFun</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ExtensionFun&quot; &quot;PlutusCore.Examples.Builtins&quot; &quot;plutus-core-1.56.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) ((((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Factorial&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ForallFortyTwo&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;SumInteger&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Const&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Id&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IdAssumeBool&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IdAssumeCheckBool&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IdSomeConstantBool&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IdIntegerAsBool&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IdFInteger&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IdList&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IdRank2&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ScottToMetaUnit&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;FailingSucc&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ExpensiveSucc&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;FailingPlus&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ExpensivePlus&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IsConstant&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;UnsafeCoerce&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;UnsafeCoerceEl&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Undefined&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Absurd&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ErrorPrime&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Comma&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;BiconstPair&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Swap&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;SwapEls&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ExtensionVersion&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TrackCosts&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;IntNoIntegerNoWord&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))))))</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:BuiltinSemanticsVariant:18"
+		      ></span
+		      > <span class="keyword"
+		      >data</span
+		      > <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-250" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:BuiltinSemanticsVariant:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>data</span
+			> <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			>BuiltinSemanticsVariant</a
+			> <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			>ExtensionFun</a
+			> <ul class="inst"
+			><li class="inst"
+			  >= <a id="v:ExtensionFunSemanticsVariant0" class="def"
+			    >ExtensionFunSemanticsVariant0</a
+			    ></li
+			  ><li class="inst"
+			  >| <a id="v:ExtensionFunSemanticsVariant1" class="def"
+			    >ExtensionFunSemanticsVariant1</a
+			    ></li
+			  ><li class="inst"
+			  >| <a id="v:ExtensionFunSemanticsVariant2" class="def"
+			    >ExtensionFunSemanticsVariant2</a
+			    ></li
+			  ><li class="inst"
+			  >| <a id="v:ExtensionFunSemanticsVariant3" class="def"
+			    >ExtensionFunSemanticsVariant3</a
+			    ></li
+			  ><li class="inst"
+			  >| <a id="v:ExtensionFunSemanticsVariant4" class="def"
+			    >ExtensionFunSemanticsVariant4</a
+			    ></li
+			  ></ul
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExtensionFun:CostingPart:19"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		      >CostingPart</a
+		      > uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+		      >ExtensionFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-248" class="link"
+		    >Source</a
+		    > <a href="#t:ExtensionFun" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExtensionFun:CostingPart:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+			>CostingPart</a
+			> uni <a href="PlutusCore-Examples-Builtins.html#t:ExtensionFun" title="PlutusCore.Examples.Builtins"
+			>ExtensionFun</a
+			> = ()</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:MetaForall" class="def"
+	    >MetaForall</a
+	    > name a <a href="src/PlutusCore.Examples.Builtins.html#MetaForall" class="link"
+	    >Source</a
+	    > <a href="#t:MetaForall" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Normally <code
+	      >forall</code
+	      > in the type of a Haskell function gets detected and instantiated
+automatically, however there's no way of doing that for a <code
+	      >forall</code
+	      > that binds a never referenced
+type variable. Which is OK, because that would be a pretty weird builtin, however it's definable
+and for the purpose of testing we do introduce such a builtin, hence this definition allowing us
+to create an <code
+	      >all</code
+	      > that binds a never referenced type variable in Plutus while still using
+<code
+	      ><a href="PlutusCore-Builtin-Meaning.html#v:makeBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		>makeBuiltinMeaning</a
+		></code
+	      >. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MetaForall" class="def"
+		  >MetaForall</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MetaForall"
+	    >Instances</h4
+	    ><details id="i:MetaForall" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MetaForall:KnownTypeAst:1"
+		      ></span
+		      > (name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > ('<a href="PlutusCore-Builtin-Polymorphism.html#v:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+		      >TyNameRep</a
+		      > text uniq &#8759; <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+		      >TyNameRep</a
+		      > kind), <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:KnownSymbol" title="GHC.TypeLits"
+		      >KnownSymbol</a
+		      > text, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeNats.html#t:KnownNat" title="GHC.TypeNats"
+		      >KnownNat</a
+		      > uniq, <a href="PlutusCore-Builtin-KnownKind.html#t:KnownKind" title="PlutusCore.Builtin.KnownKind"
+		      >KnownKind</a
+		      > kind, <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni a) &#8658; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+		      >MetaForall</a
+		      > name a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-181" class="link"
+		    >Source</a
+		    > <a href="#t:MetaForall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MetaForall:KnownTypeAst:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > uni (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+			  >MetaForall</a
+			  > name a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > uni hole (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+			  >MetaForall</a
+			  > name a) &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > uni acc (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+			  >MetaForall</a
+			  > name a) &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#v:Type0" title="PlutusCore.Core.Type"
+			  >Type0</a
+			  > tyname uni () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MetaForall:MakeKnownIn:2"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term a &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+		      >MetaForall</a
+		      > name a)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-193" class="link"
+		    >Source</a
+		    > <a href="#t:MetaForall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MetaForall:MakeKnownIn:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+			  >MetaForall</a
+			  > name a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > term <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MetaForall:ToBinds:3"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > uni acc (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+		      >MetaForall</a
+		      > name a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-191" class="link"
+		    >Source</a
+		    > <a href="#t:MetaForall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MetaForall:ToBinds:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni acc (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+			>MetaForall</a
+			> name a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni (<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Insert" title="PlutusCore.Builtin.KnownTypeAst"
+			>Insert</a
+			> ('<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#v:Some" title="Data.Some.GADT"
+			>Some</a
+			> name) acc) a</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MetaForall:ToHoles:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > uni _1 (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+		      >MetaForall</a
+		      > name a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-190" class="link"
+		    >Source</a
+		    > <a href="#t:MetaForall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MetaForall:ToHoles:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> uni _1 (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+			>MetaForall</a
+			> name a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '[<a href="PlutusCore-Builtin-KnownTypeAst.html#t:TypeHole" title="PlutusCore.Builtin.KnownTypeAst"
+			>TypeHole</a
+			> a &#8759; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			>Hole</a
+			>]</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MetaForall:IsBuiltin:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > uni (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+		      >MetaForall</a
+		      > name a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-189" class="link"
+		    >Source</a
+		    > <a href="#t:MetaForall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MetaForall:IsBuiltin:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> uni (<a href="PlutusCore-Examples-Builtins.html#t:MetaForall" title="PlutusCore.Examples.Builtins"
+			>MetaForall</a
+			> name a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PlcListRep" class="def"
+	    >PlcListRep</a
+	    > (a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) <a href="src/PlutusCore.Examples.Builtins.html#PlcListRep" class="link"
+	    >Source</a
+	    > <a href="#t:PlcListRep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PlcListRep"
+	    >Instances</h4
+	    ><details id="i:PlcListRep" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlcListRep:KnownTypeAst:1"
+		      ></span
+		      > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      >, <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni a) &#8658; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+		      >PlcListRep</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-200" class="link"
+		    >Source</a
+		    > <a href="#t:PlcListRep" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlcListRep:KnownTypeAst:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > uni (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+			  >PlcListRep</a
+			  > a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > uni hole (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+			  >PlcListRep</a
+			  > a) &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > uni acc (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+			  >PlcListRep</a
+			  > a) &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#v:Type0" title="PlutusCore.Core.Type"
+			  >Type0</a
+			  > tyname uni () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlcListRep:ToBinds:2"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > uni acc (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+		      >PlcListRep</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-205" class="link"
+		    >Source</a
+		    > <a href="#t:PlcListRep" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlcListRep:ToBinds:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni acc (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+			>PlcListRep</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni acc a</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlcListRep:ToHoles:3"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > uni _1 (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+		      >PlcListRep</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:PlcListRep" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlcListRep:ToHoles:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> uni _1 (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+			>PlcListRep</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '[<a href="PlutusCore-Builtin-KnownTypeAst.html#t:RepHole" title="PlutusCore.Builtin.KnownTypeAst"
+			>RepHole</a
+			> a &#8759; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			>Hole</a
+			>]</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlcListRep:IsBuiltin:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > uni (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+		      >PlcListRep</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-203" class="link"
+		    >Source</a
+		    > <a href="#t:PlcListRep" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlcListRep:IsBuiltin:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> uni (<a href="PlutusCore-Examples-Builtins.html#t:PlcListRep" title="PlutusCore.Examples.Builtins"
+			>PlcListRep</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinErrorCall" class="def"
+	    >BuiltinErrorCall</a
+	    > <a href="src/PlutusCore.Examples.Builtins.html#BuiltinErrorCall" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinErrorCall" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinErrorCall" class="def"
+		  >BuiltinErrorCall</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinErrorCall"
+	    >Instances</h4
+	    ><details id="i:BuiltinErrorCall" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinErrorCall:Exception:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Exception" title="PlutusPrelude"
+		      >Exception</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+		      >BuiltinErrorCall</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-222" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinErrorCall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinErrorCall:Exception:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinErrorCall:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+		      >BuiltinErrorCall</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-221" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinErrorCall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinErrorCall:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinErrorCall:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+		      >BuiltinErrorCall</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-221" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinErrorCall" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinErrorCall:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="PlutusCore-Examples-Builtins.html#t:BuiltinErrorCall" title="PlutusCore.Examples.Builtins"
+			  >BuiltinErrorCall</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Whatever" class="def"
+	    >Whatever</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Examples.Builtins.html#Whatever" class="link"
+	    >Source</a
+	    > <a href="#t:Whatever" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For the most part we don't care about costing functions of example builtins, hence this class
+for being explicit about not caring. </p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:whatever" class="def"
+	      >whatever</a
+	      > &#8759; a <a href="src/PlutusCore.Examples.Builtins.html#whatever" class="link"
+	      >Source</a
+	      > <a href="#v:whatever" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >The costing function of a builtin whose costing function doesn't matter.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Whatever"
+	    >Instances</h4
+	    ><details id="i:Whatever" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Whatever:Whatever:1"
+		      ></span
+		      > <a href="PlutusCore-Examples-Builtins.html#t:Whatever" title="PlutusCore.Examples.Builtins"
+		      >Whatever</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		      >ExBudgetStream</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-233" class="link"
+		    >Source</a
+		    > <a href="#t:Whatever" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Whatever:Whatever:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:whatever"
+			  >whatever</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  > <a href="src/PlutusCore.Examples.Builtins.html#whatever" class="link"
+			  >Source</a
+			  > <a href="#v:whatever" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Whatever:Whatever:2"
+		      ></span
+		      > <a href="PlutusCore-Examples-Builtins.html#t:Whatever" title="PlutusCore.Examples.Builtins"
+		      >Whatever</a
+		      > b &#8658; <a href="PlutusCore-Examples-Builtins.html#t:Whatever" title="PlutusCore.Examples.Builtins"
+		      >Whatever</a
+		      > (a &#8594; b)</span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-230" class="link"
+		    >Source</a
+		    > <a href="#t:Whatever" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Whatever:Whatever:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:whatever"
+			  >whatever</a
+			  > &#8759; a &#8594; b <a href="src/PlutusCore.Examples.Builtins.html#whatever" class="link"
+			  >Source</a
+			  > <a href="#v:whatever" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:MakeKnownIn:MakeKnownIn:1"
+		  ></span
+		  > <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		  >MakeKnownIn</a
+		  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		  >Void</a
+		  ></span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-215" class="link"
+		>Source</a
+		> <a href="#v:-36-fMakeKnownInDefaultUnitermVoid" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:MakeKnownIn:MakeKnownIn:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:makeKnown"
+		      >makeKnown</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      > term <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+		      >Source</a
+		      > <a href="#v:makeKnown" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ReadKnownIn:ReadKnownIn:2"
+		  ></span
+		  > <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		  >ReadKnownIn</a
+		  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		  >Void</a
+		  ></span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-217" class="link"
+		>Source</a
+		> <a href="#v:-36-fReadKnownInDefaultUnitermVoid" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ReadKnownIn:ReadKnownIn:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:readKnown"
+		      >readKnown</a
+		      > &#8759; term &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownM</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      > <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+		      >Source</a
+		      > <a href="#v:readKnown" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:KnownTypeAst:KnownTypeAst:3"
+		  ></span
+		  > tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > &#8658; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		  >KnownTypeAst</a
+		  > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		  >Void</a
+		  ></span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-208" class="link"
+		>Source</a
+		> <a href="#v:-36-fKnownTypeAstTYPEtynameDefaultUniVoid" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:KnownTypeAst:KnownTypeAst:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs associated-types"
+		  ><p class="caption"
+		    >Associated Types</p
+		    ><p class="src"
+		    ><span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+		      >Source</a
+		      > <a href="#t:IsBuiltin" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > hole <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      > &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+		      >Hole</a
+		      >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+		      >Source</a
+		      > <a href="#t:ToHoles" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > acc <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Void.html#t:Void" title="Data.Void"
+		      >Void</a
+		      > &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+		      >Some</a
+		      > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+		      >TyNameRep</a
+		      >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+		      >Source</a
+		      > <a href="#t:ToBinds" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:typeAst"
+		      >typeAst</a
+		      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		      >Type</a
+		      > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+		      >Source</a
+		      > <a href="#v:typeAst" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:ToBuiltinMeaning:ToBuiltinMeaning:4"
+		  ></span
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		  >ToBuiltinMeaning</a
+		  > uni fun1, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		  >ToBuiltinMeaning</a
+		  > uni fun2, <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		  >Default</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun1), <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		  >Default</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun2)) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		  >ToBuiltinMeaning</a
+		  > uni (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > fun1 fun2)</span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-148" class="link"
+		>Source</a
+		> <a href="#v:-36-fToBuiltinMeaninguniEither" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:ToBuiltinMeaning:ToBuiltinMeaning:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs associated-types"
+		  ><p class="caption"
+		    >Associated Types</p
+		    ><p class="src"
+		    ><span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		      >CostingPart</a
+		      > uni (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > fun1 fun2) <a href="src/PlutusCore.Builtin.Meaning.html#CostingPart" class="link"
+		      >Source</a
+		      > <a href="#t:CostingPart" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><span class="keyword"
+		      >data</span
+		      > <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > fun1 fun2) <a href="src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant" class="link"
+		      >Source</a
+		      > <a href="#t:BuiltinSemanticsVariant" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:toBuiltinMeaning"
+		      >toBuiltinMeaning</a
+		      > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+		      >HasMeaningIn</a
+		      > uni val &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > fun1 fun2) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > fun1 fun2 &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinMeaning</a
+		      > val (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		      >CostingPart</a
+		      > uni (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > fun1 fun2)) <a href="src/PlutusCore.Builtin.Meaning.html#toBuiltinMeaning" class="link"
+		      >Source</a
+		      > <a href="#v:toBuiltinMeaning" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Default:Default:5"
+		  ></span
+		  > (<a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		  >Default</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun1), <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		  >Default</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun2)) &#8658; <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		  >Default</a
+		  > (<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > fun1 fun2))</span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-167" class="link"
+		>Source</a
+		> <a href="#v:-36-fDefaultBuiltinSemanticsVariant" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Default:Default:5"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:def"
+		      >def</a
+		      > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		      >BuiltinSemanticsVariant</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > fun1 fun2) <a href="#v:def" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Bounded:Bounded:6"
+		  ></span
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > b) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > a b)</span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-49" class="link"
+		>Source</a
+		> <a href="#v:-36-fBoundedEither" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Bounded:Bounded:6"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:minBound"
+		      >minBound</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:minBound" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:maxBound"
+		      >maxBound</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:maxBound" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Enum:Enum:7"
+		  ></span
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		  >Eq</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		  >Eq</a
+		  > b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		  >Enum</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		  >Enum</a
+		  > b) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		  >Enum</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > a b)</span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-60" class="link"
+		>Source</a
+		> <a href="#v:-36-fEnumEither" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Enum:Enum:7"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:succ"
+		      >succ</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:succ" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:pred"
+		      >pred</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:pred" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:toEnum"
+		      >toEnum</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:toEnum" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:fromEnum"
+		      >fromEnum</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:fromEnum" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:enumFrom"
+		      >enumFrom</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumFrom" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:enumFromThen"
+		      >enumFromThen</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumFromThen" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:enumFromTo"
+		      >enumFromTo</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumFromTo" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:enumFromThenTo"
+		      >enumFromThenTo</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:enumFromThenTo" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Ix:Ix:8"
+		  ></span
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		  >Bounded</a
+		  > b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+		  >Ix</a
+		  > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+		  >Ix</a
+		  > b) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+		  >Ix</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > a b)</span
+		> <a href="src/PlutusCore.Examples.Builtins.html#line-89" class="link"
+		>Source</a
+		> <a href="#v:-36-fIxEither" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Ix:Ix:8"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:range"
+		      >range</a
+		      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b) &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:range" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:index"
+		      >index</a
+		      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:index" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:unsafeIndex"
+		      >unsafeIndex</a
+		      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:unsafeIndex" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:inRange"
+		      >inRange</a
+		      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:inRange" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:rangeSize"
+		      >rangeSize</a
+		      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:rangeSize" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:unsafeRangeSize"
+		      >unsafeRangeSize</a
+		      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		      >Either</a
+		      > a b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:unsafeRangeSize" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

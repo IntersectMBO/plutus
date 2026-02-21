@@ -1,0 +1,798 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleContexts #-}
+<span class="lineno">    3 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    4 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TupleSections #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ViewPatterns #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-| An inlining pass.
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>This pass is essentially a copy of the PIR inliner, and should be KEPT IN SYNC
+<span class="lineno">   14 </span>with it. It's hard to do this with true abstraction, so we just have to keep
+<span class="lineno">   15 </span>two copies reasonably similar.
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>However, there are some differences. In the interests of making it easier
+<span class="lineno">   18 </span>to keep things in sync, these are explicitly listed in
+<span class="lineno">   19 </span>Note [Differences from PIR inliner]. If you add another difference,
+<span class="lineno">   20 </span>please note it there! Obviously fewer differences is better.
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>See Note [The problem of inlining destructors] for why this pass exists. -}
+<span class="lineno">   23 </span>module UntypedPlutusCore.Transform.Inline
+<span class="lineno">   24 </span>  ( inline
+<span class="lineno">   25 </span>  , InlineHints (..)
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>    -- * Exported for testing
+<span class="lineno">   28 </span>  , InlineM
+<span class="lineno">   29 </span>  , S (..)
+<span class="lineno">   30 </span>  , Decoration (..)
+<span class="lineno">   31 </span>  , Ann
+<span class="lineno">   32 </span>  , InlineInfo (..)
+<span class="lineno">   33 </span>  , Subst (..)
+<span class="lineno">   34 </span>  , TermEnv (..)
+<span class="lineno">   35 </span>  , isFirstVarBeforeEffects
+<span class="lineno">   36 </span>  , isStrictIn
+<span class="lineno">   37 </span>  , effectSafe
+<span class="lineno">   38 </span>  ) where
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>import Control.Lens (Lens', forMOf, makeLenses, view, (%~), (&amp;), (^.), _1)
+<span class="lineno">   41 </span>import Control.Monad.Extra (ifM, (&amp;&amp;^), (||^))
+<span class="lineno">   42 </span>import Control.Monad.Reader (ReaderT (runReaderT))
+<span class="lineno">   43 </span>import Control.Monad.State (StateT, evalStateT, gets, modify')
+<span class="lineno">   44 </span>import Data.Bifunctor (first)
+<span class="lineno">   45 </span>import Data.Vector qualified as V
+<span class="lineno">   46 </span>import PlutusCore qualified as PLC
+<span class="lineno">   47 </span>import PlutusCore.Annotation (Inline (AlwaysInline, SafeToInline), InlineHints (..))
+<span class="lineno">   48 </span>import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
+<span class="lineno">   49 </span>import PlutusCore.Builtin qualified as PLC
+<span class="lineno">   50 </span>import PlutusCore.MkPlc (mkIterApp)
+<span class="lineno">   51 </span>import PlutusCore.Name.Unique (HasUnique, TermUnique (..), Unique (..))
+<span class="lineno">   52 </span>import PlutusCore.Name.UniqueMap qualified as UMap
+<span class="lineno">   53 </span>import PlutusCore.Quote (MonadQuote (..), Quote)
+<span class="lineno">   54 </span>import PlutusCore.Rename (Dupable, dupable, liftDupable)
+<span class="lineno">   55 </span>import PlutusPrelude (Generic)
+<span class="lineno">   56 </span>import UntypedPlutusCore.Analysis.Usages qualified as Usages
+<span class="lineno">   57 </span>import UntypedPlutusCore.AstSize (AstSize, termAstSize)
+<span class="lineno">   58 </span>import UntypedPlutusCore.Core qualified as UPLC
+<span class="lineno">   59 </span>import UntypedPlutusCore.Core.Plated (termSubterms)
+<span class="lineno">   60 </span>import UntypedPlutusCore.Core.Type (Term (..), modifyTermAnn, termAnn)
+<span class="lineno">   61 </span>import UntypedPlutusCore.MkUPlc (Def (..), UTermDef, UVarDecl (..))
+<span class="lineno">   62 </span>import UntypedPlutusCore.Purity
+<span class="lineno">   63 </span>  ( EvalTerm (EvalTerm, Unknown)
+<span class="lineno">   64 </span>  , Purity (MaybeImpure, Pure)
+<span class="lineno">   65 </span>  , isPure
+<span class="lineno">   66 </span>  , termEvaluationOrder
+<span class="lineno">   67 </span>  , unEvalOrder
+<span class="lineno">   68 </span>  )
+<span class="lineno">   69 </span>import UntypedPlutusCore.Rename ()
+<span class="lineno">   70 </span>import UntypedPlutusCore.Subst (termSubstNamesM)
+<span class="lineno">   71 </span>import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
+<span class="lineno">   72 </span>import UntypedPlutusCore.Transform.Simplifier
+<span class="lineno">   73 </span>  ( SimplifierStage (Inline)
+<span class="lineno">   74 </span>  , SimplifierT
+<span class="lineno">   75 </span>  , recordSimplificationWithHints
+<span class="lineno">   76 </span>  )
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>{- Note [Differences from PIR inliner]
+<span class="lineno">   79 </span>See the module comment for explanation for why this exists and is similar to
+<span class="lineno">   80 </span>the PIR inliner.
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>1. No types (obviously).
+<span class="lineno">   83 </span>2. No strictness information (we only have lambda arguments, which are always
+<span class="lineno">   84 </span>   strict).
+<span class="lineno">   85 </span>3. Handling of multiple beta-reductions in one go, this is handled in PIR by a
+<span class="lineno">   86 </span>   dedicated pass.
+<span class="lineno">   87 </span>4. Simplistic purity analysis, in particular we don't try to be clever about
+<span class="lineno">   88 </span>   builtins (should mostly be handled in PIR).
+<span class="lineno">   89 </span>-}
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>-- | Substitution range, 'SubstRng' in the paper.
+<span class="lineno">   92 </span>newtype InlineTerm name uni fun a = Done (Dupable (Term name uni fun a))
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>{-| Term substitution, 'Subst' in the paper.
+<span class="lineno">   95 </span>A map of unprocessed variable and its substitution range. -}
+<span class="lineno">   96 </span>newtype TermEnv name uni fun a = TermEnv
+<span class="lineno">   97 </span>  {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">_unTermEnv</span></span></span> :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a)}
+<span class="lineno">   98 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>{-| Wrapper of term substitution so that it's similar to the PIR inliner.
+<span class="lineno">  101 </span>See Note [Differences from PIR inliner] 1 -}
+<span class="lineno">  102 </span>newtype Subst name uni fun a = Subst {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">_termEnv</span></span></span> :: TermEnv name uni fun a}
+<span class="lineno">  103 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  104 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''TermEnv</span></span></span>
+<span class="lineno">  107 </span><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''Subst</span></span></span>
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>data VarInfo name uni fun ann = VarInfo
+<span class="lineno">  110 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_varBinders</span></span></span> :: [(name, ann)]
+<span class="lineno">  111 </span>  -- ^ Lambda binders in the RHS (definition) of the variable.
+<span class="lineno">  112 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_varRhs</span></span></span> :: Term name uni fun ann
+<span class="lineno">  113 </span>  -- ^ The RHS (definition) of the variable.
+<span class="lineno">  114 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_varRhsBody</span></span></span> :: InlineTerm name uni fun ann
+<span class="lineno">  115 </span>  {-^ The body of the RHS of the variable (i.e., RHS minus the binders).
+<span class="lineno">  116 </span>  Using 'InlineTerm' here to ensure the body is renamed when inlined. -}
+<span class="lineno">  117 </span>  }
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''VarInfo</span></span></span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>-- | UPLC inliner state
+<span class="lineno">  122 </span>data S name uni fun a = S
+<span class="lineno">  123 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_subst</span></span></span> :: Subst name uni fun a
+<span class="lineno">  124 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_vars</span></span></span> :: PLC.UniqueMap TermUnique (VarInfo name uni fun a)
+<span class="lineno">  125 </span>  }
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''S</span></span></span></span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup (S name uni fun a)</span></span></span></span> where
+<span class="lineno">  130 </span>  <span class="decl"><span class="nottickedoff">S a1 b1 &lt;&gt; S a2 b2 = S (a1 &lt;&gt; a2) (b1 &lt;&gt; b2)</span></span>
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid (S name uni fun a)</span></span></span></span> where
+<span class="lineno">  133 </span>  <span class="decl"><span class="istickedoff">mempty = S mempty mempty</span></span>
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>type ExternalConstraints name uni fun m =
+<span class="lineno">  136 </span>  ( HasUnique name TermUnique
+<span class="lineno">  137 </span>  , Eq name
+<span class="lineno">  138 </span>  , PLC.ToBuiltinMeaning uni fun
+<span class="lineno">  139 </span>  , MonadQuote m
+<span class="lineno">  140 </span>  )
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span>type InliningConstraints name uni fun =
+<span class="lineno">  143 </span>  ( HasUnique name TermUnique
+<span class="lineno">  144 </span>  , Eq name
+<span class="lineno">  145 </span>  , PLC.ToBuiltinMeaning uni fun
+<span class="lineno">  146 </span>  )
+<span class="lineno">  147 </span>
+<span class="lineno">  148 </span>-- See Note [Differences from PIR inliner] 2
+<span class="lineno">  149 </span>data InlineInfo name fun a = InlineInfo
+<span class="lineno">  150 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_iiUsages</span></span></span> :: Usages.Usages
+<span class="lineno">  151 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_iiHints</span></span></span> :: InlineHints name a
+<span class="lineno">  152 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_iiBuiltinSemanticsVariant</span></span></span> :: PLC.BuiltinSemanticsVariant fun
+<span class="lineno">  153 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_iiInlineConstants</span></span></span> :: Bool
+<span class="lineno">  154 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_iiInlineCallsiteGrowth</span></span></span> :: AstSize
+<span class="lineno">  155 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_iiPreserveLogging</span></span></span> :: Bool
+<span class="lineno">  156 </span>  }
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">makeLenses ''InlineInfo</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  159 </span>
+<span class="lineno">  160 </span>-- Using a concrete monad makes a very large difference to the performance
+<span class="lineno">  161 </span>-- of this module (determined from profiling)
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>-- | The monad the inliner runs in.
+<span class="lineno">  164 </span>type InlineM name uni fun a =
+<span class="lineno">  165 </span>  ReaderT (InlineInfo name fun a) (StateT (S name uni fun (Ann a)) Quote)
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>-- | Look up the unprocessed variable in the substitution.
+<span class="lineno">  168 </span>lookupTerm
+<span class="lineno">  169 </span>  :: HasUnique name TermUnique
+<span class="lineno">  170 </span>  =&gt; name
+<span class="lineno">  171 </span>  -&gt; S name uni fun a
+<span class="lineno">  172 </span>  -&gt; Maybe (InlineTerm name uni fun a)
+<span class="lineno">  173 </span><span class="decl"><span class="istickedoff">lookupTerm n s = UMap.lookupName n $ s ^. subst . termEnv . unTermEnv</span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>-- | Insert the unprocessed variable into the substitution.
+<span class="lineno">  176 </span>extendTerm
+<span class="lineno">  177 </span>  :: HasUnique name TermUnique
+<span class="lineno">  178 </span>  =&gt; name
+<span class="lineno">  179 </span>  -- ^ The name of the variable.
+<span class="lineno">  180 </span>  -&gt; InlineTerm name uni fun a
+<span class="lineno">  181 </span>  -- ^ The substitution range.
+<span class="lineno">  182 </span>  -&gt; S name uni fun a
+<span class="lineno">  183 </span>  -- ^ The substitution.
+<span class="lineno">  184 </span>  -&gt; S name uni fun a
+<span class="lineno">  185 </span><span class="decl"><span class="istickedoff">extendTerm n clos s =</span>
+<span class="lineno">  186 </span><span class="spaces">  </span><span class="istickedoff">s &amp; subst . termEnv . unTermEnv %~ UMap.insertByName n clos</span></span>
+<span class="lineno">  187 </span>
+<span class="lineno">  188 </span>lookupVarInfo
+<span class="lineno">  189 </span>  :: HasUnique name TermUnique
+<span class="lineno">  190 </span>  =&gt; name
+<span class="lineno">  191 </span>  -&gt; S name uni fun a
+<span class="lineno">  192 </span>  -&gt; Maybe (VarInfo name uni fun a)
+<span class="lineno">  193 </span><span class="decl"><span class="istickedoff">lookupVarInfo n s = UMap.lookupName n $ s ^. vars</span></span>
+<span class="lineno">  194 </span>
+<span class="lineno">  195 </span>extendVarInfo
+<span class="lineno">  196 </span>  :: HasUnique name TermUnique
+<span class="lineno">  197 </span>  =&gt; name
+<span class="lineno">  198 </span>  -&gt; VarInfo name uni fun a
+<span class="lineno">  199 </span>  -&gt; S name uni fun a
+<span class="lineno">  200 </span>  -&gt; S name uni fun a
+<span class="lineno">  201 </span><span class="decl"><span class="istickedoff">extendVarInfo n info s = s &amp; vars %~ UMap.insertByName n info</span></span>
+<span class="lineno">  202 </span>
+<span class="lineno">  203 </span>{-| Inline simple bindings. Relies on global uniqueness, and preserves it.
+<span class="lineno">  204 </span>See Note [Inlining and global uniqueness] -}
+<span class="lineno">  205 </span>inline
+<span class="lineno">  206 </span>  :: forall name uni fun m a
+<span class="lineno">  207 </span>   . ExternalConstraints name uni fun m
+<span class="lineno">  208 </span>  =&gt; AstSize
+<span class="lineno">  209 </span>  -- ^ inline threshold
+<span class="lineno">  210 </span>  -&gt; Bool
+<span class="lineno">  211 </span>  -- ^ inline constants
+<span class="lineno">  212 </span>  -&gt; Bool
+<span class="lineno">  213 </span>  -- ^ preserve logging
+<span class="lineno">  214 </span>  -&gt; InlineHints name a
+<span class="lineno">  215 </span>  -&gt; PLC.BuiltinSemanticsVariant fun
+<span class="lineno">  216 </span>  -&gt; Term name uni fun a
+<span class="lineno">  217 </span>  -&gt; SimplifierT name uni fun a m (Term name uni fun a)
+<span class="lineno">  218 </span><span class="decl"><span class="istickedoff">inline</span>
+<span class="lineno">  219 </span><span class="spaces">  </span><span class="istickedoff">callsiteGrowth</span>
+<span class="lineno">  220 </span><span class="spaces">  </span><span class="istickedoff">inlineConstants</span>
+<span class="lineno">  221 </span><span class="spaces">  </span><span class="istickedoff">preserveLogging</span>
+<span class="lineno">  222 </span><span class="spaces">  </span><span class="istickedoff">hints</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="istickedoff">builtinSemanticsVariant</span>
+<span class="lineno">  224 </span><span class="spaces">  </span><span class="istickedoff">t = do</span>
+<span class="lineno">  225 </span><span class="spaces">    </span><span class="istickedoff">decoratedResult &lt;-</span>
+<span class="lineno">  226 </span><span class="spaces">      </span><span class="istickedoff">liftQuote $</span>
+<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">flip evalStateT mempty $</span>
+<span class="lineno">  228 </span><span class="spaces">          </span><span class="istickedoff">runReaderT</span>
+<span class="lineno">  229 </span><span class="spaces">            </span><span class="istickedoff">(processTerm (emptyDecoration &lt;$&gt; t))</span>
+<span class="lineno">  230 </span><span class="spaces">            </span><span class="istickedoff">InlineInfo</span>
+<span class="lineno">  231 </span><span class="spaces">              </span><span class="istickedoff">{ _iiUsages = Usages.termUsages t</span>
+<span class="lineno">  232 </span><span class="spaces">              </span><span class="istickedoff">, _iiHints = hints</span>
+<span class="lineno">  233 </span><span class="spaces">              </span><span class="istickedoff">, _iiBuiltinSemanticsVariant = <span class="nottickedoff">builtinSemanticsVariant</span></span>
+<span class="lineno">  234 </span><span class="spaces">              </span><span class="istickedoff">, _iiInlineConstants = inlineConstants</span>
+<span class="lineno">  235 </span><span class="spaces">              </span><span class="istickedoff">, _iiInlineCallsiteGrowth = callsiteGrowth</span>
+<span class="lineno">  236 </span><span class="spaces">              </span><span class="istickedoff">, _iiPreserveLogging = preserveLogging</span>
+<span class="lineno">  237 </span><span class="spaces">              </span><span class="istickedoff">}</span>
+<span class="lineno">  238 </span><span class="spaces">    </span><span class="istickedoff">let result = snd &lt;$&gt; decoratedResult</span>
+<span class="lineno">  239 </span><span class="spaces">    </span><span class="istickedoff">recordSimplificationWithHints (CertifierHints.Inline (mkHints decoratedResult)) t Inline result</span>
+<span class="lineno">  240 </span><span class="spaces">    </span><span class="istickedoff">return result</span></span>
+<span class="lineno">  241 </span>
+<span class="lineno">  242 </span>-- See Note [Differences from PIR inliner] 3
+<span class="lineno">  243 </span>
+<span class="lineno">  244 </span>{-| Extract the list of applications from a term,
+<span class="lineno">  245 </span>a bit like a &quot;multi-beta&quot; reduction.
+<span class="lineno">  246 </span>
+<span class="lineno">  247 </span>Some examples will help (annotations are omitted):
+<span class="lineno">  248 </span>[(\x . t) a] -&gt; Just ([(x, a)], t)
+<span class="lineno">  249 </span>
+<span class="lineno">  250 </span>[[[(\x . (\y . (\z . t))) a] b] c] -&gt; Just ([(x, a), (y, b), (z, c)]) t)
+<span class="lineno">  251 </span>
+<span class="lineno">  252 </span>[[(\x . t) a] b] -&gt; Nothing -}
+<span class="lineno">  253 </span>extractApps
+<span class="lineno">  254 </span>  :: Term name uni fun a
+<span class="lineno">  255 </span>  -&gt; Maybe ([(UTermDef name uni fun a, a)], Term name uni fun a)
+<span class="lineno">  256 </span><span class="decl"><span class="istickedoff">extractApps = go []</span>
+<span class="lineno">  257 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  258 </span><span class="spaces">    </span><span class="istickedoff">go argStack (Apply aa f arg) = go ((arg, aa) : argStack) f</span>
+<span class="lineno">  259 </span><span class="spaces">    </span><span class="istickedoff">go argStack t = matchArgs argStack [] t</span>
+<span class="lineno">  260 </span><span class="spaces">    </span><span class="istickedoff">matchArgs ((arg, aa) : rest) acc (LamAbs a n body) =</span>
+<span class="lineno">  261 </span><span class="spaces">      </span><span class="istickedoff">matchArgs rest ((Def (UVarDecl a n) arg, aa) : acc) body</span>
+<span class="lineno">  262 </span><span class="spaces">    </span><span class="istickedoff">matchArgs [] acc t =</span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="istickedoff">if null acc then Nothing else Just (reverse acc, t)</span>
+<span class="lineno">  264 </span><span class="spaces">    </span><span class="istickedoff">matchArgs (_ : _) _ _ = Nothing</span></span>
+<span class="lineno">  265 </span>
+<span class="lineno">  266 </span>-- | The inverse of 'extractApps'.
+<span class="lineno">  267 </span>restoreApps
+<span class="lineno">  268 </span>  :: [(Either (Ann a) (UTermDef name uni fun (Ann a)), Ann a)]
+<span class="lineno">  269 </span>  -&gt; Term name uni fun (Ann a)
+<span class="lineno">  270 </span>  -&gt; Term name uni fun (Ann a)
+<span class="lineno">  271 </span><span class="decl"><span class="istickedoff">restoreApps defs t = makeLams [] t (reverse defs)</span>
+<span class="lineno">  272 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  273 </span><span class="spaces">    </span><span class="istickedoff">-- `aa` is the annotation on the Apply node, and `al` is the annotation</span>
+<span class="lineno">  274 </span><span class="spaces">    </span><span class="istickedoff">-- on the LamAbs node.</span>
+<span class="lineno">  275 </span><span class="spaces">    </span><span class="istickedoff">makeLams args acc ((Left al, aa) : rest) =</span>
+<span class="lineno">  276 </span><span class="spaces">      </span><span class="istickedoff">-- `Left` means the binding is dropped, so `acc` should be decorated with `al`.</span>
+<span class="lineno">  277 </span><span class="spaces">      </span><span class="istickedoff">-- This corresponds to Note [Inliner's Certifier Hints], #3.</span>
+<span class="lineno">  278 </span><span class="spaces">      </span><span class="istickedoff">makeLams ((Nothing, aa) : args) (decorateWith (al ^. decorations) acc) rest</span>
+<span class="lineno">  279 </span><span class="spaces">    </span><span class="istickedoff">makeLams args acc ((Right (Def (UVarDecl al n) rhs), aa) : rest) =</span>
+<span class="lineno">  280 </span><span class="spaces">      </span><span class="istickedoff">makeLams ((Just rhs, aa) : args) (LamAbs al n acc) rest</span>
+<span class="lineno">  281 </span><span class="spaces">    </span><span class="istickedoff">makeLams args acc [] =</span>
+<span class="lineno">  282 </span><span class="spaces">      </span><span class="istickedoff">makeApps args acc</span>
+<span class="lineno">  283 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  284 </span><span class="spaces">    </span><span class="istickedoff">makeApps ((Nothing, aa) : args) acc =</span>
+<span class="lineno">  285 </span><span class="spaces">      </span><span class="istickedoff">-- `Nothing` means the binding is dropped, so we decorate `acc with `aa` plus `DDrop`.</span>
+<span class="lineno">  286 </span><span class="spaces">      </span><span class="istickedoff">-- This corresponds to Note [Inliner's Certifier Hints], #2.</span>
+<span class="lineno">  287 </span><span class="spaces">      </span><span class="istickedoff">makeApps args (decorateWith (aa ^. decorations ++ [DDrop]) acc)</span>
+<span class="lineno">  288 </span><span class="spaces">    </span><span class="istickedoff">makeApps ((Just arg, aa) : args) acc =</span>
+<span class="lineno">  289 </span><span class="spaces">      </span><span class="istickedoff">makeApps args (Apply aa acc arg)</span>
+<span class="lineno">  290 </span><span class="spaces">    </span><span class="istickedoff">makeApps [] acc = acc</span></span>
+<span class="lineno">  291 </span>
+<span class="lineno">  292 </span>-- | Run the inliner on a `UntypedPlutusCore.Core.Type.Term`.
+<span class="lineno">  293 </span>processTerm
+<span class="lineno">  294 </span>  :: forall name uni fun a
+<span class="lineno">  295 </span>   . InliningConstraints name uni fun
+<span class="lineno">  296 </span>  =&gt; Term name uni fun (Ann a)
+<span class="lineno">  297 </span>  -&gt; InlineM name uni fun a (Term name uni fun (Ann a))
+<span class="lineno">  298 </span><span class="decl"><span class="istickedoff">processTerm = handleTerm</span>
+<span class="lineno">  299 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  300 </span><span class="spaces">    </span><span class="istickedoff">handleTerm</span>
+<span class="lineno">  301 </span><span class="spaces">      </span><span class="istickedoff">:: Term name uni fun (Ann a)</span>
+<span class="lineno">  302 </span><span class="spaces">      </span><span class="istickedoff">-&gt; InlineM name uni fun a (Term name uni fun (Ann a))</span>
+<span class="lineno">  303 </span><span class="spaces">    </span><span class="istickedoff">handleTerm = \case</span>
+<span class="lineno">  304 </span><span class="spaces">      </span><span class="istickedoff">v@(Var a n) -&gt;</span>
+<span class="lineno">  305 </span><span class="spaces">        </span><span class="istickedoff">maybe</span>
+<span class="lineno">  306 </span><span class="spaces">          </span><span class="istickedoff">v</span>
+<span class="lineno">  307 </span><span class="spaces">          </span><span class="istickedoff">-- See Note [Inliner's Certifier Hints], #1</span>
+<span class="lineno">  308 </span><span class="spaces">          </span><span class="istickedoff">(decorateWith (a ^. decorations) . decorateWith [DExpand])</span>
+<span class="lineno">  309 </span><span class="spaces">          </span><span class="istickedoff">&lt;$&gt; substName n</span>
+<span class="lineno">  310 </span><span class="spaces">      </span><span class="istickedoff">-- See Note [Differences from PIR inliner] 3</span>
+<span class="lineno">  311 </span><span class="spaces">      </span><span class="istickedoff">(extractApps -&gt; Just (bs, t)) -&gt; do</span>
+<span class="lineno">  312 </span><span class="spaces">        </span><span class="istickedoff">ebs &lt;- traverse (processSingleBinding t) bs</span>
+<span class="lineno">  313 </span><span class="spaces">        </span><span class="istickedoff">t' &lt;- processTerm t</span>
+<span class="lineno">  314 </span><span class="spaces">        </span><span class="istickedoff">pure $ restoreApps ebs t'</span>
+<span class="lineno">  315 </span><span class="spaces">      </span><span class="istickedoff">t -&gt; inlineSaturatedApp =&lt;&lt; forMOf termSubterms t processTerm</span>
+<span class="lineno">  316 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  317 </span><span class="spaces">    </span><span class="istickedoff">-- See Note [Renaming strategy]</span>
+<span class="lineno">  318 </span><span class="spaces">    </span><span class="istickedoff">substName :: name -&gt; InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))</span>
+<span class="lineno">  319 </span><span class="spaces">    </span><span class="istickedoff">substName name = gets (lookupTerm name) &gt;&gt;= traverse renameTerm</span>
+<span class="lineno">  320 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  321 </span><span class="spaces">    </span><span class="istickedoff">-- See Note [Inlining approach and 'Secrets of the GHC Inliner']</span>
+<span class="lineno">  322 </span><span class="spaces">    </span><span class="istickedoff">renameTerm</span>
+<span class="lineno">  323 </span><span class="spaces">      </span><span class="istickedoff">:: InlineTerm name uni fun (Ann a)</span>
+<span class="lineno">  324 </span><span class="spaces">      </span><span class="istickedoff">-&gt; InlineM name uni fun a (Term name uni fun (Ann a))</span>
+<span class="lineno">  325 </span><span class="spaces">    </span><span class="istickedoff">renameTerm = \case</span>
+<span class="lineno">  326 </span><span class="spaces">      </span><span class="istickedoff">-- Already processed term, just rename and put it in, don't do any</span>
+<span class="lineno">  327 </span><span class="spaces">      </span><span class="istickedoff">-- further optimization here.</span>
+<span class="lineno">  328 </span><span class="spaces">      </span><span class="istickedoff">Done t -&gt; liftDupable t</span></span>
+<span class="lineno">  329 </span>
+<span class="lineno">  330 </span>processSingleBinding
+<span class="lineno">  331 </span>  :: InliningConstraints name uni fun
+<span class="lineno">  332 </span>  =&gt; Term name uni fun (Ann a)
+<span class="lineno">  333 </span>  -&gt; (UTermDef name uni fun (Ann a), Ann a)
+<span class="lineno">  334 </span>  -&gt; InlineM name uni fun a (Either (Ann a) (UTermDef name uni fun (Ann a)), Ann a)
+<span class="lineno">  335 </span><span class="decl"><span class="istickedoff">processSingleBinding body (Def vd@(UVarDecl a n) rhs0, aa) =</span>
+<span class="lineno">  336 </span><span class="spaces">  </span><span class="istickedoff">(,aa) &lt;$&gt; do</span>
+<span class="lineno">  337 </span><span class="spaces">    </span><span class="istickedoff">maybeAddSubst body <span class="nottickedoff">(snd a)</span> n rhs0 &gt;&gt;= \case</span>
+<span class="lineno">  338 </span><span class="spaces">      </span><span class="istickedoff">Just rhs -&gt; do</span>
+<span class="lineno">  339 </span><span class="spaces">        </span><span class="istickedoff">let (binders, rhsBody) = UPLC.splitParams rhs</span>
+<span class="lineno">  340 </span><span class="spaces">        </span><span class="istickedoff">modify' . extendVarInfo n $</span>
+<span class="lineno">  341 </span><span class="spaces">          </span><span class="istickedoff">VarInfo</span>
+<span class="lineno">  342 </span><span class="spaces">            </span><span class="istickedoff">{ _varBinders = binders</span>
+<span class="lineno">  343 </span><span class="spaces">            </span><span class="istickedoff">, _varRhs = rhs</span>
+<span class="lineno">  344 </span><span class="spaces">            </span><span class="istickedoff">, _varRhsBody = Done (dupable rhsBody)</span>
+<span class="lineno">  345 </span><span class="spaces">            </span><span class="istickedoff">}</span>
+<span class="lineno">  346 </span><span class="spaces">        </span><span class="istickedoff">pure . Right $ Def vd rhs</span>
+<span class="lineno">  347 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; pure (Left a)</span></span>
+<span class="lineno">  348 </span>
+<span class="lineno">  349 </span>{-| Check against the heuristics we have for inlining and either inline
+<span class="lineno">  350 </span>the term binding or not. The arguments to this function are the fields of the
+<span class="lineno">  351 </span>'TermBinding' being processed.
+<span class="lineno">  352 </span>Nothing means that we are inlining the term:
+<span class="lineno">  353 </span>  * we have extended the substitution, and
+<span class="lineno">  354 </span>  * we are removing the binding (hence we return Nothing). -}
+<span class="lineno">  355 </span>maybeAddSubst
+<span class="lineno">  356 </span>  :: forall name uni fun a
+<span class="lineno">  357 </span>   . InliningConstraints name uni fun
+<span class="lineno">  358 </span>  =&gt; Term name uni fun (Ann a)
+<span class="lineno">  359 </span>  -&gt; a
+<span class="lineno">  360 </span>  -&gt; name
+<span class="lineno">  361 </span>  -&gt; Term name uni fun (Ann a)
+<span class="lineno">  362 </span>  -&gt; InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))
+<span class="lineno">  363 </span><span class="decl"><span class="istickedoff">maybeAddSubst body a n rhs0 = do</span>
+<span class="lineno">  364 </span><span class="spaces">  </span><span class="istickedoff">rhs &lt;- processTerm rhs0</span>
+<span class="lineno">  365 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  366 </span><span class="spaces">  </span><span class="istickedoff">-- Check whether we've been told specifically to inline this</span>
+<span class="lineno">  367 </span><span class="spaces">  </span><span class="istickedoff">hints &lt;- view iiHints</span>
+<span class="lineno">  368 </span><span class="spaces">  </span><span class="istickedoff">case shouldInline hints <span class="nottickedoff">a</span> <span class="nottickedoff">n</span> of</span>
+<span class="lineno">  369 </span><span class="spaces">    </span><span class="istickedoff">AlwaysInline -&gt;</span>
+<span class="lineno">  370 </span><span class="spaces">      </span><span class="istickedoff">-- if we've been told specifically, then do it right away</span>
+<span class="lineno">  371 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">extendAndDrop (Done $ dupable rhs)</span></span>
+<span class="lineno">  372 </span><span class="spaces">    </span><span class="istickedoff">hint -&gt;</span>
+<span class="lineno">  373 </span><span class="spaces">      </span><span class="istickedoff">let safeToInline = hint == SafeToInline</span>
+<span class="lineno">  374 </span><span class="spaces">       </span><span class="istickedoff">in ifM</span>
+<span class="lineno">  375 </span><span class="spaces">            </span><span class="istickedoff">(shouldUnconditionallyInline safeToInline n rhs body)</span>
+<span class="lineno">  376 </span><span class="spaces">            </span><span class="istickedoff">(extendAndDrop (Done $ dupable rhs))</span>
+<span class="lineno">  377 </span><span class="spaces">            </span><span class="istickedoff">(pure $ Just rhs)</span>
+<span class="lineno">  378 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  379 </span><span class="spaces">    </span><span class="istickedoff">extendAndDrop</span>
+<span class="lineno">  380 </span><span class="spaces">      </span><span class="istickedoff">:: forall b</span>
+<span class="lineno">  381 </span><span class="spaces">       </span><span class="istickedoff">. InlineTerm name uni fun (Ann a)</span>
+<span class="lineno">  382 </span><span class="spaces">      </span><span class="istickedoff">-&gt; InlineM name uni fun a (Maybe b)</span>
+<span class="lineno">  383 </span><span class="spaces">    </span><span class="istickedoff">extendAndDrop t = modify' (extendTerm n t) &gt;&gt; pure Nothing</span></span>
+<span class="lineno">  384 </span>
+<span class="lineno">  385 </span>shouldUnconditionallyInline
+<span class="lineno">  386 </span>  :: InliningConstraints name uni fun
+<span class="lineno">  387 </span>  =&gt; Bool
+<span class="lineno">  388 </span>  {-^ Whether we know that the binding is safe to inline.
+<span class="lineno">  389 </span>  If so, bypass the purity check. -}
+<span class="lineno">  390 </span>  -&gt; name
+<span class="lineno">  391 </span>  -&gt; Term name uni fun a
+<span class="lineno">  392 </span>  -&gt; Term name uni fun b
+<span class="lineno">  393 </span>  -&gt; InlineM name uni fun c Bool
+<span class="lineno">  394 </span><span class="decl"><span class="istickedoff">shouldUnconditionallyInline safe n rhs body = do</span>
+<span class="lineno">  395 </span><span class="spaces">  </span><span class="istickedoff">isTermPure &lt;- checkPurity rhs</span>
+<span class="lineno">  396 </span><span class="spaces">  </span><span class="istickedoff">inlineConstants &lt;- view iiInlineConstants</span>
+<span class="lineno">  397 </span><span class="spaces">  </span><span class="istickedoff">preUnconditional isTermPure ||^ postUnconditional inlineConstants isTermPure</span>
+<span class="lineno">  398 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  399 </span><span class="spaces">    </span><span class="istickedoff">-- similar to the paper, preUnconditional inlining checks that the binder</span>
+<span class="lineno">  400 </span><span class="spaces">    </span><span class="istickedoff">-- is 'OnceSafe'.  I.e., it's used at most once AND it neither duplicate code</span>
+<span class="lineno">  401 </span><span class="spaces">    </span><span class="istickedoff">-- or work. While we don't check for lambda etc like in the paper,</span>
+<span class="lineno">  402 </span><span class="spaces">    </span><span class="istickedoff">-- 'effectSafe' ensures that it isn't doing any substantial work.</span>
+<span class="lineno">  403 </span><span class="spaces">    </span><span class="istickedoff">-- We actually also inline 'Dead' binders (i.e., remove dead code) here.</span>
+<span class="lineno">  404 </span><span class="spaces">    </span><span class="istickedoff">preUnconditional isTermPure =</span>
+<span class="lineno">  405 </span><span class="spaces">      </span><span class="istickedoff">nameUsedAtMostOnce n &amp;&amp;^ (pure safe ||^ effectSafe body n isTermPure)</span>
+<span class="lineno">  406 </span><span class="spaces">    </span><span class="istickedoff">-- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and</span>
+<span class="lineno">  407 </span><span class="spaces">    </span><span class="istickedoff">-- [Inlining and purity]. This is the case where we don't know that the number</span>
+<span class="lineno">  408 </span><span class="spaces">    </span><span class="istickedoff">-- of occurrences is exactly one, so there's no point checking if the term is</span>
+<span class="lineno">  409 </span><span class="spaces">    </span><span class="istickedoff">-- immediately evaluated.</span>
+<span class="lineno">  410 </span><span class="spaces">    </span><span class="istickedoff">postUnconditional inlineConstants isTermPure =</span>
+<span class="lineno">  411 </span><span class="spaces">      </span><span class="istickedoff">pure (safe || isTermPure) &amp;&amp;^ acceptable inlineConstants rhs</span></span>
+<span class="lineno">  412 </span>
+<span class="lineno">  413 </span>-- | Check if term is pure. See Note [Inlining and purity]
+<span class="lineno">  414 </span>checkPurity
+<span class="lineno">  415 </span>  :: PLC.ToBuiltinMeaning uni fun
+<span class="lineno">  416 </span>  =&gt; Term name uni fun a
+<span class="lineno">  417 </span>  -&gt; InlineM name uni fun b Bool
+<span class="lineno">  418 </span><span class="decl"><span class="istickedoff">checkPurity t = do</span>
+<span class="lineno">  419 </span><span class="spaces">  </span><span class="istickedoff">builtinSemanticsVariant &lt;- view <span class="nottickedoff">iiBuiltinSemanticsVariant</span></span>
+<span class="lineno">  420 </span><span class="spaces">  </span><span class="istickedoff">pure $ isPure <span class="nottickedoff">builtinSemanticsVariant</span> t</span></span>
+<span class="lineno">  421 </span>
+<span class="lineno">  422 </span>nameUsedAtMostOnce
+<span class="lineno">  423 </span>  :: forall name uni fun a
+<span class="lineno">  424 </span>   . InliningConstraints name uni fun
+<span class="lineno">  425 </span>  =&gt; name
+<span class="lineno">  426 </span>  -&gt; InlineM name uni fun a Bool
+<span class="lineno">  427 </span><span class="decl"><span class="istickedoff">nameUsedAtMostOnce n = do</span>
+<span class="lineno">  428 </span><span class="spaces">  </span><span class="istickedoff">usgs &lt;- view iiUsages</span>
+<span class="lineno">  429 </span><span class="spaces">  </span><span class="istickedoff">-- 'inlining' terms used 0 times is a cheap way to remove dead code</span>
+<span class="lineno">  430 </span><span class="spaces">  </span><span class="istickedoff">-- while we're here</span>
+<span class="lineno">  431 </span><span class="spaces">  </span><span class="istickedoff">pure $ Usages.getUsageCount n usgs &lt;= 1</span></span>
+<span class="lineno">  432 </span>
+<span class="lineno">  433 </span>isFirstVarBeforeEffects
+<span class="lineno">  434 </span>  :: forall name uni fun ann
+<span class="lineno">  435 </span>   . InliningConstraints name uni fun
+<span class="lineno">  436 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">  437 </span>  -&gt; name
+<span class="lineno">  438 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  439 </span>  -&gt; Bool
+<span class="lineno">  440 </span><span class="decl"><span class="istickedoff">isFirstVarBeforeEffects builtinSemanticsVariant n t =</span>
+<span class="lineno">  441 </span><span class="spaces">  </span><span class="istickedoff">-- This can in the worst case traverse a lot of the term, which could lead to</span>
+<span class="lineno">  442 </span><span class="spaces">  </span><span class="istickedoff">-- us doing ~quadratic work as we process the program. However in practice</span>
+<span class="lineno">  443 </span><span class="spaces">  </span><span class="istickedoff">-- most terms have a relatively short evaluation order before we hit Unknown,</span>
+<span class="lineno">  444 </span><span class="spaces">  </span><span class="istickedoff">-- so it's not too bad.</span>
+<span class="lineno">  445 </span><span class="spaces">  </span><span class="istickedoff">go (unEvalOrder (termEvaluationOrder <span class="nottickedoff">builtinSemanticsVariant</span> t))</span>
+<span class="lineno">  446 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  447 </span><span class="spaces">    </span><span class="istickedoff">-- Found the variable we're looking for!</span>
+<span class="lineno">  448 </span><span class="spaces">    </span><span class="istickedoff">go ((EvalTerm _ _ (Var _ n')) : _) | n == n' = True</span>
+<span class="lineno">  449 </span><span class="spaces">    </span><span class="istickedoff">-- Found a pure term, ignore it and continue</span>
+<span class="lineno">  450 </span><span class="spaces">    </span><span class="istickedoff">go ((EvalTerm Pure _ _) : rest) = go rest</span>
+<span class="lineno">  451 </span><span class="spaces">    </span><span class="istickedoff">-- Found a possibly impure term, our variable is definitely not first</span>
+<span class="lineno">  452 </span><span class="spaces">    </span><span class="istickedoff">go ((EvalTerm MaybeImpure _ _) : _) = False</span>
+<span class="lineno">  453 </span><span class="spaces">    </span><span class="istickedoff">-- Don't know, be conservative</span>
+<span class="lineno">  454 </span><span class="spaces">    </span><span class="istickedoff">go (Unknown : _) = False</span>
+<span class="lineno">  455 </span><span class="spaces">    </span><span class="istickedoff">go [] = False</span></span>
+<span class="lineno">  456 </span>
+<span class="lineno">  457 </span>{-| Check if the given name is strict in the given term.
+<span class="lineno">  458 </span>  This means that at least one occurrence of the name is found outside of the following:
+<span class="lineno">  459 </span>  * 'delay' term
+<span class="lineno">  460 </span>  * lambda body
+<span class="lineno">  461 </span>  * case branch -}
+<span class="lineno">  462 </span>isStrictIn
+<span class="lineno">  463 </span>  :: forall name uni fun a
+<span class="lineno">  464 </span>   . Eq name
+<span class="lineno">  465 </span>  =&gt; name
+<span class="lineno">  466 </span>  -&gt; Term name uni fun a
+<span class="lineno">  467 </span>  -&gt; Bool
+<span class="lineno">  468 </span><span class="decl"><span class="istickedoff">isStrictIn name = go</span>
+<span class="lineno">  469 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  470 </span><span class="spaces">    </span><span class="istickedoff">go :: Term name uni fun a -&gt; Bool</span>
+<span class="lineno">  471 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">  472 </span><span class="spaces">      </span><span class="istickedoff">Var _ann name' -&gt; name == name'</span>
+<span class="lineno">  473 </span><span class="spaces">      </span><span class="istickedoff">LamAbs _ann _paramName _body -&gt; False</span>
+<span class="lineno">  474 </span><span class="spaces">      </span><span class="istickedoff">Apply _ann t1 t2 -&gt; go t1 || go t2</span>
+<span class="lineno">  475 </span><span class="spaces">      </span><span class="istickedoff">Force _ann t -&gt; <span class="nottickedoff">go t</span></span>
+<span class="lineno">  476 </span><span class="spaces">      </span><span class="istickedoff">Delay _ann _term -&gt; False</span>
+<span class="lineno">  477 </span><span class="spaces">      </span><span class="istickedoff">Constant {} -&gt; False</span>
+<span class="lineno">  478 </span><span class="spaces">      </span><span class="istickedoff">Builtin {} -&gt; False</span>
+<span class="lineno">  479 </span><span class="spaces">      </span><span class="istickedoff">Error {} -&gt; <span class="nottickedoff">False</span></span>
+<span class="lineno">  480 </span><span class="spaces">      </span><span class="istickedoff">Constr _ann _idx terms -&gt; <span class="nottickedoff">any go terms</span></span>
+<span class="lineno">  481 </span><span class="spaces">      </span><span class="istickedoff">Case _ann scrut _branches -&gt; go scrut</span></span>
+<span class="lineno">  482 </span>
+<span class="lineno">  483 </span>effectSafe
+<span class="lineno">  484 </span>  :: forall name uni fun a b
+<span class="lineno">  485 </span>   . InliningConstraints name uni fun
+<span class="lineno">  486 </span>  =&gt; Term name uni fun a
+<span class="lineno">  487 </span>  -&gt; name
+<span class="lineno">  488 </span>  -&gt; Bool
+<span class="lineno">  489 </span>  -- ^ is it pure? See Note [Inlining and purity]
+<span class="lineno">  490 </span>  -&gt; InlineM name uni fun b Bool
+<span class="lineno">  491 </span><span class="decl"><span class="istickedoff">effectSafe body n termIsPure = do</span>
+<span class="lineno">  492 </span><span class="spaces">  </span><span class="istickedoff">preserveLogging &lt;- view iiPreserveLogging</span>
+<span class="lineno">  493 </span><span class="spaces">  </span><span class="istickedoff">builtinSemantics &lt;- view <span class="nottickedoff">iiBuiltinSemanticsVariant</span></span>
+<span class="lineno">  494 </span><span class="spaces">  </span><span class="istickedoff">return $</span>
+<span class="lineno">  495 </span><span class="spaces">    </span><span class="istickedoff">termIsPure</span>
+<span class="lineno">  496 </span><span class="spaces">      </span><span class="istickedoff">|| isFirstVarBeforeEffects <span class="nottickedoff">builtinSemantics</span> n body</span>
+<span class="lineno">  497 </span><span class="spaces">      </span><span class="istickedoff">|| (not preserveLogging &amp;&amp; isStrictIn n body)</span></span>
+<span class="lineno">  498 </span>
+<span class="lineno">  499 </span>{-| Should we inline? Should only inline things that won't duplicate work
+<span class="lineno">  500 </span>or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner'] -}
+<span class="lineno">  501 </span>acceptable
+<span class="lineno">  502 </span>  :: Bool
+<span class="lineno">  503 </span>  -- ^ inline constants
+<span class="lineno">  504 </span>  -&gt; Term name uni fun a
+<span class="lineno">  505 </span>  -&gt; InlineM name uni fun b Bool
+<span class="lineno">  506 </span><span class="decl"><span class="istickedoff">acceptable inlineConstants t =</span>
+<span class="lineno">  507 </span><span class="spaces">  </span><span class="istickedoff">-- See Note [Inlining criteria]</span>
+<span class="lineno">  508 </span><span class="spaces">  </span><span class="istickedoff">pure $ costIsAcceptable t &amp;&amp; sizeIsAcceptable inlineConstants t</span></span>
+<span class="lineno">  509 </span>
+<span class="lineno">  510 </span>{-| Is the cost increase (in terms of evaluation work) of inlining a variable
+<span class="lineno">  511 </span>whose RHS is the given term acceptable? -}
+<span class="lineno">  512 </span>costIsAcceptable :: Term name uni fun a -&gt; Bool
+<span class="lineno">  513 </span><span class="decl"><span class="istickedoff">costIsAcceptable = \case</span>
+<span class="lineno">  514 </span><span class="spaces">  </span><span class="istickedoff">Builtin {} -&gt; True</span>
+<span class="lineno">  515 </span><span class="spaces">  </span><span class="istickedoff">Var {} -&gt; True</span>
+<span class="lineno">  516 </span><span class="spaces">  </span><span class="istickedoff">Constant {} -&gt; True</span>
+<span class="lineno">  517 </span><span class="spaces">  </span><span class="istickedoff">Error {} -&gt; True</span>
+<span class="lineno">  518 </span><span class="spaces">  </span><span class="istickedoff">-- This will mean that we create closures at each use site instead of</span>
+<span class="lineno">  519 </span><span class="spaces">  </span><span class="istickedoff">-- once, but that's a very low cost which we're okay rounding to 0.</span>
+<span class="lineno">  520 </span><span class="spaces">  </span><span class="istickedoff">LamAbs {} -&gt; True</span>
+<span class="lineno">  521 </span><span class="spaces">  </span><span class="istickedoff">Apply {} -&gt; False</span>
+<span class="lineno">  522 </span><span class="spaces">  </span><span class="istickedoff">-- Inlining constructors of size 1 or 0 seems okay, but does result in doing</span>
+<span class="lineno">  523 </span><span class="spaces">  </span><span class="istickedoff">-- the work for the elements at each use site.</span>
+<span class="lineno">  524 </span><span class="spaces">  </span><span class="istickedoff">Constr _ _ es -&gt;</span>
+<span class="lineno">  525 </span><span class="spaces">    </span><span class="istickedoff">case es of</span>
+<span class="lineno">  526 </span><span class="spaces">      </span><span class="istickedoff">[] -&gt; True</span>
+<span class="lineno">  527 </span><span class="spaces">      </span><span class="istickedoff">[e] -&gt; costIsAcceptable e</span>
+<span class="lineno">  528 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; False</span>
+<span class="lineno">  529 </span><span class="spaces">  </span><span class="istickedoff">-- Inlining a case means redoing the match at each use site</span>
+<span class="lineno">  530 </span><span class="spaces">  </span><span class="istickedoff">Case {} -&gt; <span class="nottickedoff">False</span></span>
+<span class="lineno">  531 </span><span class="spaces">  </span><span class="istickedoff">Force {} -&gt; False</span>
+<span class="lineno">  532 </span><span class="spaces">  </span><span class="istickedoff">Delay {} -&gt; True</span></span>
+<span class="lineno">  533 </span>
+<span class="lineno">  534 </span>{-| Is the size increase (in the AST) of inlining a variable whose RHS is
+<span class="lineno">  535 </span>the given term acceptable? -}
+<span class="lineno">  536 </span>sizeIsAcceptable
+<span class="lineno">  537 </span>  :: Bool
+<span class="lineno">  538 </span>  -- ^ inline constants
+<span class="lineno">  539 </span>  -&gt; Term name uni fun a
+<span class="lineno">  540 </span>  -&gt; Bool
+<span class="lineno">  541 </span><span class="decl"><span class="istickedoff">sizeIsAcceptable inlineConstants = \case</span>
+<span class="lineno">  542 </span><span class="spaces">  </span><span class="istickedoff">Builtin {} -&gt; True</span>
+<span class="lineno">  543 </span><span class="spaces">  </span><span class="istickedoff">Var {} -&gt; True</span>
+<span class="lineno">  544 </span><span class="spaces">  </span><span class="istickedoff">Error {} -&gt; <span class="nottickedoff">True</span></span>
+<span class="lineno">  545 </span><span class="spaces">  </span><span class="istickedoff">-- See Note [Differences from PIR inliner] 4</span>
+<span class="lineno">  546 </span><span class="spaces">  </span><span class="istickedoff">LamAbs {} -&gt; False</span>
+<span class="lineno">  547 </span><span class="spaces">  </span><span class="istickedoff">-- Inlining constructors of size 1 or 0 seems okay</span>
+<span class="lineno">  548 </span><span class="spaces">  </span><span class="istickedoff">Constr _ _ es -&gt; case es of</span>
+<span class="lineno">  549 </span><span class="spaces">    </span><span class="istickedoff">[] -&gt; True</span>
+<span class="lineno">  550 </span><span class="spaces">    </span><span class="istickedoff">[e] -&gt; sizeIsAcceptable inlineConstants e</span>
+<span class="lineno">  551 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">False</span></span>
+<span class="lineno">  552 </span><span class="spaces">  </span><span class="istickedoff">-- Cases are pretty big, due to the case branches</span>
+<span class="lineno">  553 </span><span class="spaces">  </span><span class="istickedoff">Case {} -&gt; <span class="nottickedoff">False</span></span>
+<span class="lineno">  554 </span><span class="spaces">  </span><span class="istickedoff">-- Inlining constants is deemed acceptable if the 'inlineConstants'</span>
+<span class="lineno">  555 </span><span class="spaces">  </span><span class="istickedoff">-- flag is turned on, see Note [Inlining constants].</span>
+<span class="lineno">  556 </span><span class="spaces">  </span><span class="istickedoff">Constant {} -&gt; inlineConstants</span>
+<span class="lineno">  557 </span><span class="spaces">  </span><span class="istickedoff">Apply {} -&gt; False</span>
+<span class="lineno">  558 </span><span class="spaces">  </span><span class="istickedoff">Force _ t -&gt; <span class="nottickedoff">sizeIsAcceptable inlineConstants t</span></span>
+<span class="lineno">  559 </span><span class="spaces">  </span><span class="istickedoff">Delay _ t -&gt; sizeIsAcceptable inlineConstants t</span></span>
+<span class="lineno">  560 </span>
+<span class="lineno">  561 </span>-- | Fully apply and beta reduce.
+<span class="lineno">  562 </span>fullyApplyAndBetaReduce
+<span class="lineno">  563 </span>  :: forall name uni fun a
+<span class="lineno">  564 </span>   . InliningConstraints name uni fun
+<span class="lineno">  565 </span>  =&gt; Ann a
+<span class="lineno">  566 </span>  -- ^ Annotation on the variable to be replaced
+<span class="lineno">  567 </span>  -&gt; VarInfo name uni fun (Ann a)
+<span class="lineno">  568 </span>  -&gt; [(Ann a, Term name uni fun (Ann a))]
+<span class="lineno">  569 </span>  -&gt; InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))
+<span class="lineno">  570 </span><span class="decl"><span class="istickedoff">fullyApplyAndBetaReduce av info args0 = do</span>
+<span class="lineno">  571 </span><span class="spaces">  </span><span class="istickedoff">rhsBody &lt;-</span>
+<span class="lineno">  572 </span><span class="spaces">    </span><span class="istickedoff">-- Since we would like to fully apply here, we add decorations to</span>
+<span class="lineno">  573 </span><span class="spaces">    </span><span class="istickedoff">-- `rhsBody` in the following order:</span>
+<span class="lineno">  574 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  575 </span><span class="spaces">    </span><span class="istickedoff">--   * decorations on the outermost Apply node, plus DDrop</span>
+<span class="lineno">  576 </span><span class="spaces">    </span><span class="istickedoff">--   * decorations on the next Apply node, plus DDrop</span>
+<span class="lineno">  577 </span><span class="spaces">    </span><span class="istickedoff">--   * ...</span>
+<span class="lineno">  578 </span><span class="spaces">    </span><span class="istickedoff">--   * decorations on the innermost Apply node, plus DDrop</span>
+<span class="lineno">  579 </span><span class="spaces">    </span><span class="istickedoff">--   * `av` plus DExpand.</span>
+<span class="lineno">  580 </span><span class="spaces">    </span><span class="istickedoff">--   * decorations on the first LamAbs</span>
+<span class="lineno">  581 </span><span class="spaces">    </span><span class="istickedoff">--   * decorations on the second LamAbs</span>
+<span class="lineno">  582 </span><span class="spaces">    </span><span class="istickedoff">--   * ...</span>
+<span class="lineno">  583 </span><span class="spaces">    </span><span class="istickedoff">--   * decorations on the last LamAbs</span>
+<span class="lineno">  584 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  585 </span><span class="spaces">    </span><span class="istickedoff">-- See Note [Inliner's Certifier Hints].</span>
+<span class="lineno">  586 </span><span class="spaces">    </span><span class="istickedoff">decorateWith</span>
+<span class="lineno">  587 </span><span class="spaces">      </span><span class="istickedoff">( concatMap (\(annApply, _arg) -&gt; annApply ^. decorations ++ [DDrop]) (reverse args0)</span>
+<span class="lineno">  588 </span><span class="spaces">          </span><span class="istickedoff">++ av ^. decorations</span>
+<span class="lineno">  589 </span><span class="spaces">          </span><span class="istickedoff">++ [DExpand]</span>
+<span class="lineno">  590 </span><span class="spaces">          </span><span class="istickedoff">++ concatMap (\(_name, annLam) -&gt; annLam ^. decorations) (info ^. varBinders)</span>
+<span class="lineno">  591 </span><span class="spaces">      </span><span class="istickedoff">)</span>
+<span class="lineno">  592 </span><span class="spaces">      </span><span class="istickedoff">&lt;$&gt; liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)</span>
+<span class="lineno">  593 </span><span class="spaces">  </span><span class="istickedoff">let go</span>
+<span class="lineno">  594 </span><span class="spaces">        </span><span class="istickedoff">:: Term name uni fun (Ann a)</span>
+<span class="lineno">  595 </span><span class="spaces">        </span><span class="istickedoff">-&gt; [(name, Ann a)]</span>
+<span class="lineno">  596 </span><span class="spaces">        </span><span class="istickedoff">-&gt; [(Ann a, Term name uni fun (Ann a))]</span>
+<span class="lineno">  597 </span><span class="spaces">        </span><span class="istickedoff">-&gt; InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))</span>
+<span class="lineno">  598 </span><span class="spaces">      </span><span class="istickedoff">go acc bs args = case (bs, args) of</span>
+<span class="lineno">  599 </span><span class="spaces">        </span><span class="istickedoff">([], _) -&gt; pure . Just $ mkIterApp acc args</span>
+<span class="lineno">  600 </span><span class="spaces">        </span><span class="istickedoff">((param, _annLam) : params, (_annArg, arg) : args') -&gt; do</span>
+<span class="lineno">  601 </span><span class="spaces">          </span><span class="istickedoff">safe &lt;- safeToBetaReduce param arg</span>
+<span class="lineno">  602 </span><span class="spaces">          </span><span class="istickedoff">if safe</span>
+<span class="lineno">  603 </span><span class="spaces">            </span><span class="istickedoff">then do</span>
+<span class="lineno">  604 </span><span class="spaces">              </span><span class="istickedoff">acc' &lt;-</span>
+<span class="lineno">  605 </span><span class="spaces">                </span><span class="istickedoff">termSubstNamesM</span>
+<span class="lineno">  606 </span><span class="spaces">                  </span><span class="istickedoff">( \n a -&gt;</span>
+<span class="lineno">  607 </span><span class="spaces">                      </span><span class="istickedoff">if n == param</span>
+<span class="lineno">  608 </span><span class="spaces">                        </span><span class="istickedoff">then</span>
+<span class="lineno">  609 </span><span class="spaces">                          </span><span class="istickedoff">Just</span>
+<span class="lineno">  610 </span><span class="spaces">                            </span><span class="istickedoff">-- See Note [Inliner's Certifier Hints], #1</span>
+<span class="lineno">  611 </span><span class="spaces">                            </span><span class="istickedoff">. decorateWith (a ^. decorations)</span>
+<span class="lineno">  612 </span><span class="spaces">                            </span><span class="istickedoff">. decorateWith [DExpand]</span>
+<span class="lineno">  613 </span><span class="spaces">                            </span><span class="istickedoff">&lt;$&gt; PLC.rename arg</span>
+<span class="lineno">  614 </span><span class="spaces">                        </span><span class="istickedoff">else pure Nothing</span>
+<span class="lineno">  615 </span><span class="spaces">                  </span><span class="istickedoff">)</span>
+<span class="lineno">  616 </span><span class="spaces">                  </span><span class="istickedoff">acc</span>
+<span class="lineno">  617 </span><span class="spaces">              </span><span class="istickedoff">go acc' params args'</span>
+<span class="lineno">  618 </span><span class="spaces">            </span><span class="istickedoff">else pure Nothing</span>
+<span class="lineno">  619 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; pure Nothing</span>
+<span class="lineno">  620 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  621 </span><span class="spaces">      </span><span class="istickedoff">-- Is it safe to turn `(\a -&gt; body) arg` into `body [a := arg]`?</span>
+<span class="lineno">  622 </span><span class="spaces">      </span><span class="istickedoff">-- The criteria is the same as the criteria for unconditionally</span>
+<span class="lineno">  623 </span><span class="spaces">      </span><span class="istickedoff">-- inlining `a`, since inlining is the same as beta reduction.</span>
+<span class="lineno">  624 </span><span class="spaces">      </span><span class="istickedoff">safeToBetaReduce</span>
+<span class="lineno">  625 </span><span class="spaces">        </span><span class="istickedoff">:: name</span>
+<span class="lineno">  626 </span><span class="spaces">        </span><span class="istickedoff">-&gt; Term name uni fun (Ann a)</span>
+<span class="lineno">  627 </span><span class="spaces">        </span><span class="istickedoff">-&gt; InlineM name uni fun a Bool</span>
+<span class="lineno">  628 </span><span class="spaces">      </span><span class="istickedoff">safeToBetaReduce a arg = shouldUnconditionallyInline False a arg rhsBody</span>
+<span class="lineno">  629 </span><span class="spaces">  </span><span class="istickedoff">go rhsBody (info ^. varBinders) args0</span></span>
+<span class="lineno">  630 </span>
+<span class="lineno">  631 </span>{-| This works in the same way as
+<span class="lineno">  632 </span>'PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp'.
+<span class="lineno">  633 </span>See Note [Inlining and beta reduction of functions]. -}
+<span class="lineno">  634 </span>inlineSaturatedApp
+<span class="lineno">  635 </span>  :: forall name uni fun a
+<span class="lineno">  636 </span>   . InliningConstraints name uni fun
+<span class="lineno">  637 </span>  =&gt; Term name uni fun (Ann a)
+<span class="lineno">  638 </span>  -&gt; InlineM name uni fun a (Term name uni fun (Ann a))
+<span class="lineno">  639 </span><span class="decl"><span class="istickedoff">inlineSaturatedApp t</span>
+<span class="lineno">  640 </span><span class="spaces">  </span><span class="istickedoff">| (Var av name, args) &lt;- UPLC.splitApplication t =</span>
+<span class="lineno">  641 </span><span class="spaces">      </span><span class="istickedoff">gets (lookupVarInfo name) &gt;&gt;= \case</span>
+<span class="lineno">  642 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt; pure t</span>
+<span class="lineno">  643 </span><span class="spaces">        </span><span class="istickedoff">Just varInfo -&gt;</span>
+<span class="lineno">  644 </span><span class="spaces">          </span><span class="istickedoff">fullyApplyAndBetaReduce av varInfo args &gt;&gt;= \case</span>
+<span class="lineno">  645 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; pure t</span>
+<span class="lineno">  646 </span><span class="spaces">            </span><span class="istickedoff">Just fullyApplied -&gt; do</span>
+<span class="lineno">  647 </span><span class="spaces">              </span><span class="istickedoff">thresh &lt;- view iiInlineCallsiteGrowth</span>
+<span class="lineno">  648 </span><span class="spaces">              </span><span class="istickedoff">let</span>
+<span class="lineno">  649 </span><span class="spaces">                </span><span class="istickedoff">-- Inline only if the size is no bigger than</span>
+<span class="lineno">  650 </span><span class="spaces">                </span><span class="istickedoff">-- not inlining plus threshold.</span>
+<span class="lineno">  651 </span><span class="spaces">                </span><span class="istickedoff">sizeIsOk =</span>
+<span class="lineno">  652 </span><span class="spaces">                  </span><span class="istickedoff">termAstSize fullyApplied &lt;= termAstSize t + max 0 thresh</span>
+<span class="lineno">  653 </span><span class="spaces">                </span><span class="istickedoff">rhs = varInfo ^. varRhs</span>
+<span class="lineno">  654 </span><span class="spaces">                </span><span class="istickedoff">-- Cost is always OK if the RHS is a LamAbs,</span>
+<span class="lineno">  655 </span><span class="spaces">                </span><span class="istickedoff">-- but may not be otherwise.</span>
+<span class="lineno">  656 </span><span class="spaces">                </span><span class="istickedoff">costIsOk = costIsAcceptable rhs</span>
+<span class="lineno">  657 </span><span class="spaces">              </span><span class="istickedoff">-- The RHS is always pure if it is a LamAbs,</span>
+<span class="lineno">  658 </span><span class="spaces">              </span><span class="istickedoff">-- but may not be otherwise.</span>
+<span class="lineno">  659 </span><span class="spaces">              </span><span class="istickedoff">rhsPure &lt;- checkPurity rhs</span>
+<span class="lineno">  660 </span><span class="spaces">              </span><span class="istickedoff">pure $</span>
+<span class="lineno">  661 </span><span class="spaces">                </span><span class="istickedoff">if sizeIsOk &amp;&amp; costIsOk &amp;&amp; rhsPure</span>
+<span class="lineno">  662 </span><span class="spaces">                  </span><span class="istickedoff">then fullyApplied</span>
+<span class="lineno">  663 </span><span class="spaces">                  </span><span class="istickedoff">else t</span>
+<span class="lineno">  664 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = pure t</span></span>
+<span class="lineno">  665 </span>
+<span class="lineno">  666 </span>-------------------------------------------------------------------------------
+<span class="lineno">  667 </span>-- The following are types and functions for producing certifier hints.
+<span class="lineno">  668 </span>-- See Note [Inliner's Certifier Hints] for an overview.
+<span class="lineno">  669 </span>-------------------------------------------------------------------------------
+<span class="lineno">  670 </span>
+<span class="lineno">  671 </span>-- | An enclosing Drop or Expand layer
+<span class="lineno">  672 </span>data Decoration = DDrop | DExpand
+<span class="lineno">  673 </span>
+<span class="lineno">  674 </span>type Ann a = ([Decoration], a)
+<span class="lineno">  675 </span>
+<span class="lineno">  676 </span>emptyDecoration :: a -&gt; Ann a
+<span class="lineno">  677 </span><span class="decl"><span class="istickedoff">emptyDecoration = (mempty,)</span></span>
+<span class="lineno">  678 </span>{-# INLINE emptyDecoration #-}
+<span class="lineno">  679 </span>
+<span class="lineno">  680 </span>decorations :: Lens' (Ann a) [Decoration]
+<span class="lineno">  681 </span><span class="decl"><span class="istickedoff">decorations = _1</span></span>
+<span class="lineno">  682 </span>{-# INLINE decorations #-}
+<span class="lineno">  683 </span>
+<span class="lineno">  684 </span>-- | Prepend the given decorations
+<span class="lineno">  685 </span>decorateWith :: [Decoration] -&gt; Term name uni fun (Ann a) -&gt; Term name uni fun (Ann a)
+<span class="lineno">  686 </span><span class="decl"><span class="istickedoff">decorateWith ds = modifyTermAnn (first (ds ++))</span></span>
+<span class="lineno">  687 </span>{-# INLINE decorateWith #-}
+<span class="lineno">  688 </span>
+<span class="lineno">  689 </span>-- | Fold a decorated term into certifier hints.
+<span class="lineno">  690 </span>mkHints :: Term name uni fun (Ann a) -&gt; CertifierHints.Inline
+<span class="lineno">  691 </span><span class="decl"><span class="istickedoff">mkHints = go</span>
+<span class="lineno">  692 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  693 </span><span class="spaces">    </span><span class="istickedoff">go t = decorate hints ds</span>
+<span class="lineno">  694 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">  695 </span><span class="spaces">        </span><span class="istickedoff">decorate :: CertifierHints.Inline -&gt; [Decoration] -&gt; CertifierHints.Inline</span>
+<span class="lineno">  696 </span><span class="spaces">        </span><span class="istickedoff">decorate = foldr $ \d h -&gt; case d of</span>
+<span class="lineno">  697 </span><span class="spaces">          </span><span class="istickedoff">DDrop -&gt; CertifierHints.InlDrop h</span>
+<span class="lineno">  698 </span><span class="spaces">          </span><span class="istickedoff">DExpand -&gt; CertifierHints.InlExpand h</span>
+<span class="lineno">  699 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  700 </span><span class="spaces">        </span><span class="istickedoff">ds = termAnn t ^. decorations</span>
+<span class="lineno">  701 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  702 </span><span class="spaces">        </span><span class="istickedoff">hints = case t of</span>
+<span class="lineno">  703 </span><span class="spaces">          </span><span class="istickedoff">Var {} -&gt; CertifierHints.InlVar</span>
+<span class="lineno">  704 </span><span class="spaces">          </span><span class="istickedoff">LamAbs _ _ body -&gt; CertifierHints.InlLam (go body)</span>
+<span class="lineno">  705 </span><span class="spaces">          </span><span class="istickedoff">Apply _ fun arg -&gt; CertifierHints.InlApply (go fun) (go arg)</span>
+<span class="lineno">  706 </span><span class="spaces">          </span><span class="istickedoff">Force _ body -&gt; CertifierHints.InlForce (go body)</span>
+<span class="lineno">  707 </span><span class="spaces">          </span><span class="istickedoff">Delay _ body -&gt; CertifierHints.InlDelay (go body)</span>
+<span class="lineno">  708 </span><span class="spaces">          </span><span class="istickedoff">Constant {} -&gt; CertifierHints.InlCon</span>
+<span class="lineno">  709 </span><span class="spaces">          </span><span class="istickedoff">Builtin {} -&gt; CertifierHints.InlBuiltin</span>
+<span class="lineno">  710 </span><span class="spaces">          </span><span class="istickedoff">Error {} -&gt; CertifierHints.InlError</span>
+<span class="lineno">  711 </span><span class="spaces">          </span><span class="istickedoff">Constr _ _ args -&gt; <span class="nottickedoff">CertifierHints.InlConstr (go &lt;$&gt; args)</span></span>
+<span class="lineno">  712 </span><span class="spaces">          </span><span class="istickedoff">Case _ scrut alts -&gt; CertifierHints.InlCase (go scrut) (go &lt;$&gt; V.toList alts)</span></span>
+<span class="lineno">  713 </span>
+<span class="lineno">  714 </span>{- Note [Inliner's Certifier Hints]
+<span class="lineno">  715 </span>
+<span class="lineno">  716 </span>To certify the inliner, the certifier requires the inliner to emit hints that record
+<span class="lineno">  717 </span>where inlining operations occur. These hints are represented by the `Inline` data type
+<span class="lineno">  718 </span>defined in `UntypedPlutusCore.Transform.Certify.Hints`.
+<span class="lineno">  719 </span>
+<span class="lineno">  720 </span>Given a pre-term and a post-term, the expected hints can be defined by viewing the
+<span class="lineno">  721 </span>inliner as a process that repeatedly performs one of the following two operations:
+<span class="lineno">  722 </span>
+<span class="lineno">  723 </span>1. Substituting a term for a variable
+<span class="lineno">  724 </span>2. Dropping a dead binding
+<span class="lineno">  725 </span>
+<span class="lineno">  726 </span>Certifier hints are then defined constructively according to the following procedure.
+<span class="lineno">  727 </span>In the end, the final hints mirror the post-term structure, except that each node may be
+<span class="lineno">  728 </span>decorated with an arbitrary number of `InlDrop` or `InlExpand` layers, reflecting the
+<span class="lineno">  729 </span>inlining operations that the inliner has performed.
+<span class="lineno">  730 </span>
+<span class="lineno">  731 </span>- Initially the hints mirror the pre-term structure, using constructors of `Inline`
+<span class="lineno">  732 </span>  except `InlExpand` and `InlDrop`. Excluding these two constructors, there is a
+<span class="lineno">  733 </span>  1-1 correspondence between hints constructors and AST constructors.
+<span class="lineno">  734 </span>
+<span class="lineno">  735 </span>- Suppose the inliner performs operation 1, substituting term `N` for variable `v`.
+<span class="lineno">  736 </span>  Before the substitution, we have
+<span class="lineno">  737 </span>
+<span class="lineno">  738 </span>    hints(v) = decorations(InlVar)
+<span class="lineno">  739 </span>
+<span class="lineno">  740 </span>  where `decorations` denotes an arbitrary number of enclosing `InlDrop` or `InlExpand`
+<span class="lineno">  741 </span>  layers. After the substitution, the hints at this location should become
+<span class="lineno">  742 </span>
+<span class="lineno">  743 </span>    decorations(InlExpand hints(N))                         (#1)
+<span class="lineno">  744 </span>
+<span class="lineno">  745 </span>  In other words, `InlVar` is replaced by `hints(N)` wrapped in an additional `InlExpand`.
+<span class="lineno">  746 </span>
+<span class="lineno">  747 </span>- Suppose the inliner performs operation 2, turning `(\x‾ₙ y. M) X‾ₙ Y` into `(\x‾ₙ. M) X‾ₙ`,
+<span class="lineno">  748 </span>  where `x‾ₙ` and `X‾ₙ` denote sequences `x₁ x₂ ... xₙ` and `X₁ X₂ ... Xₙ` with `n &gt;= 0`.
+<span class="lineno">  749 </span>  Before this, we have
+<span class="lineno">  750 </span>
+<span class="lineno">  751 </span>    hints((\x‾ₙ y. M) X‾ₙ Y) = decorations₁(InlApply (hints((\x‾ₙ y. M) X‾ₙ)) (hints(Y)))
+<span class="lineno">  752 </span>    hints(\y. M) = decorations₂(InlLam hints(M))
+<span class="lineno">  753 </span>
+<span class="lineno">  754 </span>  Afterwards, the hints for `(\x‾ₙ y. M) X‾ₙ` should become
+<span class="lineno">  755 </span>
+<span class="lineno">  756 </span>    decorations₁(InlDrop (hints((\x‾ₙ y. M) X‾ₙ)))           (#2)
+<span class="lineno">  757 </span>
+<span class="lineno">  758 </span>  That is, it is decorated with `decorations₁` plus `InlDrop`.
+<span class="lineno">  759 </span>  The hints for `M` should become
+<span class="lineno">  760 </span>
+<span class="lineno">  761 </span>    decorations₂(hints(M))                                   (#3)
+<span class="lineno">  762 </span>
+<span class="lineno">  763 </span>  That is, it is decorated with `decorations₂`. Note that when `n = 0`,
+<span class="lineno">  764 </span>  `(\x‾ₙ y. M) X‾ₙ` becomes `M`, and therefore, `hints(M)` should be decorated with
+<span class="lineno">  765 </span>  `decorations₁` plus `InlDrop` plus `decorations₂`.
+<span class="lineno">  766 </span>
+<span class="lineno">  767 </span>Refer to the golden tests for examples of hints (look for files ending with
+<span class="lineno">  768 </span>`.golden.certifier-hints`).
+<span class="lineno">  769 </span>
+<span class="lineno">  770 </span>Implementing this is quite fiddly, but is still easier than it sounds from the above
+<span class="lineno">  771 </span>description. Observe that at any point during inlining, the hints structure mirrors
+<span class="lineno">  772 </span>the structure of the current term, except for the decorations. Therefore all we need
+<span class="lineno">  773 </span>is to store the decorations of each node in its `ann`. When inlining is done, we can
+<span class="lineno">  774 </span>construct the hints structure using these decorations.
+<span class="lineno">  775 </span>-}
+
+</pre>
+</body>
+</html>

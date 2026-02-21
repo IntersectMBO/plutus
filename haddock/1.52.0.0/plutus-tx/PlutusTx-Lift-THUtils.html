@@ -1,0 +1,252 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Lift.THUtils</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Lift.THUtils.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Lift.THUtils</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:showName"
+	      >showName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:normalizeType"
+	      >normalizeType</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+	      >Type</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:requireExtension"
+	      >requireExtension</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-boot-th-9.6.7/docs/GHC-LanguageExtensions-Type.html#t:Extension" title="GHC.LanguageExtensions.Type"
+	      >Extension</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:mkTyVarDecl"
+	      >mkTyVarDecl</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; m (<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:isNewtype"
+	      >isNewtype</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:DatatypeInfo" title="Language.Haskell.TH.Datatype"
+	      >DatatypeInfo</a
+	      > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tyListE"
+	      >tyListE</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:TExpQ" title="Language.Haskell.TH.Lib.Internal"
+	      >TExpQ</a
+	      > a] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:TExpQ" title="Language.Haskell.TH.Lib.Internal"
+	      >TExpQ</a
+	      > [a]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:showName" class="def"
+	    >showName</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Lift.THUtils.html#showName" class="link"
+	    >Source</a
+	    > <a href="#v:showName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Very nearly the same as <code
+	      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#v:showName" title="Language.Haskell.TH.Syntax"
+		>showName</a
+		></code
+	      >, but doesn't print uniques, since we don't need to
+incorporate them into our names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:normalizeType" class="def"
+	    >normalizeType</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Type" title="Language.Haskell.TH.Syntax"
+	    >Type</a
+	    > <a href="src/PlutusTx.Lift.THUtils.html#normalizeType" class="link"
+	    >Source</a
+	    > <a href="#v:normalizeType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Normalize a type, in particular getting rid of things like <code
+	      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#v:ListT" title="Language.Haskell.TH.Syntax"
+		>ListT</a
+		></code
+	      > in favour of applications of the actual name.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:requireExtension" class="def"
+	    >requireExtension</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-boot-th-9.6.7/docs/GHC-LanguageExtensions-Type.html#t:Extension" title="GHC.LanguageExtensions.Type"
+	    >Extension</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > () <a href="src/PlutusTx.Lift.THUtils.html#requireExtension" class="link"
+	    >Source</a
+	    > <a href="#v:requireExtension" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTyVarDecl" class="def"
+	    >mkTyVarDecl</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; m (<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:TyVarDecl" title="PlutusCore.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > ()) <a href="src/PlutusTx.Lift.THUtils.html#mkTyVarDecl" class="link"
+	    >Source</a
+	    > <a href="#v:mkTyVarDecl" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isNewtype" class="def"
+	    >isNewtype</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/th-abstraction-0.6.0.0/docs/Language-Haskell-TH-Datatype.html#t:DatatypeInfo" title="Language.Haskell.TH.Datatype"
+	    >DatatypeInfo</a
+	    > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Lift.THUtils.html#isNewtype" class="link"
+	    >Source</a
+	    > <a href="#v:isNewtype" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tyListE" class="def"
+	    >tyListE</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:TExpQ" title="Language.Haskell.TH.Lib.Internal"
+	    >TExpQ</a
+	    > a] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:TExpQ" title="Language.Haskell.TH.Lib.Internal"
+	    >TExpQ</a
+	    > [a] <a href="src/PlutusTx.Lift.THUtils.html#tyListE" class="link"
+	    >Source</a
+	    > <a href="#v:tyListE" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><a href="https://hackage.haskell.org/package/safe-0.3.21/docs/Safe.html"
+	      >Safe</a
+	      > wrapper around <code
+	      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#v:listE" title="Language.Haskell.TH.Lib.Internal"
+		>listE</a
+		></code
+	      > for typed TH.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

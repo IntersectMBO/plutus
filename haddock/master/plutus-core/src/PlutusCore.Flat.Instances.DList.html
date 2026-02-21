@@ -1,0 +1,449 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Instances.DList</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.html"
+	><span class="hs-identifier"
+	  >Data.DList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#DList"
+	><span class="hs-identifier"
+	  >DList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#fromList"
+	><span class="hs-identifier"
+	  >fromList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier"
+	  >toList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Mono</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	><span class="hs-identifier"
+	  >decodeList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	><span class="hs-identifier"
+	  >encodeList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeList"
+	><span class="hs-identifier"
+	  >sizeList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-$setup
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Test
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Base()
+&gt;&gt;&gt; import PlutusCore.Flat.Run
+&gt;&gt;&gt; import Data.DList
+&gt;&gt;&gt; let test = tstBits -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+&gt;&gt;&gt; test (Data.DList.fromList [7::Word,7])
+(True,19,&quot;10000011 11000001 110&quot;)
+
+&gt;&gt;&gt; let l = [7::Word,7] in flat (Data.DList.fromList l) == flat l
+True -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679106580"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106580"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#DList"
+	  ><span class="hs-identifier hs-type"
+	    >DList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679106580"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106611"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: DList a -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="#local-6989586621679106611"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; NumBits -&gt; NumBits
+forall mono.
+(MonoFoldable mono, Flat (Element mono)) =&gt;
+mono -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeList"
+	><span class="hs-identifier hs-var"
+	  >sizeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; NumBits -&gt; NumBits)
+-&gt; (DList a -&gt; [a]) -&gt; DList a -&gt; NumBits -&gt; NumBits
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList a -&gt; [a]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106616"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: DList a -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679106616"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	><span class="hs-identifier hs-var"
+	  >encodeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; Encoding) -&gt; (DList a -&gt; [a]) -&gt; DList a -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList a -&gt; [a]
+forall a. DList a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106623"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (DList a)
+</span
+	  ><a href="#local-6989586621679106623"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; DList a
+forall a. [a] -&gt; DList a
+</span
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; DList a) -&gt; Get [a] -&gt; Get (DList a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get [a]
+forall b. (IsSequence b, Flat (Element b)) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	><span class="hs-identifier hs-var"
+	  >decodeList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

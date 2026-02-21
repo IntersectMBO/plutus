@@ -1,0 +1,617 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Definition.TF</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.52.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Definition.TF.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Definition.TF</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:IfStuckUnroll"
+	      >IfStuckUnroll</a
+	      > (e &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >]) (t &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >]) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:IfStuckRep"
+	      >IfStuckRep</a
+	      > e (rep &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Insert"
+	      >Insert</a
+	      > x xs <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Concat"
+	      >Concat</a
+	      > (as &#8759; [k]) (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > (as &#8759; [k]) <a href="#t:-43--43-"
+	      >++</a
+	      > (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Reverse"
+	      >Reverse</a
+	      > (xs &#8759; [k]) &#8759; [k] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Append"
+	      >Append</a
+	      > (xs &#8759; [k]) (ys &#8759; [k]) &#8759; [k] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Nub"
+	      >Nub</a
+	      > xs <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:NubHelper"
+	      >NubHelper</a
+	      > acc xs <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:IfStuckUnroll" class="def"
+	    >IfStuckUnroll</a
+	    > (e &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >]) (t &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >]) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#IfStuckUnroll" class="link"
+	    >Source</a
+	    > <a href="#t:IfStuckUnroll" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckUnroll" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckUnroll</a
+		  > _ '[] = '[]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckUnroll" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckUnroll</a
+		  > _ (x ': xs) = x ': xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckUnroll" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckUnroll</a
+		  > e _ = e</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:IfStuckRep" class="def"
+	    >IfStuckRep</a
+	    > e (rep &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#IfStuckRep" class="link"
+	    >Source</a
+	    > <a href="#t:IfStuckRep" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckRep</a
+		  > _ (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:M1" title="GHC.Generics"
+		  >M1</a
+		  > a b c) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:M1" title="GHC.Generics"
+		  >M1</a
+		  > a b c</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckRep</a
+		  > _ (f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+		  >:*:</a
+		  > g) = f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+		  >:*:</a
+		  > g</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckRep</a
+		  > _ (f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+		  >:+:</a
+		  > g) = f <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+		  >:+:</a
+		  > g</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckRep</a
+		  > _ (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:K1" title="GHC.Generics"
+		  >K1</a
+		  > a b) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:K1" title="GHC.Generics"
+		  >K1</a
+		  > a b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckRep</a
+		  > e <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+		  >U1</a
+		  > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+		  >U1</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:IfStuckRep" title="PlutusTx.Blueprint.Definition.TF"
+		  >IfStuckRep</a
+		  > e x = e</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Insert" class="def"
+	    >Insert</a
+	    > x xs <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#Insert" class="link"
+	    >Source</a
+	    > <a href="#t:Insert" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert <code
+	      >x</code
+	      > into <code
+	      >xs</code
+	      > unless it's already there.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+		  >Insert</a
+		  > x '[] = '[x]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+		  >Insert</a
+		  > x (x : xs) = x ': xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+		  >Insert</a
+		  > x (y : xs) = y ': <a href="PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+		  >Insert</a
+		  > x xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Concat" class="def"
+	    >Concat</a
+	    > (as &#8759; [k]) (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#Concat" class="link"
+	    >Source</a
+	    > <a href="#t:Concat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Concatenates two type-level lists</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Concat" title="PlutusTx.Blueprint.Definition.TF"
+		  >Concat</a
+		  > '[] bs = bs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Concat" title="PlutusTx.Blueprint.Definition.TF"
+		  >Concat</a
+		  > as '[] = as</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Concat" title="PlutusTx.Blueprint.Definition.TF"
+		  >Concat</a
+		  > (a : as) bs = a ': <a href="PlutusTx-Blueprint-Definition-TF.html#t:Concat" title="PlutusTx.Blueprint.Definition.TF"
+		  >Concat</a
+		  > as bs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > (as &#8759; [k]) <a id="t:-43--43-" class="def"
+	    >++</a
+	    > (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	    >where ...</span
+	    > <span class="fixity"
+	    >infixr 5</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#%2B%2B" class="link"
+	    >Source</a
+	    > <a href="#t:-43--43-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Concatenates two type-level lists removing duplicates.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>'[] <a href="PlutusTx-Blueprint-Definition-TF.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.TF"
+		  >++</a
+		  > bs = bs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>as <a href="PlutusTx-Blueprint-Definition-TF.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.TF"
+		  >++</a
+		  > '[] = as</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>(a : as) <a href="PlutusTx-Blueprint-Definition-TF.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.TF"
+		  >++</a
+		  > bs = <a href="PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+		  >Insert</a
+		  > a (as <a href="PlutusTx-Blueprint-Definition-TF.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.TF"
+		  >++</a
+		  > bs)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Reverse" class="def"
+	    >Reverse</a
+	    > (xs &#8759; [k]) &#8759; [k] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#Reverse" class="link"
+	    >Source</a
+	    > <a href="#t:Reverse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Reverse" title="PlutusTx.Blueprint.Definition.TF"
+		  >Reverse</a
+		  > '[] = '[]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Reverse" title="PlutusTx.Blueprint.Definition.TF"
+		  >Reverse</a
+		  > (x ': xs) = <a href="PlutusTx-Blueprint-Definition-TF.html#t:Append" title="PlutusTx.Blueprint.Definition.TF"
+		  >Append</a
+		  > (<a href="PlutusTx-Blueprint-Definition-TF.html#t:Reverse" title="PlutusTx.Blueprint.Definition.TF"
+		  >Reverse</a
+		  > xs) '[x]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Append" class="def"
+	    >Append</a
+	    > (xs &#8759; [k]) (ys &#8759; [k]) &#8759; [k] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#Append" class="link"
+	    >Source</a
+	    > <a href="#t:Append" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Append" title="PlutusTx.Blueprint.Definition.TF"
+		  >Append</a
+		  > '[] ys = ys</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Append" title="PlutusTx.Blueprint.Definition.TF"
+		  >Append</a
+		  > (x ': xs) ys = x ': <a href="PlutusTx-Blueprint-Definition-TF.html#t:Append" title="PlutusTx.Blueprint.Definition.TF"
+		  >Append</a
+		  > xs ys</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Nub" class="def"
+	    >Nub</a
+	    > xs <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#Nub" class="link"
+	    >Source</a
+	    > <a href="#t:Nub" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:Nub" title="PlutusTx.Blueprint.Definition.TF"
+		  >Nub</a
+		  > xs = <a href="PlutusTx-Blueprint-Definition-TF.html#t:NubHelper" title="PlutusTx.Blueprint.Definition.TF"
+		  >NubHelper</a
+		  > '[] xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:NubHelper" class="def"
+	    >NubHelper</a
+	    > acc xs <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.TF.html#NubHelper" class="link"
+	    >Source</a
+	    > <a href="#t:NubHelper" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:NubHelper" title="PlutusTx.Blueprint.Definition.TF"
+		  >NubHelper</a
+		  > acc '[] = acc</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-TF.html#t:NubHelper" title="PlutusTx.Blueprint.Definition.TF"
+		  >NubHelper</a
+		  > acc (x ': xs) = <a href="PlutusTx-Blueprint-Definition-TF.html#t:NubHelper" title="PlutusTx.Blueprint.Definition.TF"
+		  >NubHelper</a
+		  > (<a href="PlutusTx-Blueprint-Definition-TF.html#t:Insert" title="PlutusTx.Blueprint.Definition.TF"
+		  >Insert</a
+		  > x acc) xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

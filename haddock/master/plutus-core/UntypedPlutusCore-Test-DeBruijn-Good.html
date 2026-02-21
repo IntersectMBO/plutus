@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Test.DeBruijn.Good</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Test.DeBruijn.Good.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Test.DeBruijn.Good</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:lamAbs0"
+	      >lamAbs0</a
+	      > &#8759; t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > uni fun () &#8658; t &#8594; t</li
+	    ><li class="src short"
+	    ><a href="#v:idFun0"
+	      >idFun0</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:const0"
+	      >const0</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:deepFun0"
+	      >deepFun0</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:deeperFun0"
+	      >deeperFun0</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lamAbs0" class="def"
+	    >lamAbs0</a
+	    > &#8759; t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > uni fun () &#8658; t &#8594; t <a href="src/UntypedPlutusCore.Test.DeBruijn.Good.html#lamAbs0" class="link"
+	    >Source</a
+	    > <a href="#v:lamAbs0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A helper to intro the only &quot;sensical&quot; lam: debruijn binders are always 0-indexed</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:idFun0" class="def"
+	    >idFun0</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > uni fun () <a href="src/UntypedPlutusCore.Test.DeBruijn.Good.html#idFun0" class="link"
+	    >Source</a
+	    > <a href="#v:idFun0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This is a replica of <code
+	      ><a href="../plutus-core/PlutusCore-StdLib-Data-Function.html#v:idFun0" title="PlutusCore.StdLib.Data.Function"
+		>idFun0</a
+		></code
+	      > but using <code
+	      ><a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+		>DeBruijn</a
+		></code
+	      > indices.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:const0" class="def"
+	    >const0</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > uni fun () <a href="src/UntypedPlutusCore.Test.DeBruijn.Good.html#const0" class="link"
+	    >Source</a
+	    > <a href="#v:const0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This is a replica of <code
+	      ><a href="../plutus-core/PlutusCore-StdLib-Data-Function.html#v:const" title="PlutusCore.StdLib.Data.Function"
+		>const</a
+		></code
+	      > but using <code
+	      ><a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+		>DeBruijn</a
+		></code
+	      > indices.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deepFun0" class="def"
+	    >deepFun0</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Good.html#deepFun0" class="link"
+	    >Source</a
+	    > <a href="#v:deepFun0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(lam0 ...n.... (Var n))
+Correct binders, well-scoped variable </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deeperFun0" class="def"
+	    >deeperFun0</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Good.html#deeperFun0" class="link"
+	    >Source</a
+	    > <a href="#v:deeperFun0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(lam0 ...n.... lam0 ...n.... (Var n+n))
+Correct binders, well-scoped variable </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

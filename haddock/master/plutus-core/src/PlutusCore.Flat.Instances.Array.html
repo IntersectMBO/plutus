@@ -1,0 +1,1665 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Flat instances for the `array` package</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Instances.Array</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.html"
+	><span class="hs-identifier"
+	  >Data.Array</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>A</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.IArray.html"
+	><span class="hs-identifier"
+	  >Data.Array.IArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Unboxed.html"
+	><span class="hs-identifier"
+	  >Data.Array.Unboxed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>U</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Encoder.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Encoder</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Base.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Base</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >-- import PlutusCore.Flat.Instances.Util</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Mono</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-$setup
+&gt;&gt;&gt; :set -XFlexibleContexts
+&gt;&gt;&gt; import           Flat.Instances.Test
+&gt;&gt;&gt; import           Flat.Instances.Mono
+&gt;&gt;&gt; import           qualified Data.Array as A
+&gt;&gt;&gt; import           qualified Data.Array.Unboxed as U
+&gt;&gt;&gt; import           Data.Array.IArray
+&gt;&gt;&gt; import           Data.Word -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Array is encoded as (lowBound,highBound,AsArray (elems array)):
+
+&gt;&gt;&gt; let arr = A.array ((1::Word,4::Word),(2,5)) [((1,4),11::Word),((1,5),22),((2,4),33),((2,5),44)] in tst (bounds arr,AsArray(elems arr)) == tst arr
+True
+
+As it's easy to see:
+
+&gt;&gt;&gt; tst $ A.array ((1::Word,4::Word),(2,5)) [((1,4),11::Word),((1,5),22),((2,4),33),((2,5),44)]
+(True,80,[1,4,2,5,4,11,22,33,44,0])
+
+&gt;&gt;&gt; tst $ A.array ((1,4),(2,5)) [((1,4),&quot;1.4&quot;),((1,5),&quot;1.5&quot;),((2,4),&quot;2.4&quot;),((2,5),&quot;2.5&quot;)]
+(True,160,[2,8,4,10,4,152,203,166,137,140,186,106,153,75,166,137,148,186,106,0])
+
+Arrays and Unboxed Arrays are encoded in the same way:
+
+&gt;&gt;&gt; let bounds = ((1::Word,4::Word),(2,5));elems=[11::Word,22,33,44] in tst (U.listArray bounds elems :: U.UArray (Word,Word) Word) == tst (A.listArray bounds elems)
+True -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679106676"
+      ><span id="local-6989586621679106677"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106676"
+	    ><span class="hs-identifier hs-type"
+	      >i</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106677"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ix.html#Ix"
+	    ><span class="hs-identifier hs-type"
+	      >Ix</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106676"
+	    ><span class="hs-identifier hs-type"
+	      >i</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Arr.html#Array"
+	    ><span class="hs-identifier hs-type"
+	      >A.Array</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106676"
+	    ><span class="hs-identifier hs-type"
+	      >i</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106677"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106749"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: Array i e -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="#local-6989586621679106749"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Array i e -&gt; NumBits -&gt; NumBits
+forall (a :: * -&gt; * -&gt; *) e i.
+(IArray a e, Ix i, Flat e, Flat i) =&gt;
+a i e -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Instances.Array.html#sizeIArray"
+	><span class="hs-identifier hs-var"
+	  >sizeIArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106756"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Array i e -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679106756"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Array i e -&gt; Encoding
+forall i (a :: * -&gt; * -&gt; *) e.
+(Ix i, IArray a e, Flat i, Flat e) =&gt;
+a i e -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Array.html#encodeIArray"
+	><span class="hs-identifier hs-var"
+	  >encodeIArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106763"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (Array i e)
+</span
+	  ><a href="#local-6989586621679106763"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Array i e)
+forall i (a :: * -&gt; * -&gt; *) e.
+(Ix i, IArray a e, Flat i, Flat e) =&gt;
+Get (a i e)
+</span
+	><a href="PlutusCore.Flat.Instances.Array.html#decodeIArray"
+	><span class="hs-identifier hs-var"
+	  >decodeIArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679106692"
+      ><span id="local-6989586621679106693"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106692"
+	    ><span class="hs-identifier hs-type"
+	      >i</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106693"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ix.html#Ix"
+	    ><span class="hs-identifier hs-type"
+	      >Ix</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106692"
+	    ><span class="hs-identifier hs-type"
+	      >i</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#IArray"
+	    ><span class="hs-identifier hs-type"
+	      >IArray</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#UArray"
+	    ><span class="hs-identifier hs-type"
+	      >U.UArray</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106693"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#UArray"
+	    ><span class="hs-identifier hs-type"
+	      >U.UArray</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106692"
+	    ><span class="hs-identifier hs-type"
+	      >i</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679106693"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106778"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: UArray i e -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UArray i e -&gt; NumBits -&gt; NumBits
+forall (a :: * -&gt; * -&gt; *) e i.
+(IArray a e, Ix i, Flat e, Flat i) =&gt;
+a i e -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Instances.Array.html#sizeIArray"
+	><span class="hs-identifier hs-var"
+	  >sizeIArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106783"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: UArray i e -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UArray i e -&gt; Encoding
+forall i (a :: * -&gt; * -&gt; *) e.
+(Ix i, IArray a e, Flat i, Flat e) =&gt;
+a i e -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Array.html#encodeIArray"
+	><span class="hs-identifier hs-var"
+	  >encodeIArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679106788"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (UArray i e)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (UArray i e)
+forall i (a :: * -&gt; * -&gt; *) e.
+(Ix i, IArray a e, Flat i, Flat e) =&gt;
+Get (a i e)
+</span
+	><a href="PlutusCore.Flat.Instances.Array.html#decodeIArray"
+	><span class="hs-identifier hs-var"
+	  >decodeIArray</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="local-6989586621679106680"
+      ><span id="local-6989586621679106681"
+	><span id="local-6989586621679106682"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Flat.Instances.Array.html#sizeIArray"
+	      ><span class="hs-identifier hs-type"
+		>sizeIArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#IArray"
+	      ><span class="hs-identifier hs-type"
+		>IArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106680"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106681"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ix.html#Ix"
+	      ><span class="hs-identifier hs-type"
+		>Ix</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106682"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106681"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106682"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106680"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106682"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106681"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Types.html#NumBits"
+	      ><span class="hs-identifier hs-type"
+		>NumBits</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Types.html#NumBits"
+	      ><span class="hs-identifier hs-type"
+		>NumBits</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="sizeIArray"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeIArray :: forall (a :: * -&gt; * -&gt; *) e i.
+(IArray a e, Ix i, Flat e, Flat i) =&gt;
+a i e -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="PlutusCore.Flat.Instances.Array.html#sizeIArray"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeIArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679106802"
+      ><span class="annot"
+	><span class="annottext"
+	  >a i e
+</span
+	  ><a href="#local-6989586621679106802"
+	  ><span class="hs-identifier hs-var"
+	    >arr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[e] -&gt; NumBits -&gt; NumBits
+forall mono.
+(IsSequence mono, Flat (Element mono)) =&gt;
+mono -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	><span class="hs-identifier hs-var"
+	  >sizeSequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([e] -&gt; NumBits -&gt; NumBits)
+-&gt; (a i e -&gt; [e]) -&gt; a i e -&gt; NumBits -&gt; NumBits
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e -&gt; [e]
+forall (a :: * -&gt; * -&gt; *) e i. (IArray a e, Ix i) =&gt; a i e -&gt; [e]
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#elems"
+	><span class="hs-identifier hs-var"
+	  >elems</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a i e -&gt; NumBits -&gt; NumBits) -&gt; a i e -&gt; NumBits -&gt; NumBits
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e
+</span
+	><a href="#local-6989586621679106802"
+	><span class="hs-identifier hs-var"
+	  >arr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NumBits -&gt; NumBits) -&gt; (NumBits -&gt; NumBits) -&gt; NumBits -&gt; NumBits
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(i, i) -&gt; NumBits -&gt; NumBits
+forall a. Flat a =&gt; a -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e -&gt; (i, i)
+forall i. Ix i =&gt; a i e -&gt; (i, i)
+forall (a :: * -&gt; * -&gt; *) e i.
+(IArray a e, Ix i) =&gt;
+a i e -&gt; (i, i)
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#bounds"
+	><span class="hs-identifier hs-var"
+	  >bounds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e
+</span
+	><a href="#local-6989586621679106802"
+	><span class="hs-identifier hs-var"
+	  >arr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621679106683"
+      ><span id="local-6989586621679106684"
+	><span id="local-6989586621679106685"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Flat.Instances.Array.html#encodeIArray"
+	      ><span class="hs-identifier hs-type"
+		>encodeIArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ix.html#Ix"
+	      ><span class="hs-identifier hs-type"
+		>Ix</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106683"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#IArray"
+	      ><span class="hs-identifier hs-type"
+		>IArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106684"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106685"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106683"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106685"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106684"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106683"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106685"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	      ><span class="hs-identifier hs-type"
+		>Encoding</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="encodeIArray"
+      ><span class="annot"
+	><span class="annottext"
+	  >encodeIArray :: forall i (a :: * -&gt; * -&gt; *) e.
+(Ix i, IArray a e, Flat i, Flat e) =&gt;
+a i e -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Instances.Array.html#encodeIArray"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encodeIArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679106821"
+      ><span class="annot"
+	><span class="annottext"
+	  >a i e
+</span
+	  ><a href="#local-6989586621679106821"
+	  ><span class="hs-identifier hs-var"
+	    >arr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(i, i) -&gt; Encoding
+forall a. Flat a =&gt; a -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e -&gt; (i, i)
+forall i. Ix i =&gt; a i e -&gt; (i, i)
+forall (a :: * -&gt; * -&gt; *) e i.
+(IArray a e, Ix i) =&gt;
+a i e -&gt; (i, i)
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#bounds"
+	><span class="hs-identifier hs-var"
+	  >bounds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e
+</span
+	><a href="#local-6989586621679106821"
+	><span class="hs-identifier hs-var"
+	  >arr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Encoding -&gt; Encoding -&gt; Encoding
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[e] -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	><span class="hs-identifier hs-var"
+	  >encodeSequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e -&gt; [e]
+forall (a :: * -&gt; * -&gt; *) e i. (IArray a e, Ix i) =&gt; a i e -&gt; [e]
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#elems"
+	><span class="hs-identifier hs-var"
+	  >elems</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a i e
+</span
+	><a href="#local-6989586621679106821"
+	><span class="hs-identifier hs-var"
+	  >arr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="local-6989586621679106686"
+      ><span id="local-6989586621679106687"
+	><span id="local-6989586621679106688"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Flat.Instances.Array.html#decodeIArray"
+	      ><span class="hs-identifier hs-type"
+		>decodeIArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ix.html#Ix"
+	      ><span class="hs-identifier hs-type"
+		>Ix</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106686"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#IArray"
+	      ><span class="hs-identifier hs-type"
+		>IArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106687"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106688"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106686"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106688"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	      ><span class="hs-identifier hs-type"
+		>Get</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106687"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106686"
+	      ><span class="hs-identifier hs-type"
+		>i</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679106688"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="decodeIArray"
+      ><span class="annot"
+	><span class="annottext"
+	  >decodeIArray :: forall i (a :: * -&gt; * -&gt; *) e.
+(Ix i, IArray a e, Flat i, Flat e) =&gt;
+Get (a i e)
+</span
+	  ><a href="PlutusCore.Flat.Instances.Array.html#decodeIArray"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >decodeIArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(i, i) -&gt; [e] -&gt; a i e
+forall (a :: * -&gt; * -&gt; *) e i.
+(IArray a e, Ix i) =&gt;
+(i, i) -&gt; [e] -&gt; a i e
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#listArray"
+	><span class="hs-identifier hs-var"
+	  >listArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((i, i) -&gt; [e] -&gt; a i e) -&gt; Get (i, i) -&gt; Get ([e] -&gt; a i e)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (i, i)
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get ([e] -&gt; a i e) -&gt; Get [e] -&gt; Get (a i e)
+forall a b. Get (a -&gt; b) -&gt; Get a -&gt; Get b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get [e]
+forall b. (Flat (Element b), IsSequence b) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	><span class="hs-identifier hs-var"
+	  >decodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Array.html#sizeIArray"
+	><span class="hs-pragma hs-type"
+	  >sizeIArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Array.html#encodeIArray"
+	><span class="hs-pragma hs-type"
+	  >encodeIArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Array.html#decodeIArray"
+	><span class="hs-pragma hs-type"
+	  >decodeIArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

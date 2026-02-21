@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.MachineParameters.Default</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.MachineParameters.Default.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.MachineParameters.Default</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Defines the type of default machine parameters and a function for creating a value of the type.
+We keep them separate, because the function unfolds into multiple thousands of lines of Core that
+we need to be able to visually inspect, hence we dedicate a separate file to it. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:DefaultMachineVariantParameters"
+	      >DefaultMachineVariantParameters</a
+	      > = <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineVariantParameters</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:DefaultMachineParameters"
+	      >DefaultMachineParameters</a
+	      > = <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:mkMachineVariantParametersFor"
+	      >mkMachineVariantParametersFor</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelApplyError" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	      >CostModelApplyError</a
+	      > m &#8658; [<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >] &#8594; <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	      >CostModelParams</a
+	      > &#8594; m [(<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >, <a href="PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+	      >DefaultMachineVariantParameters</a
+	      >)]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:DefaultMachineVariantParameters" class="def"
+	    >DefaultMachineVariantParameters</a
+	    > = <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineVariantParameters</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.Default.html#DefaultMachineVariantParameters" class="link"
+	    >Source</a
+	    > <a href="#t:DefaultMachineVariantParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The semantics-variant-dependent part of <code
+	      ><a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		>MachineParameters</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:DefaultMachineParameters" class="def"
+	    >DefaultMachineParameters</a
+	    > = <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.Default.html#DefaultMachineParameters" class="link"
+	    >Source</a
+	    > <a href="#t:DefaultMachineParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		>MachineParameters</a
+		></code
+	      > instantiated at CEK-machine-specific types and default builtins.
+Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
+machine. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkMachineVariantParametersFor" class="def"
+	    >mkMachineVariantParametersFor</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelApplyError" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	    >CostModelApplyError</a
+	    > m &#8658; [<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >] &#8594; <a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	    >CostModelParams</a
+	    > &#8594; m [(<a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >, <a href="PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+	    >DefaultMachineVariantParameters</a
+	    >)] <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.Default.html#mkMachineVariantParametersFor" class="link"
+	    >Source</a
+	    > <a href="#v:mkMachineVariantParametersFor" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Produce a <code
+	      ><a href="PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+		>DefaultMachineParameters</a
+		></code
+	      > for each of the given semantics variants.
+The <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+		>CostModelParams</a
+		></code
+	      > argument is used to update the costing parameters returned by
+<code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudgetingDefaults.html#v:cekCostModelForVariant" title="PlutusCore.Evaluation.Machine.ExBudgetingDefaults"
+		>cekCostModelForVariant</a
+		></code
+	      > for each of the semantics variants.</p
+	    ><p
+	    >Whenever you need to evaluate UPLC in a performance-sensitive manner (e.g. in the production,
+for benchmarking, for cost calibration etc), you MUST use this definition for creating a
+<code
+	      ><a href="PlutusCore-Evaluation-Machine-MachineParameters-Default.html#t:DefaultMachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters.Default"
+		>DefaultMachineParameters</a
+		></code
+	      > and not any other. Changing this definition in absolutely any way,
+however trivial, requires running the benchmarks and making sure that the resulting GHC Core is
+still sensible. E.g. you switch the order of arguments -- you run the benchmarks and check the
+Core; you move this definition as-is to a different file -- you run the benchmarks and check the
+Core; you change how it's exported (implicitly as a part of a whole-module export or explicitly
+as a single definition) -- you get the idea.</p
+	    ><p
+	    >This function is very expensive, so its result needs to be cached if it's going to be used
+multiple times. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

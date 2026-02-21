@@ -1,0 +1,2198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Codec.Extras.SerialiseViaFlat</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#SerialiseViaFlat"
+	><span class="hs-identifier"
+	  >SerialiseViaFlat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#decodeViaFlatWith"
+	><span class="hs-identifier"
+	  >decodeViaFlatWith</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureInfo"
+	><span class="hs-identifier"
+	  >DeserialiseFailureInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureReason"
+	><span class="hs-identifier"
+	  >DeserialiseFailureReason</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#readDeserialiseFailureInfo"
+	><span class="hs-identifier"
+	  >readDeserialiseFailureInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/src/Codec.CBOR.Decoding.html"
+	><span class="hs-identifier"
+	  >Codec.CBOR.Decoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>CBOR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/src/Codec.CBOR.Read.html"
+	><span class="hs-identifier"
+	  >Codec.CBOR.Read</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>CBOR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.html"
+	><span class="hs-identifier"
+	  >Codec.Serialise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	><span class="hs-identifier"
+	  >Serialise</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#decode"
+	><span class="hs-identifier"
+	  >decode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#encode"
+	><span class="hs-identifier"
+	  >encode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Either.Extras.html"
+	><span class="hs-identifier"
+	  >Data.Either.Extras</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.Either.Extras.html#fromRightM"
+	><span class="hs-identifier"
+	  >fromRightM</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.html"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Decoder.html"
+	><span class="hs-identifier"
+	  >Flat.Decoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.html"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier"
+	  >pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Newtype to provide 'Serialise' instances for types with a 'Flat' instance
+  that just encodes the flat-serialized value as a CBOR bytestring
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="SerialiseViaFlat"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#SerialiseViaFlat"
+	  ><span class="hs-identifier hs-var"
+	    >SerialiseViaFlat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823481"
+      ><span class="annot"
+	><a href="#local-6989586621681823481"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SerialiseViaFlat"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#SerialiseViaFlat"
+	  ><span class="hs-identifier hs-var"
+	    >SerialiseViaFlat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unSerialiseViaFlat"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. SerialiseViaFlat a -&gt; a
+</span
+	  ><a href="Codec.Extras.SerialiseViaFlat.html#unSerialiseViaFlat"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unSerialiseViaFlat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823481"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823492"
+      ><span id="local-6989586621681823565"
+	><span id="local-6989586621681823569"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat.Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823492"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#Serialise"
+	      ><span class="hs-identifier hs-type"
+		>Serialise</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="Codec.Extras.SerialiseViaFlat.html#SerialiseViaFlat"
+	      ><span class="hs-identifier hs-type"
+		>SerialiseViaFlat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681823492"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681823575"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: SerialiseViaFlat a -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Encoding
+forall a. Serialise a =&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Encoding)
+-&gt; (SerialiseViaFlat a -&gt; ByteString)
+-&gt; SerialiseViaFlat a
+-&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; ByteString
+forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >Flat.flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; ByteString)
+-&gt; (SerialiseViaFlat a -&gt; a) -&gt; SerialiseViaFlat a -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SerialiseViaFlat a -&gt; a
+forall a. SerialiseViaFlat a -&gt; a
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#unSerialiseViaFlat"
+	><span class="hs-identifier hs-var"
+	  >unSerialiseViaFlat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681823581"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: forall s. Decoder s (SerialiseViaFlat a)
+</span
+	  ><a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src/Codec.Serialise.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; SerialiseViaFlat a
+forall a. a -&gt; SerialiseViaFlat a
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#SerialiseViaFlat"
+	><span class="hs-identifier hs-var"
+	  >SerialiseViaFlat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; SerialiseViaFlat a)
+-&gt; Decoder s a -&gt; Decoder s (SerialiseViaFlat a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; Decoder s a
+forall a s. Get a -&gt; Decoder s a
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#decodeViaFlatWith"
+	><span class="hs-identifier hs-var"
+	  >decodeViaFlatWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+forall a. Flat a =&gt; Get a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >Flat.decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621681823504"
+      ><span id="local-6989586621681823505"
+	><span class="annot"
+	  ><a href="Codec.Extras.SerialiseViaFlat.html#decodeViaFlatWith"
+	    ><span class="hs-identifier hs-type"
+	      >decodeViaFlatWith</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Decoder.Types.html#Get"
+	    ><span class="hs-identifier hs-type"
+	      >Flat.Get</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823504"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/src/Codec.CBOR.Decoding.html#Decoder"
+	    ><span class="hs-identifier hs-type"
+	      >CBOR.Decoder</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823505"
+	    ><span class="hs-identifier hs-type"
+	      >s</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681823504"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="decodeViaFlatWith"
+      ><span class="annot"
+	><span class="annottext"
+	  >decodeViaFlatWith :: forall a s. Get a -&gt; Decoder s a
+</span
+	  ><a href="Codec.Extras.SerialiseViaFlat.html#decodeViaFlatWith"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >decodeViaFlatWith</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823593"
+      ><span class="annot"
+	><span class="annottext"
+	  >Get a
+</span
+	  ><a href="#local-6989586621681823593"
+	  ><span class="hs-identifier hs-var"
+	    >decoder</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681823594"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681823594"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Decoder s ByteString
+forall s. Decoder s ByteString
+</span
+	><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/src/Codec.CBOR.Decoding.html#decodeBytes"
+	><span class="hs-identifier hs-var"
+	  >CBOR.decodeBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- lift any flat's failures to be cborg failures (MonadFail)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DecodeException -&gt; Decoder s a)
+-&gt; Either DecodeException a -&gt; Decoder s a
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Either a b -&gt; m b
+</span
+	><a href="Data.Either.Extras.html#fromRightM"
+	><span class="hs-identifier hs-var"
+	  >fromRightM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Decoder s a
+forall a. String -&gt; Decoder s a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Decoder s a)
+-&gt; (DecodeException -&gt; String) -&gt; DecodeException -&gt; Decoder s a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either DecodeException a -&gt; Decoder s a)
+-&gt; Either DecodeException a -&gt; Decoder s a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; ByteString -&gt; Either DecodeException a
+forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; Decoded a
+</span
+	><a href="https://hackage.haskell.org/package/flat-0.6/docs/src/Flat.Run.html#unflatWith"
+	><span class="hs-identifier hs-var"
+	  >Flat.unflatWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+</span
+	><a href="#local-6989586621681823593"
+	><span class="hs-identifier hs-var"
+	  >decoder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681823594"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | The errors returned by `cborg` are plain strings (untyped). With this
+function we try to map onto datatypes, those cborg error messages that we are
+interested in.
+
+Currently we are only interested in error messages returned by the
+`CBOR.decodeBytes` decoder;
+see `PlutusLedgerApi.Common.SerialisedScript.scriptCBORDecoder`.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#readDeserialiseFailureInfo"
+	><span class="hs-identifier hs-type"
+	  >readDeserialiseFailureInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/src/Codec.CBOR.Read.html#DeserialiseFailure"
+	><span class="hs-identifier hs-type"
+	  >CBOR.DeserialiseFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureInfo"
+	><span class="hs-identifier hs-type"
+	  >DeserialiseFailureInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="readDeserialiseFailureInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >readDeserialiseFailureInfo :: DeserialiseFailure -&gt; DeserialiseFailureInfo
+</span
+	  ><a href="Codec.Extras.SerialiseViaFlat.html#readDeserialiseFailureInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >readDeserialiseFailureInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/src/Codec.CBOR.Read.html#DeserialiseFailure"
+	><span class="hs-identifier hs-type"
+	  >CBOR.DeserialiseFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823599"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteOffset
+</span
+	  ><a href="#local-6989586621681823599"
+	  ><span class="hs-identifier hs-var"
+	    >byteOffset</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823600"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681823600"
+	  ><span class="hs-identifier hs-var"
+	    >reason</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteOffset -&gt; DeserialiseFailureReason -&gt; DeserialiseFailureInfo
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureInfo"
+	><span class="hs-identifier hs-var"
+	  >DeserialiseFailureInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteOffset
+</span
+	><a href="#local-6989586621681823599"
+	><span class="hs-identifier hs-var"
+	  >byteOffset</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeserialiseFailureReason -&gt; DeserialiseFailureInfo)
+-&gt; DeserialiseFailureReason -&gt; DeserialiseFailureInfo
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; DeserialiseFailureReason
+</span
+	><a href="#local-6989586621681823602"
+	><span class="hs-identifier hs-var"
+	  >interpretReason</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681823600"
+	><span class="hs-identifier hs-var"
+	  >reason</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Note that this is subject to change if `cborg` dependency changes.</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Currently: cborg-0.2.10.0</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="#local-6989586621681823602"
+	><span class="hs-identifier hs-type"
+	  >interpretReason</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureReason"
+	><span class="hs-identifier hs-type"
+	  >DeserialiseFailureReason</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681823602"
+      ><span class="annot"
+	><span class="annottext"
+	  >interpretReason :: String -&gt; DeserialiseFailureReason
+</span
+	  ><a href="#local-6989586621681823602"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >interpretReason</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Relevant Sources:</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- &lt;https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L226&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- &lt;https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L1424&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- &lt;https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L1441&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;end of input&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeserialiseFailureReason
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#EndOfInput"
+	><span class="hs-identifier hs-var"
+	  >EndOfInput</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Relevant Sources:</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- &lt;https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L1051&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;expected bytes&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeserialiseFailureReason
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#ExpectedBytes"
+	><span class="hs-identifier hs-var"
+	  >ExpectedBytes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681823605"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681823605"
+	  ><span class="hs-identifier hs-var"
+	    >msg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; DeserialiseFailureReason
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#OtherReason"
+	><span class="hs-identifier hs-var"
+	  >OtherReason</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681823605"
+	><span class="hs-identifier hs-var"
+	  >msg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Similar to `CBOR.DeserialiseFailure`, with the difference that plain
+string reason messages are turned into the datatype: `DeserialiseFailureReason`.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="DeserialiseFailureInfo"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureInfo"
+	  ><span class="hs-identifier hs-var"
+	    >DeserialiseFailureInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="DeserialiseFailureInfo"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureInfo"
+	  ><span class="hs-identifier hs-var"
+	    >DeserialiseFailureInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="dfOffset"
+      ><span class="annot"
+	><span class="annottext"
+	  >DeserialiseFailureInfo -&gt; ByteOffset
+</span
+	  ><a href="Codec.Extras.SerialiseViaFlat.html#dfOffset"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dfOffset</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/src/Codec.CBOR.Decoding.html#ByteOffset"
+	><span class="hs-identifier hs-type"
+	  >CBOR.ByteOffset</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="dfReason"
+      ><span class="annot"
+	><span class="annottext"
+	  >DeserialiseFailureInfo -&gt; DeserialiseFailureReason
+</span
+	  ><a href="Codec.Extras.SerialiseViaFlat.html#dfReason"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dfReason</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureReason"
+	><span class="hs-identifier hs-type"
+	  >DeserialiseFailureReason</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681823610"
+      ><span id="local-6989586621681823616"
+	><span class="annot"
+	  ><span class="annottext"
+	    >DeserialiseFailureInfo -&gt; DeserialiseFailureInfo -&gt; Bool
+(DeserialiseFailureInfo -&gt; DeserialiseFailureInfo -&gt; Bool)
+-&gt; (DeserialiseFailureInfo -&gt; DeserialiseFailureInfo -&gt; Bool)
+-&gt; Eq DeserialiseFailureInfo
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DeserialiseFailureInfo -&gt; DeserialiseFailureInfo -&gt; Bool
+== :: DeserialiseFailureInfo -&gt; DeserialiseFailureInfo -&gt; Bool
+$c/= :: DeserialiseFailureInfo -&gt; DeserialiseFailureInfo -&gt; Bool
+/= :: DeserialiseFailureInfo -&gt; DeserialiseFailureInfo -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823621"
+      ><span id="local-6989586621681823629"
+	><span id="local-6989586621681823633"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; DeserialiseFailureInfo -&gt; ShowS
+[DeserialiseFailureInfo] -&gt; ShowS
+DeserialiseFailureInfo -&gt; String
+(Int -&gt; DeserialiseFailureInfo -&gt; ShowS)
+-&gt; (DeserialiseFailureInfo -&gt; String)
+-&gt; ([DeserialiseFailureInfo] -&gt; ShowS)
+-&gt; Show DeserialiseFailureInfo
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DeserialiseFailureInfo -&gt; ShowS
+showsPrec :: Int -&gt; DeserialiseFailureInfo -&gt; ShowS
+$cshow :: DeserialiseFailureInfo -&gt; String
+show :: DeserialiseFailureInfo -&gt; String
+$cshowList :: [DeserialiseFailureInfo] -&gt; ShowS
+showList :: [DeserialiseFailureInfo] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823638"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureInfo"
+	  ><span class="hs-identifier hs-type"
+	    >DeserialiseFailureInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681823649"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. DeserialiseFailureInfo -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureInfo"
+	><span class="hs-identifier hs-type"
+	  >DeserialiseFailureInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823650"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteOffset
+</span
+	  ><a href="#local-6989586621681823650"
+	  ><span class="hs-identifier hs-var"
+	    >offset</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823651"
+      ><span class="annot"
+	><span class="annottext"
+	  >DeserialiseFailureReason
+</span
+	  ><a href="#local-6989586621681823651"
+	  ><span class="hs-identifier hs-var"
+	    >reason</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;CBOR deserialisation failed at the offset&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteOffset -&gt; Doc ann
+forall ann. ByteOffset -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteOffset
+</span
+	><a href="#local-6989586621681823650"
+	><span class="hs-identifier hs-var"
+	  >offset</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;for the following reason:&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeserialiseFailureReason -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. DeserialiseFailureReason -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeserialiseFailureReason
+</span
+	><a href="#local-6989586621681823651"
+	><span class="hs-identifier hs-var"
+	  >reason</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The reason of the cbor failure as a datatype, not as a plain string.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="DeserialiseFailureReason"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureReason"
+	  ><span class="hs-identifier hs-var"
+	    >DeserialiseFailureReason</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Not enough input provided</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span id="EndOfInput"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#EndOfInput"
+	  ><span class="hs-identifier hs-var"
+	    >EndOfInput</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The bytes inside the input are malformed.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span id="ExpectedBytes"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#ExpectedBytes"
+	  ><span class="hs-identifier hs-var"
+	    >ExpectedBytes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- | This is either a cbor failure that we (plutus) are not aware of,</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- or an underlying flat failure. We use whatever message `cborg` or flat returns.</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span id="OtherReason"
+      ><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#OtherReason"
+	  ><span class="hs-identifier hs-var"
+	    >OtherReason</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681823653"
+      ><span id="local-6989586621681823656"
+	><span class="annot"
+	  ><span class="annottext"
+	    >DeserialiseFailureReason -&gt; DeserialiseFailureReason -&gt; Bool
+(DeserialiseFailureReason -&gt; DeserialiseFailureReason -&gt; Bool)
+-&gt; (DeserialiseFailureReason -&gt; DeserialiseFailureReason -&gt; Bool)
+-&gt; Eq DeserialiseFailureReason
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DeserialiseFailureReason -&gt; DeserialiseFailureReason -&gt; Bool
+== :: DeserialiseFailureReason -&gt; DeserialiseFailureReason -&gt; Bool
+$c/= :: DeserialiseFailureReason -&gt; DeserialiseFailureReason -&gt; Bool
+/= :: DeserialiseFailureReason -&gt; DeserialiseFailureReason -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823659"
+      ><span id="local-6989586621681823665"
+	><span id="local-6989586621681823668"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; DeserialiseFailureReason -&gt; ShowS
+[DeserialiseFailureReason] -&gt; ShowS
+DeserialiseFailureReason -&gt; String
+(Int -&gt; DeserialiseFailureReason -&gt; ShowS)
+-&gt; (DeserialiseFailureReason -&gt; String)
+-&gt; ([DeserialiseFailureReason] -&gt; ShowS)
+-&gt; Show DeserialiseFailureReason
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DeserialiseFailureReason -&gt; ShowS
+showsPrec :: Int -&gt; DeserialiseFailureReason -&gt; ShowS
+$cshow :: DeserialiseFailureReason -&gt; String
+show :: DeserialiseFailureReason -&gt; String
+$cshowList :: [DeserialiseFailureReason] -&gt; ShowS
+showList :: [DeserialiseFailureReason] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681823673"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Codec.Extras.SerialiseViaFlat.html#DeserialiseFailureReason"
+	  ><span class="hs-identifier hs-type"
+	    >DeserialiseFailureReason</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681823681"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. DeserialiseFailureReason -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeserialiseFailureReason
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#EndOfInput"
+	><span class="hs-identifier hs-var"
+	  >EndOfInput</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;reached the end of input while more data was expected.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeserialiseFailureReason
+</span
+	><a href="Codec.Extras.SerialiseViaFlat.html#ExpectedBytes"
+	><span class="hs-identifier hs-var"
+	  >ExpectedBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;the bytes inside the input are malformed.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Codec.Extras.SerialiseViaFlat.html#OtherReason"
+	><span class="hs-identifier hs-type"
+	  >OtherReason</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681823682"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681823682"
+	  ><span class="hs-identifier hs-var"
+	    >msg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681823682"
+	><span class="hs-identifier hs-var"
+	  >msg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

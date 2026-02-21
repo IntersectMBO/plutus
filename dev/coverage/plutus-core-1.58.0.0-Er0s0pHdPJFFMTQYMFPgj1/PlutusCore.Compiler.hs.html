@@ -1,0 +1,82 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module PlutusCore.Compiler
+<span class="lineno">    2 </span>  ( module Opts
+<span class="lineno">    3 </span>  , compileTerm
+<span class="lineno">    4 </span>  , compileProgram
+<span class="lineno">    5 </span>  , compileProgramWithTrace
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import PlutusCore.Compiler.Erase
+<span class="lineno">    9 </span>import PlutusCore.Compiler.Opts as Opts
+<span class="lineno">   10 </span>import PlutusCore.Compiler.Types
+<span class="lineno">   11 </span>import PlutusCore.Core
+<span class="lineno">   12 </span>import PlutusCore.Name.Unique
+<span class="lineno">   13 </span>import PlutusCore.Rename
+<span class="lineno">   14 </span>import UntypedPlutusCore.Core.Type qualified as UPLC
+<span class="lineno">   15 </span>import UntypedPlutusCore.Simplify qualified as UPLC
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.Lens (view)
+<span class="lineno">   18 </span>import Control.Monad.Reader (MonadReader)
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>-- | Compile a PLC term to UPLC, and optimize it.
+<span class="lineno">   21 </span>compileTerm
+<span class="lineno">   22 </span>  :: ( Compiling m uni fun name a
+<span class="lineno">   23 </span>     , MonadReader (CompilationOpts name fun a) m
+<span class="lineno">   24 </span>     )
+<span class="lineno">   25 </span>  =&gt; Term tyname name uni fun a
+<span class="lineno">   26 </span>  -&gt; m (UPLC.Term name uni fun a)
+<span class="lineno">   27 </span><span class="decl"><span class="istickedoff">compileTerm t = do</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="istickedoff">simplOpts &lt;- view coSimplifyOpts</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">builtinSemanticsVariant &lt;- view <span class="nottickedoff">coBuiltinSemanticsVariant</span></span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="istickedoff">let erased = eraseTerm t</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">renamed &lt;- rename erased</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">UPLC.simplifyTerm simplOpts <span class="nottickedoff">builtinSemanticsVariant</span> renamed</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>-- | Compile a PLC program to UPLC, and optimize it.
+<span class="lineno">   35 </span>compileProgram
+<span class="lineno">   36 </span>  :: ( Compiling m uni fun name a
+<span class="lineno">   37 </span>     , MonadReader (CompilationOpts name fun a) m
+<span class="lineno">   38 </span>     )
+<span class="lineno">   39 </span>  =&gt; Program tyname name uni fun a
+<span class="lineno">   40 </span>  -&gt; m (UPLC.Program name uni fun a)
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">compileProgram (Program a v t) = UPLC.Program <span class="nottickedoff">a</span> v &lt;$&gt; compileTerm t</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>{-| Compile a PLC program to UPLC, and optimize it. This includes
+<span class="lineno">   44 </span>the compilation trace in the result. -}
+<span class="lineno">   45 </span>compileProgramWithTrace
+<span class="lineno">   46 </span>  :: ( Compiling m uni fun name a
+<span class="lineno">   47 </span>     , MonadReader (CompilationOpts name fun a) m
+<span class="lineno">   48 </span>     )
+<span class="lineno">   49 </span>  =&gt; Program tyname name uni fun a
+<span class="lineno">   50 </span>  -&gt; m (UPLC.Program name uni fun a, UPLC.SimplifierTrace name uni fun a)
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">compileProgramWithTrace (Program a v t) = do</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">simplOpts &lt;- view coSimplifyOpts</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">builtinSemanticsVariant &lt;- view coBuiltinSemanticsVariant</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">let erased = eraseTerm t</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">renamedProgram &lt;- UPLC.Program a v &lt;$&gt; rename erased</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">UPLC.simplifyProgramWithTrace</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="nottickedoff">simplOpts</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">builtinSemanticsVariant</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="nottickedoff">renamedProgram</span></span>
+
+</pre>
+</body>
+</html>

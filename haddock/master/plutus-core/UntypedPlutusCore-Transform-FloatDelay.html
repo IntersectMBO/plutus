@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Transform.FloatDelay</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Transform.FloatDelay.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Transform.FloatDelay</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >The Float Delay optimization floats <code
+	    ><a href="UntypedPlutusCore-Core-Type.html#v:Delay" title="UntypedPlutusCore.Core.Type"
+	      >Delay</a
+	      ></code
+	    > from arguments into function bodies,
+if possible. It turns <code
+	    >(n -&gt; ...Force n...Force n...) (Delay arg)</code
+	    > into
+<code
+	    >(n -&gt; ...Force (Delay n)...Force (Delay n)...) arg</code
+	    >.</p
+	  ><p
+	  >The above transformation is performed if:</p
+	  ><ul
+	  ><li
+	    >All occurrences of <code
+	      >arg</code
+	      > are under <code
+	      >Force</code
+	      >.</li
+	    ><li
+	    ><code
+	      >arg</code
+	      > is essentially work-free.</li
+	    ></ul
+	  ><p
+	  >This achieves a similar effect to Plutonomy's &quot;Split Delay&quot; optimization. The difference
+is that Split Delay simply splits the <code
+	    >Delay</code
+	    > argument into multiple arguments, turning the
+above example into <code
+	    >(m -&gt; (n -&gt; ...Force n...Force n...) (Delay m)) arg</code
+	    >, and then relies
+on other optimizations to simplify it further. Specifically, once the inliner inlines
+<code
+	    >Delay m</code
+	    >, it will be identical to the result of Float Delay.</p
+	  ><p
+	  >The advantages of Float Delay are:</p
+	  ><ul
+	  ><li
+	    >It doesn't rely on the inliner. In this example, Split Delay relies on the inliner to
+      inline <code
+	      >Delay m</code
+	      >, but there's no guarantee that the inliner will do so, because inlining
+      it may increase the program size.</li
+	    ></ul
+	  ><p
+	  >We can potentially modify the inliner such that it is aware of Float Delay and
+      Force-Delay Cancel, and makes inlining decisions with these other optimizations in mind.
+      The problem is that, not only does this makes the inlining heuristics much more
+      complex, but it could easily lead to code duplication. Other optimizations often
+      need to do some calculation in order to make certain optimization decisions (e.g., in
+      this case, we want to check whether all occurrences of <code
+	    >arg</code
+	    > are under <code
+	    >Force</code
+	    >), and
+      if we rely on the inliner to inline the <code
+	    >Delay</code
+	    >, then the same check would need to be
+      performed by the inliner.</p
+	  ><ul
+	  ><li
+	    >Because Force Delay requires that all occurrences of <code
+	      >arg</code
+	      > are under <code
+	      >Force</code
+	      >, it
+      guarantees to not increase the size or the cost of the program. This is not the case
+      with Split Delay: in this example, if the occurrences of <code
+	      >n</code
+	      > are not under <code
+	      >Force</code
+	      >,
+      then Split Delay may increase the size of the program, regardless of whether or not
+      <code
+	      >Delay m</code
+	      > is inlined. If <code
+	      >Delay m</code
+	      > is not inlined, then it will also increase the
+      cost of the program, due to the additional application.</li
+	    ></ul
+	  ><p
+	  >The alternative approach that always floats the <code
+	    >Delay</code
+	    > regardless of whether or not all
+occurences of <code
+	    >arg</code
+	    > are under <code
+	    >Force</code
+	    > was implemented and tested, and it is strictly worse than
+Float Delay on our current test suite (specifically, Split Delay causes one test case
+to have a slightly bigger program, and everything else is equal).</p
+	  ><p
+	  >Why is this optimization performed on UPLC, not PIR?</p
+	  ><ol
+	  ><li value="1"
+	    >Not only are the types and let-bindings in PIR not useful for this optimization,
+       they can also get in the way. For example, we cannot transform
+       <code
+	      >let f = /a. ...a... in ...{f t1}...{f t2}...</code
+	      > into
+       <code
+	      >ket f = ...a... in ...f...f...</code
+	      >.</li
+	    ><li value="2"
+	    >This optimization mainly interacts with ForceDelayCancel and the inliner, and
+       both are part of the UPLC simplifier. </li
+	    ></ol
+	  ></div
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:floatDelay" class="def"
+	    >floatDelay</a
+	    > &#8759; (<a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	    >Rename</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a), <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun a m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a) <a href="src/UntypedPlutusCore.Transform.FloatDelay.html#floatDelay" class="link"
+	    >Source</a
+	    > <a href="#v:floatDelay" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

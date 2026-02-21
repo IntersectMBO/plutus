@@ -1,0 +1,863 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Executable.Parsers</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Executable.Parsers.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Executable.Parsers</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Common option parsers for executables</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:input"
+	      >input</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fileInput"
+	      >fileInput</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stdInput"
+	      >stdInput</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:output"
+	      >output</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fileOutput"
+	      >fileOutput</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stdOutput"
+	      >stdOutput</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:noOutput"
+	      >noOutput</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:formatHelp"
+	      >formatHelp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:formatReader"
+	      >formatReader</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	      >Format</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:inputformat"
+	      >inputformat</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	      >Format</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:outputformat"
+	      >outputformat</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	      >Format</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tracemode"
+	      >tracemode</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:TraceMode" title="PlutusCore.Executable.Types"
+	      >TraceMode</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:files"
+	      >files</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Files" title="PlutusCore.Executable.Types"
+	      >Files</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:applyOpts"
+	      >applyOpts</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:ApplyOptions" title="PlutusCore.Executable.Types"
+	      >ApplyOptions</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:printmode"
+	      >printmode</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	      >PrintMode</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nameformat"
+	      >nameformat</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:NameFormat" title="PlutusCore.Executable.Types"
+	      >NameFormat</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:certifier"
+	      >certifier</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Certifier" title="PlutusCore.Executable.Types"
+	      >Certifier</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:printOpts"
+	      >printOpts</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:PrintOptions" title="PlutusCore.Executable.Types"
+	      >PrintOptions</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:convertOpts"
+	      >convertOpts</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:ConvertOptions" title="PlutusCore.Executable.Types"
+	      >ConvertOptions</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:optimiseOpts"
+	      >optimiseOpts</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:OptimiseOptions" title="PlutusCore.Executable.Types"
+	      >OptimiseOptions</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:exampleMode"
+	      >exampleMode</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:ExampleMode" title="PlutusCore.Executable.Types"
+	      >ExampleMode</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:exampleAvailable"
+	      >exampleAvailable</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:ExampleMode" title="PlutusCore.Executable.Types"
+	      >ExampleMode</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:exampleName"
+	      >exampleName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	      >ExampleName</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:exampleSingle"
+	      >exampleSingle</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:ExampleMode" title="PlutusCore.Executable.Types"
+	      >ExampleMode</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:exampleOpts"
+	      >exampleOpts</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:ExampleOptions" title="PlutusCore.Executable.Types"
+	      >ExampleOptions</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinSemanticsVariantReader"
+	      >builtinSemanticsVariantReader</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:showBuiltinSemanticsVariant"
+	      >showBuiltinSemanticsVariant</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinSemanticsVariant"
+	      >builtinSemanticsVariant</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:pirFormatHelp"
+	      >pirFormatHelp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pirFormatReader"
+	      >pirFormatReader</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Executable-Types.html#t:PirFormat" title="PlutusCore.Executable.Types"
+	      >PirFormat</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pPirInputFormat"
+	      >pPirInputFormat</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:PirFormat" title="PlutusCore.Executable.Types"
+	      >PirFormat</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pPirOutputFormat"
+	      >pPirOutputFormat</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:PirFormat" title="PlutusCore.Executable.Types"
+	      >PirFormat</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:languageReader"
+	      >languageReader</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Language" title="PlutusCore.Executable.Types"
+	      >Language</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pLanguage"
+	      >pLanguage</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	      >Parser</a
+	      > <a href="PlutusCore-Executable-Types.html#t:Language" title="PlutusCore.Executable.Types"
+	      >Language</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:input" class="def"
+	    >input</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#input" class="link"
+	    >Source</a
+	    > <a href="#v:input" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for an input stream. If none is specified,
+ default to stdin for ease of use in pipeline.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fileInput" class="def"
+	    >fileInput</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#fileInput" class="link"
+	    >Source</a
+	    > <a href="#v:fileInput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stdInput" class="def"
+	    >stdInput</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#stdInput" class="link"
+	    >Source</a
+	    > <a href="#v:stdInput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:output" class="def"
+	    >output</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#output" class="link"
+	    >Source</a
+	    > <a href="#v:output" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parser for an output stream. If none is specified,
+ default to stdout for ease of use in pipeline.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fileOutput" class="def"
+	    >fileOutput</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#fileOutput" class="link"
+	    >Source</a
+	    > <a href="#v:fileOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stdOutput" class="def"
+	    >stdOutput</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#stdOutput" class="link"
+	    >Source</a
+	    > <a href="#v:stdOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:noOutput" class="def"
+	    >noOutput</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#noOutput" class="link"
+	    >Source</a
+	    > <a href="#v:noOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:formatHelp" class="def"
+	    >formatHelp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#formatHelp" class="link"
+	    >Source</a
+	    > <a href="#v:formatHelp" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:formatReader" class="def"
+	    >formatReader</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	    >Format</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#formatReader" class="link"
+	    >Source</a
+	    > <a href="#v:formatReader" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inputformat" class="def"
+	    >inputformat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	    >Format</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#inputformat" class="link"
+	    >Source</a
+	    > <a href="#v:inputformat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:outputformat" class="def"
+	    >outputformat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	    >Format</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#outputformat" class="link"
+	    >Source</a
+	    > <a href="#v:outputformat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tracemode" class="def"
+	    >tracemode</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:TraceMode" title="PlutusCore.Executable.Types"
+	    >TraceMode</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#tracemode" class="link"
+	    >Source</a
+	    > <a href="#v:tracemode" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:files" class="def"
+	    >files</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Files" title="PlutusCore.Executable.Types"
+	    >Files</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#files" class="link"
+	    >Source</a
+	    > <a href="#v:files" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:applyOpts" class="def"
+	    >applyOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:ApplyOptions" title="PlutusCore.Executable.Types"
+	    >ApplyOptions</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#applyOpts" class="link"
+	    >Source</a
+	    > <a href="#v:applyOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:printmode" class="def"
+	    >printmode</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	    >PrintMode</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#printmode" class="link"
+	    >Source</a
+	    > <a href="#v:printmode" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nameformat" class="def"
+	    >nameformat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:NameFormat" title="PlutusCore.Executable.Types"
+	    >NameFormat</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#nameformat" class="link"
+	    >Source</a
+	    > <a href="#v:nameformat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:certifier" class="def"
+	    >certifier</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Certifier" title="PlutusCore.Executable.Types"
+	    >Certifier</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#certifier" class="link"
+	    >Source</a
+	    > <a href="#v:certifier" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:printOpts" class="def"
+	    >printOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:PrintOptions" title="PlutusCore.Executable.Types"
+	    >PrintOptions</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#printOpts" class="link"
+	    >Source</a
+	    > <a href="#v:printOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:convertOpts" class="def"
+	    >convertOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:ConvertOptions" title="PlutusCore.Executable.Types"
+	    >ConvertOptions</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#convertOpts" class="link"
+	    >Source</a
+	    > <a href="#v:convertOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:optimiseOpts" class="def"
+	    >optimiseOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:OptimiseOptions" title="PlutusCore.Executable.Types"
+	    >OptimiseOptions</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#optimiseOpts" class="link"
+	    >Source</a
+	    > <a href="#v:optimiseOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:exampleMode" class="def"
+	    >exampleMode</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:ExampleMode" title="PlutusCore.Executable.Types"
+	    >ExampleMode</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#exampleMode" class="link"
+	    >Source</a
+	    > <a href="#v:exampleMode" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:exampleAvailable" class="def"
+	    >exampleAvailable</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:ExampleMode" title="PlutusCore.Executable.Types"
+	    >ExampleMode</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#exampleAvailable" class="link"
+	    >Source</a
+	    > <a href="#v:exampleAvailable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:exampleName" class="def"
+	    >exampleName</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	    >ExampleName</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#exampleName" class="link"
+	    >Source</a
+	    > <a href="#v:exampleName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:exampleSingle" class="def"
+	    >exampleSingle</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:ExampleMode" title="PlutusCore.Executable.Types"
+	    >ExampleMode</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#exampleSingle" class="link"
+	    >Source</a
+	    > <a href="#v:exampleSingle" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:exampleOpts" class="def"
+	    >exampleOpts</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:ExampleOptions" title="PlutusCore.Executable.Types"
+	    >ExampleOptions</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#exampleOpts" class="link"
+	    >Source</a
+	    > <a href="#v:exampleOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinSemanticsVariantReader" class="def"
+	    >builtinSemanticsVariantReader</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) <a href="src/PlutusCore.Executable.Parsers.html#builtinSemanticsVariantReader" class="link"
+	    >Source</a
+	    > <a href="#v:builtinSemanticsVariantReader" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:showBuiltinSemanticsVariant" class="def"
+	    >showBuiltinSemanticsVariant</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#showBuiltinSemanticsVariant" class="link"
+	    >Source</a
+	    > <a href="#v:showBuiltinSemanticsVariant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinSemanticsVariant" class="def"
+	    >builtinSemanticsVariant</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) <a href="src/PlutusCore.Executable.Parsers.html#builtinSemanticsVariant" class="link"
+	    >Source</a
+	    > <a href="#v:builtinSemanticsVariant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pirFormatHelp" class="def"
+	    >pirFormatHelp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#pirFormatHelp" class="link"
+	    >Source</a
+	    > <a href="#v:pirFormatHelp" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pirFormatReader" class="def"
+	    >pirFormatReader</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Executable-Types.html#t:PirFormat" title="PlutusCore.Executable.Types"
+	    >PirFormat</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#pirFormatReader" class="link"
+	    >Source</a
+	    > <a href="#v:pirFormatReader" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pPirInputFormat" class="def"
+	    >pPirInputFormat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:PirFormat" title="PlutusCore.Executable.Types"
+	    >PirFormat</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#pPirInputFormat" class="link"
+	    >Source</a
+	    > <a href="#v:pPirInputFormat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pPirOutputFormat" class="def"
+	    >pPirOutputFormat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:PirFormat" title="PlutusCore.Executable.Types"
+	    >PirFormat</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#pPirOutputFormat" class="link"
+	    >Source</a
+	    > <a href="#v:pPirOutputFormat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:languageReader" class="def"
+	    >languageReader</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Language" title="PlutusCore.Executable.Types"
+	    >Language</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#languageReader" class="link"
+	    >Source</a
+	    > <a href="#v:languageReader" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pLanguage" class="def"
+	    >pLanguage</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Types.html#t:Parser" title="Options.Applicative.Types"
+	    >Parser</a
+	    > <a href="PlutusCore-Executable-Types.html#t:Language" title="PlutusCore.Executable.Types"
+	    >Language</a
+	    > <a href="src/PlutusCore.Executable.Parsers.html#pLanguage" class="link"
+	    >Source</a
+	    > <a href="#v:pLanguage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,379 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.ExBudgetStream</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.ExBudgetStream.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.ExBudgetStream</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ExBudgetStream"
+	      >ExBudgetStream</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:ExBudgetLast"
+		  >ExBudgetLast</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		>| <a href="#v:ExBudgetCons"
+		  >ExBudgetCons</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  > <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		  >ExBudgetStream</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sumExBudgetStream"
+	      >sumExBudgetStream</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	      >ExBudgetStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:zipCostStream"
+	      >zipCostStream</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	      >ExBudgetStream</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ExBudgetStream" class="def"
+	    >ExBudgetStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream" class="link"
+	    >Source</a
+	    > <a href="#t:ExBudgetStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A lazy stream of <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		>ExBudget</a
+		></code
+	      >s. Basically <code
+	      >NonEmpty ExBudget</code
+	      >, except the elements are
+ stored strictly.</p
+	    ><p
+	    >The semantics of a stream are those of the <code
+	      >fold</code
+	      > of its elements. I.e. a stream that is a
+ reordered version of another stream is considered equal to that stream.</p
+	    ><p
+	    >An <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>ExBudgetStream</a
+		></code
+	      > is what one gets by zipping two <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >s (one for CPU, one for memory),
+ which is why the two data types are so similar. The only reason why we don't express both the
+ concepts in terms of a single data type is efficiency, in particular unboxing is crucial for
+ <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      > and we don't care about it in <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>ExBudgetStream</a
+		></code
+	      >, because we can't get the spender
+ in the CEK machine to get inlined and so unboxing <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		>ExBudget</a
+		></code
+	      > here would only result in boxing it
+ back once it's about to be spent.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ExBudgetLast" class="def"
+		  >ExBudgetLast</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExBudgetCons" class="def"
+		  >ExBudgetCons</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  > <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		  >ExBudgetStream</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExBudgetStream"
+	    >Instances</h4
+	    ><details id="i:ExBudgetStream" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudgetStream:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		      >ExBudgetStream</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetStream.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:ExBudgetStream" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudgetStream:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html"
+			>PlutusCore.Evaluation.Machine.ExBudgetStream</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ExBudgetStream:Whatever:2"
+		      ></span
+		      > <a href="PlutusCore-Examples-Builtins.html#t:Whatever" title="PlutusCore.Examples.Builtins"
+		      >Whatever</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		      >ExBudgetStream</a
+		      ></span
+		    > <a href="src/PlutusCore.Examples.Builtins.html#line-217" class="link"
+		    >Source</a
+		    > <a href="#t:Whatever" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ExBudgetStream:Whatever:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Examples-Builtins.html"
+			>PlutusCore.Examples.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:whatever"
+			  >whatever</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+			  >ExBudgetStream</a
+			  > <a href="src/PlutusCore.Examples.Builtins.html#whatever" class="link"
+			  >Source</a
+			  > <a href="#v:whatever" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sumExBudgetStream" class="def"
+	    >sumExBudgetStream</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	    >ExBudgetStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetStream.html#sumExBudgetStream" class="link"
+	    >Source</a
+	    > <a href="#v:sumExBudgetStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add up all the budgets in a <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>ExBudgetStream</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zipCostStream" class="def"
+	    >zipCostStream</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	    >ExBudgetStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExBudgetStream.html#zipCostStream" class="link"
+	    >Source</a
+	    > <a href="#v:zipCostStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Zip two <code
+	      ><a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      > together (one with CPU costs and the other one with memory costs,
+ respectively) to get an <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>ExBudgetStream</a
+		></code
+	      >. If one is longer than the other, then it's assumed to
+ contain the required amount of zeros for two streams to have the same length (all those zeros
+ &quot;appear&quot; in the tail of the stream).</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

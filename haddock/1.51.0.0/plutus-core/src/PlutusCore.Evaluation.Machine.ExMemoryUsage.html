@@ -1,0 +1,6957 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MagicHash            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.ExMemoryUsage</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRose"
+	><span class="hs-identifier"
+	  >flattenCostRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#NumBytesCostedAsNumWords"
+	><span class="hs-identifier"
+	  >NumBytesCostedAsNumWords</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#IntegerCostedLiterally"
+	><span class="hs-identifier"
+	  >IntegerCostedLiterally</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.BLS12_381.G1.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.G1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BLS12_381.G1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.BLS12_381.G2.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.G2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BLS12_381.G2</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.BLS12_381.Pairing.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.Pairing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BLS12_381.Pairing</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Data.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Data</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExMemory</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html"
+	><span class="hs-identifier"
+	  >Data.Functor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html"
+	><span class="hs-identifier"
+	  >Data.SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html"
+	><span class="hs-identifier"
+	  >Data.Vector.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#Vector"
+	><span class="hs-identifier"
+	  >Vector</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html"
+	><span class="hs-identifier"
+	  >Data.Vector.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Vector</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exts.html"
+	><span class="hs-identifier"
+	  >GHC.Exts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier"
+	  >I#</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Integer.html"
+	><span class="hs-identifier"
+	  >GHC.Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Integer.Logarithms.html"
+	><span class="hs-identifier"
+	  >GHC.Integer.Logarithms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Natural.html"
+	><span class="hs-identifier"
+	  >GHC.Natural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html"
+	><span class="hs-identifier"
+	  >GHC.Prim</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.html"
+	><span class="hs-identifier"
+	  >Universe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >{-
+ ************************************************************************************
+ *  WARNING: exercise caution when altering the ExMemoryUsage instances here.       *
+ *                                                                                  *
+ *  The instances defined in this file will be used to calculate script validation  *
+ *  costs, and if an instance is changed then any scripts which were deployed when  *
+ *  a previous instance was in effect MUST STILL VALIDATE using the new instance.   *
+ *  It is unsafe to increase the memory usage of a type because that may increase   *
+ *  the resource usage of existing scripts beyond the limits set (and paid for)     *
+ *  when they were uploaded to the chain, but because our costing functions are all *
+ *  monotone it is safe to decrease memory usage, as long it decreases for *all*    *
+ *  possible values of the type.                                                    *
+ ************************************************************************************
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [ExMemoryUsage instances for non-constants]
+In order to calculate the cost of a built-in function we need to feed the 'ExMemory' of each
+argument to the costing function associated with the builtin. For a polymorphic builtin this means
+that we need to be able to compute the 'ExMemory' of the AST provided as an argument to the builtin.
+How do we do that? Our strategy is:
+
+1. if the AST is a wrapped constant, then calculate the 'ExMemory' of the constant
+2. if the AST is something else, return 1
+
+This is pretty reasonable: a polymorphic builtin *is* allowed to check if the AST that it got as an
+argument is a constant or not, and if it happens to be a constant, the builtin *is* allowed to use
+it whatever way it wishes (see Note [Builtins and Plutus type checking] for details). Hence a
+builtin may in fact do something ad hoc for constants and we need to account for this possibility in
+the costing machinery.
+
+But if the given AST is not a constant, the builtin can't do anything else with it, hence we simply
+return 1, meaning &quot;the costing function can't use this 'ExMemory' in any non-vacuous way&quot;.
+
+See 'HasMeaningIn' for a full list of constraints determining what a builtin can do with values.
+
+However for all types of values, except the one used by the production evaluator, we implement
+'ExMemoryUsage' as a call to 'error'. Not because other evaluators don't compute costs during
+evaluation -- the CK machine for example does in fact compute them (because we share the same
+builtins machinery between all the evaluators and we want it to be efficient on the production path,
+hence it's easier to optimize it for all evaluators than just for the single production evaluator).
+And not because the resulting 'ExBudget' is not forced by an evaluator that doesn't care about
+costing -- it still gets forced (for the same reason).
+
+The actual reason why we call 'error' is because at the moment no builtin is supposed to have a
+costing function that actually computes the 'ExMemory' of the given AST. Currently, if the builtin
+takes an 'Opaque', it's not supposed to actually look inside of it (unlike with 'SomeConstant') and
+hence the costing function is supposed to ignore that argument. It is possible that we'll eventually
+decide to add such a builtin, so the current approach of throwing an 'error' is a precaution
+ensuring that we won't add any weirdness by accident.
+
+We don't call 'error' on the production path, because we don't want this risk in there. A failing
+test is fine, a failing reasonable transaction is not and we don't want to risk it, even if it seems
+very unlikely that such a failure could slip in.
+
+The way we ignore arguments in costing functions is by computing the 'ExMemory' of each of those
+arguments lazily. I.e. a call to 'memoryUsage' can only be forced within a costing function and
+never outside of one. We have to do this regardless of all the reasoning above: if we compute
+the 'ExMemory' of, say, a list strictly, then a builtin prepending an element to a list will
+have the complexity of O(length_of_the_list) (because computing the 'ExMemory' of a list requires
+traversing the list), while we of course want it to be O(1).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="hs-comment"
+      >-- | A lazy tree of costs. Convenient for calculating the costs of values of built-in types, because</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="hs-comment"
+      >-- they may have arbitrary branching (in particular a 'Data' object can contain a list of 'Data'</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-comment"
+      >-- objects inside of it).</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span class="hs-comment"
+      >-- 'CostRose' gets collapsed to a lazy linear structure down the pipeline, so that we can</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-comment"
+      >-- stream the costs to the outside where, say, the CEK machine picks them up one by one and handles</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="hs-comment"
+      >-- somehow (in particular, subtracts from the remaining budget).</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CostRose"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	  ><span class="hs-identifier hs-var"
+	    >CostRose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CostRose"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	  ><span class="hs-identifier hs-var"
+	    >CostRose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# UNPACK</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681834431"
+      ><span id="local-6989586621681834440"
+	><span id="local-6989586621681834444"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; CostRose -&gt; ShowS
+[CostRose] -&gt; ShowS
+CostRose -&gt; String
+(Int -&gt; CostRose -&gt; ShowS)
+-&gt; (CostRose -&gt; String) -&gt; ([CostRose] -&gt; ShowS) -&gt; Show CostRose
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; CostRose -&gt; ShowS
+showsPrec :: Int -&gt; CostRose -&gt; ShowS
+$cshow :: CostRose -&gt; String
+show :: CostRose -&gt; String
+$cshowList :: [CostRose] -&gt; ShowS
+showList :: [CostRose] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Create a 'CostRose' containing a single cost.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-type"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="singletonRose"
+      ><span class="annot"
+	><span class="annottext"
+	  >singletonRose :: CostingInteger -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >singletonRose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834447"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681834447"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; [CostRose] -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-var"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834447"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-pragma hs-type"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Global local functions].</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-comment"
+      >-- This is one way to define the worker. There are many more, see</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-comment"
+      >-- https://github.com/IntersectMBO/plutus/pull/5239#discussion_r1151197471</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >-- We chose this one, because it's the simplest (no CPS shenanigans) among the safest (retrieving</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- the next element takes O(1) time in the worst case).</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="hs-comment"
+      >-- The algorithm is a variation of the defunctionalization technique (see this post in particular:</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span class="hs-comment"
+      >-- https://www.joachim-breitner.de/blog/778-Don%e2%80%99t_think,_just_defunctionalize), except we</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-comment"
+      >-- don't want a tail-recursive loop and instead emit costs lazily to the outside (as it's the whole</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-comment"
+      >-- point of the lazy costing approach)</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRoseGo"
+	><span class="hs-identifier hs-type"
+	  >flattenCostRoseGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span id="flattenCostRoseGo"
+      ><span class="annot"
+	><span class="annottext"
+	  >flattenCostRoseGo :: CostRose -&gt; [CostRose] -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRoseGo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flattenCostRoseGo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834449"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681834449"
+	  ><span class="hs-identifier hs-var"
+	    >cost1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834450"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CostRose]
+</span
+	  ><a href="#local-6989586621681834450"
+	  ><span class="hs-identifier hs-var"
+	    >forest1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834451"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CostRose]
+</span
+	  ><a href="#local-6989586621681834451"
+	  ><span class="hs-identifier hs-var"
+	    >forest2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834450"
+	><span class="hs-identifier hs-var"
+	  >forest1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- The current subtree doesn't have its own subtrees.</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834451"
+	><span class="hs-identifier hs-var"
+	  >forest2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- No more elements in the entire tree, emit the last cost.</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-var"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834449"
+	><span class="hs-identifier hs-var"
+	  >cost1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- There's at least one unhandled subtree encountered earlier, emit the current cost</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- and collapse the unhandled subtree.</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621681834453"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostRose
+</span
+	  ><a href="#local-6989586621681834453"
+	  ><span class="hs-identifier hs-var"
+	    >rose2'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834454"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CostRose]
+</span
+	  ><a href="#local-6989586621681834454"
+	  ><span class="hs-identifier hs-var"
+	    >forest2'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834449"
+	><span class="hs-identifier hs-var"
+	  >cost1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; CostStream) -&gt; CostStream -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose -&gt; [CostRose] -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRoseGo"
+	><span class="hs-identifier hs-var"
+	  >flattenCostRoseGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="#local-6989586621681834453"
+	><span class="hs-identifier hs-var"
+	  >rose2'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834454"
+	><span class="hs-identifier hs-var"
+	  >forest2'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- The current subtree has at least one its own subtree.</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681834456"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostRose
+</span
+	  ><a href="#local-6989586621681834456"
+	  ><span class="hs-identifier hs-var"
+	    >rose1'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834457"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CostRose]
+</span
+	  ><a href="#local-6989586621681834457"
+	  ><span class="hs-identifier hs-var"
+	    >forest1'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Emit the current cost and handle the list of subtrees of the current subtree.</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834449"
+	><span class="hs-identifier hs-var"
+	  >cost1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; CostStream) -&gt; CostStream -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834457"
+	><span class="hs-identifier hs-var"
+	  >forest1'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-comment"
+      >-- Same as the case below, except this one avoids creating a chain of</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-comment"
+      >-- @[] ++ ([] ++ ([] ++ &lt;...&gt;))@, which would make retrieving the next element an</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-comment"
+      >-- O(depth_of_the_tree) operation in the worst case.</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose -&gt; [CostRose] -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRoseGo"
+	><span class="hs-identifier hs-var"
+	  >flattenCostRoseGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="#local-6989586621681834456"
+	><span class="hs-identifier hs-var"
+	  >rose1'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834451"
+	><span class="hs-identifier hs-var"
+	  >forest2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-comment"
+      >-- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-comment"
+      >-- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose -&gt; [CostRose] -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRoseGo"
+	><span class="hs-identifier hs-var"
+	  >flattenCostRoseGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="#local-6989586621681834456"
+	><span class="hs-identifier hs-var"
+	  >rose1'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([CostRose] -&gt; CostStream) -&gt; [CostRose] -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834457"
+	><span class="hs-identifier hs-var"
+	  >forest1'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose] -&gt; [CostRose] -&gt; [CostRose]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834451"
+	><span class="hs-identifier hs-var"
+	  >forest2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span class="hs-comment"
+      >-- | Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="hs-comment"
+      >-- time in the worst case regardless of the recursion pattern of the given 'CostRose'.</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRose"
+	><span class="hs-identifier hs-type"
+	  >flattenCostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostStream"
+	><span class="hs-identifier hs-type"
+	  >CostStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span id="flattenCostRose"
+      ><span class="annot"
+	><span class="annottext"
+	  >flattenCostRose :: CostRose -&gt; CostStream
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRose"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flattenCostRose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834458"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681834458"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostLast"
+	><span class="hs-identifier hs-var"
+	  >CostLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834458"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRose"
+	><span class="hs-identifier hs-var"
+	  >flattenCostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834459"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681834459"
+	  ><span class="hs-identifier hs-var"
+	    >cost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681834460"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostRose
+</span
+	  ><a href="#local-6989586621681834460"
+	  ><span class="hs-identifier hs-var"
+	    >rose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834461"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CostRose]
+</span
+	  ><a href="#local-6989586621681834461"
+	  ><span class="hs-identifier hs-var"
+	    >forest</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostStream -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostStream.html#CostCons"
+	><span class="hs-identifier hs-var"
+	  >CostCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834459"
+	><span class="hs-identifier hs-var"
+	  >cost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostStream -&gt; CostStream) -&gt; CostStream -&gt; CostStream
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose -&gt; [CostRose] -&gt; CostStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRoseGo"
+	><span class="hs-identifier hs-var"
+	  >flattenCostRoseGo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="#local-6989586621681834460"
+	><span class="hs-identifier hs-var"
+	  >rose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834461"
+	><span class="hs-identifier hs-var"
+	  >forest</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRose"
+	><span class="hs-pragma hs-type"
+	  >flattenCostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="ExMemoryUsage"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	  ><span class="hs-identifier hs-var"
+	    >ExMemoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834358"
+      ><span class="annot"
+	><a href="#local-6989586621681834358"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Inlining the implementations of this method gave us a 1-2% speedup.</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >    </span
+      ><span id="memoryUsage"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-type"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681834358"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Alternative memory usage instances].  The `memoryUsage` function provides
+ a measure of the size of an object for costing purposes, the idea being that
+ the time taken to execute a builtin, and the memory used to contain its result,
+ will depend on the size of the inputs.  The name `memoryUsage` is perhaps a
+ misnomer: it was originally supposed to measure (in 64-bit words) the heap
+ space required to store an object, but this is not always the correct measure
+ to use.  For example, the time taken by `AddInteger` or `MultiplyInteger` will
+ depend on the logarithms of the inputs (and the logarithm is proportional to
+ the memory occupied by the inputs), and the memory occupied by the result will
+ be some function of the memory occupied by the inputs, so for these functions
+ the actual memory usage is a sensible size measure.  However, calling
+ `replicateByte n b` function allocates a number of bytes which is equal to the
+ actual value of `n`, which will be exponentially greater than the memory
+ occupied by `n`, so this case the memory usage is not a sensible size measure.
+ In most cases the default `memoryUsage` function returns the actual memory
+ usage, but to deal with cases like `replicateByte` we occasionally use newtype
+ wrappers which define a different size measure (see `IntegerCostedLiterally`
+ below).  Polymorphic types require some care though: see Note [ExMemoryUsage
+ for polymorphic types].
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [ExMemoryUsage for polymorphic types].  For polymorphic types such as
+ `pair, `list`, and `array` DO NOT use newtype wrappers to define alternative
+ size measures.  The denotations of functions which take polymorphic arguments
+ use `SomeConstant` and this will ignore newtype wrappers and will only use the
+ default `memoryUsage` function, which could lead to unexpected results.
+ Furthermore, actual memory usage is typically not a good size measure for
+ polymorphic arguments: the time taken to process a list, for example, will
+ typically depend only on the length of the list and not the size of the
+ contents.  Currently all such functions are parametrically polymorphic and only
+ manipulate pointers without inspecting the contents of their polymorphic
+ arguments, so it is reasonable to use size measures which depend only on the
+ surface structure of polymorphic objects. -}</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span class="hs-comment"
+      >{- We expect that all builtins which involve pairs will be constant cost and so
+   their memory usage will never be involved in any computations.  The memory
+   usage is set to maxBound so that we'll notice if this assumption is ever
+   violated -}</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834359"
+      ><span id="local-6989586621681834360"
+	><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	    ><span class="hs-identifier hs-type"
+	      >ExMemoryUsage</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681834359"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681834360"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834468"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: (a, b) -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a, b)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span class="hs-comment"
+      >{- Note the the `memoryUsage` of an empty list is zero.  This shouldn't cause any
+ problems, but be sure to check that no costing function involving lists can
+ return zero for an empty list (or any other input).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span class="hs-comment"
+      >{- Calculating the memory usage by processing the entire spine of the list eagerly
+ is safe because there's no way to cheaply construct a long list: you either
+ make one using repeated mkCons, which is expensive, or return one from a
+ builtin, which has to be appropriately expensive too. -}</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834363"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	  ><span class="hs-identifier hs-type"
+	    >ExMemoryUsage</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="#local-6989586621681834363"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681834476"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: [a] -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834477"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621681834477"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Int -&gt; CostingInteger) -&gt; Int -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostRose) -&gt; Int -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621681834477"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span class="hs-comment"
+      >{- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
+ problems, but be sure to check that no costing function involving arrays can
+ return zero for an empty array (or any other input).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834373"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	  ><span class="hs-identifier hs-type"
+	    >ExMemoryUsage</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#Vector"
+	  ><span class="hs-identifier hs-type"
+	    >Vector</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681834373"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834484"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Vector a -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834485"
+      ><span class="annot"
+	><span class="annottext"
+	  >Vector a
+</span
+	  ><a href="#local-6989586621681834485"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Int -&gt; CostingInteger) -&gt; Int -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostRose) -&gt; Int -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; Int
+forall a. Vector a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Strict.html#length"
+	><span class="hs-identifier hs-var"
+	  >Vector.length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a
+</span
+	><a href="#local-6989586621681834485"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834380"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="Universe.Core.html#Closed"
+	  ><span class="hs-identifier hs-type"
+	    >Closed</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681834380"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681834380"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Universe.Core.html#Everywhere"
+	  ><span class="hs-operator hs-type"
+	    >`Everywhere`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	  ><span class="hs-identifier hs-type"
+	    >ExMemoryUsage</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	  ><span class="hs-identifier hs-type"
+	    >ExMemoryUsage</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	  ><span class="hs-identifier hs-type"
+	    >Some</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="Universe.Core.html#ValueOf"
+	  ><span class="hs-identifier hs-type"
+	    >ValueOf</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681834380"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834491"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Some (ValueOf uni) -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834496"
+      ><span class="annot"
+	><span class="annottext"
+	  >uni (Esc a)
+</span
+	  ><a href="#local-6989586621681834496"
+	  ><span class="hs-identifier hs-var"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834497"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681834497"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy ExMemoryUsage
+-&gt; uni (Esc a) -&gt; (ExMemoryUsage a =&gt; CostRose) -&gt; CostRose
+forall (uni :: * -&gt; *) (constr :: * -&gt; Constraint)
+       (proxy :: (* -&gt; Constraint) -&gt; *) a r.
+(Closed uni, Everywhere uni constr) =&gt;
+proxy constr -&gt; uni (Esc a) -&gt; (constr a =&gt; r) -&gt; r
+forall (constr :: * -&gt; Constraint)
+       (proxy :: (* -&gt; Constraint) -&gt; *) a r.
+Everywhere uni constr =&gt;
+proxy constr -&gt; uni (Esc a) -&gt; (constr a =&gt; r) -&gt; r
+</span
+	><a href="Universe.Core.html#bring"
+	><span class="hs-identifier hs-var"
+	  >bring</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall {k} (t :: k). Proxy t
+forall (t :: * -&gt; Constraint). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>uni (Esc a)
+</span
+	><a href="#local-6989586621681834496"
+	><span class="hs-identifier hs-var"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; CostRose
+forall a. ExMemoryUsage a =&gt; a -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-identifier hs-var"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681834497"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834505"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: () -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Calculate a 'CostingInteger' for the size of the given 'Integer', measured in
+64-bit words.  This is the default size measure for `Integer`s.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsageInteger"
+	><span class="hs-identifier hs-type"
+	  >memoryUsageInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemory.html#CostingInteger"
+	><span class="hs-identifier hs-type"
+	  >CostingInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span class="hs-comment"
+      >-- integerLog2# is unspecified for 0 (but in practice returns -1)</span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span class="hs-comment"
+      >-- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we</span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span class="hs-comment"
+      >-- keep this special case for the time being though.</span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span id="memoryUsageInteger"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsageInteger :: Integer -&gt; CostingInteger
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsageInteger"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >memoryUsageInteger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span class="hs-comment"
+      >-- Assume 64 Int</span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsageInteger"
+	><span class="hs-identifier hs-var"
+	  >memoryUsageInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834507"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681834507"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostingInteger) -&gt; Int -&gt; CostingInteger
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#I%23"
+	><span class="hs-identifier hs-var"
+	  >I#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Integer.Logarithms.html#integerLog2%23"
+	><span class="hs-identifier hs-var"
+	  >integerLog2#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#abs"
+	><span class="hs-identifier hs-var"
+	  >abs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681834507"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int# -&gt; Int# -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#quotInt%23"
+	><span class="hs-operator hs-var"
+	  >`quotInt#`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Int#
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Integer.html#integerToInt"
+	><span class="hs-identifier hs-var"
+	  >integerToInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>64</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span class="hs-comment"
+      >-- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this</span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span class="hs-comment"
+      >-- function anyway.</span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPAQUE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsageInteger"
+	><span class="hs-pragma hs-type"
+	  >memoryUsageInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834514"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Integer -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834515"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681834515"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose) -&gt; CostingInteger -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; CostingInteger
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsageInteger"
+	><span class="hs-identifier hs-var"
+	  >memoryUsageInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681834515"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Same as Integer since we are going via Integer</span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834521"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Natural -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834522"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681834522"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; CostRose
+forall a. ExMemoryUsage a =&gt; a -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-identifier hs-var"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; CostRose) -&gt; Integer -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Integer
+forall a. Integral a =&gt; a -&gt; Integer
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#toInteger"
+	><span class="hs-identifier hs-var"
+	  >toInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681834522"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier hs-type"
+	  >Word8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834526"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Word8 -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | When invoking a built-in function, a value of type `NumBytesCostedAsNumWords`
+   can be used transparently as a built-in Integer but with a different size
+   measure: see Note [Integral types as Integer].  This is required by the
+   `integerToByteString` builtin, which takes an argument `w` specifying the
+   width (in bytes) of the output bytestring (zero-padded to the desired size).
+   The memory consumed by the function is given by `w`, *not* the size of `w`.
+   The `NumBytesCostedAsNumWords` type wraps an Int `w` in a newtype whose
+   `ExMemoryUsage` is equal to the number of eight-byte words required to
+   contain `w` bytes, allowing its costing function to work properly.  We also
+   use this for `replicateByte`.  If this is used to wrap an argument in the
+   denotation of a builtin then it *MUST* also be used to wrap the same argument
+   in the relevant budgeting benchmark.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-269"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="NumBytesCostedAsNumWords"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#NumBytesCostedAsNumWords"
+	  ><span class="hs-identifier hs-var"
+	    >NumBytesCostedAsNumWords</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="NumBytesCostedAsNumWords"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#NumBytesCostedAsNumWords"
+	  ><span class="hs-identifier hs-var"
+	    >NumBytesCostedAsNumWords</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unNumBytesCostedAsNumWords"
+      ><span class="annot"
+	><span class="annottext"
+	  >NumBytesCostedAsNumWords -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#unNumBytesCostedAsNumWords"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unNumBytesCostedAsNumWords</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-270"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#NumBytesCostedAsNumWords"
+	><span class="hs-identifier hs-type"
+	  >NumBytesCostedAsNumWords</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-271"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834540"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: NumBytesCostedAsNumWords -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#NumBytesCostedAsNumWords"
+	><span class="hs-identifier hs-type"
+	  >NumBytesCostedAsNumWords</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834541"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681834541"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Integer -&gt; CostingInteger) -&gt; Integer -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; CostingInteger
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; CostRose) -&gt; Integer -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681834541"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#div"
+	><span class="hs-operator hs-var"
+	  >`div`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>8</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-272"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-273"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Note that this uses `fromIntegral`, which will narrow large values to</span
+      ><span
+      >
+</span
+      ><span id="line-274"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no</span
+      ><span
+      >
+</span
+      ><span id="line-275"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- realistic input should be that large; however if you're going to use this then be</span
+      ><span
+      >
+</span
+      ><span id="line-276"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- sure to convince yourself that it's safe.</span
+      ><span
+      >
+</span
+      ><span id="line-277"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-278"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | A wrapper for `Integer`s whose &quot;memory usage&quot; for costing purposes is the
+   absolute value of the `Integer`.  This is used for costing built-in functions
+   such as `shiftByteString` and `rotateByteString`, where the cost may depend
+   on the actual value of the shift argument, not its size.  If this is used to
+   wrap an argument in the denotation of a builtin then it *MUST* also be used
+   to wrap the same argument in the relevant budgeting benchmark.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-285"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="IntegerCostedLiterally"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#IntegerCostedLiterally"
+	  ><span class="hs-identifier hs-var"
+	    >IntegerCostedLiterally</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="IntegerCostedLiterally"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#IntegerCostedLiterally"
+	  ><span class="hs-identifier hs-var"
+	    >IntegerCostedLiterally</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unIntegerCostedLiterally"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntegerCostedLiterally -&gt; Integer
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#unIntegerCostedLiterally"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unIntegerCostedLiterally</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-286"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#IntegerCostedLiterally"
+	><span class="hs-identifier hs-type"
+	  >IntegerCostedLiterally</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-287"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834550"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: IntegerCostedLiterally -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#IntegerCostedLiterally"
+	><span class="hs-identifier hs-type"
+	  >IntegerCostedLiterally</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834551"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681834551"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Integer -&gt; CostingInteger) -&gt; Integer -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; CostingInteger
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; CostRose) -&gt; Integer -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#abs"
+	><span class="hs-identifier hs-var"
+	  >abs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681834551"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-288"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-289"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Note that this uses `fromIntegral`, which will narrow large values to</span
+      ><span
+      >
+</span
+      ><span id="line-290"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no</span
+      ><span
+      >
+</span
+      ><span id="line-291"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- realistic input should be that large; however if you're going to use this then be</span
+      ><span
+      >
+</span
+      ><span id="line-292"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- sure to convince yourself that it's safe.</span
+      ><span
+      >
+</span
+      ><span id="line-293"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-294"
+      ></span
+      ><span class="hs-comment"
+      >{- Bytestrings: we want the empty bytestring and bytestrings of length 1-8 to have
+   size 1, bytestrings of length 9-16 to have size 2, etc.  Note that (-1)
+   `quot` 8 == 0, so the code below gives the correct answer for the empty
+   bytestring.  -}</span
+      ><span
+      >
+</span
+      ><span id="line-298"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >BS.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-299"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Don't use `div` here!  That gives 0 instead of 1 for the empty bytestring.</span
+      ><span
+      >
+</span
+      ><span id="line-300"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834560"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: ByteString -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834561"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681834561"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Int -&gt; CostingInteger) -&gt; Int -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unsafeToSatInt"
+	><span class="hs-identifier hs-var"
+	  >unsafeToSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostRose) -&gt; Int -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681834563"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#quot"
+	><span class="hs-operator hs-var"
+	  >`quot`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>8</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-301"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681834563"
+      ><span class="annot"
+	><span class="annottext"
+	  >n :: Int
+</span
+	  ><a href="#local-6989586621681834563"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#length"
+	><span class="hs-identifier hs-var"
+	  >BS.length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681834561"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-302"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-303"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-304"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-305"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- This says that @Text@ allocates 1 'CostingInteger' worth of memory (i.e. 8 bytes) per</span
+      ><span
+      >
+</span
+      ><span id="line-306"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- character, which is a conservative overestimate (i.e. is safe) regardless of whether @Text@</span
+      ><span
+      >
+</span
+      ><span id="line-307"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- is UTF16-based (like it used to when we implemented this instance) or UTF8-based (like it is</span
+      ><span
+      >
+</span
+      ><span id="line-308"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- now).</span
+      ><span
+      >
+</span
+      ><span id="line-309"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-310"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Note that the @ExMemoryUsage Char@ instance does not affect this one, this is for performance</span
+      ><span
+      >
+</span
+      ><span id="line-311"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- reasons, since @T.length@ is O(1) unlike @sum . map (memoryUsage @Char) . T.unpack@. We used</span
+      ><span
+      >
+</span
+      ><span id="line-312"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- to have the latter, but changed it to the former for easy performance gains.</span
+      ><span
+      >
+</span
+      ><span id="line-313"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-314"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- We may want to make this a bit less of an overestimate in future just not to overcharge</span
+      ><span
+      >
+</span
+      ><span id="line-315"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- users.</span
+      ><span
+      >
+</span
+      ><span id="line-316"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834570"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Text -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Text -&gt; CostingInteger) -&gt; Text -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostingInteger) -&gt; (Text -&gt; Int) -&gt; Text -&gt; CostingInteger
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#length"
+	><span class="hs-identifier hs-var"
+	  >T.length</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-317"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-318"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-319"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-320"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834575"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Int -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-321"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-322"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-323"
+      ></span
+      ><span class="hs-comment"
+      >-- If you ever change this, also change @ExMemoryUsage T.Text@.</span
+      ><span
+      >
+</span
+      ><span id="line-324"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Char"
+	><span class="hs-identifier hs-type"
+	  >Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-325"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834579"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Char -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-326"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-327"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-328"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-329"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834583"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Bool -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-330"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-pragma hs-type"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-331"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-332"
+      ></span
+      ><span class="hs-comment"
+      >-- | Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist</span
+      ><span
+      >
+</span
+      ><span id="line-333"
+      ></span
+      ><span class="hs-comment"
+      >-- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the roses</span
+      ><span
+      >
+</span
+      ><span id="line-334"
+      ></span
+      ><span class="hs-comment"
+      >-- contains only one element or we can make the function lazy in the second argument). Here we chose</span
+      ><span
+      >
+</span
+      ><span id="line-335"
+      ></span
+      ><span class="hs-comment"
+      >-- the version that is most efficient when the first argument is a statically known constant (we</span
+      ><span
+      >
+</span
+      ><span id="line-336"
+      ></span
+      ><span class="hs-comment"
+      >-- didn't do any benchmarking though, so it may not be the most efficient one) as we need this</span
+      ><span
+      >
+</span
+      ><span id="line-337"
+      ></span
+      ><span class="hs-comment"
+      >-- below.</span
+      ><span
+      >
+</span
+      ><span id="line-338"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#addConstantRose"
+	><span class="hs-identifier hs-type"
+	  >addConstantRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-339"
+      ></span
+      ><span id="addConstantRose"
+      ><span class="annot"
+	><span class="annottext"
+	  >addConstantRose :: CostRose -&gt; CostRose -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#addConstantRose"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addConstantRose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834585"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681834585"
+	  ><span class="hs-identifier hs-var"
+	    >cost1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834586"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CostRose]
+</span
+	  ><a href="#local-6989586621681834586"
+	  ><span class="hs-identifier hs-var"
+	    >forest1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834587"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621681834587"
+	  ><span class="hs-identifier hs-var"
+	    >cost2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834588"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CostRose]
+</span
+	  ><a href="#local-6989586621681834588"
+	  ><span class="hs-identifier hs-var"
+	    >forest2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-340"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; [CostRose] -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-var"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834585"
+	><span class="hs-identifier hs-var"
+	  >cost1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostingInteger -&gt; CostingInteger
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621681834587"
+	><span class="hs-identifier hs-var"
+	  >cost2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834586"
+	><span class="hs-identifier hs-var"
+	  >forest1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose] -&gt; [CostRose] -&gt; [CostRose]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostRose]
+</span
+	><a href="#local-6989586621681834588"
+	><span class="hs-identifier hs-var"
+	  >forest2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-341"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#addConstantRose"
+	><span class="hs-pragma hs-type"
+	  >addConstantRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-342"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-343"
+      ></span
+      ><span class="hs-comment"
+      >{- A naive traversal for size.  This accounts for the number of nodes in a Data
+   object and also the sizes of the contents of the nodes.  This is not ideal,
+   but it seems to be the best we can do.  At present this only comes into play
+   for 'equalsData', which is implemented using the derived implementation of
+   '==' (fortunately the costing functions are lazy, so this won't be called for
+   things like 'unBData' which have constant costing functions because they only
+   have to look at the top node).  The problem is that when we call 'equalsData'
+   the comparison will take place entirely in Haskell, so the costing functions
+   for the contents of 'I' and 'B' nodes won't be called.  Thus if we just
+   counted the number of nodes the sizes of 'I 2' and 'B &lt;huge bytestring&gt;'
+   would be the same but they'd take different amounts of time to compare.  It's
+   not clear how to trade off the costs of processing a node and processing the
+   contents of nodes: the implementation below compromises by charging four
+   units per node, but we may wish to revise this after experimentation.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-358"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Data.html#Data"
+	><span class="hs-identifier hs-type"
+	  >Data</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-359"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834591"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Data -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; CostRose
+</span
+	><a href="#local-6989586621681834592"
+	><span class="hs-identifier hs-var"
+	  >sizeData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-360"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681834594"
+      ><span class="annot"
+	><span class="annottext"
+	  >dataNodeRose :: CostRose
+</span
+	  ><a href="#local-6989586621681834594"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dataNodeRose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>4</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-361"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681834594"
+	><span class="hs-pragma hs-type"
+	  >dataNodeRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-362"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-363"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681834592"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeData :: Data -&gt; CostRose
+</span
+	  ><a href="#local-6989586621681834592"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834606"
+      ><span class="annot"
+	><span class="annottext"
+	  >Data
+</span
+	  ><a href="#local-6989586621681834606"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose -&gt; CostRose -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#addConstantRose"
+	><span class="hs-identifier hs-var"
+	  >addConstantRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="#local-6989586621681834594"
+	><span class="hs-identifier hs-var"
+	  >dataNodeRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostRose -&gt; CostRose) -&gt; CostRose -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data
+</span
+	><a href="#local-6989586621681834606"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-364"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- TODO: include the size of the tag, but not just yet. See PLT-1176.</span
+      ><span
+      >
+</span
+      ><span id="line-365"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Data.html#Constr"
+	><span class="hs-identifier hs-type"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834608"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Data]
+</span
+	  ><a href="#local-6989586621681834608"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; [CostRose] -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-var"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([CostRose] -&gt; CostRose) -&gt; [CostRose] -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Data]
+</span
+	><a href="#local-6989586621681834608"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Data] -&gt; (Data -&gt; CostRose) -&gt; [CostRose]
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%26%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&amp;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; CostRose
+</span
+	><a href="#local-6989586621681834592"
+	><span class="hs-identifier hs-var"
+	  >sizeData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-366"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Data.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834611"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Data, Data)]
+</span
+	  ><a href="#local-6989586621681834611"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; [CostRose] -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-var"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([CostRose] -&gt; CostRose) -&gt; [CostRose] -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Data, Data)]
+</span
+	><a href="#local-6989586621681834611"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Data, Data)] -&gt; ((Data, Data) -&gt; [CostRose]) -&gt; [CostRose]
+forall a b. [a] -&gt; (a -&gt; [b]) -&gt; [b]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681834612"
+      ><span class="annot"
+	><span class="annottext"
+	  >Data
+</span
+	  ><a href="#local-6989586621681834612"
+	  ><span class="hs-identifier hs-var"
+	    >d1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681834613"
+      ><span class="annot"
+	><span class="annottext"
+	  >Data
+</span
+	  ><a href="#local-6989586621681834613"
+	  ><span class="hs-identifier hs-var"
+	    >d2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data
+</span
+	><a href="#local-6989586621681834612"
+	><span class="hs-identifier hs-var"
+	  >d1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data
+</span
+	><a href="#local-6989586621681834613"
+	><span class="hs-identifier hs-var"
+	  >d2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Data] -&gt; (Data -&gt; CostRose) -&gt; [CostRose]
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%26%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&amp;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; CostRose
+</span
+	><a href="#local-6989586621681834592"
+	><span class="hs-identifier hs-var"
+	  >sizeData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-367"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Data.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834615"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Data]
+</span
+	  ><a href="#local-6989586621681834615"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; [CostRose] -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-var"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([CostRose] -&gt; CostRose) -&gt; [CostRose] -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Data]
+</span
+	><a href="#local-6989586621681834615"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Data] -&gt; (Data -&gt; CostRose) -&gt; [CostRose]
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%26%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&amp;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Data -&gt; CostRose
+</span
+	><a href="#local-6989586621681834592"
+	><span class="hs-identifier hs-var"
+	  >sizeData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-368"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Data.html#I"
+	><span class="hs-identifier hs-type"
+	  >I</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834617"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681834617"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; CostRose
+forall a. ExMemoryUsage a =&gt; a -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-identifier hs-var"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681834617"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-369"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Data.html#B"
+	><span class="hs-identifier hs-type"
+	  >B</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681834619"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621681834619"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; CostRose
+forall a. ExMemoryUsage a =&gt; a -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	><span class="hs-identifier hs-var"
+	  >memoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681834619"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-370"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-371"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Costing constant-size types]
+The memory usage of each of the BLS12-381 types is constant, so we may be able
+to optimise things a little by ensuring that we don't re-compute the size of
+(say) a G1 element every time one is used. GHC will probably do this anyway, but
+we make sure by defining a top level function for each of the size measures and
+getting the memoryUsage instances to call those.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-378"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-379"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g1ElementCost"
+	><span class="hs-identifier hs-type"
+	  >g1ElementCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-380"
+      ></span
+      ><span id="g1ElementCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >g1ElementCost :: CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g1ElementCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >g1ElementCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Int -&gt; CostingInteger) -&gt; Int -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unsafeToSatInt"
+	><span class="hs-identifier hs-var"
+	  >unsafeToSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostRose) -&gt; Int -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Crypto.BLS12_381.G1.html#memSizeBytes"
+	><span class="hs-identifier hs-var"
+	  >BLS12_381.G1.memSizeBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#div"
+	><span class="hs-operator hs-var"
+	  >`div`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>8</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-381"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPAQUE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g1ElementCost"
+	><span class="hs-pragma hs-type"
+	  >g1ElementCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-382"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-383"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.BLS12_381.G1.html#Element"
+	><span class="hs-identifier hs-type"
+	  >BLS12_381.G1.Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-384"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834624"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Element -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g1ElementCost"
+	><span class="hs-identifier hs-var"
+	  >g1ElementCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-385"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Should be 18</span
+      ><span
+      >
+</span
+      ><span id="line-386"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-387"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g2ElementCost"
+	><span class="hs-identifier hs-type"
+	  >g2ElementCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-388"
+      ></span
+      ><span id="g2ElementCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >g2ElementCost :: CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g2ElementCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >g2ElementCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Int -&gt; CostingInteger) -&gt; Int -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unsafeToSatInt"
+	><span class="hs-identifier hs-var"
+	  >unsafeToSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostRose) -&gt; Int -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Crypto.BLS12_381.G2.html#memSizeBytes"
+	><span class="hs-identifier hs-var"
+	  >BLS12_381.G2.memSizeBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#div"
+	><span class="hs-operator hs-var"
+	  >`div`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>8</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-389"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPAQUE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g2ElementCost"
+	><span class="hs-pragma hs-type"
+	  >g2ElementCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-390"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-391"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.BLS12_381.G2.html#Element"
+	><span class="hs-identifier hs-type"
+	  >BLS12_381.G2.Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-392"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834629"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: Element -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#g2ElementCost"
+	><span class="hs-identifier hs-var"
+	  >g2ElementCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-393"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Should be 36</span
+      ><span
+      >
+</span
+      ><span id="line-394"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-395"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#mlResultElementCost"
+	><span class="hs-identifier hs-type"
+	  >mlResultElementCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose"
+	><span class="hs-identifier hs-type"
+	  >CostRose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-396"
+      ></span
+      ><span id="mlResultElementCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >mlResultElementCost :: CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#mlResultElementCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mlResultElementCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose"
+	><span class="hs-identifier hs-var"
+	  >singletonRose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostingInteger -&gt; CostRose)
+-&gt; (Int -&gt; CostingInteger) -&gt; Int -&gt; CostRose
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; CostingInteger
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#unsafeToSatInt"
+	><span class="hs-identifier hs-var"
+	  >unsafeToSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; CostRose) -&gt; Int -&gt; CostRose
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Crypto.BLS12_381.Pairing.html#mlResultMemSizeBytes"
+	><span class="hs-identifier hs-var"
+	  >BLS12_381.Pairing.mlResultMemSizeBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#div"
+	><span class="hs-operator hs-var"
+	  >`div`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>8</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-397"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPAQUE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#mlResultElementCost"
+	><span class="hs-pragma hs-type"
+	  >mlResultElementCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-398"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-399"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	><span class="hs-identifier hs-type"
+	  >ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.BLS12_381.Pairing.html#MlResult"
+	><span class="hs-identifier hs-type"
+	  >BLS12_381.Pairing.MlResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-400"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681834634"
+      ><span class="annot"
+	><span class="annottext"
+	  >memoryUsage :: MlResult -&gt; CostRose
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >memoryUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MlResult
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostRose
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExMemoryUsage.html#mlResultElementCost"
+	><span class="hs-identifier hs-var"
+	  >mlResultElementCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-401"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Should be 72</span
+      ><span
+      >
+</span
+      ><span id="line-402"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

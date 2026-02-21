@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Hedgehog.Laws.Lattice</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.56.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Hedgehog.Laws.Lattice.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Hedgehog.Laws.Lattice</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:joinLatticeLaws" class="def"
+	    >joinLatticeLaws</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="../plutus-tx/PlutusTx-Lattice.html#t:JoinSemiLattice" title="PlutusTx.Lattice"
+	    >JoinSemiLattice</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Hedgehog.Laws.Lattice.html#joinLatticeLaws" class="link"
+	    >Source</a
+	    > <a href="#v:joinLatticeLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:boundedJoinLatticeLaws" class="def"
+	    >boundedJoinLatticeLaws</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="../plutus-tx/PlutusTx-Lattice.html#t:BoundedJoinSemiLattice" title="PlutusTx.Lattice"
+	    >BoundedJoinSemiLattice</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Hedgehog.Laws.Lattice.html#boundedJoinLatticeLaws" class="link"
+	    >Source</a
+	    > <a href="#v:boundedJoinLatticeLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:meetLatticeLaws" class="def"
+	    >meetLatticeLaws</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="../plutus-tx/PlutusTx-Lattice.html#t:MeetSemiLattice" title="PlutusTx.Lattice"
+	    >MeetSemiLattice</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Hedgehog.Laws.Lattice.html#meetLatticeLaws" class="link"
+	    >Source</a
+	    > <a href="#v:meetLatticeLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:boundedMeetLatticeLaws" class="def"
+	    >boundedMeetLatticeLaws</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="../plutus-tx/PlutusTx-Lattice.html#t:BoundedMeetSemiLattice" title="PlutusTx.Lattice"
+	    >BoundedMeetSemiLattice</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Hedgehog.Laws.Lattice.html#boundedMeetLatticeLaws" class="link"
+	    >Source</a
+	    > <a href="#v:boundedMeetLatticeLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prop_latticeAbsorb" class="def"
+	    >prop_latticeAbsorb</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="../plutus-tx/PlutusTx-Lattice.html#t:Lattice" title="PlutusTx.Lattice"
+	    >Lattice</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Hedgehog.Laws.Lattice.html#prop_latticeAbsorb" class="link"
+	    >Source</a
+	    > <a href="#v:prop_latticeAbsorb" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:latticeLaws" class="def"
+	    >latticeLaws</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="../plutus-tx/PlutusTx-Lattice.html#t:Lattice" title="PlutusTx.Lattice"
+	    >Lattice</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Hedgehog.Laws.Lattice.html#latticeLaws" class="link"
+	    >Source</a
+	    > <a href="#v:latticeLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:boundedLatticeLaws" class="def"
+	    >boundedLatticeLaws</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > a, <a href="../plutus-tx/PlutusTx-Lattice.html#t:BoundedLattice" title="PlutusTx.Lattice"
+	    >BoundedLattice</a
+	    > a) &#8658; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Hedgehog.Laws.Lattice.html#boundedLatticeLaws" class="link"
+	    >Source</a
+	    > <a href="#v:boundedLatticeLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

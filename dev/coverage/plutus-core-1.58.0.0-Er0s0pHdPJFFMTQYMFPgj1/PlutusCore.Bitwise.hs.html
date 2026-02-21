@@ -1,0 +1,1182 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE MagicHash #-}
+<span class="lineno">    3 </span>{-# LANGUAGE MultiWayIf #-}
+<span class="lineno">    4 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    5 </span>{-# LANGUAGE UnboxedTuples #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>{-| Implementations for CIP-121, CIP-122 and CIP-123. Grouped because they all operate on
+<span class="lineno">    8 </span>'ByteString's, and require similar functionality. -}
+<span class="lineno">    9 </span>module PlutusCore.Bitwise
+<span class="lineno">   10 </span>  ( integerToByteString
+<span class="lineno">   11 </span>  , byteStringToInteger
+<span class="lineno">   12 </span>  , andByteString
+<span class="lineno">   13 </span>  , orByteString
+<span class="lineno">   14 </span>  , xorByteString
+<span class="lineno">   15 </span>  , complementByteString
+<span class="lineno">   16 </span>  , shiftByteString
+<span class="lineno">   17 </span>  , rotateByteString
+<span class="lineno">   18 </span>  , readBit
+<span class="lineno">   19 </span>  , writeBits
+<span class="lineno">   20 </span>  , replicateByte
+<span class="lineno">   21 </span>  , countSetBits
+<span class="lineno">   22 </span>  , findFirstSetBit
+<span class="lineno">   23 </span>  , IntegerToByteStringError (..)
+<span class="lineno">   24 </span>  , maximumOutputLength
+<span class="lineno">   25 </span>  ) where
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>import PlutusCore.Builtin (BuiltinResult, builtinResultFailure, emit)
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>import Control.Exception (Exception, throwIO, try)
+<span class="lineno">   30 </span>import Control.Monad (unless, when)
+<span class="lineno">   31 </span>import Data.Bits qualified as Bits
+<span class="lineno">   32 </span>import Data.ByteString (ByteString)
+<span class="lineno">   33 </span>import Data.ByteString qualified as BS
+<span class="lineno">   34 </span>import Data.ByteString.Internal qualified as BSI
+<span class="lineno">   35 </span>import Data.ByteString.Unsafe qualified as BSU
+<span class="lineno">   36 </span>import Data.Foldable (for_)
+<span class="lineno">   37 </span>import Data.Primitive.ByteArray (ByteArray (ByteArray), copyByteArrayToAddr)
+<span class="lineno">   38 </span>import Data.Text (pack)
+<span class="lineno">   39 </span>import Data.Word (Word16, Word64, byteSwap16, byteSwap64)
+<span class="lineno">   40 </span>import Foreign.Marshal.Utils (copyBytes, fillBytes)
+<span class="lineno">   41 </span>import Foreign.Ptr (castPtr, plusPtr)
+<span class="lineno">   42 </span>import Foreign.Storable (peek, peekByteOff, peekElemOff, poke, pokeByteOff, pokeElemOff)
+<span class="lineno">   43 </span>import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
+<span class="lineno">   44 </span>import GHC.Exts
+<span class="lineno">   45 </span>  ( ByteArray#
+<span class="lineno">   46 </span>  , Int (I#)
+<span class="lineno">   47 </span>  , Int#
+<span class="lineno">   48 </span>  , Ptr (Ptr)
+<span class="lineno">   49 </span>  , clz#
+<span class="lineno">   50 </span>  , indexWord8Array#
+<span class="lineno">   51 </span>  , int2Word#
+<span class="lineno">   52 </span>  , int8ToWord8#
+<span class="lineno">   53 </span>  , intToInt8#
+<span class="lineno">   54 </span>  , isTrue#
+<span class="lineno">   55 </span>  , neWord8#
+<span class="lineno">   56 </span>  , quotInt#
+<span class="lineno">   57 </span>  , quotRemInt#
+<span class="lineno">   58 </span>  , sizeofByteArray#
+<span class="lineno">   59 </span>  , word2Int#
+<span class="lineno">   60 </span>  , wordToWord8#
+<span class="lineno">   61 </span>  , (-#)
+<span class="lineno">   62 </span>  , (&lt;#)
+<span class="lineno">   63 </span>  , (==#)
+<span class="lineno">   64 </span>  )
+<span class="lineno">   65 </span>import GHC.IO.Unsafe (unsafeDupablePerformIO)
+<span class="lineno">   66 </span>import GHC.Num.Integer (Integer (IN, IP, IS), integerFromAddr, integerLog2)
+<span class="lineno">   67 </span>import GHC.Word (Word8 (W8#))
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>{- Note [Input length limitation for IntegerToByteString].
+<span class="lineno">   70 </span>We make `integerToByteString` and `replicateByte` fail if they're called with arguments which would
+<span class="lineno">   71 </span>cause the length of the result to exceed about 8K bytes because the execution time becomes difficult
+<span class="lineno">   72 </span>to predict accurately beyond this point (benchmarks on a number of different machines show that the
+<span class="lineno">   73 </span>CPU time increases smoothly for inputs up to about 8K then increases sharply, becoming chaotic after
+<span class="lineno">   74 </span>about 14K).  This restriction may be removed once a more efficient implementation becomes available.-}
+<span class="lineno">   75 </span>{- NB: if we do relax the length restriction then we will need two variants of integerToByteString in
+<span class="lineno">   76 </span>   Plutus Core so that we can continue to support the current behaviour for old scripts.-}
+<span class="lineno">   77 </span>maximumOutputLength :: Integer
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">maximumOutputLength = 8192</span></span>
+<span class="lineno">   79 </span>{-# INLINE maximumOutputLength #-}
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>-- | Wrapper for 'unsafeIntegerToByteString' to make it more convenient to define as a builtin.
+<span class="lineno">   82 </span>integerToByteString :: Bool -&gt; Integer -&gt; Integer -&gt; BuiltinResult ByteString
+<span class="lineno">   83 </span><span class="decl"><span class="istickedoff">integerToByteString endiannessArg lengthArg input</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">-- Check that the length is non-negative.</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">| lengthArg &lt; 0 = do</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff">emit <span class="nottickedoff">&quot;integerToByteString: negative length argument&quot;</span></span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Length requested: &quot; &lt;&gt; (pack . show $ lengthArg)</span></span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="istickedoff">-- Check that the requested length does not exceed the limit.  *NB*: if we remove the limit we'll</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="istickedoff">-- still have to make sure that the length fits into an Int.</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">| lengthArg &gt; maximumOutputLength = do</span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="istickedoff">emit . <span class="nottickedoff">pack</span> $</span>
+<span class="lineno">   93 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">&quot;integerToByteString: requested length is too long (maximum is &quot;</span></span>
+<span class="lineno">   94 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">++ show maximumOutputLength</span></span>
+<span class="lineno">   95 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">++ &quot; bytes)&quot;</span></span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Length requested: &quot; &lt;&gt; (pack . show $ lengthArg)</span></span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">-- If the requested length is zero (ie, an explicit output size is not</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="istickedoff">-- specified) we still have to make sure that the output won't exceed the size</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">-- limit.  If the requested length is nonzero and less than the limit,</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">-- integerToByteString checks that the input fits.</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">| lengthArg == 0 -- integerLog2 n is one less than the number of significant bits in n</span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="istickedoff">&amp;&amp; fromIntegral (integerLog2 input) &gt;= 8 * maximumOutputLength =</span>
+<span class="lineno">  104 </span><span class="spaces">      </span><span class="istickedoff">let <span class="nottickedoff">bytesRequiredFor n = integerLog2 n `div` 8 + 1</span></span>
+<span class="lineno">  105 </span><span class="spaces">       </span><span class="istickedoff">in -- \^ This gives 1 instead of 0 for n=0, but we'll never get that.</span>
+<span class="lineno">  106 </span><span class="spaces">          </span><span class="istickedoff">do</span>
+<span class="lineno">  107 </span><span class="spaces">            </span><span class="istickedoff">emit . <span class="nottickedoff">pack</span> $</span>
+<span class="lineno">  108 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">&quot;integerToByteString: input too long (maximum is 2^&quot;</span></span>
+<span class="lineno">  109 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">++ show (8 * maximumOutputLength)</span></span>
+<span class="lineno">  110 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">++ &quot;-1)&quot;</span></span>
+<span class="lineno">  111 </span><span class="spaces">            </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Length required: &quot; &lt;&gt; (pack . show $ bytesRequiredFor input)</span></span>
+<span class="lineno">  112 </span><span class="spaces">            </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> =</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="istickedoff">let endianness = endiannessArgToByteOrder endiannessArg</span>
+<span class="lineno">  115 </span><span class="spaces">       </span><span class="istickedoff">in -- We use fromIntegral here, despite advice to the contrary in general when defining builtin</span>
+<span class="lineno">  116 </span><span class="spaces">          </span><span class="istickedoff">-- denotations. This is because, if we've made it this far, we know that overflow or truncation</span>
+<span class="lineno">  117 </span><span class="spaces">          </span><span class="istickedoff">-- are impossible: we've checked that whatever we got given fits inside a (non-negative) Int.</span>
+<span class="lineno">  118 </span><span class="spaces">          </span><span class="istickedoff">case unsafeIntegerToByteString endianness (fromIntegral lengthArg) input of</span>
+<span class="lineno">  119 </span><span class="spaces">            </span><span class="istickedoff">Left err -&gt; case err of</span>
+<span class="lineno">  120 </span><span class="spaces">              </span><span class="istickedoff">NegativeInput -&gt; do</span>
+<span class="lineno">  121 </span><span class="spaces">                </span><span class="istickedoff">emit <span class="nottickedoff">&quot;integerToByteString: cannot convert negative Integer&quot;</span></span>
+<span class="lineno">  122 </span><span class="spaces">                </span><span class="istickedoff">-- This does work proportional to the size of input. However, we're in a failing case</span>
+<span class="lineno">  123 </span><span class="spaces">                </span><span class="istickedoff">-- anyway, and the user's paid for work proportional to this size in any case.</span>
+<span class="lineno">  124 </span><span class="spaces">                </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Input: &quot; &lt;&gt; (pack . show $ input)</span></span>
+<span class="lineno">  125 </span><span class="spaces">                </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  126 </span><span class="spaces">              </span><span class="istickedoff">NotEnoughDigits -&gt; do</span>
+<span class="lineno">  127 </span><span class="spaces">                </span><span class="istickedoff">emit <span class="nottickedoff">&quot;integerToByteString: cannot represent Integer in given number of bytes&quot;</span></span>
+<span class="lineno">  128 </span><span class="spaces">                </span><span class="istickedoff">-- This does work proportional to the size of input. However, we're in a failing case</span>
+<span class="lineno">  129 </span><span class="spaces">                </span><span class="istickedoff">-- anyway, and the user's paid for work proportional to this size in any case.</span>
+<span class="lineno">  130 </span><span class="spaces">                </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Input: &quot; &lt;&gt; (pack . show $ input)</span></span>
+<span class="lineno">  131 </span><span class="spaces">                </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Bytes requested: &quot; &lt;&gt; (pack . show $ lengthArg)</span></span>
+<span class="lineno">  132 </span><span class="spaces">                </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  133 </span><span class="spaces">            </span><span class="istickedoff">Right result -&gt; pure result</span></span>
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>{-| Conversion from 'Integer' to 'ByteString', as per
+<span class="lineno">  136 </span>[CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121). -}
+<span class="lineno">  137 </span>-- | Structured type to help indicate conversion errors.
+<span class="lineno">  138 </span>data IntegerToByteStringError
+<span class="lineno">  139 </span>  = NegativeInput
+<span class="lineno">  140 </span>  | NotEnoughDigits
+<span class="lineno">  141 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>endiannessArgToByteOrder :: Bool -&gt; ByteOrder
+<span class="lineno">  144 </span><span class="decl"><span class="istickedoff">endiannessArgToByteOrder b = if b then BigEndian else LittleEndian</span></span>
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>-- For performance and clarity, the endianness argument uses
+<span class="lineno">  147 </span>-- 'ByteOrder', and the length argument is an 'Int'.
+<span class="lineno">  148 </span>-- This may not actually be unsafe, but it shouldn't be used outside this module.
+<span class="lineno">  149 </span>unsafeIntegerToByteString :: ByteOrder -&gt; Int -&gt; Integer -&gt; Either IntegerToByteStringError ByteString
+<span class="lineno">  150 </span><span class="decl"><span class="istickedoff">unsafeIntegerToByteString requestedByteOrder requestedLength input = case input of</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff">IS i# -&gt;</span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="istickedoff">if</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="istickedoff">| isTrue# (i# ==# 0#) -&gt; Right . BS.replicate requestedLength $ 0x00</span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="istickedoff">| isTrue# (i# &lt;# 0#) -&gt; Left NegativeInput</span>
+<span class="lineno">  155 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> -&gt;</span>
+<span class="lineno">  156 </span><span class="spaces">          </span><span class="istickedoff">-- This is a somewhat long-winded way to do a base-256</span>
+<span class="lineno">  157 </span><span class="spaces">          </span><span class="istickedoff">-- logarithm of `i#`. This works because the number of bytes</span>
+<span class="lineno">  158 </span><span class="spaces">          </span><span class="istickedoff">-- we need to represent any given (positive) `Int#` will</span>
+<span class="lineno">  159 </span><span class="spaces">          </span><span class="istickedoff">-- directly depend on the number of leading zeroes: every full</span>
+<span class="lineno">  160 </span><span class="spaces">          </span><span class="istickedoff">-- 8 leading zeroes means a byte we _don't_ need to use. We</span>
+<span class="lineno">  161 </span><span class="spaces">          </span><span class="istickedoff">-- can then figure out the number of unused bytes (all-zero)</span>
+<span class="lineno">  162 </span><span class="spaces">          </span><span class="istickedoff">-- by taking the quotient of the leading zero count by 8.</span>
+<span class="lineno">  163 </span><span class="spaces">          </span><span class="istickedoff">let counted# = clz# (int2Word# i#)</span>
+<span class="lineno">  164 </span><span class="spaces">              </span><span class="istickedoff">minLength = 8 - I# (quotInt# (word2Int# counted#) 8#)</span>
+<span class="lineno">  165 </span><span class="spaces">           </span><span class="istickedoff">in if</span>
+<span class="lineno">  166 </span><span class="spaces">                </span><span class="istickedoff">| requestedLength == 0 -&gt; Right (mkSmall minLength i#)</span>
+<span class="lineno">  167 </span><span class="spaces">                </span><span class="istickedoff">| requestedLength &lt; minLength -&gt; Left NotEnoughDigits</span>
+<span class="lineno">  168 </span><span class="spaces">                </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> -&gt; Right (mkSmall requestedLength i#)</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">IP ba# -&gt;</span>
+<span class="lineno">  170 </span><span class="spaces">    </span><span class="istickedoff">-- Because logarithms in base 256 are not (yet) optimized (see</span>
+<span class="lineno">  171 </span><span class="spaces">    </span><span class="istickedoff">-- https://hackage-content.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.BigNat.html#bigNatLogBaseWord%23)</span>
+<span class="lineno">  172 </span><span class="spaces">    </span><span class="istickedoff">-- and we must have nonzero 64 bit limbs in all positions</span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="istickedoff">-- (https://hackage-content.haskell.org/package/ghc-bignum-1.3/docs/GHC-Num-BigNat.html#t:BigNat-35-),</span>
+<span class="lineno">  174 </span><span class="spaces">    </span><span class="istickedoff">-- it's cheaper for us to count zero bytes at the end, as this loop will</span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="istickedoff">-- take a maximum of 7 steps ever on every platform we care about,</span>
+<span class="lineno">  176 </span><span class="spaces">    </span><span class="istickedoff">-- whereas a logarithm will be Theta(n) on the length of `ba#`.</span>
+<span class="lineno">  177 </span><span class="spaces">    </span><span class="istickedoff">let len# = sizeofByteArray# ba#</span>
+<span class="lineno">  178 </span><span class="spaces">        </span><span class="istickedoff">zeroesAtEnd = countZeroesAtEnd ba# 0 (len# -# 1#)</span>
+<span class="lineno">  179 </span><span class="spaces">        </span><span class="istickedoff">minLength = I# len# - zeroesAtEnd</span>
+<span class="lineno">  180 </span><span class="spaces">     </span><span class="istickedoff">in if</span>
+<span class="lineno">  181 </span><span class="spaces">          </span><span class="istickedoff">| requestedLength == 0 -&gt; Right (mkLarge minLength minLength ba#)</span>
+<span class="lineno">  182 </span><span class="spaces">          </span><span class="istickedoff">| requestedLength &lt; minLength -&gt; Left NotEnoughDigits</span>
+<span class="lineno">  183 </span><span class="spaces">          </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> -&gt; Right (mkLarge minLength requestedLength ba#)</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">IN _ -&gt; Left NegativeInput</span>
+<span class="lineno">  185 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  186 </span><span class="spaces">    </span><span class="istickedoff">mkSmall :: Int -&gt; Int# -&gt; ByteString</span>
+<span class="lineno">  187 </span><span class="spaces">    </span><span class="istickedoff">mkSmall !desiredLength i# = BSI.unsafeCreate desiredLength $ \ptr -&gt; do</span>
+<span class="lineno">  188 </span><span class="spaces">      </span><span class="istickedoff">fillBytes ptr 0x00 desiredLength</span>
+<span class="lineno">  189 </span><span class="spaces">      </span><span class="istickedoff">case requestedByteOrder of</span>
+<span class="lineno">  190 </span><span class="spaces">        </span><span class="istickedoff">-- We use manual specialization to ensure as few branches in loop bodies</span>
+<span class="lineno">  191 </span><span class="spaces">        </span><span class="istickedoff">-- as we can. See Note [Manual specialization] for details.</span>
+<span class="lineno">  192 </span><span class="spaces">        </span><span class="istickedoff">LittleEndian -&gt; goSmallLE ptr 0 i#</span>
+<span class="lineno">  193 </span><span class="spaces">        </span><span class="istickedoff">BigEndian -&gt; goSmallBE ptr (desiredLength - 1) i#</span>
+<span class="lineno">  194 </span><span class="spaces">    </span><span class="istickedoff">countZeroesAtEnd :: ByteArray# -&gt; Int -&gt; Int# -&gt; Int</span>
+<span class="lineno">  195 </span><span class="spaces">    </span><span class="istickedoff">countZeroesAtEnd ba# !acc ix# =</span>
+<span class="lineno">  196 </span><span class="spaces">      </span><span class="istickedoff">let w8# = indexWord8Array# ba# ix#</span>
+<span class="lineno">  197 </span><span class="spaces">       </span><span class="istickedoff">in if isTrue# (neWord8# w8# (wordToWord8# 0##))</span>
+<span class="lineno">  198 </span><span class="spaces">            </span><span class="istickedoff">then acc</span>
+<span class="lineno">  199 </span><span class="spaces">            </span><span class="istickedoff">else countZeroesAtEnd ba# (acc + 1) (ix# -# 1#)</span>
+<span class="lineno">  200 </span><span class="spaces">    </span><span class="istickedoff">mkLarge :: Int -&gt; Int -&gt; ByteArray# -&gt; ByteString</span>
+<span class="lineno">  201 </span><span class="spaces">    </span><span class="istickedoff">mkLarge !minLength !desiredLength ba# = BSI.unsafeCreate desiredLength $ \ptr -&gt; do</span>
+<span class="lineno">  202 </span><span class="spaces">      </span><span class="istickedoff">fillBytes ptr 0x00 desiredLength</span>
+<span class="lineno">  203 </span><span class="spaces">      </span><span class="istickedoff">-- Because `copyByteArrayToAddr` is essentially `memcpy` or `copyBytes`,</span>
+<span class="lineno">  204 </span><span class="spaces">      </span><span class="istickedoff">-- it may as well be a constant-time operation for anything that isn't</span>
+<span class="lineno">  205 </span><span class="spaces">      </span><span class="istickedoff">-- at least multiple memory pages in size. Given that memory pages are on</span>
+<span class="lineno">  206 </span><span class="spaces">      </span><span class="istickedoff">-- the order of 8KiB on every platform we care about, we're better off</span>
+<span class="lineno">  207 </span><span class="spaces">      </span><span class="istickedoff">-- blindly copying over the `Integer` data, then reversing the result in</span>
+<span class="lineno">  208 </span><span class="spaces">      </span><span class="istickedoff">-- place if we need it 'big endian'. This is because no backward copying</span>
+<span class="lineno">  209 </span><span class="spaces">      </span><span class="istickedoff">-- routine we could write can compete with `memcpy` at no FFI penalty, and</span>
+<span class="lineno">  210 </span><span class="spaces">      </span><span class="istickedoff">-- reversing in-place requires only half the iterations that a copy would</span>
+<span class="lineno">  211 </span><span class="spaces">      </span><span class="istickedoff">-- in any case.</span>
+<span class="lineno">  212 </span><span class="spaces">      </span><span class="istickedoff">copyByteArrayToAddr ptr (ByteArray ba#) 0 minLength</span>
+<span class="lineno">  213 </span><span class="spaces">      </span><span class="istickedoff">case requestedByteOrder of</span>
+<span class="lineno">  214 </span><span class="spaces">        </span><span class="istickedoff">LittleEndian -&gt; pure <span class="nottickedoff">()</span></span>
+<span class="lineno">  215 </span><span class="spaces">        </span><span class="istickedoff">BigEndian -&gt; reverseBuffer ptr desiredLength</span>
+<span class="lineno">  216 </span><span class="spaces">    </span><span class="istickedoff">goSmallLE :: Ptr Word8 -&gt; Int -&gt; Int# -&gt; IO ()</span>
+<span class="lineno">  217 </span><span class="spaces">    </span><span class="istickedoff">goSmallLE !ptr !offset remaining#</span>
+<span class="lineno">  218 </span><span class="spaces">      </span><span class="istickedoff">| isTrue# (remaining# ==# 0#) = pure <span class="nottickedoff">()</span></span>
+<span class="lineno">  219 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  220 </span><span class="spaces">          </span><span class="istickedoff">let !(# q#, r# #) = quotRemInt# remaining# 256#</span>
+<span class="lineno">  221 </span><span class="spaces">          </span><span class="istickedoff">pokeByteOff ptr offset (W8# (int8ToWord8# (intToInt8# r#)))</span>
+<span class="lineno">  222 </span><span class="spaces">          </span><span class="istickedoff">goSmallLE ptr (offset + 1) q#</span>
+<span class="lineno">  223 </span><span class="spaces">    </span><span class="istickedoff">goSmallBE :: Ptr Word8 -&gt; Int -&gt; Int# -&gt; IO ()</span>
+<span class="lineno">  224 </span><span class="spaces">    </span><span class="istickedoff">goSmallBE !ptr !offset remaining#</span>
+<span class="lineno">  225 </span><span class="spaces">      </span><span class="istickedoff">| isTrue# (remaining# ==# 0#) = pure <span class="nottickedoff">()</span></span>
+<span class="lineno">  226 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  227 </span><span class="spaces">          </span><span class="istickedoff">let !(# q#, r# #) = quotRemInt# remaining# 256#</span>
+<span class="lineno">  228 </span><span class="spaces">          </span><span class="istickedoff">pokeByteOff ptr offset (W8# (int8ToWord8# (intToInt8# r#)))</span>
+<span class="lineno">  229 </span><span class="spaces">          </span><span class="istickedoff">goSmallBE ptr (offset - 1) q#</span>
+<span class="lineno">  230 </span><span class="spaces">    </span><span class="istickedoff">-- We use loop sectioning here so that we can reverse more quickly.</span>
+<span class="lineno">  231 </span><span class="spaces">    </span><span class="istickedoff">-- Specifically, we do two kinds of 'steps':</span>
+<span class="lineno">  232 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  233 </span><span class="spaces">    </span><span class="istickedoff">-- 1. 'Large' steps, where we reverse 16 bytes at once (8 from each end);</span>
+<span class="lineno">  234 </span><span class="spaces">    </span><span class="istickedoff">--     followed by</span>
+<span class="lineno">  235 </span><span class="spaces">    </span><span class="istickedoff">-- 2. 'Small' steps, where we reverse 4 bytes at once (2 from each end).</span>
+<span class="lineno">  236 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  237 </span><span class="spaces">    </span><span class="istickedoff">-- See Note [Loop sectioning] for details on why we do this.</span>
+<span class="lineno">  238 </span><span class="spaces">    </span><span class="istickedoff">reverseBuffer :: Ptr Word8 -&gt; Int -&gt; IO ()</span>
+<span class="lineno">  239 </span><span class="spaces">    </span><span class="istickedoff">reverseBuffer !ptr !remainingSpan</span>
+<span class="lineno">  240 </span><span class="spaces">      </span><span class="istickedoff">| remainingSpan &lt; 16 = finishUp ptr remainingSpan</span>
+<span class="lineno">  241 </span><span class="spaces">      </span><span class="istickedoff">-- We use a standard 'two-finger' technique for reversing a buffer. We</span>
+<span class="lineno">  242 </span><span class="spaces">      </span><span class="istickedoff">-- maintain a pair of pointers (or in our case, a pointer and an offset</span>
+<span class="lineno">  243 </span><span class="spaces">      </span><span class="istickedoff">-- for easier control), representing the start and end of the</span>
+<span class="lineno">  244 </span><span class="spaces">      </span><span class="istickedoff">-- un-reversed region. We then read the 'start pointer' forward a block,</span>
+<span class="lineno">  245 </span><span class="spaces">      </span><span class="istickedoff">-- and the 'end pointer' backward a block. Lastly, we swap the byte</span>
+<span class="lineno">  246 </span><span class="spaces">      </span><span class="istickedoff">-- order in both blocks, the write the 'start block' to the end and the</span>
+<span class="lineno">  247 </span><span class="spaces">      </span><span class="istickedoff">-- 'end block' to the start. We then adjust our pointers forward (or</span>
+<span class="lineno">  248 </span><span class="spaces">      </span><span class="istickedoff">-- back) one block.</span>
+<span class="lineno">  249 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  250 </span><span class="spaces">          </span><span class="istickedoff">let pStart :: Ptr Word64 = castPtr ptr</span>
+<span class="lineno">  251 </span><span class="spaces">          </span><span class="istickedoff">let pEnd :: Ptr Word64 = castPtr (plusPtr ptr (remainingSpan - 8))</span>
+<span class="lineno">  252 </span><span class="spaces">          </span><span class="istickedoff">wStart &lt;- peek pStart</span>
+<span class="lineno">  253 </span><span class="spaces">          </span><span class="istickedoff">wEnd &lt;- peek pEnd</span>
+<span class="lineno">  254 </span><span class="spaces">          </span><span class="istickedoff">poke pEnd (byteSwap64 wStart)</span>
+<span class="lineno">  255 </span><span class="spaces">          </span><span class="istickedoff">poke pStart (byteSwap64 wEnd)</span>
+<span class="lineno">  256 </span><span class="spaces">          </span><span class="istickedoff">reverseBuffer (plusPtr ptr 8) (remainingSpan - 16)</span>
+<span class="lineno">  257 </span><span class="spaces">    </span><span class="istickedoff">finishUp :: Ptr Word8 -&gt; Int -&gt; IO ()</span>
+<span class="lineno">  258 </span><span class="spaces">    </span><span class="istickedoff">finishUp !ptr !remaining</span>
+<span class="lineno">  259 </span><span class="spaces">      </span><span class="istickedoff">-- If we have exactly zero or exactly one byte left, we've reached the</span>
+<span class="lineno">  260 </span><span class="spaces">      </span><span class="istickedoff">-- middle: either our 'fingers' met, or there's one element between them.</span>
+<span class="lineno">  261 </span><span class="spaces">      </span><span class="istickedoff">-- In either case, no further action is needed.</span>
+<span class="lineno">  262 </span><span class="spaces">      </span><span class="istickedoff">| remaining &lt;= 1 = pure <span class="nottickedoff">()</span></span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="istickedoff">-- If we have exactly two elements left, we can swap them and stop.</span>
+<span class="lineno">  264 </span><span class="spaces">      </span><span class="istickedoff">| remaining == 2 = do</span>
+<span class="lineno">  265 </span><span class="spaces">          </span><span class="istickedoff">wLeft &lt;- peek ptr</span>
+<span class="lineno">  266 </span><span class="spaces">          </span><span class="istickedoff">wRight &lt;- peek (plusPtr ptr 1)</span>
+<span class="lineno">  267 </span><span class="spaces">          </span><span class="istickedoff">poke ptr wRight</span>
+<span class="lineno">  268 </span><span class="spaces">          </span><span class="istickedoff">poke (plusPtr ptr 1) wLeft</span>
+<span class="lineno">  269 </span><span class="spaces">      </span><span class="istickedoff">-- The special case where we have 3 bytes left to swap bears closer</span>
+<span class="lineno">  270 </span><span class="spaces">      </span><span class="istickedoff">-- examination, and is the reason why our 'small steps' can be as large as</span>
+<span class="lineno">  271 </span><span class="spaces">      </span><span class="istickedoff">-- they are. Consider the case below, where `...` marks equal-size</span>
+<span class="lineno">  272 </span><span class="spaces">      </span><span class="istickedoff">-- 'already reversed' regions:</span>
+<span class="lineno">  273 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  274 </span><span class="spaces">      </span><span class="istickedoff">-- [..., x, y, z, ...]</span>
+<span class="lineno">  275 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  276 </span><span class="spaces">      </span><span class="istickedoff">-- Our 'fingers' would read as follows:</span>
+<span class="lineno">  277 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  278 </span><span class="spaces">      </span><span class="istickedoff">-- 1. The 'left finger' would read `x, y`; and</span>
+<span class="lineno">  279 </span><span class="spaces">      </span><span class="istickedoff">-- 2. Our 'right finger' would read `y, z`.</span>
+<span class="lineno">  280 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  281 </span><span class="spaces">      </span><span class="istickedoff">-- After byteswapping, we have a new 'right side' of `y, x`, and a new</span>
+<span class="lineno">  282 </span><span class="spaces">      </span><span class="istickedoff">-- 'left side' of `z, y`. Since the `y` in both sides overlaps, we can</span>
+<span class="lineno">  283 </span><span class="spaces">      </span><span class="istickedoff">-- safely have this write overlap, as this will not affect the result.</span>
+<span class="lineno">  284 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  285 </span><span class="spaces">          </span><span class="istickedoff">let pStart :: Ptr Word16 = castPtr ptr</span>
+<span class="lineno">  286 </span><span class="spaces">          </span><span class="istickedoff">let pEnd :: Ptr Word16 = castPtr (plusPtr ptr (remaining - 2))</span>
+<span class="lineno">  287 </span><span class="spaces">          </span><span class="istickedoff">wStart &lt;- peek pStart</span>
+<span class="lineno">  288 </span><span class="spaces">          </span><span class="istickedoff">wEnd &lt;- peek pEnd</span>
+<span class="lineno">  289 </span><span class="spaces">          </span><span class="istickedoff">poke pEnd (byteSwap16 wStart)</span>
+<span class="lineno">  290 </span><span class="spaces">          </span><span class="istickedoff">poke pStart (byteSwap16 wEnd)</span>
+<span class="lineno">  291 </span><span class="spaces">          </span><span class="istickedoff">finishUp (plusPtr ptr 2) (remaining - 4)</span></span>
+<span class="lineno">  292 </span>
+<span class="lineno">  293 </span>{-| Conversion from 'ByteString' to 'Integer', as per
+<span class="lineno">  294 </span>[CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121). -}
+<span class="lineno">  295 </span>-- | Wrapper for 'unsafeByteStringToInteger' to make it more convenient to define as a builtin.
+<span class="lineno">  296 </span>byteStringToInteger
+<span class="lineno">  297 </span>  :: Bool -&gt; ByteString -&gt; Integer
+<span class="lineno">  298 </span><span class="decl"><span class="istickedoff">byteStringToInteger statedEndiannessArg input =</span>
+<span class="lineno">  299 </span><span class="spaces">  </span><span class="istickedoff">let endianness = endiannessArgToByteOrder statedEndiannessArg</span>
+<span class="lineno">  300 </span><span class="spaces">   </span><span class="istickedoff">in unsafeByteStringToInteger endianness input</span></span>
+<span class="lineno">  301 </span>{-# INLINE byteStringToInteger #-}
+<span class="lineno">  302 </span>
+<span class="lineno">  303 </span>-- For clarity, the stated endianness argument uses 'ByteOrder'.
+<span class="lineno">  304 </span>-- This function may not actually be unsafe, but it shouldn't be used outside this module.
+<span class="lineno">  305 </span>unsafeByteStringToInteger :: ByteOrder -&gt; ByteString -&gt; Integer
+<span class="lineno">  306 </span><span class="decl"><span class="istickedoff">unsafeByteStringToInteger statedByteOrder input</span>
+<span class="lineno">  307 </span><span class="spaces">  </span><span class="istickedoff">| BS.null input = 0</span>
+<span class="lineno">  308 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> =</span>
+<span class="lineno">  309 </span><span class="spaces">      </span><span class="istickedoff">let bo# = case statedByteOrder of</span>
+<span class="lineno">  310 </span><span class="spaces">            </span><span class="istickedoff">LittleEndian -&gt; 0#</span>
+<span class="lineno">  311 </span><span class="spaces">            </span><span class="istickedoff">BigEndian -&gt; 1#</span>
+<span class="lineno">  312 </span><span class="spaces">       </span><span class="istickedoff">in unsafeDupablePerformIO . BSU.unsafeUseAsCStringLen input $ \(Ptr addr#, I# len#) -&gt;</span>
+<span class="lineno">  313 </span><span class="spaces">            </span><span class="istickedoff">integerFromAddr (int2Word# len#) addr# bo#</span></span>
+<span class="lineno">  314 </span>
+<span class="lineno">  315 </span>{- Note [Binary bitwise operation implementation and manual specialization]
+<span class="lineno">  316 </span>
+<span class="lineno">  317 </span>   All of the 'binary' bitwise operations (namely `andByteString`,
+<span class="lineno">  318 </span>   `orByteString` and `xorByteString`) operate similarly:
+<span class="lineno">  319 </span>
+<span class="lineno">  320 </span>   1. Decide which of their two `ByteString` arguments determines the length
+<span class="lineno">  321 </span>      of the result. For padding semantics, this is the _longer_ argument,
+<span class="lineno">  322 </span>      whereas for truncation semantics, it's the _shorter_ one. If both
+<span class="lineno">  323 </span>      `ByteString` arguments have identical length, it doesn't matter which we
+<span class="lineno">  324 </span>      choose.
+<span class="lineno">  325 </span>   2. Copy the choice made in step 1 into a fresh mutable buffer.
+<span class="lineno">  326 </span>   3. Traverse over each byte of the argument _not_ chosen in step 1, and
+<span class="lineno">  327 </span>      combine each of those bytes with the byte at the corresponding index of
+<span class="lineno">  328 </span>      the fresh mutable buffer from step 2 (`.&amp;.` for `andByteString`,
+<span class="lineno">  329 </span>      `.|.` for `orByteString`, `xor` for `xorByteString`).
+<span class="lineno">  330 </span>
+<span class="lineno">  331 </span>  We also make use of loop sectioning to optimize this operation: see Note
+<span class="lineno">  332 </span>  [Loop sectioning] explaining why we do this. Fundamentally, this doesn't
+<span class="lineno">  333 </span>  change the logic of the operation, but means that step 3 is split into
+<span class="lineno">  334 </span>  two smaller sub-steps: we first word 8 bytes at a time, then one byte at a
+<span class="lineno">  335 </span>  time to finish up if necessary. Other than the choice of 'combining
+<span class="lineno">  336 </span>  operation', the structure of the computation is the same, which suggests that
+<span class="lineno">  337 </span>  we want a helper function with a signature like
+<span class="lineno">  338 </span>
+<span class="lineno">  339 </span>  helper1 ::
+<span class="lineno">  340 </span>    (Word64 -&gt; Word64 -&gt; Word64) -&gt;
+<span class="lineno">  341 </span>    (Word8 -&gt; Word8 -&gt; Word8) -&gt;
+<span class="lineno">  342 </span>    ByteString -&gt;
+<span class="lineno">  343 </span>    ByteString -&gt;
+<span class="lineno">  344 </span>    Int -&gt;
+<span class="lineno">  345 </span>    ByteString
+<span class="lineno">  346 </span>
+<span class="lineno">  347 </span>  or possibly (to avoid duplicate argument passing) like
+<span class="lineno">  348 </span>
+<span class="lineno">  349 </span>  helper2 ::
+<span class="lineno">  350 </span>    (forall (a :: Type) . Bits a =&gt; a -&gt; a -&gt; a) -&gt;
+<span class="lineno">  351 </span>    ByteString -&gt;
+<span class="lineno">  352 </span>    ByteString -&gt;
+<span class="lineno">  353 </span>    Int -&gt;
+<span class="lineno">  354 </span>    ByteString
+<span class="lineno">  355 </span>
+<span class="lineno">  356 </span>  This would allow us to share all this logic, and have each of the 'top-level'
+<span class="lineno">  357 </span>  operations just dispatch to either of the helpers with the appropriate
+<span class="lineno">  358 </span>  function argument(s). Instead, we chose to write a manual copy of this logic
+<span class="lineno">  359 </span>  for each of the 'top-level' operations, substituting only the 'combining
+<span class="lineno">  360 </span>  operation'.
+<span class="lineno">  361 </span>
+<span class="lineno">  362 </span>  We made this choice as any design based on either `helper1` or `helper2` is
+<span class="lineno">  363 </span>  significantly slower (at least 50% worse, and the penalty _percentage_ grows
+<span class="lineno">  364 </span>  with argument size). While `helper2` is significantly more penalizing than
+<span class="lineno">  365 </span>  `helper1`, even `helper1` reaches an almost threefold slowdown at the higher
+<span class="lineno">  366 </span>  input sizes we are interested in relative the manual version we use here.
+<span class="lineno">  367 </span>  Due to the 'low-level' nature of Plutus Core primops, we consider these costs
+<span class="lineno">  368 </span>  unacceptable relative the (small) benefits to code clarity and maintainability
+<span class="lineno">  369 </span>  any solution using either style of helper would provide.
+<span class="lineno">  370 </span>
+<span class="lineno">  371 </span>  The reason for `helper2` under-performing is unsurprising: any argument whose
+<span class="lineno">  372 </span>  type is rank-2 polymorphic with a dictionary constraint essentially acts as
+<span class="lineno">  373 </span>  a 'program template', which gets interpreted at runtime given some dictionary
+<span class="lineno">  374 </span>  for a `Bits` instance. GHC can do practically nothing to optimize this, as
+<span class="lineno">  375 </span>  there is no way to tell, for any given argument, _which_ definitions of an
+<span class="lineno">  376 </span>  instance would be required here, even if the set of operations we use is
+<span class="lineno">  377 </span>  finite, since any instance can make use of the full power of Haskell, which
+<span class="lineno">  378 </span>  essentially lands us in Rice's Theorem territory. For `helper1`, the reasons
+<span class="lineno">  379 </span>  are similar: it _must_ be able to work regardless of what functions (assuming
+<span class="lineno">  380 </span>  appropriate types) it is given, which means in general, GHC is forced to
+<span class="lineno">  381 </span>  compile mother-may-I-style code involving pointer chasing those arguments at
+<span class="lineno">  382 </span>  runtime. This explains why the 'blowup' becomes worse with argument length.
+<span class="lineno">  383 </span>
+<span class="lineno">  384 </span>  While in theory inlining could help with at least the `helper1` case (
+<span class="lineno">  385 </span>  `helper2` is beyond that technique), it doesn't seem like GHC is able to
+<span class="lineno">  386 </span>  figure this out, even with `INLINE` is placed on `helper1`.
+<span class="lineno">  387 </span>  -}
+<span class="lineno">  388 </span>
+<span class="lineno">  389 </span>-- | Bitwise logical AND, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
+<span class="lineno">  390 </span>andByteString :: Bool -&gt; ByteString -&gt; ByteString -&gt; ByteString
+<span class="lineno">  391 </span><span class="decl"><span class="istickedoff">andByteString shouldPad bs1 bs2 =</span>
+<span class="lineno">  392 </span><span class="spaces">  </span><span class="istickedoff">let (shorter, longer) = if BS.length bs1 &lt; BS.length bs2 then (bs1, bs2) else (bs2, bs1)</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="istickedoff">(toCopy, toTraverse) = if shouldPad then (longer, shorter) else (shorter, longer)</span>
+<span class="lineno">  394 </span><span class="spaces">   </span><span class="istickedoff">in go toCopy toTraverse (BS.length shorter)</span>
+<span class="lineno">  395 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  396 </span><span class="spaces">    </span><span class="istickedoff">go :: ByteString -&gt; ByteString -&gt; Int -&gt; ByteString</span>
+<span class="lineno">  397 </span><span class="spaces">    </span><span class="istickedoff">go toCopy toTraverse traverseLen =</span>
+<span class="lineno">  398 </span><span class="spaces">      </span><span class="istickedoff">unsafeDupablePerformIO . BS.useAsCStringLen toCopy $ \(copyPtr, copyLen) -&gt;</span>
+<span class="lineno">  399 </span><span class="spaces">        </span><span class="istickedoff">BS.useAsCString toTraverse $ \traversePtr -&gt; do</span>
+<span class="lineno">  400 </span><span class="spaces">          </span><span class="istickedoff">BSI.create copyLen $ \dstPtr -&gt; do</span>
+<span class="lineno">  401 </span><span class="spaces">            </span><span class="istickedoff">copyBytes dstPtr (castPtr copyPtr) copyLen</span>
+<span class="lineno">  402 </span><span class="spaces">            </span><span class="istickedoff">let (bigStrides, littleStrides) = traverseLen `quotRem` 8</span>
+<span class="lineno">  403 </span><span class="spaces">            </span><span class="istickedoff">let offset = bigStrides * 8</span>
+<span class="lineno">  404 </span><span class="spaces">            </span><span class="istickedoff">let bigDstPtr :: Ptr Word64 = castPtr dstPtr</span>
+<span class="lineno">  405 </span><span class="spaces">            </span><span class="istickedoff">let bigTraversePtr :: Ptr Word64 = castPtr traversePtr</span>
+<span class="lineno">  406 </span><span class="spaces">            </span><span class="istickedoff">for_ [0 .. bigStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  407 </span><span class="spaces">              </span><span class="istickedoff">w64_1 &lt;- peekElemOff bigDstPtr i</span>
+<span class="lineno">  408 </span><span class="spaces">              </span><span class="istickedoff">w64_2 &lt;- peekElemOff bigTraversePtr i</span>
+<span class="lineno">  409 </span><span class="spaces">              </span><span class="istickedoff">pokeElemOff bigDstPtr i $ w64_1 Bits..&amp;. w64_2</span>
+<span class="lineno">  410 </span><span class="spaces">            </span><span class="istickedoff">let smallDstPtr :: Ptr Word8 = plusPtr dstPtr offset</span>
+<span class="lineno">  411 </span><span class="spaces">            </span><span class="istickedoff">let smallTraversePtr :: Ptr Word8 = plusPtr traversePtr offset</span>
+<span class="lineno">  412 </span><span class="spaces">            </span><span class="istickedoff">for_ [0 .. littleStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  413 </span><span class="spaces">              </span><span class="istickedoff">w8_1 &lt;- peekElemOff smallDstPtr i</span>
+<span class="lineno">  414 </span><span class="spaces">              </span><span class="istickedoff">w8_2 &lt;- peekElemOff smallTraversePtr i</span>
+<span class="lineno">  415 </span><span class="spaces">              </span><span class="istickedoff">pokeElemOff smallDstPtr i $ w8_1 Bits..&amp;. w8_2</span></span>
+<span class="lineno">  416 </span>{-# INLINEABLE andByteString #-}
+<span class="lineno">  417 </span>
+<span class="lineno">  418 </span>-- | Bitwise logical OR, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
+<span class="lineno">  419 </span>orByteString :: Bool -&gt; ByteString -&gt; ByteString -&gt; ByteString
+<span class="lineno">  420 </span><span class="decl"><span class="istickedoff">orByteString shouldPad bs1 bs2 =</span>
+<span class="lineno">  421 </span><span class="spaces">  </span><span class="istickedoff">let (shorter, longer) = if BS.length bs1 &lt; BS.length bs2 then (bs1, bs2) else (bs2, bs1)</span>
+<span class="lineno">  422 </span><span class="spaces">      </span><span class="istickedoff">(toCopy, toTraverse) = if shouldPad then (longer, shorter) else (shorter, longer)</span>
+<span class="lineno">  423 </span><span class="spaces">   </span><span class="istickedoff">in go toCopy toTraverse (BS.length shorter)</span>
+<span class="lineno">  424 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  425 </span><span class="spaces">    </span><span class="istickedoff">go :: ByteString -&gt; ByteString -&gt; Int -&gt; ByteString</span>
+<span class="lineno">  426 </span><span class="spaces">    </span><span class="istickedoff">go toCopy toTraverse traverseLen =</span>
+<span class="lineno">  427 </span><span class="spaces">      </span><span class="istickedoff">unsafeDupablePerformIO . BS.useAsCStringLen toCopy $ \(copyPtr, copyLen) -&gt;</span>
+<span class="lineno">  428 </span><span class="spaces">        </span><span class="istickedoff">BS.useAsCString toTraverse $ \traversePtr -&gt; do</span>
+<span class="lineno">  429 </span><span class="spaces">          </span><span class="istickedoff">BSI.create copyLen $ \dstPtr -&gt; do</span>
+<span class="lineno">  430 </span><span class="spaces">            </span><span class="istickedoff">copyBytes dstPtr (castPtr copyPtr) copyLen</span>
+<span class="lineno">  431 </span><span class="spaces">            </span><span class="istickedoff">let (bigStrides, littleStrides) = traverseLen `quotRem` 8</span>
+<span class="lineno">  432 </span><span class="spaces">            </span><span class="istickedoff">let offset = bigStrides * 8</span>
+<span class="lineno">  433 </span><span class="spaces">            </span><span class="istickedoff">let bigDstPtr :: Ptr Word64 = castPtr dstPtr</span>
+<span class="lineno">  434 </span><span class="spaces">            </span><span class="istickedoff">let bigTraversePtr :: Ptr Word64 = castPtr traversePtr</span>
+<span class="lineno">  435 </span><span class="spaces">            </span><span class="istickedoff">for_ [0 .. bigStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  436 </span><span class="spaces">              </span><span class="istickedoff">w64_1 &lt;- peekElemOff bigDstPtr i</span>
+<span class="lineno">  437 </span><span class="spaces">              </span><span class="istickedoff">w64_2 &lt;- peekElemOff bigTraversePtr i</span>
+<span class="lineno">  438 </span><span class="spaces">              </span><span class="istickedoff">pokeElemOff bigDstPtr i $ w64_1 Bits..|. w64_2</span>
+<span class="lineno">  439 </span><span class="spaces">            </span><span class="istickedoff">let smallDstPtr :: Ptr Word8 = plusPtr dstPtr offset</span>
+<span class="lineno">  440 </span><span class="spaces">            </span><span class="istickedoff">let smallTraversePtr :: Ptr Word8 = plusPtr traversePtr offset</span>
+<span class="lineno">  441 </span><span class="spaces">            </span><span class="istickedoff">for_ [0 .. littleStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  442 </span><span class="spaces">              </span><span class="istickedoff">w8_1 &lt;- peekElemOff smallDstPtr i</span>
+<span class="lineno">  443 </span><span class="spaces">              </span><span class="istickedoff">w8_2 &lt;- peekElemOff smallTraversePtr i</span>
+<span class="lineno">  444 </span><span class="spaces">              </span><span class="istickedoff">pokeElemOff smallDstPtr i $ w8_1 Bits..|. w8_2</span></span>
+<span class="lineno">  445 </span>{-# INLINEABLE orByteString #-}
+<span class="lineno">  446 </span>
+<span class="lineno">  447 </span>-- | Bitwise logical XOR, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
+<span class="lineno">  448 </span>xorByteString :: Bool -&gt; ByteString -&gt; ByteString -&gt; ByteString
+<span class="lineno">  449 </span><span class="decl"><span class="istickedoff">xorByteString shouldPad bs1 bs2 =</span>
+<span class="lineno">  450 </span><span class="spaces">  </span><span class="istickedoff">let (shorter, longer) = if BS.length bs1 &lt; BS.length bs2 then (bs1, bs2) else (bs2, bs1)</span>
+<span class="lineno">  451 </span><span class="spaces">      </span><span class="istickedoff">(toCopy, toTraverse) = if shouldPad then (longer, shorter) else (shorter, longer)</span>
+<span class="lineno">  452 </span><span class="spaces">   </span><span class="istickedoff">in go toCopy toTraverse (BS.length shorter)</span>
+<span class="lineno">  453 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  454 </span><span class="spaces">    </span><span class="istickedoff">go :: ByteString -&gt; ByteString -&gt; Int -&gt; ByteString</span>
+<span class="lineno">  455 </span><span class="spaces">    </span><span class="istickedoff">go toCopy toTraverse traverseLen =</span>
+<span class="lineno">  456 </span><span class="spaces">      </span><span class="istickedoff">unsafeDupablePerformIO . BS.useAsCStringLen toCopy $ \(copyPtr, copyLen) -&gt;</span>
+<span class="lineno">  457 </span><span class="spaces">        </span><span class="istickedoff">BS.useAsCString toTraverse $ \traversePtr -&gt; do</span>
+<span class="lineno">  458 </span><span class="spaces">          </span><span class="istickedoff">BSI.create copyLen $ \dstPtr -&gt; do</span>
+<span class="lineno">  459 </span><span class="spaces">            </span><span class="istickedoff">copyBytes dstPtr (castPtr copyPtr) copyLen</span>
+<span class="lineno">  460 </span><span class="spaces">            </span><span class="istickedoff">let (bigStrides, littleStrides) = traverseLen `quotRem` 8</span>
+<span class="lineno">  461 </span><span class="spaces">            </span><span class="istickedoff">let offset = bigStrides * 8</span>
+<span class="lineno">  462 </span><span class="spaces">            </span><span class="istickedoff">let bigDstPtr :: Ptr Word64 = castPtr dstPtr</span>
+<span class="lineno">  463 </span><span class="spaces">            </span><span class="istickedoff">let bigTraversePtr :: Ptr Word64 = castPtr traversePtr</span>
+<span class="lineno">  464 </span><span class="spaces">            </span><span class="istickedoff">for_ [0 .. bigStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  465 </span><span class="spaces">              </span><span class="istickedoff">w64_1 &lt;- peekElemOff bigDstPtr i</span>
+<span class="lineno">  466 </span><span class="spaces">              </span><span class="istickedoff">w64_2 &lt;- peekElemOff bigTraversePtr i</span>
+<span class="lineno">  467 </span><span class="spaces">              </span><span class="istickedoff">pokeElemOff bigDstPtr i $ Bits.xor w64_1 w64_2</span>
+<span class="lineno">  468 </span><span class="spaces">            </span><span class="istickedoff">let smallDstPtr :: Ptr Word8 = plusPtr dstPtr offset</span>
+<span class="lineno">  469 </span><span class="spaces">            </span><span class="istickedoff">let smallTraversePtr :: Ptr Word8 = plusPtr traversePtr offset</span>
+<span class="lineno">  470 </span><span class="spaces">            </span><span class="istickedoff">for_ [0 .. littleStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  471 </span><span class="spaces">              </span><span class="istickedoff">w8_1 &lt;- peekElemOff smallDstPtr i</span>
+<span class="lineno">  472 </span><span class="spaces">              </span><span class="istickedoff">w8_2 &lt;- peekElemOff smallTraversePtr i</span>
+<span class="lineno">  473 </span><span class="spaces">              </span><span class="istickedoff">pokeElemOff smallDstPtr i $ Bits.xor w8_1 w8_2</span></span>
+<span class="lineno">  474 </span>{-# INLINEABLE xorByteString #-}
+<span class="lineno">  475 </span>
+<span class="lineno">  476 </span>-- | Bitwise logical complement, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
+<span class="lineno">  477 </span>complementByteString :: ByteString -&gt; ByteString
+<span class="lineno">  478 </span><span class="decl"><span class="istickedoff">complementByteString bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \(srcPtr, len) -&gt; do</span>
+<span class="lineno">  479 </span><span class="spaces">  </span><span class="istickedoff">-- We use loop sectioning here; see Note [Loop sectioning] as to why we do this</span>
+<span class="lineno">  480 </span><span class="spaces">  </span><span class="istickedoff">let (bigStrides, littleStrides) = len `quotRem` 8</span>
+<span class="lineno">  481 </span><span class="spaces">  </span><span class="istickedoff">let offset = bigStrides * 8</span>
+<span class="lineno">  482 </span><span class="spaces">  </span><span class="istickedoff">BSI.create len $ \dstPtr -&gt; do</span>
+<span class="lineno">  483 </span><span class="spaces">    </span><span class="istickedoff">let bigSrcPtr :: Ptr Word64 = castPtr srcPtr</span>
+<span class="lineno">  484 </span><span class="spaces">    </span><span class="istickedoff">let bigDstPtr :: Ptr Word64 = castPtr dstPtr</span>
+<span class="lineno">  485 </span><span class="spaces">    </span><span class="istickedoff">for_ [0 .. bigStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  486 </span><span class="spaces">      </span><span class="istickedoff">w64 &lt;- peekElemOff bigSrcPtr i</span>
+<span class="lineno">  487 </span><span class="spaces">      </span><span class="istickedoff">pokeElemOff bigDstPtr i . Bits.complement $ w64</span>
+<span class="lineno">  488 </span><span class="spaces">    </span><span class="istickedoff">let smallSrcPtr :: Ptr Word8 = plusPtr srcPtr offset</span>
+<span class="lineno">  489 </span><span class="spaces">    </span><span class="istickedoff">let smallDstPtr :: Ptr Word8 = plusPtr dstPtr offset</span>
+<span class="lineno">  490 </span><span class="spaces">    </span><span class="istickedoff">for_ [0 .. littleStrides - 1] $ \i -&gt; do</span>
+<span class="lineno">  491 </span><span class="spaces">      </span><span class="istickedoff">w8 &lt;- peekElemOff smallSrcPtr i</span>
+<span class="lineno">  492 </span><span class="spaces">      </span><span class="istickedoff">pokeElemOff smallDstPtr i . Bits.complement $ w8</span></span>
+<span class="lineno">  493 </span>{-# INLINEABLE complementByteString #-}
+<span class="lineno">  494 </span>
+<span class="lineno">  495 </span>-- | Bit read at index, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
+<span class="lineno">  496 </span>readBit :: ByteString -&gt; Int -&gt; BuiltinResult Bool
+<span class="lineno">  497 </span><span class="decl"><span class="istickedoff">readBit bs ix</span>
+<span class="lineno">  498 </span><span class="spaces">  </span><span class="istickedoff">| ix &lt; 0 = do</span>
+<span class="lineno">  499 </span><span class="spaces">      </span><span class="istickedoff">emit <span class="nottickedoff">&quot;readBit: index out of bounds&quot;</span></span>
+<span class="lineno">  500 </span><span class="spaces">      </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Index: &quot; &lt;&gt; (pack . show $ ix)</span></span>
+<span class="lineno">  501 </span><span class="spaces">      </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  502 </span><span class="spaces">  </span><span class="istickedoff">| ix &gt;= len * 8 = do</span>
+<span class="lineno">  503 </span><span class="spaces">      </span><span class="istickedoff">emit <span class="nottickedoff">&quot;readBit: index out of bounds&quot;</span></span>
+<span class="lineno">  504 </span><span class="spaces">      </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Index: &quot; &lt;&gt; (pack . show $ ix)</span></span>
+<span class="lineno">  505 </span><span class="spaces">      </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  506 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  507 </span><span class="spaces">      </span><span class="istickedoff">let (bigIx, littleIx) = ix `quotRem` 8</span>
+<span class="lineno">  508 </span><span class="spaces">      </span><span class="istickedoff">let flipIx = len - bigIx - 1</span>
+<span class="lineno">  509 </span><span class="spaces">      </span><span class="istickedoff">pure $ Bits.testBit (BS.index bs flipIx) littleIx</span>
+<span class="lineno">  510 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  511 </span><span class="spaces">    </span><span class="istickedoff">len :: Int</span>
+<span class="lineno">  512 </span><span class="spaces">    </span><span class="istickedoff">len = BS.length bs</span></span>
+<span class="lineno">  513 </span>{-# INLINEABLE readBit #-}
+<span class="lineno">  514 </span>
+<span class="lineno">  515 </span>-- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
+<span class="lineno">  516 </span>writeBits :: ByteString -&gt; [Integer] -&gt; Bool -&gt; BuiltinResult ByteString
+<span class="lineno">  517 </span><span class="decl"><span class="istickedoff">writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of</span>
+<span class="lineno">  518 </span><span class="spaces">  </span><span class="istickedoff">Left (WriteBitsException i) -&gt; do</span>
+<span class="lineno">  519 </span><span class="spaces">    </span><span class="istickedoff">emit <span class="nottickedoff">&quot;writeBits: index out of bounds&quot;</span></span>
+<span class="lineno">  520 </span><span class="spaces">    </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Index: &quot; &lt;&gt; (pack . show $ i)</span></span>
+<span class="lineno">  521 </span><span class="spaces">    </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  522 </span><span class="spaces">  </span><span class="istickedoff">Right result -&gt; pure result</span>
+<span class="lineno">  523 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  524 </span><span class="spaces">    </span><span class="istickedoff">-- This is written in a somewhat strange way. See Note [writeBits and</span>
+<span class="lineno">  525 </span><span class="spaces">    </span><span class="istickedoff">-- exceptions], which covers why we did this.</span>
+<span class="lineno">  526 </span><span class="spaces">    </span><span class="istickedoff">go :: IO ByteString</span>
+<span class="lineno">  527 </span><span class="spaces">    </span><span class="istickedoff">go = BS.useAsCString bs $ \srcPtr -&gt;</span>
+<span class="lineno">  528 </span><span class="spaces">      </span><span class="istickedoff">BSI.create len $</span>
+<span class="lineno">  529 </span><span class="spaces">        </span><span class="istickedoff">\dstPtr -&gt;</span>
+<span class="lineno">  530 </span><span class="spaces">          </span><span class="istickedoff">let go2 (i : is) = setOrClearAtIx dstPtr i *&gt; go2 is</span>
+<span class="lineno">  531 </span><span class="spaces">              </span><span class="istickedoff">go2 _ = pure <span class="nottickedoff">()</span></span>
+<span class="lineno">  532 </span><span class="spaces">           </span><span class="istickedoff">in do</span>
+<span class="lineno">  533 </span><span class="spaces">                </span><span class="istickedoff">copyBytes dstPtr (castPtr srcPtr) len</span>
+<span class="lineno">  534 </span><span class="spaces">                </span><span class="istickedoff">go2 ixs</span>
+<span class="lineno">  535 </span><span class="spaces">    </span><span class="istickedoff">len :: Int</span>
+<span class="lineno">  536 </span><span class="spaces">    </span><span class="istickedoff">len = BS.length bs</span>
+<span class="lineno">  537 </span><span class="spaces">    </span><span class="istickedoff">bitLen :: Integer</span>
+<span class="lineno">  538 </span><span class="spaces">    </span><span class="istickedoff">bitLen = fromIntegral len * 8</span>
+<span class="lineno">  539 </span><span class="spaces">    </span><span class="istickedoff">setOrClearAtIx :: Ptr Word8 -&gt; Integer -&gt; IO ()</span>
+<span class="lineno">  540 </span><span class="spaces">    </span><span class="istickedoff">setOrClearAtIx ptr i</span>
+<span class="lineno">  541 </span><span class="spaces">      </span><span class="istickedoff">| i &lt; 0 = throwIO $ <span class="nottickedoff">WriteBitsException i</span></span>
+<span class="lineno">  542 </span><span class="spaces">      </span><span class="istickedoff">| i &gt;= bitLen = throwIO $ <span class="nottickedoff">WriteBitsException i</span></span>
+<span class="lineno">  543 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  544 </span><span class="spaces">          </span><span class="istickedoff">let (bigIx, littleIx) = i `quotRem` 8</span>
+<span class="lineno">  545 </span><span class="spaces">          </span><span class="istickedoff">let flipIx = len - fromIntegral bigIx - 1</span>
+<span class="lineno">  546 </span><span class="spaces">          </span><span class="istickedoff">w8 :: Word8 &lt;- peekByteOff ptr flipIx</span>
+<span class="lineno">  547 </span><span class="spaces">          </span><span class="istickedoff">let toWrite =</span>
+<span class="lineno">  548 </span><span class="spaces">                </span><span class="istickedoff">if bit</span>
+<span class="lineno">  549 </span><span class="spaces">                  </span><span class="istickedoff">then Bits.setBit w8 . fromIntegral $ littleIx</span>
+<span class="lineno">  550 </span><span class="spaces">                  </span><span class="istickedoff">else Bits.clearBit w8 . fromIntegral $ littleIx</span>
+<span class="lineno">  551 </span><span class="spaces">          </span><span class="istickedoff">pokeByteOff ptr flipIx toWrite</span>
+<span class="lineno">  552 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINEABLE setOrClearAtIx #-}</span></span>
+<span class="lineno">  553 </span>{-# INLINEABLE writeBits #-}
+<span class="lineno">  554 </span>
+<span class="lineno">  555 </span>{-| Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
+<span class="lineno">  556 </span>We want to cautious about the allocation of huge amounts of memory so we
+<span class="lineno">  557 </span>impose the same length limit that's used in integerToByteString. -}
+<span class="lineno">  558 </span>replicateByte :: Integer -&gt; Word8 -&gt; BuiltinResult ByteString
+<span class="lineno">  559 </span><span class="decl"><span class="istickedoff">replicateByte len w8</span>
+<span class="lineno">  560 </span><span class="spaces">  </span><span class="istickedoff">| len &lt; 0 = do</span>
+<span class="lineno">  561 </span><span class="spaces">      </span><span class="istickedoff">emit <span class="nottickedoff">&quot;replicateByte: negative length requested&quot;</span></span>
+<span class="lineno">  562 </span><span class="spaces">      </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  563 </span><span class="spaces">  </span><span class="istickedoff">| len &gt; maximumOutputLength = do</span>
+<span class="lineno">  564 </span><span class="spaces">      </span><span class="istickedoff">emit . <span class="nottickedoff">pack</span> $</span>
+<span class="lineno">  565 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">&quot;replicateByte: requested length is too long (maximum is &quot;</span></span>
+<span class="lineno">  566 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">++ show maximumOutputLength</span></span>
+<span class="lineno">  567 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">++ &quot; bytes)&quot;</span></span>
+<span class="lineno">  568 </span><span class="spaces">      </span><span class="istickedoff">emit $ <span class="nottickedoff">&quot;Length requested: &quot; &lt;&gt; (pack . show $ len)</span></span>
+<span class="lineno">  569 </span><span class="spaces">      </span><span class="istickedoff">builtinResultFailure</span>
+<span class="lineno">  570 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = pure . BS.replicate (fromIntegral len) $ w8</span></span>
+<span class="lineno">  571 </span>
+<span class="lineno">  572 </span>{-| Wrapper for calling 'unsafesShiftByteString' safely. Specifically, we avoid various edge cases:
+<span class="lineno">  573 </span>
+<span class="lineno">  574 </span>* Empty 'ByteString's and zero moves don't do anything
+<span class="lineno">  575 </span>* Bit moves whose absolute value is larger than the bit length produce all-zeroes
+<span class="lineno">  576 </span>
+<span class="lineno">  577 </span>This also ensures we don't accidentally hit integer overflow issues. -}
+<span class="lineno">  578 </span>shiftByteString :: ByteString -&gt; Integer -&gt; ByteString
+<span class="lineno">  579 </span><span class="decl"><span class="istickedoff">shiftByteString bs bitMove</span>
+<span class="lineno">  580 </span><span class="spaces">  </span><span class="istickedoff">| BS.null bs = bs</span>
+<span class="lineno">  581 </span><span class="spaces">  </span><span class="istickedoff">| bitMove == 0 = bs</span>
+<span class="lineno">  582 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> =</span>
+<span class="lineno">  583 </span><span class="spaces">      </span><span class="istickedoff">let len = BS.length bs</span>
+<span class="lineno">  584 </span><span class="spaces">          </span><span class="istickedoff">bitLen = fromIntegral $ 8 * len</span>
+<span class="lineno">  585 </span><span class="spaces">       </span><span class="istickedoff">in if abs bitMove &gt;= bitLen</span>
+<span class="lineno">  586 </span><span class="spaces">            </span><span class="istickedoff">then BS.replicate len 0x00</span>
+<span class="lineno">  587 </span><span class="spaces">            </span><span class="istickedoff">-- fromIntegral is safe to use here, as the only way this</span>
+<span class="lineno">  588 </span><span class="spaces">            </span><span class="istickedoff">-- could overflow (or underflow) an Int is if we had a</span>
+<span class="lineno">  589 </span><span class="spaces">            </span><span class="istickedoff">-- ByteString onchain that was over 30 petabytes in size.</span>
+<span class="lineno">  590 </span><span class="spaces">            </span><span class="istickedoff">else unsafeShiftByteString bs (fromIntegral bitMove)</span></span>
+<span class="lineno">  591 </span>
+<span class="lineno">  592 </span>{-| Wrapper for calling 'unsafeRotateByteString' safely. Specifically, we avoid various edge cases:
+<span class="lineno">  593 </span>
+<span class="lineno">  594 </span>* Empty 'ByteString's and zero moves don't do anything
+<span class="lineno">  595 </span>* Bit moves whose absolute value is larger than the bit length are reduced modulo the length
+<span class="lineno">  596 </span>
+<span class="lineno">  597 </span>Furthermore, we can convert all rotations into positive rotations, by noting that a rotation by @b@
+<span class="lineno">  598 </span>is the same as a rotation by @b `mod` bitLen@, where @bitLen@ is the length of the 'ByteString'
+<span class="lineno">  599 </span>argument in bits. This value is always non-negative, and if we get 0, we have nothing to do. This
+<span class="lineno">  600 </span>reduction also helps us avoid integer overflow issues. -}
+<span class="lineno">  601 </span>rotateByteString :: ByteString -&gt; Integer -&gt; ByteString
+<span class="lineno">  602 </span><span class="decl"><span class="istickedoff">rotateByteString bs bitMove</span>
+<span class="lineno">  603 </span><span class="spaces">  </span><span class="istickedoff">| BS.null bs = bs</span>
+<span class="lineno">  604 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> =</span>
+<span class="lineno">  605 </span><span class="spaces">      </span><span class="istickedoff">let bitLen = fromIntegral $ 8 * BS.length bs</span>
+<span class="lineno">  606 </span><span class="spaces">          </span><span class="istickedoff">-- This is guaranteed non-negative</span>
+<span class="lineno">  607 </span><span class="spaces">          </span><span class="istickedoff">reducedBitMove = bitMove `mod` bitLen</span>
+<span class="lineno">  608 </span><span class="spaces">       </span><span class="istickedoff">in if reducedBitMove == 0</span>
+<span class="lineno">  609 </span><span class="spaces">            </span><span class="istickedoff">then bs</span>
+<span class="lineno">  610 </span><span class="spaces">            </span><span class="istickedoff">-- fromIntegral is safe to use here since for a bytestring to have a</span>
+<span class="lineno">  611 </span><span class="spaces">            </span><span class="istickedoff">-- size that doesn't fit into an `Int` it would have to have a size</span>
+<span class="lineno">  612 </span><span class="spaces">            </span><span class="istickedoff">-- exceeding something like 37 petabytes.</span>
+<span class="lineno">  613 </span><span class="spaces">            </span><span class="istickedoff">else unsafeRotateByteString bs (fromIntegral reducedBitMove)</span></span>
+<span class="lineno">  614 </span>
+<span class="lineno">  615 </span>{- Note [Shift and rotation implementation]
+<span class="lineno">  616 </span>
+<span class="lineno">  617 </span>Both shifts and rotations work similarly: they effectively impose a 'write
+<span class="lineno">  618 </span>offset' to bits in the data argument, then write those bits to the result with
+<span class="lineno">  619 </span>this offset applied. The difference between them is in what should be done if
+<span class="lineno">  620 </span>the resulting offset index would fall out of bounds: shifts just discard the
+<span class="lineno">  621 </span>data (and fill whatever remains with zeroes), while rotations 'wrap around'
+<span class="lineno">  622 </span>modularly. This operation is bit parallel by definition, thus theoretically
+<span class="lineno">  623 </span>making it amenable to the techniques described in Note [Loop sectioning].
+<span class="lineno">  624 </span>
+<span class="lineno">  625 </span>However, the naive way of doing this runs into a problem: the byte ordering
+<span class="lineno">  626 </span>on Tier 1 platforms inside `Word64` means that consecutive bit indexes
+<span class="lineno">  627 </span>according to CIP-122 don't remain that way. We could avoid this by using a
+<span class="lineno">  628 </span>byte flip followed by an adjustment in the opposite direction, then a byte flip
+<span class="lineno">  629 </span>back again. However, this is a costly operation, and would also be extremely
+<span class="lineno">  630 </span>fiddly across stride boundaries, making both performance and implementation
+<span class="lineno">  631 </span>clarity suffer. Instead, we use a different observation, namely that both
+<span class="lineno">  632 </span>shifts and rotations on the same input are monoidally homomorphic into
+<span class="lineno">  633 </span>natural number addition (assuming the same 'direction' for shifts). Using
+<span class="lineno">  634 </span>this, combined with Euclidean division, we can decompose any shift or
+<span class="lineno">  635 </span>rotation by `i` into two consecutive shifts and rotations:
+<span class="lineno">  636 </span>
+<span class="lineno">  637 </span>1. A 'large' shift or rotation, by `div i 8`; and
+<span class="lineno">  638 </span>2. A 'small' shift or rotation, by `mod i 8`.
+<span class="lineno">  639 </span>
+<span class="lineno">  640 </span>While on paper, this seems much less efficient (as our stride is smaller),
+<span class="lineno">  641 </span>we also observe that the 'large' shift moves around whole bytes, while also
+<span class="lineno">  642 </span>keeping consecutive bytes consecutive, assuming their bit indices remain
+<span class="lineno">  643 </span>in-bounds. This means that we can implement step 1 both simply and efficiently:
+<span class="lineno">  644 </span>
+<span class="lineno">  645 </span>\* For shifts, we perform a partial copy of all the bytes whose bits remain
+<span class="lineno">  646 </span>  in-bounds, followed by clearing of whatever remains.
+<span class="lineno">  647 </span>\* For rotations, we perform two partial copies: first of all the bytes whose
+<span class="lineno">  648 </span>  bits remain in-bounds, followed by whatever remains, at the 'opposite end'.
+<span class="lineno">  649 </span>
+<span class="lineno">  650 </span>These can make use of the bulk copying and clearing operations provided by the
+<span class="lineno">  651 </span>GHC runtime. Not only are these shorter and more readable, they are also _far_
+<span class="lineno">  652 </span>more efficient than anything we could do, as they rely on optimized C called
+<span class="lineno">  653 </span>via the runtime (meaning no FFI penalty). From our experiments, both with
+<span class="lineno">  654 </span>these operations, and others from CIP-122, we note that the cost of these is
+<span class="lineno">  655 </span>essentially constant up to about the size of 1-2 cache lines (64-128 bytes):
+<span class="lineno">  656 </span>since we anticipate smaller inputs are far more likely, this actually runs
+<span class="lineno">  657 </span>_faster_ than our proposed sectioning approach, while being easier to read
+<span class="lineno">  658 </span>and write.
+<span class="lineno">  659 </span>
+<span class="lineno">  660 </span>It is arguable that our approach forces 'double writing', as Step 2 has to
+<span class="lineno">  661 </span>possibly overwrite our work in Step 1. However, by avoiding the need to
+<span class="lineno">  662 </span>perform byte flips, as well as benefitting from the huge speedups gained
+<span class="lineno">  663 </span>from our split approach, this cost is essentially negligible, especially
+<span class="lineno">  664 </span>given that we can operate mutably throughout. We also have an additional
+<span class="lineno">  665 </span>benefit: if the requested rotation or shift happens to be an exact multiple
+<span class="lineno">  666 </span>of 8, we can be _much_ faster, as Step 2 becomes unnecessary in that case.
+<span class="lineno">  667 </span>-}
+<span class="lineno">  668 </span>
+<span class="lineno">  669 </span>{-| Shifts, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+<span class="lineno">  670 </span>This may not actually be unsafe, but it shouldn't be used outside this module. -}
+<span class="lineno">  671 </span>unsafeShiftByteString :: ByteString -&gt; Int -&gt; ByteString
+<span class="lineno">  672 </span><span class="decl"><span class="istickedoff">unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -&gt;</span>
+<span class="lineno">  673 </span><span class="spaces">  </span><span class="istickedoff">BSI.create len $ \dstPtr -&gt; do</span>
+<span class="lineno">  674 </span><span class="spaces">    </span><span class="istickedoff">-- To simplify our calculations, we work only with absolute values,</span>
+<span class="lineno">  675 </span><span class="spaces">    </span><span class="istickedoff">-- letting different functions control for direction, instead of</span>
+<span class="lineno">  676 </span><span class="spaces">    </span><span class="istickedoff">-- trying to unify the scheme for both positive and negative shifts.</span>
+<span class="lineno">  677 </span><span class="spaces">    </span><span class="istickedoff">let magnitude = abs bitMove</span>
+<span class="lineno">  678 </span><span class="spaces">    </span><span class="istickedoff">-- Instead of worrying about partial clearing, we just zero the entire</span>
+<span class="lineno">  679 </span><span class="spaces">    </span><span class="istickedoff">-- block of memory, as the cost is essentially negligible and saves us</span>
+<span class="lineno">  680 </span><span class="spaces">    </span><span class="istickedoff">-- a bunch of offset arithmetic.</span>
+<span class="lineno">  681 </span><span class="spaces">    </span><span class="istickedoff">fillBytes dstPtr 0x00 len</span>
+<span class="lineno">  682 </span><span class="spaces">    </span><span class="istickedoff">unless (magnitude &gt;= bitLen) $ do</span>
+<span class="lineno">  683 </span><span class="spaces">      </span><span class="istickedoff">let (bigShift, smallShift) = magnitude `quotRem` 8</span>
+<span class="lineno">  684 </span><span class="spaces">      </span><span class="istickedoff">case signum bitMove of</span>
+<span class="lineno">  685 </span><span class="spaces">        </span><span class="istickedoff">(-1) -&gt; negativeShift (castPtr srcPtr) dstPtr bigShift smallShift</span>
+<span class="lineno">  686 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; positiveShift (castPtr srcPtr) dstPtr bigShift smallShift</span>
+<span class="lineno">  687 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  688 </span><span class="spaces">    </span><span class="istickedoff">len :: Int</span>
+<span class="lineno">  689 </span><span class="spaces">    </span><span class="istickedoff">!len = BS.length bs</span>
+<span class="lineno">  690 </span><span class="spaces">    </span><span class="istickedoff">bitLen :: Int</span>
+<span class="lineno">  691 </span><span class="spaces">    </span><span class="istickedoff">!bitLen = len * 8</span>
+<span class="lineno">  692 </span><span class="spaces">    </span><span class="istickedoff">negativeShift :: Ptr Word8 -&gt; Ptr Word8 -&gt; Int -&gt; Int -&gt; IO ()</span>
+<span class="lineno">  693 </span><span class="spaces">    </span><span class="istickedoff">negativeShift srcPtr dstPtr bigShift smallShift = do</span>
+<span class="lineno">  694 </span><span class="spaces">      </span><span class="istickedoff">let copyDstPtr = plusPtr dstPtr bigShift</span>
+<span class="lineno">  695 </span><span class="spaces">      </span><span class="istickedoff">let copyLen = len - bigShift</span>
+<span class="lineno">  696 </span><span class="spaces">      </span><span class="istickedoff">-- Since we already zeroed everything, we only do the partial copy.</span>
+<span class="lineno">  697 </span><span class="spaces">      </span><span class="istickedoff">copyBytes copyDstPtr srcPtr copyLen</span>
+<span class="lineno">  698 </span><span class="spaces">      </span><span class="istickedoff">when (smallShift &gt; 0) $ do</span>
+<span class="lineno">  699 </span><span class="spaces">        </span><span class="istickedoff">-- When working with the small shift, we have to shift bits across</span>
+<span class="lineno">  700 </span><span class="spaces">        </span><span class="istickedoff">-- byte boundaries. Thus, we have to make sure that:</span>
+<span class="lineno">  701 </span><span class="spaces">        </span><span class="istickedoff">--</span>
+<span class="lineno">  702 </span><span class="spaces">        </span><span class="istickedoff">-- 1. We 'save' our first byte from being processed.</span>
+<span class="lineno">  703 </span><span class="spaces">        </span><span class="istickedoff">-- 2. We can 'select' the bits that would be shifted over the</span>
+<span class="lineno">  704 </span><span class="spaces">        </span><span class="istickedoff">--    boundary and apply them.</span>
+<span class="lineno">  705 </span><span class="spaces">        </span><span class="istickedoff">let !invSmallShift = 8 - smallShift</span>
+<span class="lineno">  706 </span><span class="spaces">        </span><span class="istickedoff">let !mask = 0xFF `Bits.unsafeShiftR` invSmallShift</span>
+<span class="lineno">  707 </span><span class="spaces">        </span><span class="istickedoff">let !firstIx = len - copyLen</span>
+<span class="lineno">  708 </span><span class="spaces">        </span><span class="istickedoff">for_ [len - 1, len - 2 .. firstIx + 1] $ \byteIx -&gt; do</span>
+<span class="lineno">  709 </span><span class="spaces">          </span><span class="istickedoff">-- To handle shifts across byte boundaries, we have to 'read</span>
+<span class="lineno">  710 </span><span class="spaces">          </span><span class="istickedoff">-- backwards', mask off the relevant part, then recombine.</span>
+<span class="lineno">  711 </span><span class="spaces">          </span><span class="istickedoff">!(currentByte :: Word8) &lt;- peekByteOff dstPtr byteIx</span>
+<span class="lineno">  712 </span><span class="spaces">          </span><span class="istickedoff">!(prevByte :: Word8) &lt;- peekByteOff dstPtr (byteIx - 1)</span>
+<span class="lineno">  713 </span><span class="spaces">          </span><span class="istickedoff">let !prevOverflowBits = prevByte Bits..&amp;. mask</span>
+<span class="lineno">  714 </span><span class="spaces">          </span><span class="istickedoff">let !newCurrentByte =</span>
+<span class="lineno">  715 </span><span class="spaces">                </span><span class="istickedoff">(currentByte `Bits.unsafeShiftR` smallShift)</span>
+<span class="lineno">  716 </span><span class="spaces">                  </span><span class="istickedoff">Bits..|. (prevOverflowBits `Bits.unsafeShiftL` invSmallShift)</span>
+<span class="lineno">  717 </span><span class="spaces">          </span><span class="istickedoff">pokeByteOff dstPtr byteIx newCurrentByte</span>
+<span class="lineno">  718 </span><span class="spaces">        </span><span class="istickedoff">!(firstByte :: Word8) &lt;- peekByteOff dstPtr firstIx</span>
+<span class="lineno">  719 </span><span class="spaces">        </span><span class="istickedoff">pokeByteOff dstPtr firstIx (firstByte `Bits.unsafeShiftR` smallShift)</span>
+<span class="lineno">  720 </span><span class="spaces">    </span><span class="istickedoff">-- This works similarly to `negativeShift` above, but in the opposite direction.</span>
+<span class="lineno">  721 </span><span class="spaces">    </span><span class="istickedoff">positiveShift :: Ptr Word8 -&gt; Ptr Word8 -&gt; Int -&gt; Int -&gt; IO ()</span>
+<span class="lineno">  722 </span><span class="spaces">    </span><span class="istickedoff">positiveShift srcPtr dstPtr bigShift smallShift = do</span>
+<span class="lineno">  723 </span><span class="spaces">      </span><span class="istickedoff">let copySrcPtr = plusPtr srcPtr bigShift</span>
+<span class="lineno">  724 </span><span class="spaces">      </span><span class="istickedoff">let copyLen = len - bigShift</span>
+<span class="lineno">  725 </span><span class="spaces">      </span><span class="istickedoff">copyBytes dstPtr copySrcPtr copyLen</span>
+<span class="lineno">  726 </span><span class="spaces">      </span><span class="istickedoff">when (smallShift &gt; 0) $ do</span>
+<span class="lineno">  727 </span><span class="spaces">        </span><span class="istickedoff">let !invSmallShift = 8 - smallShift</span>
+<span class="lineno">  728 </span><span class="spaces">        </span><span class="istickedoff">let !mask = 0xFF `Bits.unsafeShiftL` invSmallShift</span>
+<span class="lineno">  729 </span><span class="spaces">        </span><span class="istickedoff">let !lastIx = copyLen - 1</span>
+<span class="lineno">  730 </span><span class="spaces">        </span><span class="istickedoff">for_ [0, 1 .. lastIx - 1] $ \byteIx -&gt; do</span>
+<span class="lineno">  731 </span><span class="spaces">          </span><span class="istickedoff">!(currentByte :: Word8) &lt;- peekByteOff dstPtr byteIx</span>
+<span class="lineno">  732 </span><span class="spaces">          </span><span class="istickedoff">!(nextByte :: Word8) &lt;- peekByteOff dstPtr (byteIx + 1)</span>
+<span class="lineno">  733 </span><span class="spaces">          </span><span class="istickedoff">let !nextOverflowBits = nextByte Bits..&amp;. mask</span>
+<span class="lineno">  734 </span><span class="spaces">          </span><span class="istickedoff">let !newCurrentByte =</span>
+<span class="lineno">  735 </span><span class="spaces">                </span><span class="istickedoff">(currentByte `Bits.unsafeShiftL` smallShift)</span>
+<span class="lineno">  736 </span><span class="spaces">                  </span><span class="istickedoff">Bits..|. (nextOverflowBits `Bits.unsafeShiftR` invSmallShift)</span>
+<span class="lineno">  737 </span><span class="spaces">          </span><span class="istickedoff">pokeByteOff dstPtr byteIx newCurrentByte</span>
+<span class="lineno">  738 </span><span class="spaces">        </span><span class="istickedoff">!(lastByte :: Word8) &lt;- peekByteOff dstPtr lastIx</span>
+<span class="lineno">  739 </span><span class="spaces">        </span><span class="istickedoff">pokeByteOff dstPtr lastIx (lastByte `Bits.unsafeShiftL` smallShift)</span></span>
+<span class="lineno">  740 </span>
+<span class="lineno">  741 </span>{-| Rotations, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+<span class="lineno">  742 </span>This is definitely unsafe: calling it with bitMove = minBound::Int can cause a
+<span class="lineno">  743 </span>segmentation fault.  It must not be used outside this module. -}
+<span class="lineno">  744 </span>unsafeRotateByteString :: ByteString -&gt; Int -&gt; ByteString
+<span class="lineno">  745 </span><span class="decl"><span class="istickedoff">unsafeRotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -&gt;</span>
+<span class="lineno">  746 </span><span class="spaces">  </span><span class="istickedoff">BSI.create len $ \dstPtr -&gt; do</span>
+<span class="lineno">  747 </span><span class="spaces">    </span><span class="istickedoff">-- The move is guaranteed positive and reduced already. Thus, unlike for</span>
+<span class="lineno">  748 </span><span class="spaces">    </span><span class="istickedoff">-- shifts, we don't need two variants for different directions.</span>
+<span class="lineno">  749 </span><span class="spaces">    </span><span class="istickedoff">let (bigRotation, smallRotation) = bitMove `quotRem` 8</span>
+<span class="lineno">  750 </span><span class="spaces">    </span><span class="istickedoff">go (castPtr srcPtr) dstPtr bigRotation smallRotation</span>
+<span class="lineno">  751 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  752 </span><span class="spaces">    </span><span class="istickedoff">len :: Int</span>
+<span class="lineno">  753 </span><span class="spaces">    </span><span class="istickedoff">!len = BS.length bs</span>
+<span class="lineno">  754 </span><span class="spaces">    </span><span class="istickedoff">go :: Ptr Word8 -&gt; Ptr Word8 -&gt; Int -&gt; Int -&gt; IO ()</span>
+<span class="lineno">  755 </span><span class="spaces">    </span><span class="istickedoff">go srcPtr dstPtr bigRotate smallRotate = do</span>
+<span class="lineno">  756 </span><span class="spaces">      </span><span class="istickedoff">-- Two partial copies are needed here, unlike with shifts, because</span>
+<span class="lineno">  757 </span><span class="spaces">      </span><span class="istickedoff">-- there's no point zeroing our data, since it'll all be overwritten</span>
+<span class="lineno">  758 </span><span class="spaces">      </span><span class="istickedoff">-- with stuff from the input anyway.</span>
+<span class="lineno">  759 </span><span class="spaces">      </span><span class="istickedoff">let copyStartSrcPtr = plusPtr srcPtr bigRotate</span>
+<span class="lineno">  760 </span><span class="spaces">      </span><span class="istickedoff">let copyStartLen = len - bigRotate</span>
+<span class="lineno">  761 </span><span class="spaces">      </span><span class="istickedoff">copyBytes dstPtr copyStartSrcPtr copyStartLen</span>
+<span class="lineno">  762 </span><span class="spaces">      </span><span class="istickedoff">let copyEndDstPtr = plusPtr dstPtr copyStartLen</span>
+<span class="lineno">  763 </span><span class="spaces">      </span><span class="istickedoff">copyBytes copyEndDstPtr srcPtr bigRotate</span>
+<span class="lineno">  764 </span><span class="spaces">      </span><span class="istickedoff">when (smallRotate &gt; 0) $ do</span>
+<span class="lineno">  765 </span><span class="spaces">        </span><span class="istickedoff">-- This works similarly to shifts</span>
+<span class="lineno">  766 </span><span class="spaces">        </span><span class="istickedoff">let !invSmallRotate = 8 - smallRotate</span>
+<span class="lineno">  767 </span><span class="spaces">        </span><span class="istickedoff">let !mask = 0xFF `Bits.unsafeShiftL` invSmallRotate</span>
+<span class="lineno">  768 </span><span class="spaces">        </span><span class="istickedoff">let !lastIx = len - 1</span>
+<span class="lineno">  769 </span><span class="spaces">        </span><span class="istickedoff">!(cloneFirstByte :: Word8) &lt;- peekByteOff dstPtr 0</span>
+<span class="lineno">  770 </span><span class="spaces">        </span><span class="istickedoff">for_ [0, 1 .. lastIx - 1] $ \byteIx -&gt; do</span>
+<span class="lineno">  771 </span><span class="spaces">          </span><span class="istickedoff">!(currentByte :: Word8) &lt;- peekByteOff dstPtr byteIx</span>
+<span class="lineno">  772 </span><span class="spaces">          </span><span class="istickedoff">!(nextByte :: Word8) &lt;- peekByteOff dstPtr (byteIx + 1)</span>
+<span class="lineno">  773 </span><span class="spaces">          </span><span class="istickedoff">let !nextOverflowBits = nextByte Bits..&amp;. mask</span>
+<span class="lineno">  774 </span><span class="spaces">          </span><span class="istickedoff">let !newCurrentByte =</span>
+<span class="lineno">  775 </span><span class="spaces">                </span><span class="istickedoff">(currentByte `Bits.unsafeShiftL` smallRotate)</span>
+<span class="lineno">  776 </span><span class="spaces">                  </span><span class="istickedoff">Bits..|. (nextOverflowBits `Bits.unsafeShiftR` invSmallRotate)</span>
+<span class="lineno">  777 </span><span class="spaces">          </span><span class="istickedoff">pokeByteOff dstPtr byteIx newCurrentByte</span>
+<span class="lineno">  778 </span><span class="spaces">        </span><span class="istickedoff">!(lastByte :: Word8) &lt;- peekByteOff dstPtr lastIx</span>
+<span class="lineno">  779 </span><span class="spaces">        </span><span class="istickedoff">let !firstOverflowBits = cloneFirstByte Bits..&amp;. mask</span>
+<span class="lineno">  780 </span><span class="spaces">        </span><span class="istickedoff">let !newLastByte =</span>
+<span class="lineno">  781 </span><span class="spaces">              </span><span class="istickedoff">(lastByte `Bits.unsafeShiftL` smallRotate)</span>
+<span class="lineno">  782 </span><span class="spaces">                </span><span class="istickedoff">Bits..|. (firstOverflowBits `Bits.unsafeShiftR` invSmallRotate)</span>
+<span class="lineno">  783 </span><span class="spaces">        </span><span class="istickedoff">pokeByteOff dstPtr lastIx newLastByte</span></span>
+<span class="lineno">  784 </span>
+<span class="lineno">  785 </span>-- | Counting the number of set bits, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+<span class="lineno">  786 </span>countSetBits :: ByteString -&gt; Int
+<span class="lineno">  787 </span><span class="decl"><span class="istickedoff">countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -&gt; do</span>
+<span class="lineno">  788 </span><span class="spaces">  </span><span class="istickedoff">-- See Note [Loop sectioning] for details of why we</span>
+<span class="lineno">  789 </span><span class="spaces">  </span><span class="istickedoff">-- define this function the way it is. We make use of the fact that `popCount`</span>
+<span class="lineno">  790 </span><span class="spaces">  </span><span class="istickedoff">-- is bit-parallel, and has a constant-time implementation for `Word64` and `Word8`.</span>
+<span class="lineno">  791 </span><span class="spaces">  </span><span class="istickedoff">let bigSrcPtr :: Ptr Word64 = castPtr srcPtr</span>
+<span class="lineno">  792 </span><span class="spaces">  </span><span class="istickedoff">let smallSrcPtr :: Ptr Word8 = plusPtr srcPtr offset</span>
+<span class="lineno">  793 </span><span class="spaces">  </span><span class="istickedoff">goBig bigSrcPtr smallSrcPtr 0 0</span>
+<span class="lineno">  794 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  795 </span><span class="spaces">    </span><span class="istickedoff">len :: Int</span>
+<span class="lineno">  796 </span><span class="spaces">    </span><span class="istickedoff">!len = BS.length bs</span>
+<span class="lineno">  797 </span><span class="spaces">    </span><span class="istickedoff">-- We do this as two separate bindings, for similar reasons as for</span>
+<span class="lineno">  798 </span><span class="spaces">    </span><span class="istickedoff">-- `integerToByteString`: we take a surprising hit to performance when</span>
+<span class="lineno">  799 </span><span class="spaces">    </span><span class="istickedoff">-- using a pair, even though eliminating it should be possible here.</span>
+<span class="lineno">  800 </span><span class="spaces">    </span><span class="istickedoff">bigStrides :: Int</span>
+<span class="lineno">  801 </span><span class="spaces">    </span><span class="istickedoff">!bigStrides = len `quot` 8</span>
+<span class="lineno">  802 </span><span class="spaces">    </span><span class="istickedoff">smallStrides :: Int</span>
+<span class="lineno">  803 </span><span class="spaces">    </span><span class="istickedoff">!smallStrides = len `rem` 8</span>
+<span class="lineno">  804 </span><span class="spaces">    </span><span class="istickedoff">offset :: Int</span>
+<span class="lineno">  805 </span><span class="spaces">    </span><span class="istickedoff">!offset = bigStrides * 8</span>
+<span class="lineno">  806 </span><span class="spaces">    </span><span class="istickedoff">goBig :: Ptr Word64 -&gt; Ptr Word8 -&gt; Int -&gt; Int -&gt; IO Int</span>
+<span class="lineno">  807 </span><span class="spaces">    </span><span class="istickedoff">goBig !bigSrcPtr !smallSrcPtr !acc !bigIx</span>
+<span class="lineno">  808 </span><span class="spaces">      </span><span class="istickedoff">| bigIx == bigStrides = goSmall smallSrcPtr acc 0</span>
+<span class="lineno">  809 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  810 </span><span class="spaces">          </span><span class="istickedoff">!w64 &lt;- peekElemOff bigSrcPtr bigIx</span>
+<span class="lineno">  811 </span><span class="spaces">          </span><span class="istickedoff">goBig bigSrcPtr smallSrcPtr (acc + Bits.popCount w64) (bigIx + 1)</span>
+<span class="lineno">  812 </span><span class="spaces">    </span><span class="istickedoff">goSmall :: Ptr Word8 -&gt; Int -&gt; Int -&gt; IO Int</span>
+<span class="lineno">  813 </span><span class="spaces">    </span><span class="istickedoff">goSmall !smallSrcPtr !acc !smallIx</span>
+<span class="lineno">  814 </span><span class="spaces">      </span><span class="istickedoff">| smallIx == smallStrides = pure acc</span>
+<span class="lineno">  815 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  816 </span><span class="spaces">          </span><span class="istickedoff">!w8 &lt;- peekElemOff smallSrcPtr smallIx</span>
+<span class="lineno">  817 </span><span class="spaces">          </span><span class="istickedoff">goSmall smallSrcPtr (acc + Bits.popCount w8) (smallIx + 1)</span></span>
+<span class="lineno">  818 </span>
+<span class="lineno">  819 </span>-- | Finding the first set bit's index, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+<span class="lineno">  820 </span>findFirstSetBit :: ByteString -&gt; Int
+<span class="lineno">  821 </span><span class="decl"><span class="istickedoff">findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -&gt; do</span>
+<span class="lineno">  822 </span><span class="spaces">  </span><span class="istickedoff">let bigSrcPtr :: Ptr Word64 = castPtr srcPtr</span>
+<span class="lineno">  823 </span><span class="spaces">  </span><span class="istickedoff">goBig bigSrcPtr 0 (len - 8)</span>
+<span class="lineno">  824 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  825 </span><span class="spaces">    </span><span class="istickedoff">-- We implement this operation in a somewhat unusual way, to try and</span>
+<span class="lineno">  826 </span><span class="spaces">    </span><span class="istickedoff">-- benefit from bit paralellism, thus allowing loop sectioning as well:</span>
+<span class="lineno">  827 </span><span class="spaces">    </span><span class="istickedoff">-- see Note [Loop sectioning] as to why we choose to</span>
+<span class="lineno">  828 </span><span class="spaces">    </span><span class="istickedoff">-- do this.</span>
+<span class="lineno">  829 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  830 </span><span class="spaces">    </span><span class="istickedoff">-- Finding the first set bit is not (inherently) bit parallel, as there is</span>
+<span class="lineno">  831 </span><span class="spaces">    </span><span class="istickedoff">-- a clear 'horizontal dependency'. Thus, we instead 'localize' this</span>
+<span class="lineno">  832 </span><span class="spaces">    </span><span class="istickedoff">-- 'horizontal dependency' by noting that the following operations _are_</span>
+<span class="lineno">  833 </span><span class="spaces">    </span><span class="istickedoff">-- bit-parallel:</span>
+<span class="lineno">  834 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  835 </span><span class="spaces">    </span><span class="istickedoff">-- 1. Checking if all bits are zero</span>
+<span class="lineno">  836 </span><span class="spaces">    </span><span class="istickedoff">-- 2. Keeping an additive accumulator</span>
+<span class="lineno">  837 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  838 </span><span class="spaces">    </span><span class="istickedoff">-- Essentially, we begin by taking large steps through our data, checking</span>
+<span class="lineno">  839 </span><span class="spaces">    </span><span class="istickedoff">-- whether we only have zeroes. This can be done in strides of 64 bits at a</span>
+<span class="lineno">  840 </span><span class="spaces">    </span><span class="istickedoff">-- time, and every time we find that many zeroes, we keep track. After we</span>
+<span class="lineno">  841 </span><span class="spaces">    </span><span class="istickedoff">-- encounter a nonzero `Word64`, we 'step down' to `Word8`-sized steps,</span>
+<span class="lineno">  842 </span><span class="spaces">    </span><span class="istickedoff">-- continuing to count zero blocks the same way. Once we encounter a</span>
+<span class="lineno">  843 </span><span class="spaces">    </span><span class="istickedoff">-- non-zero `Word8`, we can resort to the specialized operation for</span>
+<span class="lineno">  844 </span><span class="spaces">    </span><span class="istickedoff">-- counting trailing zeroes from `Data.Bits`, and 'top up' our accumulated</span>
+<span class="lineno">  845 </span><span class="spaces">    </span><span class="istickedoff">-- count to produce the index we want. If we ever 'walk off the end', we</span>
+<span class="lineno">  846 </span><span class="spaces">    </span><span class="istickedoff">-- know that there's no way we could find any set bits and return -1.</span>
+<span class="lineno">  847 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  848 </span><span class="spaces">    </span><span class="istickedoff">-- This is complicated slightly by us having to walk the input backwards</span>
+<span class="lineno">  849 </span><span class="spaces">    </span><span class="istickedoff">-- instead of forwards, but due to the requirements of the CIP-122 bit</span>
+<span class="lineno">  850 </span><span class="spaces">    </span><span class="istickedoff">-- indexing scheme, we don't really have a choice here. This doesn't</span>
+<span class="lineno">  851 </span><span class="spaces">    </span><span class="istickedoff">-- affect the description above however: it just complicates the indexing</span>
+<span class="lineno">  852 </span><span class="spaces">    </span><span class="istickedoff">-- maths required.</span>
+<span class="lineno">  853 </span><span class="spaces">    </span><span class="istickedoff">goBig :: Ptr Word64 -&gt; Int -&gt; Int -&gt; IO Int</span>
+<span class="lineno">  854 </span><span class="spaces">    </span><span class="istickedoff">goBig !bigSrcPtr !acc !byteIx</span>
+<span class="lineno">  855 </span><span class="spaces">      </span><span class="istickedoff">-- We can do at least one large step. This works because we read</span>
+<span class="lineno">  856 </span><span class="spaces">      </span><span class="istickedoff">-- backwards, which means that `byteIx` is the _last_ position we read</span>
+<span class="lineno">  857 </span><span class="spaces">      </span><span class="istickedoff">| byteIx &gt;= 0 = do</span>
+<span class="lineno">  858 </span><span class="spaces">          </span><span class="istickedoff">!(w64 :: Word64) &lt;- peekByteOff bigSrcPtr byteIx</span>
+<span class="lineno">  859 </span><span class="spaces">          </span><span class="istickedoff">-- In theory, we could use the same technique here as we do in</span>
+<span class="lineno">  860 </span><span class="spaces">          </span><span class="istickedoff">-- `goSmall`, namely count speculatively and then compare to 64.</span>
+<span class="lineno">  861 </span><span class="spaces">          </span><span class="istickedoff">-- However this is not possible for us, as the native byte ordering</span>
+<span class="lineno">  862 </span><span class="spaces">          </span><span class="istickedoff">-- on Tier 1 platforms does not keep consecutive bits _across_ bytes</span>
+<span class="lineno">  863 </span><span class="spaces">          </span><span class="istickedoff">-- consecutive, which would make this result unreliable. While we</span>
+<span class="lineno">  864 </span><span class="spaces">          </span><span class="istickedoff">-- _could_ do a byte order flip before counting (from the opposite</span>
+<span class="lineno">  865 </span><span class="spaces">          </span><span class="istickedoff">-- end) to avoid this, the cost of this operation is much larger</span>
+<span class="lineno">  866 </span><span class="spaces">          </span><span class="istickedoff">-- than a comparison to zero, and would only benefit us _once_,</span>
+<span class="lineno">  867 </span><span class="spaces">          </span><span class="istickedoff">-- instead of once-per-stride. Thus, we instead use the approach</span>
+<span class="lineno">  868 </span><span class="spaces">          </span><span class="istickedoff">-- here.</span>
+<span class="lineno">  869 </span><span class="spaces">          </span><span class="istickedoff">if w64 == 0x0</span>
+<span class="lineno">  870 </span><span class="spaces">            </span><span class="istickedoff">then goBig bigSrcPtr (acc + 64) (byteIx - 8)</span>
+<span class="lineno">  871 </span><span class="spaces">            </span><span class="istickedoff">else goSmall (castPtr bigSrcPtr) acc (byteIx + 7)</span>
+<span class="lineno">  872 </span><span class="spaces">      </span><span class="istickedoff">-- We've 'walked off the end' and not found anything, so everything</span>
+<span class="lineno">  873 </span><span class="spaces">      </span><span class="istickedoff">-- must be zeroes</span>
+<span class="lineno">  874 </span><span class="spaces">      </span><span class="istickedoff">| byteIx &lt;= (-8) = pure (-1)</span>
+<span class="lineno">  875 </span><span class="spaces">      </span><span class="istickedoff">-- We can end up here in one of two ways:</span>
+<span class="lineno">  876 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  877 </span><span class="spaces">      </span><span class="istickedoff">-- 1. Our input `ByteString` is 7 bytes long or smaller; or</span>
+<span class="lineno">  878 </span><span class="spaces">      </span><span class="istickedoff">-- 2. We have done all the large steps we can, and have between 1</span>
+<span class="lineno">  879 </span><span class="spaces">      </span><span class="istickedoff">--    and 7 bytes to go.</span>
+<span class="lineno">  880 </span><span class="spaces">      </span><span class="istickedoff">--</span>
+<span class="lineno">  881 </span><span class="spaces">      </span><span class="istickedoff">-- In either case, we forward the accumulator (which will be 0 in</span>
+<span class="lineno">  882 </span><span class="spaces">      </span><span class="istickedoff">-- case 1) to small stepping. Combining these cases allows us to</span>
+<span class="lineno">  883 </span><span class="spaces">      </span><span class="istickedoff">-- avoid separate tests for these conditions.</span>
+<span class="lineno">  884 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = goSmall (castPtr bigSrcPtr) acc (8 + byteIx - 1)</span>
+<span class="lineno">  885 </span><span class="spaces">    </span><span class="istickedoff">goSmall :: Ptr Word8 -&gt; Int -&gt; Int -&gt; IO Int</span>
+<span class="lineno">  886 </span><span class="spaces">    </span><span class="istickedoff">goSmall !smallSrcPtr !acc !byteIx</span>
+<span class="lineno">  887 </span><span class="spaces">      </span><span class="istickedoff">| byteIx &lt; 0 = pure (-1)</span>
+<span class="lineno">  888 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  889 </span><span class="spaces">          </span><span class="istickedoff">!(w8 :: Word8) &lt;- peekByteOff smallSrcPtr byteIx</span>
+<span class="lineno">  890 </span><span class="spaces">          </span><span class="istickedoff">-- Instead of redundantly first checking for a zero byte,</span>
+<span class="lineno">  891 </span><span class="spaces">          </span><span class="istickedoff">-- then counting, we speculatively count, relying on the behaviour of</span>
+<span class="lineno">  892 </span><span class="spaces">          </span><span class="istickedoff">-- `countTrailingZeros` that, on a zero byte, we get 8.</span>
+<span class="lineno">  893 </span><span class="spaces">          </span><span class="istickedoff">let !counted = Bits.countTrailingZeros w8</span>
+<span class="lineno">  894 </span><span class="spaces">          </span><span class="istickedoff">let !newAcc = acc + counted</span>
+<span class="lineno">  895 </span><span class="spaces">          </span><span class="istickedoff">if counted == 8</span>
+<span class="lineno">  896 </span><span class="spaces">            </span><span class="istickedoff">then goSmall smallSrcPtr newAcc (byteIx - 1)</span>
+<span class="lineno">  897 </span><span class="spaces">            </span><span class="istickedoff">else pure newAcc</span>
+<span class="lineno">  898 </span><span class="spaces">    </span><span class="istickedoff">len :: Int</span>
+<span class="lineno">  899 </span><span class="spaces">    </span><span class="istickedoff">!len = BS.length bs</span></span>
+<span class="lineno">  900 </span>
+<span class="lineno">  901 </span>-- Helpers
+<span class="lineno">  902 </span>
+<span class="lineno">  903 </span>{- Note [writeBits and exceptions]
+<span class="lineno">  904 </span>
+<span class="lineno">  905 </span>   As `writeBits` allows us to pass a changelist argument of any length, we
+<span class="lineno">  906 </span>   potentially could have an out-of-bounds index anywhere in the list. As we
+<span class="lineno">  907 </span>   have to fail on such cases (and report them appropriately), we end up needing
+<span class="lineno">  908 </span>   _both_ IO (to do mutable things) as well as a way to signal errors. We can
+<span class="lineno">  909 </span>   do this in two ways:
+<span class="lineno">  910 </span>
+<span class="lineno">  911 </span>   1. Pre-scan the changelist for any out-of-bounds indexes, fail if we see any,
+<span class="lineno">  912 </span>      then apply the necessary changes if no out-of-bounds indexes are found.
+<span class="lineno">  913 </span>   2. Speculatively allocate the new `ByteString`, then do the changes in the
+<span class="lineno">  914 </span>      changelist argument one at a time, failing as soon as we see an out-of-bounds
+<span class="lineno">  915 </span>      index.
+<span class="lineno">  916 </span>
+<span class="lineno">  917 </span>  Option 1 would require traversing the changelist argument twice, which is
+<span class="lineno">  918 </span>  undesirable, which means that option 2 is the more efficient choice. The
+<span class="lineno">  919 </span>  natural choice for option 2 would be something similar to `ExceptT Int IO`
+<span class="lineno">  920 </span>  (with the `Int` being an out-of-bounds index). However, we aren't able to do
+<span class="lineno">  921 </span>  this, as ultimately, `ByteString`s are implemented as `ForeignPtr`s, forcing
+<span class="lineno">  922 </span>  us to use the following function to interact with them, directly or not:
+<span class="lineno">  923 </span>
+<span class="lineno">  924 </span>  withForeignPtr :: forall (a :: Type) . ForeignPtr a -&gt; (Ptr a -&gt; IO b) -&gt; IO b
+<span class="lineno">  925 </span>
+<span class="lineno">  926 </span>  Notably, the function argument produces a result of `IO b`, whereas we would
+<span class="lineno">  927 </span>  need `MonadIO m =&gt; m b` instead. This means that our _only_ choice is to
+<span class="lineno">  928 </span>  use the exception mechanism, either directly or via some wrappers like
+<span class="lineno">  929 </span>  `MonadUnliftIO`. While this is unusual, and arguably against the spirit of
+<span class="lineno">  930 </span>  the use of `IO` relative `ByteString` construction, we don't have any other
+<span class="lineno">  931 </span>  choice. We decided to use the exception mechanism directly, as while
+<span class="lineno">  932 </span>  `MonadUnliftIO` is a bit cleaner, it ultimately ends up doing the same thing
+<span class="lineno">  933 </span>  anyway, and this method at least makes it clear what we're doing.
+<span class="lineno">  934 </span>
+<span class="lineno">  935 </span>  This doesn't pose any problems from the point of view of Plutus Core, as this
+<span class="lineno">  936 </span>  exception cannot 'leak'; we handle it entirely within `writeBits`, and no
+<span class="lineno">  937 </span>  other Plutus Core code can ever see it.
+<span class="lineno">  938 </span>-}
+<span class="lineno">  939 </span>newtype WriteBitsException = WriteBitsException Integer
+<span class="lineno">  940 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  941 </span>
+<span class="lineno">  942 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Exception WriteBitsException</span></span></span></span></span></span>
+<span class="lineno">  943 </span>
+<span class="lineno">  944 </span>{- Note [Manual specialization]
+<span class="lineno">  945 </span>For both integerToByteString and byteStringToInteger, we have to perform very
+<span class="lineno">  946 </span>similar operations, but with small variations:
+<span class="lineno">  947 </span>
+<span class="lineno">  948 </span>- Most-significant-first versus most-significant-last (for both)
+<span class="lineno">  949 </span>- Whether we have a size limit or not (for integerToByteString)
+<span class="lineno">  950 </span>
+<span class="lineno">  951 </span>Additionally, loop sectioning (see Note [Loop sectioning]) requires us to have
+<span class="lineno">  952 </span>separate 'big-stride' and 'small-stride' operations to ensure universality of
+<span class="lineno">  953 </span>input handling. Lastly, we have several subroutines (digit extraction, for
+<span class="lineno">  954 </span>instance) that may vary in similar ways. In such a case, generalization by
+<span class="lineno">  955 </span>means of abstraction seems like a good idea, as the operations (and
+<span class="lineno">  956 </span>subroutines) vary little.
+<span class="lineno">  957 </span>
+<span class="lineno">  958 </span>At the same time, to determine which variation of any given function (or
+<span class="lineno">  959 </span>subroutine) we need, we only have to scrutinize the relevant argument(s) once:
+<span class="lineno">  960 </span>these specifics (such as byte order) don't change during the course of the
+<span class="lineno">  961 </span>operation. Thus, we want to make sure that these checks in the code are _also_
+<span class="lineno">  962 </span>performed only once, ideally at the beginning.
+<span class="lineno">  963 </span>
+<span class="lineno">  964 </span>However, if we write such operations naively as so:
+<span class="lineno">  965 </span>
+<span class="lineno">  966 </span>&gt; subroutine byteOrder arg1 arg2 = case byteOrder of
+<span class="lineno">  967 </span>&gt;       LittleEndian -&gt; ...
+<span class="lineno">  968 </span>&gt;       BigEndian -&gt; ...
+<span class="lineno">  969 </span>
+<span class="lineno">  970 </span>the byteOrder argument will be scrutinized on each call of subroutine. This is
+<span class="lineno">  971 </span>correct in general (as there is no guarantee that the argument will be stable).
+<span class="lineno">  972 </span>Strangely, however, even in a case like this one:
+<span class="lineno">  973 </span>
+<span class="lineno">  974 </span>&gt; mainRoutine byteOrder arg1 arg2 = ...
+<span class="lineno">  975 </span>&gt;    where
+<span class="lineno">  976 </span>&gt;       subroutine arg3 = case byteOrder of
+<span class="lineno">  977 </span>&gt;           LittleEndian -&gt; ...
+<span class="lineno">  978 </span>&gt;           BigEndian -&gt; ...
+<span class="lineno">  979 </span>
+<span class="lineno">  980 </span>GHC _still_ re-scrutinizes byteOrder in every call of subroutine! This penalty
+<span class="lineno">  981 </span>can be somewhat lessened using a form similar to this:
+<span class="lineno">  982 </span>
+<span class="lineno">  983 </span>&gt; mainRoutine byteOrder arg1 arg2 = ...
+<span class="lineno">  984 </span>&gt;     where
+<span class="lineno">  985 </span>&gt;        !subroutine = case byteOrder of
+<span class="lineno">  986 </span>&gt;             LittleEndian -&gt; \arg3 -&gt; ...
+<span class="lineno">  987 </span>&gt;             BigEndian -&gt; \arg3 -&gt; ...
+<span class="lineno">  988 </span>
+<span class="lineno">  989 </span>but this is _still_ between 20 and 30% worse than doing something like this:
+<span class="lineno">  990 </span>
+<span class="lineno">  991 </span>&gt; mainRoutine byteOrder arg1 arg2 = case byteOrder of
+<span class="lineno">  992 </span>&gt;     LittleEndian -&gt; [code calling subroutineLE where needed]
+<span class="lineno">  993 </span>&gt;     BigEndian -&gt; [code calling subroutineBE where needed]
+<span class="lineno">  994 </span>&gt;     where
+<span class="lineno">  995 </span>&gt;         subroutineLE arg3 = ...
+<span class="lineno">  996 </span>&gt;         subroutineBE arg3 = ...
+<span class="lineno">  997 </span>
+<span class="lineno">  998 </span>This form _ensures_ we scrutinize (and branch) only the number of times we have
+<span class="lineno">  999 </span>to, and in a predictable place. Since these are backends for Plutus Core primops,
+<span class="lineno"> 1000 </span>and performance is thus critical, we choose to use this manually-specialized form
+<span class="lineno"> 1001 </span>for each combination of relevant arguments. While this is repetitive, and thus
+<span class="lineno"> 1002 </span>also somewhat error-prone, the performance penalty for not doing this is
+<span class="lineno"> 1003 </span>unacceptable.
+<span class="lineno"> 1004 </span>-}
+<span class="lineno"> 1005 </span>
+<span class="lineno"> 1006 </span>{- Note [Loop sectioning]
+<span class="lineno"> 1007 </span>
+<span class="lineno"> 1008 </span>Several operations in this module (including binary logical operations,
+<span class="lineno"> 1009 </span>`integerToByteString` and `byteStringToInteger`) effectively function as loops
+<span class="lineno"> 1010 </span>over fixed-width binary chunks: these can be bytes (for logical operations),
+<span class="lineno"> 1011 </span>digits (for conversions) or something else. These chunks have to be read,
+<span class="lineno"> 1012 </span>written or both, and may also require processing using fixed-width,
+<span class="lineno"> 1013 </span>constant-time operations over those chunks from the Haskell side, in some
+<span class="lineno"> 1014 </span>cases effectively 'translating' these fixed-size operations into variable-width
+<span class="lineno"> 1015 </span>equivalents over `ByteString`s. In all cases, this involves trafficking data
+<span class="lineno"> 1016 </span>between memory and machine registers (as `ByteString`s and `Integer`s are both
+<span class="lineno"> 1017 </span>wrappers around counted arrays), as well as the overheads of looping
+<span class="lineno"> 1018 </span>(involving comparison and branches). This trafficking is necessary not only to
+<span class="lineno"> 1019 </span>move the memory around, but also to process it, as on modern architectures,
+<span class="lineno"> 1020 </span>data must first be moved into a register in order to do anything with it.
+<span class="lineno"> 1021 </span>
+<span class="lineno"> 1022 </span>However, on all architectures of interest (essentially, 64-bit Tier 1),
+<span class="lineno"> 1023 </span>general-purpose registers (GPRs henceforth) are 64 bits (or 8 bytes).
+<span class="lineno"> 1024 </span>Furthermore, the primary cost of moving data between memory and registers is
+<span class="lineno"> 1025 </span>having to overcome the 'memory wall': the exact amount of data being moved
+<span class="lineno"> 1026 </span>doesn't affect this very much. In addition to this, when we operate on single
+<span class="lineno"> 1027 </span>bytes, the remaining 56 bits of the GPR holding that data are essentially
+<span class="lineno"> 1028 </span>'wasted'. In the situation we have (namely, operating over arrays, whose data
+<span class="lineno"> 1029 </span>is adjacent in memory), we thus get two sources of inefficiency:
+<span class="lineno"> 1030 </span>
+<span class="lineno"> 1031 </span>\* Despite paying the cost for a memory transfer, we transfer only one-eighth
+<span class="lineno"> 1032 </span>  the data we could; and
+<span class="lineno"> 1033 </span>\* Despite transferring data from memory to registers, we utilize the register
+<span class="lineno"> 1034 </span>  at only one-eighth capacity.
+<span class="lineno"> 1035 </span>
+<span class="lineno"> 1036 </span>This essentially means we perform _eight times_ more rotations of the loop,
+<span class="lineno"> 1037 </span>and memory moves, than we need to!
+<span class="lineno"> 1038 </span>
+<span class="lineno"> 1039 </span>To avoid this, we use a technique known as _loop sectioning_.
+<span class="lineno"> 1040 </span>Effectively, this transforms our homogenous loop (that always operates one byte at
+<span class="lineno"> 1041 </span>a time) into a heterogenous loop: first, we operate on a larger section (called
+<span class="lineno"> 1042 </span>a _stride_) until we can no longer do this, and then we finish up using byte
+<span class="lineno"> 1043 </span>at a time processing. Essentially, when given an input like this:
+<span class="lineno"> 1044 </span>
+<span class="lineno"> 1045 </span>[ b1, b2, b3, b4, b5, b6, b7, b8, b9, b10 ]
+<span class="lineno"> 1046 </span>
+<span class="lineno"> 1047 </span>the homogeous byte-at-a-time approach would process it like so:
+<span class="lineno"> 1048 </span>
+<span class="lineno"> 1049 </span>  _   _   _   _   _   _   _   _   _   _
+<span class="lineno"> 1050 </span>[ b1, b2, b3, b4, b5, b6, b7, b8, b9, b10 ]
+<span class="lineno"> 1051 </span>
+<span class="lineno"> 1052 </span>for a total of 10 memory transfers and 10 loop spins, whereas a loop-sectioned
+<span class="lineno"> 1053 </span>approach with a stride of 8 would instead process like so:
+<span class="lineno"> 1054 </span>
+<span class="lineno"> 1055 </span>  ______________________________  _   _
+<span class="lineno"> 1056 </span>[ b1, b2, b3, b4, b5, b6, b7, b8, b9, b10 ]
+<span class="lineno"> 1057 </span>
+<span class="lineno"> 1058 </span>Giving us only _three_ memory transfers and _three_ loop spins instead. This
+<span class="lineno"> 1059 </span>effectively reduces our work by a factor of 8. In our cases, this is almost
+<span class="lineno"> 1060 </span>free, as there is no data processing to be done: all we need to do is copy
+<span class="lineno"> 1061 </span>from one place to another, essentially.
+<span class="lineno"> 1062 </span>
+<span class="lineno"> 1063 </span>This technique only benefits us because counted arrays are cache-friendly: see
+<span class="lineno"> 1064 </span>Note [Superscalarity and caching] for a longer explanation of this and why it
+<span class="lineno"> 1065 </span>matters.
+<span class="lineno"> 1066 </span>
+<span class="lineno"> 1067 </span>Further information:
+<span class="lineno"> 1068 </span>
+<span class="lineno"> 1069 </span>- Tier 1 GHC platform list:
+<span class="lineno"> 1070 </span>    https://gitlab.haskell.org/ghc/ghc/-/wikis/platforms#tier-1-platforms
+<span class="lineno"> 1071 </span>- Memory wall:
+<span class="lineno"> 1072 </span>    https://link.springer.com/referenceworkentry/10.1007/978-0-387-09766-4_234
+<span class="lineno"> 1073 </span>- Loop sectioning in more detail:
+<span class="lineno"> 1074 </span>    http://physics.ujep.cz/~zmoravec/prga/main_for/mergedProjects/optaps_for/common/optaps_vec_mine.htm
+<span class="lineno"> 1075 </span>-}
+<span class="lineno"> 1076 </span>
+<span class="lineno"> 1077 </span>{- Note [Superscalarity and caching]
+<span class="lineno"> 1078 </span>On modern architectures, in order to process data, it must first be moved from
+<span class="lineno"> 1079 </span>memory into a register. This operation has some cost (known as the 'memory wall'),
+<span class="lineno"> 1080 </span>which is largely independent of how much data gets moved (assuming the register
+<span class="lineno"> 1081 </span>can hold it): moving one byte, or a whole register's worth, costs about the same.
+<span class="lineno"> 1082 </span>To reduce this cost, CPU manufacturers have introduced _cache hierarchies_,
+<span class="lineno"> 1083 </span>which are designed to limit the cost of the wall, as long as the data access
+<span class="lineno"> 1084 </span>matches the cache's optimal usage pattern. Thus, while an idealized view of
+<span class="lineno"> 1085 </span>the memory hierachy is this:
+<span class="lineno"> 1086 </span>
+<span class="lineno"> 1087 </span>Registers
+<span class="lineno"> 1088 </span>---------
+<span class="lineno"> 1089 </span>Memory
+<span class="lineno"> 1090 </span>
+<span class="lineno"> 1091 </span>in reality, the view is more like this:
+<span class="lineno"> 1092 </span>
+<span class="lineno"> 1093 </span>Registers
+<span class="lineno"> 1094 </span>---------
+<span class="lineno"> 1095 </span>L1 cache
+<span class="lineno"> 1096 </span>---------
+<span class="lineno"> 1097 </span>L2 cache
+<span class="lineno"> 1098 </span>---------
+<span class="lineno"> 1099 </span>L3 cache (on some platforms)
+<span class="lineno"> 1100 </span>---------
+<span class="lineno"> 1101 </span>Memory
+<span class="lineno"> 1102 </span>
+<span class="lineno"> 1103 </span>Each 'higher' cache in the hierarchy is smaller, but faster, and when a memory
+<span class="lineno"> 1104 </span>fetch is requested in code, in addition to moving the requested data to a
+<span class="lineno"> 1105 </span>register, that data (plus some more) is moved into caches as well. The amount
+<span class="lineno"> 1106 </span>of data moved into cache (a _cache line_) is typically eight machine words on
+<span class="lineno"> 1107 </span>modern architectures (and definitely is the case for all Tier 1 GHC platforms):
+<span class="lineno"> 1108 </span>for the cases concerning Plutus, that is 64 bytes. Therefore, if data we need
+<span class="lineno"> 1109 </span>soon after a fetch is _physically_ nearby, it won't need to be fetched from
+<span class="lineno"> 1110 </span>memory: instead, it would come from a cache, which is faster (by a considerable
+<span class="lineno"> 1111 </span>margin).
+<span class="lineno"> 1112 </span>
+<span class="lineno"> 1113 </span>To see how this can matter, consider the following ByteString:
+<span class="lineno"> 1114 </span>
+<span class="lineno"> 1115 </span>[ b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11 ]
+<span class="lineno"> 1116 </span>
+<span class="lineno"> 1117 </span>The ByteString (being a counted array) has all of its data physically adjacent
+<span class="lineno"> 1118 </span>to each other. Suppose we wanted to fetch the byte at index 1 (second position).
+<span class="lineno"> 1119 </span>The naive view of what happens is like this:
+<span class="lineno"> 1120 </span>
+<span class="lineno"> 1121 </span>Registers: [b2] [ ] [ ] .... [ ]
+<span class="lineno"> 1122 </span>Memory: [ b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11 ]
+<span class="lineno"> 1123 </span>
+<span class="lineno"> 1124 </span>Thus, it would appear that, if we wanted a different position's value, we would
+<span class="lineno"> 1125 </span>need to fetch from memory again. However, what _actually_ happens is more like this:
+<span class="lineno"> 1126 </span>
+<span class="lineno"> 1127 </span>Registers: [b2] [ ] [ ] .... [ ]
+<span class="lineno"> 1128 </span>L1 cache: [ b2, b3, b4, b5, b6, b7, b8, b9, b10, b11 ]
+<span class="lineno"> 1129 </span>Memory: [ b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11 ]
+<span class="lineno"> 1130 </span>
+<span class="lineno"> 1131 </span>We note that b2, as well as its adjacent elements, were _all_ pulled into the L1
+<span class="lineno"> 1132 </span>cache. This can only work because all these elements are physically adjacent in
+<span class="lineno"> 1133 </span>memory. The improvement in performance from this cache use is _very_ non-trivial:
+<span class="lineno"> 1134 </span>an L1 cache is about 200 times faster than a memory access, and an L2 cache about
+<span class="lineno"> 1135 </span>20 times faster.
+<span class="lineno"> 1136 </span>
+<span class="lineno"> 1137 </span>To take further advantage of this, modern CPUs (and all Tier 1 GHC platforms have
+<span class="lineno"> 1138 </span>this capability) are _superscalar_. To explain what this means, let's consider the
+<span class="lineno"> 1139 </span>naive view of how CPUs execute instructions: namely, it is one-at-a-time, and
+<span class="lineno"> 1140 </span>synchronous. While CPUs must give the _appearance_ that they behave this way, in
+<span class="lineno"> 1141 </span>practice, CPU execution is very much asynchronous: due to the proliferation of ALUs
+<span class="lineno"> 1142 </span>on a single chip, having twice as many processing units is much cheaper than having
+<span class="lineno"> 1143 </span>processing units run twice as fast. Thus, if there are no data dependencies
+<span class="lineno"> 1144 </span>between instructions, CPUs can (and do!) execute them simultaneously, stalling to
+<span class="lineno"> 1145 </span>await results if a data dependency is detected. This can be done automatically
+<span class="lineno"> 1146 </span>using Tomasulo's algorithm, which ensures no conflicts with maximum throughput.
+<span class="lineno"> 1147 </span>
+<span class="lineno"> 1148 </span>Superscalarity interacts well with the cache hierarchy, as it makes data more
+<span class="lineno"> 1149 </span>easily available for processing, provided there is enough 'work to do', and no
+<span class="lineno"> 1150 </span>data dependencies. In our situation, most of what we do is data _movement_ from
+<span class="lineno"> 1151 </span>one memory location to another, which by its very nature lacks any data
+<span class="lineno"> 1152 </span>dependencies.
+<span class="lineno"> 1153 </span>
+<span class="lineno"> 1154 </span>Further references:
+<span class="lineno"> 1155 </span>
+<span class="lineno"> 1156 </span>- Numbers for cache and memory transfers: https://gist.github.com/jboner/2841832
+<span class="lineno"> 1157 </span>- Superscalarity: https://en.wikipedia.org/wiki/Superscalar_processor
+<span class="lineno"> 1158 </span>- Tomasulo's algorithm: https://en.wikipedia.org/wiki/Tomasulo%27s_algorithm
+<span class="lineno"> 1159 </span>-}
+
+</pre>
+</body>
+</html>

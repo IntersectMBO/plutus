@@ -1,0 +1,804 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Test.DeBruijn.Bad</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Test.DeBruijn.Bad</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:var0"
+	      >var0</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:lamAbs1"
+	      >lamAbs1</a
+	      > &#8759; t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > uni fun () &#8658; t &#8594; t</li
+	    ><li class="src short"
+	    ><a href="#v:fun0var0"
+	      >fun0var0</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:fun1var0"
+	      >fun1var0</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:fun1var1"
+	      >fun1var1</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:deepFun1"
+	      >deepFun1</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:deepOut0"
+	      >deepOut0</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:deepMix0_1"
+	      >deepMix0_1</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:deepMix1_0"
+	      >deepMix1_0</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:deepOutMix1_0"
+	      >deepOutMix1_0</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	      >Natural</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:manyFree01"
+	      >manyFree01</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:iteStrict0"
+	      >iteStrict0</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:iteLazy0"
+	      >iteLazy0</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:ite10"
+	      >ite10</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:illITEStrict"
+	      >illITEStrict</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:illITELazy"
+	      >illITELazy</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:illPartialBuiltin"
+	      >illPartialBuiltin</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:illAdd"
+	      >illAdd</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:illOverAppBuiltin"
+	      >illOverAppBuiltin</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:illOverAppFun"
+	      >illOverAppFun</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:var0" class="def"
+	    >var0</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > uni fun () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#var0" class="link"
+	    >Source</a
+	    > <a href="#v:var0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A definitely out-of-scope variable. Our variables start at index 1.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lamAbs1" class="def"
+	    >lamAbs1</a
+	    > &#8759; t <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > uni fun () &#8658; t &#8594; t <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#lamAbs1" class="link"
+	    >Source</a
+	    > <a href="#v:lamAbs1" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Build a <code
+	      ><a href="../plutus-core/UntypedPlutusCore-Core-Type.html#v:LamAbs" title="UntypedPlutusCore.Core.Type"
+		>LamAbs</a
+		></code
+	      > with the binder having a non-sensical index.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fun0var0" class="def"
+	    >fun0var0</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun0var0" class="link"
+	    >Source</a
+	    > <a href="#v:fun0var0" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fun1var0" class="def"
+	    >fun1var0</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun1var0" class="link"
+	    >Source</a
+	    > <a href="#v:fun1var0" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fun1var1" class="def"
+	    >fun1var1</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun1var1" class="link"
+	    >Source</a
+	    > <a href="#v:fun1var1" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deepFun1" class="def"
+	    >deepFun1</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#deepFun1" class="link"
+	    >Source</a
+	    > <a href="#v:deepFun1" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(lam1 ...n.... (Var n))
+Wrong binders, Well-scoped variable </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deepOut0" class="def"
+	    >deepOut0</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#deepOut0" class="link"
+	    >Source</a
+	    > <a href="#v:deepOut0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(lam0 ...n.... (Var n+1))
+Correct binders, Out-of-scope variable </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deepMix0_1" class="def"
+	    >deepMix0_1</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#deepMix0_1" class="link"
+	    >Source</a
+	    > <a href="#v:deepMix0_1" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(lam0 ...n.... lam1 ...n.... (Var n+n))
+Mix of correct and wrong binders, Well-scoped variable </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deepMix1_0" class="def"
+	    >deepMix1_0</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#deepMix1_0" class="link"
+	    >Source</a
+	    > <a href="#v:deepMix1_0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(lam1 ...n.... lam0 ...n.... (Var n+n))
+Mix of wrong and correct binders, well-scoped variable </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deepOutMix1_0" class="def"
+	    >deepOutMix1_0</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Numeric-Natural.html#t:Natural" title="Numeric.Natural"
+	    >Natural</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#deepOutMix1_0" class="link"
+	    >Source</a
+	    > <a href="#v:deepOutMix1_0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >(lam1 ...n.... lam0 ...n.... (Var n+n+1))
+Mix of correct and wrong binders, out-of-scope variable </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:manyFree01" class="def"
+	    >manyFree01</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#manyFree01" class="link"
+	    >Source</a
+	    > <a href="#v:manyFree01" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An example with a lot of free vars</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iteStrict0" class="def"
+	    >iteStrict0</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#iteStrict0" class="link"
+	    >Source</a
+	    > <a href="#v:iteStrict0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(force (builtin ifThenElse) (con bool True) (con bool True) var99</dt
+	      ><dd
+	      >Both branches are evaluated *before* the predicate,
+so it is clear that this should fail in every case. </dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iteLazy0" class="def"
+	    >iteLazy0</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#iteLazy0" class="link"
+	    >Source</a
+	    > <a href="#v:iteLazy0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(force (builtin ifThenElse) (con bool True) (delay true) (delay var99)</dt
+	      ><dd
+	      >The branches are *lazy*. The evaluation result (success or failure) depends on how the machine
+ignores  the irrelevant to the computation) part of the environment. </dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ite10" class="def"
+	    >ite10</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#ite10" class="link"
+	    >Source</a
+	    > <a href="#v:ite10" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(force (builtin ifThenElse) (con bool True) (lam0 var1) (lam1 var0)</dt
+	      ><dd
+	      ></dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:illITEStrict" class="def"
+	    >illITEStrict</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illITEStrict" class="link"
+	    >Source</a
+	    > <a href="#v:illITEStrict" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(force (builtin ifThenElse) (con bool True) (con bool  True) (con unit ())</dt
+	      ><dd
+	      >Note that the branches have **different** types. The machine cannot catch such a type error. </dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:illITELazy" class="def"
+	    >illITELazy</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illITELazy" class="link"
+	    >Source</a
+	    > <a href="#v:illITELazy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(force (builtin ifThenElse) (con bool True) (lam x (con bool  True)) (lam x (con unit ()))</dt
+	      ><dd
+	      >The branches are *lazy*. Note that the branches have **different** types.
+The machine cannot catch such a type error. </dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:illPartialBuiltin" class="def"
+	    >illPartialBuiltin</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illPartialBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:illPartialBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >addInteger true</dt
+	      ><dd
+	      >this relates to the immediate vs deferred unlifting.
+this used to be an immediate type error but now it is deferred until saturation. </dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:illAdd" class="def"
+	    >illAdd</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illAdd" class="link"
+	    >Source</a
+	    > <a href="#v:illAdd" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(builtin addInteger) (con integer 1) (con unit ())</dt
+	      ><dd
+	      >Interesting because it involves a runtime type-error of a builtin. </dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:illOverAppBuiltin" class="def"
+	    >illOverAppBuiltin</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illOverAppBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:illOverAppBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(builtin addInteger) (con integer 1) (con integer 1) (con integer 1)</dt
+	      ><dd
+	      >Interesting because it involves a (builtin) over-saturation type-error,
+which the machine can recognize. </dd
+	      ></dl
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:illOverAppFun" class="def"
+	    >illOverAppFun</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illOverAppFun" class="link"
+	    >Source</a
+	    > <a href="#v:illOverAppFun" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><dl
+	    ><dt
+	      >(lam x x) (con integer 1) (con integer 1)</dt
+	      ><dd
+	      >Interesting because it involves a (lambda) over-saturation type-error,
+which the machine can recognize. </dd
+	      ></dl
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

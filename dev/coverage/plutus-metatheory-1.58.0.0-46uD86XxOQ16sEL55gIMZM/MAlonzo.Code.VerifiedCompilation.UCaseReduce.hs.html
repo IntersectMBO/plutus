@@ -1,0 +1,371 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.VerifiedCompilation.UCaseReduce where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.Equality
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Agda.Builtin.List
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Agda.Builtin.Maybe
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Builtin
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Data.Fin.Base
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.Data.Irrelevant
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.Data.List.Base
+<span class="lineno">   27 </span>import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+<span class="lineno">   28 </span>import qualified MAlonzo.Code.Relation.Nullary.Reflects
+<span class="lineno">   29 </span>import qualified MAlonzo.Code.Untyped
+<span class="lineno">   30 </span>import qualified MAlonzo.Code.Untyped.CEK
+<span class="lineno">   31 </span>import qualified MAlonzo.Code.Untyped.Reduction
+<span class="lineno">   32 </span>import qualified MAlonzo.Code.VerifiedCompilation.Certificate
+<span class="lineno">   33 </span>import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
+<span class="lineno">   34 </span>import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>-- VerifiedCompilation.UCaseReduce.CaseReduce
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">d_CaseReduce_4 a0 a1 a2 = ()</span></span>
+<span class="lineno">   38 </span>data T_CaseReduce_4
+<span class="lineno">   39 </span>  = C_casereduce_18 MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">   40 </span>                    MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
+<span class="lineno">   41 </span>-- VerifiedCompilation.UCaseReduce.isCaseReduce?
+<span class="lineno">   42 </span>d_isCaseReduce'63'_26 ::
+<span class="lineno">   43 </span>  Integer -&gt;
+<span class="lineno">   44 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">   45 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">   46 </span>  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_86
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">d_isCaseReduce'63'_26 v0</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.VerifiedCompilation.Certificate.C_caseReduceT_14)</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_isCR'63'_42)</span></span>
+<span class="lineno">   53 </span>-- VerifiedCompilation.UCaseReduce.justEq
+<span class="lineno">   54 </span>d_justEq_34 ::
+<span class="lineno">   55 </span>  () -&gt;
+<span class="lineno">   56 </span>  AgdaAny -&gt;
+<span class="lineno">   57 </span>  AgdaAny -&gt;
+<span class="lineno">   58 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   59 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">d_justEq_34 = erased</span></span>
+<span class="lineno">   61 </span>-- VerifiedCompilation.UCaseReduce.isCR?
+<span class="lineno">   62 </span>d_isCR'63'_42 ::
+<span class="lineno">   63 </span>  Integer -&gt;
+<span class="lineno">   64 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">   65 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">   66 </span>  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_86
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">d_isCR'63'_42 v0 v1 v2</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">= let v3</span>
+<span class="lineno">   69 </span><span class="spaces">          </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   70 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isCase'63'_598</span>
+<span class="lineno">   71 </span><span class="spaces">              </span><span class="nottickedoff">(coe v0)</span>
+<span class="lineno">   72 </span><span class="spaces">              </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   73 </span><span class="spaces">                 </span><span class="nottickedoff">(\ v3 -&gt;</span>
+<span class="lineno">   74 </span><span class="spaces">                    </span><span class="nottickedoff">coe</span>
+<span class="lineno">   75 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_496</span>
+<span class="lineno">   76 </span><span class="spaces">                      </span><span class="nottickedoff">(coe v3)</span>
+<span class="lineno">   77 </span><span class="spaces">                      </span><span class="nottickedoff">(\ v4 v5 -&gt;</span>
+<span class="lineno">   78 </span><span class="spaces">                         </span><span class="nottickedoff">coe</span>
+<span class="lineno">   79 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)))</span>
+<span class="lineno">   80 </span><span class="spaces">              </span><span class="nottickedoff">(\ v3 v4 -&gt;</span>
+<span class="lineno">   81 </span><span class="spaces">                 </span><span class="nottickedoff">coe</span>
+<span class="lineno">   82 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)</span>
+<span class="lineno">   83 </span><span class="spaces">              </span><span class="nottickedoff">(coe v1) in</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">(case coe v3 of</span>
+<span class="lineno">   86 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v4 v5</span>
+<span class="lineno">   87 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; if coe v4</span>
+<span class="lineno">   88 </span><span class="spaces">                </span><span class="nottickedoff">then case coe v5 of</span>
+<span class="lineno">   89 </span><span class="spaces">                       </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v6</span>
+<span class="lineno">   90 </span><span class="spaces">                         </span><span class="nottickedoff">-&gt; case coe v6 of</span>
+<span class="lineno">   91 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.UntypedViews.C_iscase_586 v9 v10</span>
+<span class="lineno">   92 </span><span class="spaces">                                </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">   93 </span><span class="spaces">                                     </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_case_40 v11 v12</span>
+<span class="lineno">   94 </span><span class="spaces">                                       </span><span class="nottickedoff">-&gt; case coe v9 of</span>
+<span class="lineno">   95 </span><span class="spaces">                                            </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_488 v15</span>
+<span class="lineno">   96 </span><span class="spaces">                                              </span><span class="nottickedoff">-&gt; case coe v11 of</span>
+<span class="lineno">   97 </span><span class="spaces">                                                   </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_constr_34 v16 v17</span>
+<span class="lineno">   98 </span><span class="spaces">                                                     </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   99 </span><span class="spaces">                                                          </span><span class="nottickedoff">seq (coe v15)</span>
+<span class="lineno">  100 </span><span class="spaces">                                                          </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  101 </span><span class="spaces">                                                             </span><span class="nottickedoff">seq (coe v10)</span>
+<span class="lineno">  102 </span><span class="spaces">                                                             </span><span class="nottickedoff">(let v18</span>
+<span class="lineno">  103 </span><span class="spaces">                                                                    </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  104 </span><span class="spaces">                                                                        </span><span class="nottickedoff">MAlonzo.Code.Untyped.CEK.du_lookup'63'_996</span>
+<span class="lineno">  105 </span><span class="spaces">                                                                        </span><span class="nottickedoff">(coe v16) (coe v12) in</span>
+<span class="lineno">  106 </span><span class="spaces">                                                              </span><span class="nottickedoff">coe</span>
+<span class="lineno">  107 </span><span class="spaces">                                                                </span><span class="nottickedoff">(case coe v18 of</span>
+<span class="lineno">  108 </span><span class="spaces">                                                                   </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v19</span>
+<span class="lineno">  109 </span><span class="spaces">                                                                     </span><span class="nottickedoff">-&gt; let v20</span>
+<span class="lineno">  110 </span><span class="spaces">                                                                              </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  111 </span><span class="spaces">                                                                                  </span><span class="nottickedoff">d_isCaseReduce'63'_26</span>
+<span class="lineno">  112 </span><span class="spaces">                                                                                  </span><span class="nottickedoff">v0</span>
+<span class="lineno">  113 </span><span class="spaces">                                                                                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  114 </span><span class="spaces">                                                                                     </span><span class="nottickedoff">MAlonzo.Code.Untyped.Reduction.du_iterApp_242</span>
+<span class="lineno">  115 </span><span class="spaces">                                                                                     </span><span class="nottickedoff">(coe v19)</span>
+<span class="lineno">  116 </span><span class="spaces">                                                                                     </span><span class="nottickedoff">(coe v17))</span>
+<span class="lineno">  117 </span><span class="spaces">                                                                                  </span><span class="nottickedoff">v2 in</span>
+<span class="lineno">  118 </span><span class="spaces">                                                                        </span><span class="nottickedoff">coe</span>
+<span class="lineno">  119 </span><span class="spaces">                                                                          </span><span class="nottickedoff">(case coe v20 of</span>
+<span class="lineno">  120 </span><span class="spaces">                                                                             </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_92 v21</span>
+<span class="lineno">  121 </span><span class="spaces">                                                                               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  122 </span><span class="spaces">                                                                                    </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_92</span>
+<span class="lineno">  123 </span><span class="spaces">                                                                                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  124 </span><span class="spaces">                                                                                       </span><span class="nottickedoff">C_casereduce_18</span>
+<span class="lineno">  125 </span><span class="spaces">                                                                                       </span><span class="nottickedoff">v19 v21)</span>
+<span class="lineno">  126 </span><span class="spaces">                                                                             </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_100 v24 v25 v26</span>
+<span class="lineno">  127 </span><span class="spaces">                                                                               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  128 </span><span class="spaces">                                                                                    </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_100</span>
+<span class="lineno">  129 </span><span class="spaces">                                                                                    </span><span class="nottickedoff">v24 v25 v26</span>
+<span class="lineno">  130 </span><span class="spaces">                                                                             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError)</span>
+<span class="lineno">  131 </span><span class="spaces">                                                                   </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">  132 </span><span class="spaces">                                                                     </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  133 </span><span class="spaces">                                                                          </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_100</span>
+<span class="lineno">  134 </span><span class="spaces">                                                                          </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  135 </span><span class="spaces">                                                                             </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.Certificate.C_caseReduceT_14)</span>
+<span class="lineno">  136 </span><span class="spaces">                                                                          </span><span class="nottickedoff">v1 v2</span>
+<span class="lineno">  137 </span><span class="spaces">                                                                   </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError)))</span>
+<span class="lineno">  138 </span><span class="spaces">                                                   </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  139 </span><span class="spaces">                                            </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  140 </span><span class="spaces">                                     </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  141 </span><span class="spaces">                              </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  142 </span><span class="spaces">                       </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  143 </span><span class="spaces">                </span><span class="nottickedoff">else coe</span>
+<span class="lineno">  144 </span><span class="spaces">                       </span><span class="nottickedoff">seq (coe v5)</span>
+<span class="lineno">  145 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  146 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_100</span>
+<span class="lineno">  147 </span><span class="spaces">                          </span><span class="nottickedoff">(coe MAlonzo.Code.VerifiedCompilation.Certificate.C_caseReduceT_14)</span>
+<span class="lineno">  148 </span><span class="spaces">                          </span><span class="nottickedoff">v1 v2)</span>
+<span class="lineno">  149 </span><span class="spaces">         </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError)</span></span>
+<span class="lineno">  150 </span>-- VerifiedCompilation.UCaseReduce..extendedlambda0
+<span class="lineno">  151 </span>d_'46'extendedlambda0_58 ::
+<span class="lineno">  152 </span>  Integer -&gt;
+<span class="lineno">  153 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  154 </span>  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isCase_574 -&gt;
+<span class="lineno">  155 </span>   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  156 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  157 </span>  T_CaseReduce_4 -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">d_'46'extendedlambda0_58 = erased</span></span>
+<span class="lineno">  159 </span>-- VerifiedCompilation.UCaseReduce..extendedlambda1
+<span class="lineno">  160 </span>d_'46'extendedlambda1_86 ::
+<span class="lineno">  161 </span>  Integer -&gt;
+<span class="lineno">  162 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  163 </span>  Integer -&gt;
+<span class="lineno">  164 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  165 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  166 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  167 </span>  T_CaseReduce_4 -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+<span class="lineno">  168 </span><span class="decl"><span class="nottickedoff">d_'46'extendedlambda1_86 = erased</span></span>
+<span class="lineno">  169 </span>-- VerifiedCompilation.UCaseReduce..extendedlambda2
+<span class="lineno">  170 </span>d_'46'extendedlambda2_90 ::
+<span class="lineno">  171 </span>  Integer -&gt;
+<span class="lineno">  172 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  173 </span>  Integer -&gt;
+<span class="lineno">  174 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  175 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  176 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  177 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  178 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  179 </span>  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 -&gt;
+<span class="lineno">  180 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  181 </span>  MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+<span class="lineno">  182 </span><span class="decl"><span class="nottickedoff">d_'46'extendedlambda2_90 = erased</span></span>
+<span class="lineno">  183 </span>-- VerifiedCompilation.UCaseReduce..extendedlambda3
+<span class="lineno">  184 </span>d_'46'extendedlambda3_142 ::
+<span class="lineno">  185 </span>  Integer -&gt;
+<span class="lineno">  186 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  187 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  188 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  189 </span>  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 -&gt;
+<span class="lineno">  190 </span>   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  191 </span>  () -&gt;
+<span class="lineno">  192 </span>  () -&gt;
+<span class="lineno">  193 </span>  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 -&gt;
+<span class="lineno">  194 </span>  AgdaAny -&gt;
+<span class="lineno">  195 </span>  AgdaAny -&gt;
+<span class="lineno">  196 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  197 </span>  Integer -&gt;
+<span class="lineno">  198 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  199 </span>  T_CaseReduce_4 -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+<span class="lineno">  200 </span><span class="decl"><span class="nottickedoff">d_'46'extendedlambda3_142 = erased</span></span>
+<span class="lineno">  201 </span>-- VerifiedCompilation.UCaseReduce.UCaseReduce
+<span class="lineno">  202 </span>d_UCaseReduce_150 ::
+<span class="lineno">  203 </span>  Integer -&gt;
+<span class="lineno">  204 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  205 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt; ()
+<span class="lineno">  206 </span><span class="decl"><span class="nottickedoff">d_UCaseReduce_150 = erased</span></span>
+<span class="lineno">  207 </span>-- VerifiedCompilation.UCaseReduce.ast₁
+<span class="lineno">  208 </span>d_ast'8321'_152 :: MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  209 </span><span class="decl"><span class="nottickedoff">d_ast'8321'_152</span>
+<span class="lineno">  210 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  211 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_case_40</span>
+<span class="lineno">  212 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  213 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))</span>
+<span class="lineno">  214 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  215 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_'91'_'93'_286</span>
+<span class="lineno">  216 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  217 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (99 :: Integer)))))</span>
+<span class="lineno">  218 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  219 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_'91'_'93'_286</span>
+<span class="lineno">  220 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  221 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  222 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))</span></span>
+<span class="lineno">  223 </span>-- VerifiedCompilation.UCaseReduce.ast₁'
+<span class="lineno">  224 </span>d_ast'8321'''_154 :: MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  225 </span><span class="decl"><span class="nottickedoff">d_ast'8321'''_154</span>
+<span class="lineno">  226 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  227 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  228 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  229 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  230 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12))</span>
+<span class="lineno">  231 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  232 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (99 :: Integer)))</span></span>
+<span class="lineno">  233 </span>-- VerifiedCompilation.UCaseReduce.ast
+<span class="lineno">  234 </span>d_ast_158 :: MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  235 </span><span class="decl"><span class="nottickedoff">d_ast_158</span>
+<span class="lineno">  236 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  237 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_case_40</span>
+<span class="lineno">  238 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  239 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_constr_34 (coe (1 :: Integer))</span>
+<span class="lineno">  240 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  241 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  242 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  243 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (12 :: Integer)))</span>
+<span class="lineno">  244 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  245 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  246 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  247 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (42 :: Integer)))</span>
+<span class="lineno">  248 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))))</span>
+<span class="lineno">  249 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  250 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  251 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  252 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  253 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  254 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  255 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  256 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  257 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  258 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16</span>
+<span class="lineno">  259 </span><span class="spaces">                     </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))))</span>
+<span class="lineno">  260 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  261 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  262 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  263 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  264 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  265 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  266 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  267 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_case_40</span>
+<span class="lineno">  268 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  269 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))</span>
+<span class="lineno">  270 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  271 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_'91'_'93'_286</span>
+<span class="lineno">  272 </span><span class="spaces">                           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  273 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (99 :: Integer)))))</span>
+<span class="lineno">  274 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  275 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_'91'_'93'_286</span>
+<span class="lineno">  276 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  277 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  278 </span><span class="spaces">                           </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))))</span>
+<span class="lineno">  279 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))</span></span>
+<span class="lineno">  280 </span>-- VerifiedCompilation.UCaseReduce.ast'
+<span class="lineno">  281 </span>d_ast''_160 :: MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  282 </span><span class="decl"><span class="nottickedoff">d_ast''_160</span>
+<span class="lineno">  283 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  284 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  285 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  286 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (42 :: Integer)))</span>
+<span class="lineno">  287 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  288 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (99 :: Integer)))</span></span>
+<span class="lineno">  289 </span>-- VerifiedCompilation.UCaseReduce.ex1
+<span class="lineno">  290 </span>d_ex1_162 :: MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  291 </span><span class="decl"><span class="nottickedoff">d_ex1_162</span>
+<span class="lineno">  292 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  293 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  294 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  295 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  296 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  297 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  298 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  299 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  300 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  301 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  302 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  303 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  304 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  305 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_builtin_44</span>
+<span class="lineno">  306 </span><span class="spaces">                        </span><span class="nottickedoff">(coe MAlonzo.Code.Builtin.C_subtractInteger_6))</span>
+<span class="lineno">  307 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  308 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  309 </span><span class="spaces">                        </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))</span>
+<span class="lineno">  310 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  311 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  312 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  313 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16</span>
+<span class="lineno">  314 </span><span class="spaces">                        </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))))</span>
+<span class="lineno">  315 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  316 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (2 :: Integer))))</span>
+<span class="lineno">  317 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  318 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (3 :: Integer)))</span></span>
+<span class="lineno">  319 </span>-- VerifiedCompilation.UCaseReduce.ex2
+<span class="lineno">  320 </span>d_ex2_164 :: MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  321 </span><span class="decl"><span class="nottickedoff">d_ex2_164</span>
+<span class="lineno">  322 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  323 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  324 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  325 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  326 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  327 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  328 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  329 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  330 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  331 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  332 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  333 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  334 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  335 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_builtin_44</span>
+<span class="lineno">  336 </span><span class="spaces">                        </span><span class="nottickedoff">(coe MAlonzo.Code.Builtin.C_subtractInteger_6))</span>
+<span class="lineno">  337 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  338 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  339 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  340 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16</span>
+<span class="lineno">  341 </span><span class="spaces">                           </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))</span>
+<span class="lineno">  342 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  343 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  344 </span><span class="spaces">                     </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))))</span>
+<span class="lineno">  345 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  346 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (3 :: Integer))))</span>
+<span class="lineno">  347 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  348 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Untyped.du_con'45'integer_330 (coe (2 :: Integer)))</span></span>
+
+</pre>
+</body>
+</html>

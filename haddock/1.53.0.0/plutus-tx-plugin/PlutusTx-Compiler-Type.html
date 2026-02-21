@@ -1,0 +1,363 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Compiler.Type</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.53.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Compiler.Type.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Compiler.Type</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
+matchers, and pattern match alternatives.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:compileTypeNorm"
+	      >compileTypeNorm</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	      >Type</a
+	      > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><a href="#v:compileType"
+	      >compileType</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	      >Type</a
+	      > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	      >PIRType</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><a href="#v:compileKind"
+	      >compileKind</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Kind" title="GHC.Core.Type"
+	      >Kind</a
+	      > &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:getDataCons"
+	      >getDataCons</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	      >Compiling</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      > &#8594; m [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-DataCon.html#t:DataCon" title="GHC.Core.DataCon"
+	      >DataCon</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:getConstructors"
+	      >getConstructors</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      > &#8594; m [<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	      >PIRTerm</a
+	      > uni fun]</li
+	    ><li class="src short"
+	    ><a href="#v:getMatch"
+	      >getMatch</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	      >TyCon</a
+	      > &#8594; m (<a href="../plutus-core/PlutusIR-Compiler-Definitions.html#t:ManualMatcher" title="PlutusIR.Compiler.Definitions"
+	      >ManualMatcher</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:getMatchInstantiated"
+	      >getMatchInstantiated</a
+	      > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	      >CompilingDefault</a
+	      > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	      >Type</a
+	      > &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; [<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      >] &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      >)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileTypeNorm" class="def"
+	    >compileTypeNorm</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	    >Type</a
+	    > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Type.html#compileTypeNorm" class="link"
+	    >Source</a
+	    > <a href="#v:compileTypeNorm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compile a type, first of all normalizing it to remove type family redexes.</p
+	    ><p
+	    >Generally, we need to call this whenever we are compiling a &quot;new&quot; type from the program.
+If we are compiling a part of a type we are already processing then it has likely been
+normalized and we can just use <code
+	      ><a href="PlutusTx-Compiler-Type.html#v:compileType" title="PlutusTx.Compiler.Type"
+		>compileType</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileType" class="def"
+	    >compileType</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	    >Type</a
+	    > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRType" title="PlutusTx.PIRTypes"
+	    >PIRType</a
+	    > uni) <a href="src/PlutusTx.Compiler.Type.html#compileType" class="link"
+	    >Source</a
+	    > <a href="#v:compileType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compile a type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileKind" class="def"
+	    >compileKind</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Kind" title="GHC.Core.Type"
+	    >Kind</a
+	    > &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ()) <a href="src/PlutusTx.Compiler.Kind.html#compileKind" class="link"
+	    >Source</a
+	    > <a href="#v:compileKind" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getDataCons" class="def"
+	    >getDataCons</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Compiling" title="PlutusTx.Compiler.Types"
+	    >Compiling</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > &#8594; m [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-DataCon.html#t:DataCon" title="GHC.Core.DataCon"
+	    >DataCon</a
+	    >] <a href="src/PlutusTx.Compiler.Type.html#getDataCons" class="link"
+	    >Source</a
+	    > <a href="#v:getDataCons" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getConstructors" class="def"
+	    >getConstructors</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > &#8594; m [<a href="PlutusTx-PIRTypes.html#t:PIRTerm" title="PlutusTx.PIRTypes"
+	    >PIRTerm</a
+	    > uni fun] <a href="src/PlutusTx.Compiler.Type.html#getConstructors" class="link"
+	    >Source</a
+	    > <a href="#v:getConstructors" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the constructors of the given <code
+	      >TyCon</code
+	      > as PLC terms.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getMatch" class="def"
+	    >getMatch</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-TyCon.html#t:TyCon" title="GHC.Core.TyCon"
+	    >TyCon</a
+	    > &#8594; m (<a href="../plutus-core/PlutusIR-Compiler-Definitions.html#t:ManualMatcher" title="PlutusIR.Compiler.Definitions"
+	    >ManualMatcher</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    >) <a href="src/PlutusTx.Compiler.Type.html#getMatch" class="link"
+	    >Source</a
+	    > <a href="#v:getMatch" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the matcher of the given <code
+	      >TyCon</code
+	      > as a PLC term</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getMatchInstantiated" class="def"
+	    >getMatchInstantiated</a
+	    > &#8759; <a href="PlutusTx-Compiler-Types.html#t:CompilingDefault" title="PlutusTx.Compiler.Types"
+	    >CompilingDefault</a
+	    > uni fun m ann &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	    >Type</a
+	    > &#8594; m (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; [<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    >] &#8594; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    >) <a href="src/PlutusTx.Compiler.Type.html#getMatchInstantiated" class="link"
+	    >Source</a
+	    > <a href="#v:getMatchInstantiated" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the matcher of the given <code
+	      >Type</code
+	      > (which must be equal to a type constructor application)
+as a PLC term instantiated for the type constructor argument types.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

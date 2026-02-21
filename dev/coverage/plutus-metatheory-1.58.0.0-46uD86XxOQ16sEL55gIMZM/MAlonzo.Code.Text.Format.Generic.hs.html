@@ -1,0 +1,329 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Text.Format.Generic where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Char qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.List qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Maybe qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Agda.Builtin.String qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Agda.Builtin.Unit qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Data.List.Base qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Data.Maybe.Base qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Data.Sum.Base qualified
+<span class="lineno">   25 </span>import MAlonzo.Code.Data.Sum.Effectful.Left qualified
+<span class="lineno">   26 </span>import MAlonzo.Code.Effect.Applicative qualified
+<span class="lineno">   27 </span>import MAlonzo.Code.Function.Base qualified
+<span class="lineno">   28 </span>import MAlonzo.Code.Function.Strict qualified
+<span class="lineno">   29 </span>import MAlonzo.Code.Level qualified
+<span class="lineno">   30 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   31 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   32 </span>                    word64ToNat)
+<span class="lineno">   33 </span>import MAlonzo.RTE qualified
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- Text.Format.Generic.FormatSpec
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">d_FormatSpec_6 = ()</span></span>
+<span class="lineno">   37 </span>newtype T_FormatSpec_6
+<span class="lineno">   38 </span>  = C_FormatSpec'46'constructor_27 (MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt;
+<span class="lineno">   39 </span>                                    Maybe AgdaAny)
+<span class="lineno">   40 </span>-- Text.Format.Generic.FormatSpec.ArgChunk
+<span class="lineno">   41 </span>d_ArgChunk_14 :: T_FormatSpec_6 -&gt; ()
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">d_ArgChunk_14 = erased</span></span>
+<span class="lineno">   43 </span>-- Text.Format.Generic.FormatSpec.ArgType
+<span class="lineno">   44 </span>d_ArgType_16 :: T_FormatSpec_6 -&gt; AgdaAny -&gt; ()
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">d_ArgType_16 = erased</span></span>
+<span class="lineno">   46 </span>-- Text.Format.Generic.FormatSpec.lexArg
+<span class="lineno">   47 </span>d_lexArg_18 ::
+<span class="lineno">   48 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">   49 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe AgdaAny
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">d_lexArg_18 v0</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">C_FormatSpec'46'constructor_27 v3 -&gt; coe v3</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="nottickedoff">_                                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   54 </span>-- Text.Format.Generic._.unionSpec
+<span class="lineno">   55 </span>d_unionSpec_24 ::
+<span class="lineno">   56 </span>  T_FormatSpec_6 -&gt; T_FormatSpec_6 -&gt; T_FormatSpec_6
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">d_unionSpec_24 v0 v1</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">C_FormatSpec'46'constructor_27</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">(\ v2 -&gt;</span>
+<span class="lineno">   61 </span><span class="spaces">         </span><span class="nottickedoff">coe</span>
+<span class="lineno">   62 </span><span class="spaces">           </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du__'60''8739''62'__80</span>
+<span class="lineno">   63 </span><span class="spaces">           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   64 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du_map_64</span>
+<span class="lineno">   65 </span><span class="spaces">              </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38)</span>
+<span class="lineno">   66 </span><span class="spaces">              </span><span class="nottickedoff">(coe d_lexArg_18 v0 v2))</span>
+<span class="lineno">   67 </span><span class="spaces">           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   68 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du_map_64</span>
+<span class="lineno">   69 </span><span class="spaces">              </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42)</span>
+<span class="lineno">   70 </span><span class="spaces">              </span><span class="nottickedoff">(coe d_lexArg_18 v1 v2)))</span></span>
+<span class="lineno">   71 </span>-- Text.Format.Generic.Format._.ArgChunk
+<span class="lineno">   72 </span>d_ArgChunk_54 :: T_FormatSpec_6 -&gt; ()
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">d_ArgChunk_54 = erased</span></span>
+<span class="lineno">   74 </span>-- Text.Format.Generic.Format._.ArgType
+<span class="lineno">   75 </span>d_ArgType_56 :: T_FormatSpec_6 -&gt; AgdaAny -&gt; ()
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">d_ArgType_56 = erased</span></span>
+<span class="lineno">   77 </span>-- Text.Format.Generic.Format._.lexArg
+<span class="lineno">   78 </span>d_lexArg_58 ::
+<span class="lineno">   79 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">   80 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe AgdaAny
+<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">d_lexArg_58 v0 = coe d_lexArg_18 (coe v0)</span></span>
+<span class="lineno">   82 </span>-- Text.Format.Generic.Format.Chunk
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">d_Chunk_60 a0 = ()</span></span>
+<span class="lineno">   84 </span>data T_Chunk_60
+<span class="lineno">   85 </span>  = C_Arg_62 AgdaAny |
+<span class="lineno">   86 </span>    C_Raw_64 MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">   87 </span>-- Text.Format.Generic.Format.Format
+<span class="lineno">   88 </span>d_Format_66 :: T_FormatSpec_6 -&gt; ()
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">d_Format_66 = erased</span></span>
+<span class="lineno">   90 </span>-- Text.Format.Generic.Format.size
+<span class="lineno">   91 </span>d_size_68 :: T_FormatSpec_6 -&gt; [T_Chunk_60] -&gt; Integer
+<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">d_size_68 ~v0 = du_size_68</span></span>
+<span class="lineno">   93 </span>du_size_68 :: [T_Chunk_60] -&gt; Integer
+<span class="lineno">   94 </span><span class="decl"><span class="nottickedoff">du_size_68</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.List.Base.d_sum_280)</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   99 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_map_22</span>
+<span class="lineno">  100 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  101 </span><span class="spaces">            </span><span class="nottickedoff">(\ v0 -&gt;</span>
+<span class="lineno">  102 </span><span class="spaces">               </span><span class="nottickedoff">let v1 = 1 :: Integer in</span>
+<span class="lineno">  103 </span><span class="spaces">               </span><span class="nottickedoff">coe</span>
+<span class="lineno">  104 </span><span class="spaces">                 </span><span class="nottickedoff">(case coe v0 of</span>
+<span class="lineno">  105 </span><span class="spaces">                    </span><span class="nottickedoff">C_Raw_64 v2 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">  106 </span><span class="spaces">                    </span><span class="nottickedoff">_           -&gt; coe v1))))</span></span>
+<span class="lineno">  107 </span>-- Text.Format.Generic.Format.⟦_⟧
+<span class="lineno">  108 </span>d_'10214'_'10215'_74 :: T_FormatSpec_6 -&gt; [T_Chunk_60] -&gt; AgdaAny
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">d_'10214'_'10215'_74 ~v0 v1 = du_'10214'_'10215'_74 v1</span></span>
+<span class="lineno">  110 </span>du_'10214'_'10215'_74 :: [T_Chunk_60] -&gt; AgdaAny
+<span class="lineno">  111 </span><span class="decl"><span class="nottickedoff">du_'10214'_'10215'_74 v0</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  113 </span><span class="spaces">      </span><span class="nottickedoff">[]</span>
+<span class="lineno">  114 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  115 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Level.C_lift_20</span>
+<span class="lineno">  116 </span><span class="spaces">             </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="nottickedoff">(:) v1 v2</span>
+<span class="lineno">  118 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  119 </span><span class="spaces">             </span><span class="nottickedoff">C_Arg_62 v3</span>
+<span class="lineno">  120 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  121 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased</span>
+<span class="lineno">  122 </span><span class="spaces">                    </span><span class="nottickedoff">(coe du_'10214'_'10215'_74 (coe v2))</span>
+<span class="lineno">  123 </span><span class="spaces">             </span><span class="nottickedoff">C_Raw_64 v3 -&gt; coe du_'10214'_'10215'_74 (coe v2)</span>
+<span class="lineno">  124 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  125 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  126 </span>-- Text.Format.Generic.Format.Error
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">d_Error_82 a0 = ()</span></span>
+<span class="lineno">  128 </span>data T_Error_82
+<span class="lineno">  129 </span>  = C_UnexpectedEndOfString_84 MAlonzo.Code.Agda.Builtin.String.T_String_6 |
+<span class="lineno">  130 </span>    C_InvalidType_86 MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  131 </span>                     MAlonzo.Code.Agda.Builtin.Char.T_Char_6
+<span class="lineno">  132 </span>                     MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  133 </span>-- Text.Format.Generic.Format.lexer
+<span class="lineno">  134 </span>d_lexer_88 ::
+<span class="lineno">  135 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">  136 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  137 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  138 </span><span class="decl"><span class="nottickedoff">d_lexer_88 v0 v1</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="nottickedoff">d_loop_144 (coe v0) (coe v1)</span>
+<span class="lineno">  141 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)</span>
+<span class="lineno">  142 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)</span>
+<span class="lineno">  143 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12 v1)</span></span>
+<span class="lineno">  144 </span>-- Text.Format.Generic.Format._.RevWord
+<span class="lineno">  145 </span>d_RevWord_130 ::
+<span class="lineno">  146 </span>  T_FormatSpec_6 -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; ()
+<span class="lineno">  147 </span><span class="decl"><span class="nottickedoff">d_RevWord_130 = erased</span></span>
+<span class="lineno">  148 </span>-- Text.Format.Generic.Format._.Prefix
+<span class="lineno">  149 </span>d_Prefix_132 ::
+<span class="lineno">  150 </span>  T_FormatSpec_6 -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; ()
+<span class="lineno">  151 </span><span class="decl"><span class="nottickedoff">d_Prefix_132 = erased</span></span>
+<span class="lineno">  152 </span>-- Text.Format.Generic.Format._.toRevString
+<span class="lineno">  153 </span>d_toRevString_134 ::
+<span class="lineno">  154 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">  155 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  156 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  157 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">d_toRevString_134 ~v0 ~v1 = du_toRevString_134</span></span>
+<span class="lineno">  159 </span>du_toRevString_134 ::
+<span class="lineno">  160 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  161 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  162 </span><span class="decl"><span class="nottickedoff">du_toRevString_134</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">  165 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.String.d_primStringFromList_14)</span>
+<span class="lineno">  166 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.List.Base.du_reverse_460)</span></span>
+<span class="lineno">  167 </span>-- Text.Format.Generic.Format._.push
+<span class="lineno">  168 </span>d_push_136 ::
+<span class="lineno">  169 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">  170 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  171 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  172 </span>  [T_Chunk_60] -&gt; [T_Chunk_60]
+<span class="lineno">  173 </span><span class="decl"><span class="nottickedoff">d_push_136 ~v0 ~v1 v2 v3 = du_push_136 v2 v3</span></span>
+<span class="lineno">  174 </span>du_push_136 ::
+<span class="lineno">  175 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  176 </span>  [T_Chunk_60] -&gt; [T_Chunk_60]
+<span class="lineno">  177 </span><span class="decl"><span class="nottickedoff">du_push_136 v0 v1</span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="nottickedoff">= let v2</span>
+<span class="lineno">  179 </span><span class="spaces">          </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  180 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  181 </span><span class="spaces">              </span><span class="nottickedoff">(coe C_Raw_64 (coe du_toRevString_134 v0)) (coe v1) in</span>
+<span class="lineno">  182 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  183 </span><span class="spaces">      </span><span class="nottickedoff">(case coe v0 of</span>
+<span class="lineno">  184 </span><span class="spaces">         </span><span class="nottickedoff">[] -&gt; coe v1</span>
+<span class="lineno">  185 </span><span class="spaces">         </span><span class="nottickedoff">_  -&gt; coe v2)</span></span>
+<span class="lineno">  186 </span>-- Text.Format.Generic.Format._.loop
+<span class="lineno">  187 </span>d_loop_144 ::
+<span class="lineno">  188 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">  189 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  190 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  191 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  192 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  193 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  194 </span><span class="decl"><span class="nottickedoff">d_loop_144 v0 v1 v2 v3 v4</span>
+<span class="lineno">  195 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v4 of</span>
+<span class="lineno">  196 </span><span class="spaces">      </span><span class="nottickedoff">[]</span>
+<span class="lineno">  197 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  198 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42</span>
+<span class="lineno">  199 </span><span class="spaces">             </span><span class="nottickedoff">(coe du_push_136 (coe v2) (coe v4))</span>
+<span class="lineno">  200 </span><span class="spaces">      </span><span class="nottickedoff">(:) v5 v6</span>
+<span class="lineno">  201 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; let v7</span>
+<span class="lineno">  202 </span><span class="spaces">                 </span><span class="nottickedoff">= d_loop_144</span>
+<span class="lineno">  203 </span><span class="spaces">                     </span><span class="nottickedoff">(coe v0) (coe v1)</span>
+<span class="lineno">  204 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  205 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v5) (coe v2))</span>
+<span class="lineno">  206 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  207 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v5) (coe v3))</span>
+<span class="lineno">  208 </span><span class="spaces">                     </span><span class="nottickedoff">(coe v6) in</span>
+<span class="lineno">  209 </span><span class="spaces">           </span><span class="nottickedoff">coe</span>
+<span class="lineno">  210 </span><span class="spaces">             </span><span class="nottickedoff">(case coe v5 of</span>
+<span class="lineno">  211 </span><span class="spaces">                </span><span class="nottickedoff">'%'</span>
+<span class="lineno">  212 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; let v8</span>
+<span class="lineno">  213 </span><span class="spaces">                           </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  214 </span><span class="spaces">                               </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.du_map'8322'_94</span>
+<span class="lineno">  215 </span><span class="spaces">                               </span><span class="nottickedoff">(coe du_push_136 (coe v2))</span>
+<span class="lineno">  216 </span><span class="spaces">                               </span><span class="nottickedoff">(d_type_146</span>
+<span class="lineno">  217 </span><span class="spaces">                                  </span><span class="nottickedoff">(coe v0) (coe v1)</span>
+<span class="lineno">  218 </span><span class="spaces">                                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  219 </span><span class="spaces">                                     </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe '%')</span>
+<span class="lineno">  220 </span><span class="spaces">                                     </span><span class="nottickedoff">(coe v3))</span>
+<span class="lineno">  221 </span><span class="spaces">                                  </span><span class="nottickedoff">(coe v6)) in</span>
+<span class="lineno">  222 </span><span class="spaces">                     </span><span class="nottickedoff">coe</span>
+<span class="lineno">  223 </span><span class="spaces">                       </span><span class="nottickedoff">(case coe v6 of</span>
+<span class="lineno">  224 </span><span class="spaces">                          </span><span class="nottickedoff">(:) v9 v10</span>
+<span class="lineno">  225 </span><span class="spaces">                            </span><span class="nottickedoff">-&gt; case coe v9 of</span>
+<span class="lineno">  226 </span><span class="spaces">                                 </span><span class="nottickedoff">'%'</span>
+<span class="lineno">  227 </span><span class="spaces">                                   </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  228 </span><span class="spaces">                                        </span><span class="nottickedoff">d_loop_144 (coe v0) (coe v1)</span>
+<span class="lineno">  229 </span><span class="spaces">                                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  230 </span><span class="spaces">                                           </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe '%')</span>
+<span class="lineno">  231 </span><span class="spaces">                                           </span><span class="nottickedoff">(coe v2))</span>
+<span class="lineno">  232 </span><span class="spaces">                                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  233 </span><span class="spaces">                                           </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe '%')</span>
+<span class="lineno">  234 </span><span class="spaces">                                           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  235 </span><span class="spaces">                                              </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe '%')</span>
+<span class="lineno">  236 </span><span class="spaces">                                              </span><span class="nottickedoff">(coe v3)))</span>
+<span class="lineno">  237 </span><span class="spaces">                                        </span><span class="nottickedoff">(coe v10)</span>
+<span class="lineno">  238 </span><span class="spaces">                                 </span><span class="nottickedoff">_ -&gt; coe v8</span>
+<span class="lineno">  239 </span><span class="spaces">                          </span><span class="nottickedoff">_ -&gt; coe v8)</span>
+<span class="lineno">  240 </span><span class="spaces">                </span><span class="nottickedoff">_ -&gt; coe v7)</span>
+<span class="lineno">  241 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  242 </span>-- Text.Format.Generic.Format._.type
+<span class="lineno">  243 </span>d_type_146 ::
+<span class="lineno">  244 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">  245 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  246 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  247 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  248 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  249 </span><span class="decl"><span class="nottickedoff">d_type_146 v0 v1 v2 v3</span>
+<span class="lineno">  250 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v3 of</span>
+<span class="lineno">  251 </span><span class="spaces">      </span><span class="nottickedoff">[]</span>
+<span class="lineno">  252 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  253 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38</span>
+<span class="lineno">  254 </span><span class="spaces">             </span><span class="nottickedoff">(coe C_UnexpectedEndOfString_84 (coe v1))</span>
+<span class="lineno">  255 </span><span class="spaces">      </span><span class="nottickedoff">(:) v4 v5</span>
+<span class="lineno">  256 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  257 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Effect.Applicative.du__'8859'__70</span>
+<span class="lineno">  258 </span><span class="spaces">             </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Sum.Effectful.Left.du_applicative_20)</span>
+<span class="lineno">  259 </span><span class="spaces">             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  260 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.du_map'8322'_94</span>
+<span class="lineno">  261 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C__'8759'__22)</span>
+<span class="lineno">  262 </span><span class="spaces">                </span><span class="nottickedoff">(coe du_chunk_184 (coe v0) (coe v2) (coe v5) (coe v4)))</span>
+<span class="lineno">  263 </span><span class="spaces">             </span><span class="nottickedoff">(d_loop_144</span>
+<span class="lineno">  264 </span><span class="spaces">                </span><span class="nottickedoff">(coe v0) (coe v1)</span>
+<span class="lineno">  265 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)</span>
+<span class="lineno">  266 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  267 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v4) (coe v2))</span>
+<span class="lineno">  268 </span><span class="spaces">                </span><span class="nottickedoff">(coe v5))</span>
+<span class="lineno">  269 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  270 </span>-- Text.Format.Generic.Format._._.chunk
+<span class="lineno">  271 </span>d_chunk_184 ::
+<span class="lineno">  272 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">  273 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt;
+<span class="lineno">  274 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  275 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt;
+<span class="lineno">  276 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  277 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt;
+<span class="lineno">  278 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  279 </span><span class="decl"><span class="nottickedoff">d_chunk_184 v0 ~v1 v2 ~v3 v4 v5 = du_chunk_184 v0 v2 v4 v5</span></span>
+<span class="lineno">  280 </span>du_chunk_184 ::
+<span class="lineno">  281 </span>  T_FormatSpec_6 -&gt;
+<span class="lineno">  282 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  283 </span>  [MAlonzo.Code.Agda.Builtin.Char.T_Char_6] -&gt;
+<span class="lineno">  284 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt;
+<span class="lineno">  285 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  286 </span><span class="decl"><span class="nottickedoff">du_chunk_184 v0 v1 v2 v3</span>
+<span class="lineno">  287 </span><span class="spaces">  </span><span class="nottickedoff">= let v4 = coe d_lexArg_18 v0 v3 in</span>
+<span class="lineno">  288 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  289 </span><span class="spaces">      </span><span class="nottickedoff">(case coe v4 of</span>
+<span class="lineno">  290 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v5</span>
+<span class="lineno">  291 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  292 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 (coe C_Arg_62 (coe v5))</span>
+<span class="lineno">  293 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">  294 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  295 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Function.Strict.du_force'8242'_56 ()</span>
+<span class="lineno">  296 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Level.d_0ℓ_22 (coe du_toRevString_134 v1)</span>
+<span class="lineno">  297 </span><span class="spaces">                </span><span class="nottickedoff">(\ v5 -&gt;</span>
+<span class="lineno">  298 </span><span class="spaces">                   </span><span class="nottickedoff">coe</span>
+<span class="lineno">  299 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Function.Strict.du_force'8242'_56 ()</span>
+<span class="lineno">  300 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Level.d_0ℓ_22</span>
+<span class="lineno">  301 </span><span class="spaces">                     </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.String.d_primStringFromList_14 v2)</span>
+<span class="lineno">  302 </span><span class="spaces">                     </span><span class="nottickedoff">(\ v6 -&gt;</span>
+<span class="lineno">  303 </span><span class="spaces">                        </span><span class="nottickedoff">coe</span>
+<span class="lineno">  304 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38</span>
+<span class="lineno">  305 </span><span class="spaces">                          </span><span class="nottickedoff">(coe C_InvalidType_86 (coe v5) (coe v3) (coe v6))))</span>
+<span class="lineno">  306 </span><span class="spaces">         </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError)</span></span>
+
+</pre>
+</body>
+</html>

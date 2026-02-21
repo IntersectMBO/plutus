@@ -1,0 +1,1189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Functions for computing variable usage inside terms and types.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Analysis.Usages</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html#termUsages"
+	><span class="hs-identifier"
+	  >termUsages</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html#typeUsages"
+	><span class="hs-identifier"
+	  >typeUsages</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html#Usages"
+	><span class="hs-identifier"
+	  >Usages</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html#getUsageCount"
+	><span class="hs-identifier"
+	  >getUsageCount</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html#allUsed"
+	><span class="hs-identifier"
+	  >allUsed</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html#%3C%5E%3E"
+	><span class="hs-operator"
+	  >(&lt;^&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Subst.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Subst</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html"
+	><span class="hs-identifier"
+	  >Data.MultiSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>MSet</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.MultiSet.Lens.html"
+	><span class="hs-identifier"
+	  >Data.MultiSet.Lens</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Usages"
+      ><span class="annot"
+	><a href="PlutusIR.Analysis.Usages.html#Usages"
+	  ><span class="hs-identifier hs-var"
+	    >Usages</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html#MultiSet"
+	><span class="hs-identifier hs-type"
+	  >MSet.MultiSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >PLC.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the usage count of @n@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="local-6989586621679473681"
+      ><span id="local-6989586621679473682"
+	><span class="annot"
+	  ><a href="PlutusIR.Analysis.Usages.html#getUsageCount"
+	    ><span class="hs-identifier hs-type"
+	      >getUsageCount</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+	    ><span class="hs-identifier hs-type"
+	      >PLC.HasUnique</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679473681"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679473682"
+	    ><span class="hs-identifier hs-type"
+	      >unique</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679473681"
+	    ><span class="hs-identifier hs-type"
+	      >n</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Analysis.Usages.html#Usages"
+	    ><span class="hs-identifier hs-type"
+	      >Usages</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	    ><span class="hs-identifier hs-type"
+	      >Int</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span id="getUsageCount"
+      ><span class="annot"
+	><span class="annottext"
+	  >getUsageCount :: forall n unique. HasUnique n unique =&gt; n -&gt; Usages -&gt; Int
+</span
+	  ><a href="PlutusIR.Analysis.Usages.html#getUsageCount"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getUsageCount</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679473777"
+      ><span class="annot"
+	><span class="annottext"
+	  >n
+</span
+	  ><a href="#local-6989586621679473777"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Usages -&gt; Int
+forall a. Ord a =&gt; a -&gt; MultiSet a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html#occur"
+	><span class="hs-identifier hs-var"
+	  >MSet.occur</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621679473777"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; Getting Unique n Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(unique -&gt; Const Unique unique) -&gt; n -&gt; Const Unique n
+forall a unique. HasUnique a unique =&gt; Lens' a unique
+Lens' n unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#unique"
+	><span class="hs-identifier hs-var"
+	  >PLC.unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((unique -&gt; Const Unique unique) -&gt; n -&gt; Const Unique n)
+-&gt; ((Unique -&gt; Const Unique Unique)
+    -&gt; unique -&gt; Const Unique unique)
+-&gt; Getting Unique n Unique
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Const Unique Unique) -&gt; unique -&gt; Const Unique unique
+forall s t a b. (Coercible s a, Coercible t b) =&gt; Iso s t a b
+Iso unique unique Unique Unique
+</span
+	><span class="hs-identifier hs-var"
+	>coerced</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get a set of @n@s which are used at least once.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html#allUsed"
+	><span class="hs-identifier hs-type"
+	  >allUsed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.Usages.html#Usages"
+	><span class="hs-identifier hs-type"
+	  >Usages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >PLC.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="allUsed"
+      ><span class="annot"
+	><span class="annottext"
+	  >allUsed :: Usages -&gt; Set Unique
+</span
+	  ><a href="PlutusIR.Analysis.Usages.html#allUsed"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >allUsed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Usages -&gt; Set Unique
+forall a. MultiSet a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/src/Data.MultiSet.html#toSet"
+	><span class="hs-identifier hs-var"
+	  >MSet.toSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="local-6989586621679473709"
+      ><span id="local-6989586621679473711"
+	><span id="local-6989586621679473713"
+	  ><span id="local-6989586621679473714"
+	    ><span id="local-6989586621679473715"
+	      ><span class="annot"
+		><a href="PlutusIR.Analysis.Usages.html#termUsages"
+		  ><span class="hs-identifier hs-type"
+		    >termUsages</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-31"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473709"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.TermUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.HasUnique</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473711"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		>
+</span
+		><span id="line-32"
+		></span
+		><span
+		>  </span
+		><span class="annot"
+		><a href="PlutusIR.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473711"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473709"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473713"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473714"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679473715"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-33"
+		></span
+		><span
+		>  </span
+		><span class="annot"
+		><a href="PlutusIR.Analysis.Usages.html#Usages"
+		  ><span class="hs-identifier hs-type"
+		    >Usages</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="termUsages"
+      ><span class="annot"
+	><span class="annottext"
+	  >termUsages :: forall name tyname (uni :: * -&gt; *) fun a.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+Term tyname name uni fun a -&gt; Usages
+</span
+	  ><a href="PlutusIR.Analysis.Usages.html#termUsages"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termUsages</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Usages (Term tyname name uni fun a) Unique
+-&gt; Term tyname name uni fun a -&gt; Usages
+forall a s. Getting (MultiSet a) s a -&gt; s -&gt; MultiSet a
+</span
+	><a href="../../plutus-core/src/Data.MultiSet.Lens.html#multiSetOf"
+	><span class="hs-identifier hs-var"
+	  >multiSetOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(name -&gt; f name)
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+(Contravariant f, Applicative f) =&gt;
+(name -&gt; f name)
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusIR.Subst.html#vTerm"
+	><span class="hs-identifier hs-var"
+	  >vTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((name -&gt; f name)
+ -&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; ((Unique -&gt; f Unique) -&gt; name -&gt; f name)
+-&gt; (Unique -&gt; f Unique)
+-&gt; Term tyname name uni fun a
+-&gt; f (Term tyname name uni fun a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; f Unique) -&gt; name -&gt; f name
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >PLC.theUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall {f :: * -&gt; *}.
+ (Contravariant f, Applicative f) =&gt;
+ (Unique -&gt; f Unique)
+ -&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; (forall {f :: * -&gt; *}.
+    (Contravariant f, Applicative f) =&gt;
+    (Unique -&gt; f Unique)
+    -&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; forall {f :: * -&gt; *}.
+   (Contravariant f, Applicative f) =&gt;
+   (Unique -&gt; f Unique)
+   -&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+forall s a. Fold s a -&gt; Fold s a -&gt; Fold s a
+</span
+	><a href="../../plutus-core/src/PlutusPrelude.html#%3C%5E%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;^&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(tyname -&gt; f tyname)
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+(Contravariant f, Applicative f) =&gt;
+(tyname -&gt; f tyname)
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusIR.Subst.html#tvTerm"
+	><span class="hs-identifier hs-var"
+	  >tvTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((tyname -&gt; f tyname)
+ -&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; ((Unique -&gt; f Unique) -&gt; tyname -&gt; f tyname)
+-&gt; (Unique -&gt; f Unique)
+-&gt; Term tyname name uni fun a
+-&gt; f (Term tyname name uni fun a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; f Unique) -&gt; tyname -&gt; f tyname
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' tyname Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >PLC.theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO: move to plutus-core</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="local-6989586621679473748"
+      ><span id="local-6989586621679473749"
+	><span id="local-6989586621679473750"
+	  ><span class="annot"
+	    ><a href="PlutusIR.Analysis.Usages.html#typeUsages"
+	      ><span class="hs-identifier hs-type"
+		>typeUsages</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    >
+</span
+	    ><span id="line-38"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+	      ><span class="hs-identifier hs-type"
+		>PLC.HasUnique</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679473748"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TypeUnique"
+	      ><span class="hs-identifier hs-type"
+		>PLC.TypeUnique</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-39"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	      ><span class="hs-identifier hs-type"
+		>Type</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679473748"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679473749"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679473750"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    >
+</span
+	    ><span id="line-40"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Analysis.Usages.html#Usages"
+	      ><span class="hs-identifier hs-type"
+		>Usages</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="typeUsages"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeUsages :: forall tyname (uni :: * -&gt; *) a.
+HasUnique tyname TypeUnique =&gt;
+Type tyname uni a -&gt; Usages
+</span
+	  ><a href="PlutusIR.Analysis.Usages.html#typeUsages"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeUsages</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Usages (Type tyname uni a) Unique
+-&gt; Type tyname uni a -&gt; Usages
+forall a s. Getting (MultiSet a) s a -&gt; s -&gt; MultiSet a
+</span
+	><a href="../../plutus-core/src/Data.MultiSet.Lens.html#multiSetOf"
+	><span class="hs-identifier hs-var"
+	  >multiSetOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(tyname -&gt; Const Usages tyname)
+-&gt; Type tyname uni a -&gt; Const Usages (Type tyname uni a)
+forall tyname (uni :: * -&gt; *) ann (f :: * -&gt; *).
+(Contravariant f, Applicative f) =&gt;
+(tyname -&gt; f tyname)
+-&gt; Type tyname uni ann -&gt; f (Type tyname uni ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Subst.html#tvTy"
+	><span class="hs-identifier hs-var"
+	  >tvTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((tyname -&gt; Const Usages tyname)
+ -&gt; Type tyname uni a -&gt; Const Usages (Type tyname uni a))
+-&gt; ((Unique -&gt; Const Usages Unique)
+    -&gt; tyname -&gt; Const Usages tyname)
+-&gt; Getting Usages (Type tyname uni a) Unique
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unique -&gt; Const Usages Unique) -&gt; tyname -&gt; Const Usages tyname
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' tyname Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >PLC.theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

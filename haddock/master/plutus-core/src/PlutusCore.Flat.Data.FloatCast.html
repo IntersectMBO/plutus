@@ -1,0 +1,1393 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE Trustworthy #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Primitives to convert between Float\/Double and Word32\/Word64.
+
+Code copied from &lt;https://hackage.haskell.org/package/binary binary&gt;.
+
+Based on: &lt;http://hackage.haskell.org/package/reinterpret-cast-0.1.0/docs/src/Data-ReinterpretCast-Internal-ImplArray.html&gt;..
+
+Implements casting via a 1-element STUArray, as described in &lt;http://stackoverflow.com/a/7002812/263061&gt;. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Data.FloatCast</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#floatToWord"
+	><span class="hs-identifier"
+	  >floatToWord</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToFloat"
+	><span class="hs-identifier"
+	  >wordToFloat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#doubleToWord"
+	><span class="hs-identifier"
+	  >doubleToWord</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToDouble"
+	><span class="hs-identifier"
+	  >wordToDouble</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#runST"
+	><span class="hs-identifier"
+	  >runST</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	><span class="hs-identifier"
+	  >cast</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.ST.html"
+	><span class="hs-identifier"
+	  >Data.Array.ST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#MArray"
+	><span class="hs-identifier"
+	  >MArray</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#STUArray"
+	><span class="hs-identifier"
+	  >STUArray</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#newArray"
+	><span class="hs-identifier"
+	  >newArray</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#readArray"
+	><span class="hs-identifier"
+	  >readArray</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Unsafe.html"
+	><span class="hs-identifier"
+	  >Data.Array.Unsafe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#castSTUArray"
+	><span class="hs-identifier"
+	  >castSTUArray</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	><span class="hs-identifier"
+	  >Word32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier"
+	  >Word64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html"
+	><span class="hs-identifier"
+	  >GHC.ST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#ST"
+	><span class="hs-identifier"
+	  >ST</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#runST"
+	><span class="hs-identifier"
+	  >runST</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- import           Flat.Endian</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Reinterpret-casts a `Word32` to a `Float`.
+
+prop&gt; \f -&gt; wordToFloat (floatToWord f ) == f
++++ OK, passed 100 tests.
+
+&gt;&gt;&gt; floatToWord (-0.15625)
+3189768192
+
+&gt;&gt;&gt; wordToFloat 3189768192
+-0.15625
+
+&gt;&gt;&gt; floatToWord (-5.828125) == 0xC0BA8000
+True -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToFloat"
+	><span class="hs-identifier hs-type"
+	  >wordToFloat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	><span class="hs-identifier hs-type"
+	  >Word32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Float"
+	><span class="hs-identifier hs-type"
+	  >Float</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="wordToFloat"
+      ><span class="annot"
+	><span class="annottext"
+	  >wordToFloat :: Word32 -&gt; Float
+</span
+	  ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToFloat"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wordToFloat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679099935"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word32
+</span
+	  ><a href="#local-6989586621679099935"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s Float) -&gt; Float
+forall a. (forall s. ST s a) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#runST"
+	><span class="hs-identifier hs-var"
+	  >runST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word32 -&gt; ST s Float
+forall s a b.
+(MArray (STUArray s) a (ST s), MArray (STUArray s) b (ST s)) =&gt;
+a -&gt; ST s b
+</span
+	><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	><span class="hs-identifier hs-var"
+	  >cast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word32
+</span
+	><a href="#local-6989586621679099935"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToFloat"
+	><span class="hs-pragma hs-type"
+	  >wordToFloat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Reinterpret-casts a `Float` to a `Word32`.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#floatToWord"
+	><span class="hs-identifier hs-type"
+	  >floatToWord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Float"
+	><span class="hs-identifier hs-type"
+	  >Float</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	><span class="hs-identifier hs-type"
+	  >Word32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="floatToWord"
+      ><span class="annot"
+	><span class="annottext"
+	  >floatToWord :: Float -&gt; Word32
+</span
+	  ><a href="PlutusCore.Flat.Data.FloatCast.html#floatToWord"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >floatToWord</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679099940"
+      ><span class="annot"
+	><span class="annottext"
+	  >Float
+</span
+	  ><a href="#local-6989586621679099940"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s Word32) -&gt; Word32
+forall a. (forall s. ST s a) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#runST"
+	><span class="hs-identifier hs-var"
+	  >runST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Float -&gt; ST s Word32
+forall s a b.
+(MArray (STUArray s) a (ST s), MArray (STUArray s) b (ST s)) =&gt;
+a -&gt; ST s b
+</span
+	><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	><span class="hs-identifier hs-var"
+	  >cast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Float
+</span
+	><a href="#local-6989586621679099940"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#floatToWord"
+	><span class="hs-pragma hs-type"
+	  >floatToWord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-$setup
+&gt;&gt;&gt; import Numeric (showHex)
+&gt;&gt;&gt; import Data.Word -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Reinterpret-casts a `Double` to a `Word64`.
+
+prop&gt; \f -&gt; wordToDouble (doubleToWord f ) == f
++++ OK, passed 100 tests.
+
+&gt;&gt;&gt; showHex (doubleToWord 1.0000000000000004) &quot;&quot;
+&quot;3ff0000000000002&quot;
+
+&gt;&gt;&gt; doubleToWord 1.0000000000000004 == 0x3FF0000000000002
+True
+
+&gt;&gt;&gt; showHex (doubleToWord (-0.15625)) &quot;&quot;
+&quot;bfc4000000000000&quot;
+
+&gt;&gt;&gt; wordToDouble 0xbfc4000000000000
+-0.15625 -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#doubleToWord"
+	><span class="hs-pragma hs-type"
+	  >doubleToWord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#doubleToWord"
+	><span class="hs-identifier hs-type"
+	  >doubleToWord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Double"
+	><span class="hs-identifier hs-type"
+	  >Double</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier hs-type"
+	  >Word64</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="doubleToWord"
+      ><span class="annot"
+	><span class="annottext"
+	  >doubleToWord :: Double -&gt; Word64
+</span
+	  ><a href="PlutusCore.Flat.Data.FloatCast.html#doubleToWord"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >doubleToWord</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679099943"
+      ><span class="annot"
+	><span class="annottext"
+	  >Double
+</span
+	  ><a href="#local-6989586621679099943"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s Word64) -&gt; Word64
+forall a. (forall s. ST s a) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#runST"
+	><span class="hs-identifier hs-var"
+	  >runST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Double -&gt; ST s Word64
+forall s a b.
+(MArray (STUArray s) a (ST s), MArray (STUArray s) b (ST s)) =&gt;
+a -&gt; ST s b
+</span
+	><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	><span class="hs-identifier hs-var"
+	  >cast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Double
+</span
+	><a href="#local-6989586621679099943"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="hs-comment"
+      >-- doubleToWord x = fix64 $ runST (cast x)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Reinterpret-casts a `Word64` to a `Double`.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToDouble"
+	><span class="hs-pragma hs-type"
+	  >wordToDouble</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToDouble"
+	><span class="hs-identifier hs-type"
+	  >wordToDouble</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier hs-type"
+	  >Word64</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Double"
+	><span class="hs-identifier hs-type"
+	  >Double</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span id="wordToDouble"
+      ><span class="annot"
+	><span class="annottext"
+	  >wordToDouble :: Word64 -&gt; Double
+</span
+	  ><a href="PlutusCore.Flat.Data.FloatCast.html#wordToDouble"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wordToDouble</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679099948"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621679099948"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall s. ST s Double) -&gt; Double
+forall a. (forall s. ST s a) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#runST"
+	><span class="hs-identifier hs-var"
+	  >runST</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; ST s Double
+forall s a b.
+(MArray (STUArray s) a (ST s), MArray (STUArray s) b (ST s)) =&gt;
+a -&gt; ST s b
+</span
+	><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	><span class="hs-identifier hs-var"
+	  >cast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679099948"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-comment"
+      >-- wordToDouble x = runST (cast $ fix64 x)</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+&gt;&gt;&gt; runST (cast (0xF0F1F2F3F4F5F6F7::Word64)) == (0xF0F1F2F3F4F5F6F7::Word64)
+True -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="local-6989586621679099897"
+      ><span id="local-6989586621679099898"
+	><span id="local-6989586621679099899"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	      ><span class="hs-identifier hs-type"
+		>cast</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-90"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#MArray"
+	      ><span class="hs-identifier hs-type"
+		>MArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#STUArray"
+	      ><span class="hs-identifier hs-type"
+		>STUArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099897"
+	      ><span class="hs-identifier hs-type"
+		>s</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099898"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#ST"
+	      ><span class="hs-identifier hs-type"
+		>ST</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099897"
+	      ><span class="hs-identifier hs-type"
+		>s</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#MArray"
+	      ><span class="hs-identifier hs-type"
+		>MArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#STUArray"
+	      ><span class="hs-identifier hs-type"
+		>STUArray</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099897"
+	      ><span class="hs-identifier hs-type"
+		>s</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099899"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#ST"
+	      ><span class="hs-identifier hs-type"
+		>ST</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099897"
+	      ><span class="hs-identifier hs-type"
+		>s</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099898"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.ST.html#ST"
+	      ><span class="hs-identifier hs-type"
+		>ST</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099897"
+	      ><span class="hs-identifier hs-type"
+		>s</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679099899"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="cast"
+      ><span class="annot"
+	><span class="annottext"
+	  >cast :: forall s a b.
+(MArray (STUArray s) a (ST s), MArray (STUArray s) b (ST s)) =&gt;
+a -&gt; ST s b
+</span
+	  ><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cast</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679099965"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679099965"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int, Int) -&gt; a -&gt; ST s (STUArray s Int a)
+forall i. Ix i =&gt; (i, i) -&gt; a -&gt; ST s (STUArray s i a)
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+(i, i) -&gt; e -&gt; m (a i e)
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#newArray"
+	><span class="hs-identifier hs-var"
+	  >newArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679099965"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s (STUArray s Int a)
+-&gt; (STUArray s Int a -&gt; ST s (STUArray s Int b))
+-&gt; ST s (STUArray s Int b)
+forall a b. ST s a -&gt; (a -&gt; ST s b) -&gt; ST s b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STUArray s Int a -&gt; ST s (STUArray s Int b)
+forall s ix a b. STUArray s ix a -&gt; ST s (STUArray s ix b)
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#castSTUArray"
+	><span class="hs-identifier hs-var"
+	  >castSTUArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ST s (STUArray s Int b) -&gt; (STUArray s Int b -&gt; ST s b) -&gt; ST s b
+forall a b. ST s a -&gt; (a -&gt; ST s b) -&gt; ST s b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(STUArray s Int b -&gt; Int -&gt; ST s b)
+-&gt; Int -&gt; STUArray s Int b -&gt; ST s b
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>STUArray s Int b -&gt; Int -&gt; ST s b
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; i -&gt; m e
+</span
+	><a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/src/Data.Array.Base.html#readArray"
+	><span class="hs-identifier hs-var"
+	  >readArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.FloatCast.html#cast"
+	><span class="hs-pragma hs-type"
+	  >cast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

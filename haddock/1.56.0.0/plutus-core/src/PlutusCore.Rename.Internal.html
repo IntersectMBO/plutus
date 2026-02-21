@@ -1,0 +1,6164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The internal module of the renamer that defines the actual algorithms,
+but not the user-facing API. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Rename.Internal</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#Renamed"
+	><span class="hs-identifier"
+	  >Renamed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#Dupable"
+	><span class="hs-identifier"
+	  >Dupable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#withFreshenedTyVarDecl"
+	><span class="hs-identifier"
+	  >withFreshenedTyVarDecl</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#withFreshenedVarDecl"
+	><span class="hs-identifier"
+	  >withFreshenedVarDecl</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameProgramM"
+	><span class="hs-identifier"
+	  >renameProgramM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Monad.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Rename.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A wrapper for signifying that the value inside of it satisfies global uniqueness.
+
+It's safe to call 'unRenamed', it's not safe to call 'Renamed', hence the latter is only exported
+from this internal module and should not be exported from the main API.
+
+Don't provide any instances allowing the user to create a 'Renamed' (even out of an existing one
+like with 'Functor'). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Renamed"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Internal.html#Renamed"
+	  ><span class="hs-identifier hs-var"
+	    >Renamed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019134"
+      ><span class="annot"
+	><a href="#local-6989586621682019134"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Renamed"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Internal.html#Renamed"
+	  ><span class="hs-identifier hs-var"
+	    >Renamed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unRenamed"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. Renamed a -&gt; a
+</span
+	  ><a href="PlutusCore.Rename.Internal.html#unRenamed"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unRenamed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682019134"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682019284"
+      ><span id="local-6989586621682019289"
+	><span id="local-6989586621682019293"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Renamed a -&gt; ShowS
+[Renamed a] -&gt; ShowS
+Renamed a -&gt; String
+(Int -&gt; Renamed a -&gt; ShowS)
+-&gt; (Renamed a -&gt; String)
+-&gt; ([Renamed a] -&gt; ShowS)
+-&gt; Show (Renamed a)
+forall a. Show a =&gt; Int -&gt; Renamed a -&gt; ShowS
+forall a. Show a =&gt; [Renamed a] -&gt; ShowS
+forall a. Show a =&gt; Renamed a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Renamed a -&gt; ShowS
+showsPrec :: Int -&gt; Renamed a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; Renamed a -&gt; String
+show :: Renamed a -&gt; String
+$cshowList :: forall a. Show a =&gt; [Renamed a] -&gt; ShowS
+showList :: [Renamed a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682019298"
+      ><span id="local-6989586621682019301"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Renamed a -&gt; Renamed a -&gt; Bool
+(Renamed a -&gt; Renamed a -&gt; Bool)
+-&gt; (Renamed a -&gt; Renamed a -&gt; Bool) -&gt; Eq (Renamed a)
+forall a. Eq a =&gt; Renamed a -&gt; Renamed a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; Renamed a -&gt; Renamed a -&gt; Bool
+== :: Renamed a -&gt; Renamed a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Renamed a -&gt; Renamed a -&gt; Bool
+/= :: Renamed a -&gt; Renamed a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| @Dupable a@ is isomorphic to @a@, but the only way to extract the @a@ is via 'liftDupable'
+(defined in the main API module because of a constraint requirement) which renames the stored
+value along the way. This type is used whenever
+
+1. preserving global uniqueness is required
+2. some value may be used multiple times
+
+so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
+global uniqueness is preserved.
+
+'unDupable' is not supposed to be exported. Don't provide any instances allowing the user to
+access the underlying value. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Dupable"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Internal.html#Dupable"
+	  ><span class="hs-identifier hs-var"
+	    >Dupable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019144"
+      ><span class="annot"
+	><a href="#local-6989586621682019144"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Dupable"
+      ><span class="annot"
+	><a href="PlutusCore.Rename.Internal.html#Dupable"
+	  ><span class="hs-identifier hs-var"
+	    >Dupable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unDupable"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. Dupable a -&gt; a
+</span
+	  ><a href="PlutusCore.Rename.Internal.html#unDupable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unDupable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682019144"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682019309"
+      ><span id="local-6989586621682019313"
+	><span id="local-6989586621682019317"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Dupable a -&gt; ShowS
+[Dupable a] -&gt; ShowS
+Dupable a -&gt; String
+(Int -&gt; Dupable a -&gt; ShowS)
+-&gt; (Dupable a -&gt; String)
+-&gt; ([Dupable a] -&gt; ShowS)
+-&gt; Show (Dupable a)
+forall a. Show a =&gt; Int -&gt; Dupable a -&gt; ShowS
+forall a. Show a =&gt; [Dupable a] -&gt; ShowS
+forall a. Show a =&gt; Dupable a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Dupable a -&gt; ShowS
+showsPrec :: Int -&gt; Dupable a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; Dupable a -&gt; String
+show :: Dupable a -&gt; String
+$cshowList :: forall a. Show a =&gt; [Dupable a] -&gt; ShowS
+showList :: [Dupable a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682019321"
+      ><span id="local-6989586621682019324"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Dupable a -&gt; Dupable a -&gt; Bool
+(Dupable a -&gt; Dupable a -&gt; Bool)
+-&gt; (Dupable a -&gt; Dupable a -&gt; Bool) -&gt; Eq (Dupable a)
+forall a. Eq a =&gt; Dupable a -&gt; Dupable a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; Dupable a -&gt; Dupable a -&gt; Bool
+== :: Dupable a -&gt; Dupable a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Dupable a -&gt; Dupable a -&gt; Bool
+/= :: Dupable a -&gt; Dupable a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
+from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span id="local-6989586621682019151"
+      ><span id="local-6989586621682019154"
+	><span id="local-6989586621682019155"
+	  ><span id="local-6989586621682019156"
+	    ><span id="local-6989586621682019159"
+	      ><span id="local-6989586621682019163"
+		><span class="annot"
+		  ><a href="PlutusCore.Rename.Internal.html#withFreshenedTyVarDecl"
+		    ><span class="hs-identifier hs-type"
+		      >withFreshenedTyVarDecl</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-55"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+		    ><span class="hs-identifier hs-type"
+		      >HasRenaming</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019151"
+		    ><span class="hs-identifier hs-type"
+		      >ren</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+		    ><span class="hs-identifier hs-type"
+		      >TypeUnique</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#HasUniques"
+		    ><span class="hs-identifier hs-type"
+		      >HasUniques</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Type"
+		    ><span class="hs-identifier hs-type"
+		      >Type</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019154"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019155"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019156"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Quote.html#MonadQuote"
+		    ><span class="hs-identifier hs-type"
+		      >MonadQuote</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019159"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		    ><span class="hs-identifier hs-type"
+		      >MonadReader</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019151"
+		    ><span class="hs-identifier hs-type"
+		      >ren</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019159"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-56"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#TyVarDecl"
+		    ><span class="hs-identifier hs-type"
+		      >TyVarDecl</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019154"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019156"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-57"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#TyVarDecl"
+		    ><span class="hs-identifier hs-type"
+		      >TyVarDecl</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019154"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019156"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019159"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019163"
+		    ><span class="hs-identifier hs-type"
+		      >c</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-58"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019159"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019163"
+		    ><span class="hs-identifier hs-type"
+		      >c</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span id="withFreshenedTyVarDecl"
+      ><span class="annot"
+	><span class="annottext"
+	  >withFreshenedTyVarDecl :: forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *) c.
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+TyVarDecl tyname ann -&gt; (TyVarDecl tyname ann -&gt; m c) -&gt; m c
+</span
+	  ><a href="PlutusCore.Rename.Internal.html#withFreshenedTyVarDecl"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withFreshenedTyVarDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-type"
+	  >TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019337"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019337"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019338"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019338"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019339"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621682019339"
+	  ><span class="hs-identifier hs-var"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621682019340"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname ann -&gt; m c
+</span
+	  ><a href="#local-6989586621682019340"
+	  ><span class="hs-identifier hs-var"
+	    >cont</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; (tyname -&gt; m c) -&gt; m c
+forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, MonadQuote m,
+ MonadReader ren m) =&gt;
+name -&gt; (name -&gt; m c) -&gt; m c
+</span
+	><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	><span class="hs-identifier hs-var"
+	  >withFreshenedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019338"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((tyname -&gt; m c) -&gt; m c) -&gt; (tyname -&gt; m c) -&gt; m c
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682019342"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019342"
+	  ><span class="hs-identifier hs-var"
+	    >nameFr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann -&gt; m c
+</span
+	><a href="#local-6989586621682019340"
+	><span class="hs-identifier hs-var"
+	  >cont</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TyVarDecl tyname ann -&gt; m c) -&gt; TyVarDecl tyname ann -&gt; m c
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; tyname -&gt; Kind ann -&gt; TyVarDecl tyname ann
+forall tyname ann.
+ann -&gt; tyname -&gt; Kind ann -&gt; TyVarDecl tyname ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-var"
+	  >TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019337"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019342"
+	><span class="hs-identifier hs-var"
+	  >nameFr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621682019339"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Replace the unique in the name stored in a 'VarDecl' by a new unique, save the mapping
+from the old unique to the new one and supply to a continuation the computation that
+renames the type stored in the updated 'VarDecl'.
+The reason the continuation receives a computation rather than a pure term is that we may want
+to bring several term and type variables in scope before renaming the types of term variables.
+This situation arises when we want to rename a bunch of mutually recursive bindings. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="local-6989586621682019182"
+      ><span id="local-6989586621682019183"
+	><span id="local-6989586621682019184"
+	  ><span id="local-6989586621682019185"
+	    ><span id="local-6989586621682019186"
+	      ><span id="local-6989586621682019188"
+		><span id="local-6989586621682019191"
+		  ><span class="annot"
+		    ><a href="PlutusCore.Rename.Internal.html#withFreshenedVarDecl"
+		      ><span class="hs-identifier hs-type"
+			>withFreshenedVarDecl</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-69"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >::</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Core.Type.html#HasUniques"
+		      ><span class="hs-identifier hs-type"
+			>HasUniques</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Core.Type.html#Term"
+		      ><span class="hs-identifier hs-type"
+			>Term</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019182"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019183"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019184"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019185"
+		      ><span class="hs-identifier hs-type"
+			>fun</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019186"
+		      ><span class="hs-identifier hs-type"
+			>ann</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Quote.html#MonadQuote"
+		      ><span class="hs-identifier hs-type"
+			>MonadQuote</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019188"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		      ><span class="hs-identifier hs-type"
+			>MonadReader</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+		      ><span class="hs-identifier hs-type"
+			>ScopedRenaming</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019188"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    >
+</span
+		    ><span id="line-70"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Core.Type.html#VarDecl"
+		      ><span class="hs-identifier hs-type"
+			>VarDecl</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019182"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019183"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019184"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019186"
+		      ><span class="hs-identifier hs-type"
+			>ann</span
+			></a
+		      ></span
+		    ><span
+		    >
+</span
+		    ><span id="line-71"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019188"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="PlutusCore.Core.Type.html#VarDecl"
+		      ><span class="hs-identifier hs-type"
+			>VarDecl</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019182"
+		      ><span class="hs-identifier hs-type"
+			>tyname</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019183"
+		      ><span class="hs-identifier hs-type"
+			>name</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019184"
+		      ><span class="hs-identifier hs-type"
+			>uni</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019186"
+		      ><span class="hs-identifier hs-type"
+			>ann</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019188"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019191"
+		      ><span class="hs-identifier hs-type"
+			>c</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span
+		    >
+</span
+		    ><span id="line-72"
+		    ></span
+		    ><span
+		    >  </span
+		    ><span class="hs-glyph"
+		    >-&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019188"
+		      ><span class="hs-identifier hs-type"
+			>m</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621682019191"
+		      ><span class="hs-identifier hs-type"
+			>c</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="withFreshenedVarDecl"
+      ><span class="annot"
+	><span class="annottext"
+	  >withFreshenedVarDecl :: forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *) c.
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+VarDecl tyname name uni ann
+-&gt; (m (VarDecl tyname name uni ann) -&gt; m c) -&gt; m c
+</span
+	  ><a href="PlutusCore.Rename.Internal.html#withFreshenedVarDecl"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withFreshenedVarDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-type"
+	  >VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019367"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019367"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019368"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682019368"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019369"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019369"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621682019370"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (VarDecl tyname name uni ann) -&gt; m c
+</span
+	  ><a href="#local-6989586621682019370"
+	  ><span class="hs-identifier hs-var"
+	    >cont</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; (name -&gt; m c) -&gt; m c
+forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, MonadQuote m,
+ MonadReader ren m) =&gt;
+name -&gt; (name -&gt; m c) -&gt; m c
+</span
+	><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	><span class="hs-identifier hs-var"
+	  >withFreshenedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682019368"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((name -&gt; m c) -&gt; m c) -&gt; (name -&gt; m c) -&gt; m c
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682019371"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682019371"
+	  ><span class="hs-identifier hs-var"
+	    >nameFr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (VarDecl tyname name uni ann) -&gt; m c
+</span
+	><a href="#local-6989586621682019370"
+	><span class="hs-identifier hs-var"
+	  >cont</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m (VarDecl tyname name uni ann) -&gt; m c)
+-&gt; m (VarDecl tyname name uni ann) -&gt; m c
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; name -&gt; Type tyname uni ann -&gt; VarDecl tyname name uni ann
+forall tyname name (uni :: * -&gt; *) ann.
+ann -&gt; name -&gt; Type tyname uni ann -&gt; VarDecl tyname name uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-var"
+	  >VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019367"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682019371"
+	><span class="hs-identifier hs-var"
+	  >nameFr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; VarDecl tyname name uni ann)
+-&gt; m (Type tyname uni ann) -&gt; m (VarDecl tyname name uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019369"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Rename a 'Type' in the 'RenameM' monad.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="local-6989586621682019212"
+      ><span id="local-6989586621682019213"
+	><span id="local-6989586621682019214"
+	  ><span id="local-6989586621682019215"
+	    ><span id="local-6989586621682019216"
+	      ><span class="annot"
+		><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+		  ><span class="hs-identifier hs-type"
+		    >renameTypeM</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-78"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Rename.Monad.html#HasRenaming"
+		  ><span class="hs-identifier hs-type"
+		    >HasRenaming</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019212"
+		  ><span class="hs-identifier hs-type"
+		    >ren</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Name.Unique.html#TypeUnique"
+		  ><span class="hs-identifier hs-type"
+		    >TypeUnique</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#HasUniques"
+		  ><span class="hs-identifier hs-type"
+		    >HasUniques</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Type"
+		  ><span class="hs-identifier hs-type"
+		    >Type</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019213"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019214"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019215"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Quote.html#MonadQuote"
+		  ><span class="hs-identifier hs-type"
+		    >MonadQuote</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019216"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		  ><span class="hs-identifier hs-type"
+		    >MonadReader</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019212"
+		  ><span class="hs-identifier hs-type"
+		    >ren</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019216"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-79"
+		></span
+		><span
+		>  </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Type"
+		  ><span class="hs-identifier hs-type"
+		    >Type</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019213"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019214"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019215"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019216"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Type"
+		  ><span class="hs-identifier hs-type"
+		    >Type</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019213"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019214"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621682019215"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span id="renameTypeM"
+      ><span class="annot"
+	><span class="annottext"
+	  >renameTypeM :: forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	  ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >renameTypeM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier hs-type"
+	  >TyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019446"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019446"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019447"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019447"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019448"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621682019448"
+	  ><span class="hs-identifier hs-var"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019449"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019449"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+-&gt; (tyname -&gt; m (Type tyname uni ann)) -&gt; m (Type tyname uni ann)
+forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, MonadQuote m,
+ MonadReader ren m) =&gt;
+name -&gt; (name -&gt; m c) -&gt; m c
+</span
+	><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	><span class="hs-identifier hs-var"
+	  >withFreshenedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019447"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((tyname -&gt; m (Type tyname uni ann)) -&gt; m (Type tyname uni ann))
+-&gt; (tyname -&gt; m (Type tyname uni ann)) -&gt; m (Type tyname uni ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682019450"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019450"
+	  ><span class="hs-identifier hs-var"
+	    >nameFr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; tyname -&gt; Kind ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; tyname -&gt; Kind ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier hs-var"
+	  >TyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019446"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019450"
+	><span class="hs-identifier hs-var"
+	  >nameFr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621682019448"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann) -&gt; m (Type tyname uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019449"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier hs-type"
+	  >TyForall</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019452"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019452"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019453"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019453"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019454"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621682019454"
+	  ><span class="hs-identifier hs-var"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019455"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019455"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+-&gt; (tyname -&gt; m (Type tyname uni ann)) -&gt; m (Type tyname uni ann)
+forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, MonadQuote m,
+ MonadReader ren m) =&gt;
+name -&gt; (name -&gt; m c) -&gt; m c
+</span
+	><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	><span class="hs-identifier hs-var"
+	  >withFreshenedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019453"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((tyname -&gt; m (Type tyname uni ann)) -&gt; m (Type tyname uni ann))
+-&gt; (tyname -&gt; m (Type tyname uni ann)) -&gt; m (Type tyname uni ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682019456"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019456"
+	  ><span class="hs-identifier hs-var"
+	    >nameFr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; tyname -&gt; Kind ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; tyname -&gt; Kind ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier hs-var"
+	  >TyForall</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019452"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019456"
+	><span class="hs-identifier hs-var"
+	  >nameFr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621682019454"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann) -&gt; m (Type tyname uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019455"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyIFix"
+	><span class="hs-identifier hs-type"
+	  >TyIFix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019458"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019458"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019459"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019459"
+	  ><span class="hs-identifier hs-var"
+	    >pat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019460"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019460"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyIFix"
+	><span class="hs-identifier hs-var"
+	  >TyIFix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019458"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Type tyname uni ann -&gt; Type tyname uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019459"
+	><span class="hs-identifier hs-var"
+	  >pat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann) -&gt; m (Type tyname uni ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019460"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyApp"
+	><span class="hs-identifier hs-type"
+	  >TyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019462"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019462"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019463"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019463"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019464"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019464"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyApp"
+	><span class="hs-identifier hs-var"
+	  >TyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019462"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Type tyname uni ann -&gt; Type tyname uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019463"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann) -&gt; m (Type tyname uni ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019464"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyFun"
+	><span class="hs-identifier hs-type"
+	  >TyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019466"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019466"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019467"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019467"
+	  ><span class="hs-identifier hs-var"
+	    >dom</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019468"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019468"
+	  ><span class="hs-identifier hs-var"
+	    >cod</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyFun"
+	><span class="hs-identifier hs-var"
+	  >TyFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019466"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Type tyname uni ann -&gt; Type tyname uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019467"
+	><span class="hs-identifier hs-var"
+	  >dom</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Type tyname uni ann -&gt; Type tyname uni ann)
+-&gt; m (Type tyname uni ann) -&gt; m (Type tyname uni ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019468"
+	><span class="hs-identifier hs-var"
+	  >cod</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier hs-type"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019470"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019470"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019471"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019471"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; tyname -&gt; Type tyname uni ann
+forall tyname (uni :: * -&gt; *) ann.
+ann -&gt; tyname -&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier hs-var"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019470"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(tyname -&gt; Type tyname uni ann)
+-&gt; m tyname -&gt; m (Type tyname uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; m tyname
+forall ren unique name (m :: * -&gt; *).
+(HasRenaming ren unique, HasUnique name unique,
+ MonadReader ren m) =&gt;
+name -&gt; m name
+</span
+	><a href="PlutusCore.Rename.Monad.html#renameNameM"
+	><span class="hs-identifier hs-var"
+	  >renameNameM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019471"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TySOP"
+	><span class="hs-identifier hs-type"
+	  >TySOP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019474"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019474"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019475"
+      ><span class="annot"
+	><span class="annottext"
+	  >[[Type tyname uni ann]]
+</span
+	  ><a href="#local-6989586621682019475"
+	  ><span class="hs-identifier hs-var"
+	    >tyls</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; [[Type tyname uni ann]] -&gt; Type tyname uni ann
+forall tyname (uni :: * -&gt; *) ann.
+ann -&gt; [[Type tyname uni ann]] -&gt; Type tyname uni ann
+</span
+	><a href="PlutusCore.Core.Type.html#TySOP"
+	><span class="hs-identifier hs-var"
+	  >TySOP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019474"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([[Type tyname uni ann]] -&gt; Type tyname uni ann)
+-&gt; m [[Type tyname uni ann]] -&gt; m (Type tyname uni ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Type tyname uni ann] -&gt; m [Type tyname uni ann])
+-&gt; [[Type tyname uni ann]] -&gt; m [[Type tyname uni ann]]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(([Type tyname uni ann] -&gt; m [Type tyname uni ann])
+ -&gt; [[Type tyname uni ann]] -&gt; m [[Type tyname uni ann]])
+-&gt; ((Type tyname uni ann -&gt; m (Type tyname uni ann))
+    -&gt; [Type tyname uni ann] -&gt; m [Type tyname uni ann])
+-&gt; (Type tyname uni ann -&gt; m (Type tyname uni ann))
+-&gt; [[Type tyname uni ann]]
+-&gt; m [[Type tyname uni ann]]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; m (Type tyname uni ann))
+-&gt; [Type tyname uni ann] -&gt; m [Type tyname uni ann]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Type tyname uni ann]]
+</span
+	><a href="#local-6989586621682019475"
+	><span class="hs-identifier hs-var"
+	  >tyls</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019478"
+      ><span class="annot"
+	><span class="annottext"
+	  >ty :: Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019478"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyBuiltin"
+	><span class="hs-identifier hs-type"
+	  >TyBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019478"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Rename a 'Term' in the 'RenameM' monad.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span id="local-6989586621682019239"
+      ><span id="local-6989586621682019240"
+	><span id="local-6989586621682019241"
+	  ><span id="local-6989586621682019242"
+	    ><span id="local-6989586621682019243"
+	      ><span id="local-6989586621682019244"
+		><span class="annot"
+		  ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+		    ><span class="hs-identifier hs-type"
+		      >renameTermM</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-93"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#HasUniques"
+		    ><span class="hs-identifier hs-type"
+		      >HasUniques</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019239"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019240"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019241"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019242"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019243"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Quote.html#MonadQuote"
+		    ><span class="hs-identifier hs-type"
+		      >MonadQuote</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019244"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		    ><span class="hs-identifier hs-type"
+		      >MonadReader</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+		    ><span class="hs-identifier hs-type"
+		      >ScopedRenaming</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019244"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-94"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019239"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019240"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019241"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019242"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019243"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019244"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019239"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019240"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019241"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019242"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019243"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span id="renameTermM"
+      ><span class="annot"
+	><span class="annottext"
+	  >renameTermM :: forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	  ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >renameTermM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019585"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019585"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019586"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682019586"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019587"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019587"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019588"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019588"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+-&gt; (name -&gt; m (Term tyname name uni fun ann))
+-&gt; m (Term tyname name uni fun ann)
+forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, MonadQuote m,
+ MonadReader ren m) =&gt;
+name -&gt; (name -&gt; m c) -&gt; m c
+</span
+	><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	><span class="hs-identifier hs-var"
+	  >withFreshenedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682019586"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((name -&gt; m (Term tyname name uni fun ann))
+ -&gt; m (Term tyname name uni fun ann))
+-&gt; (name -&gt; m (Term tyname name uni fun ann))
+-&gt; m (Term tyname name uni fun ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682019589"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682019589"
+	  ><span class="hs-identifier hs-var"
+	    >nameFr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; name
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; name
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019585"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682019589"
+	><span class="hs-identifier hs-var"
+	  >nameFr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann
+ -&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019587"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019588"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyAbs"
+	><span class="hs-identifier hs-type"
+	  >TyAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019591"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019591"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019592"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019592"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019593"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind ann
+</span
+	  ><a href="#local-6989586621682019593"
+	  ><span class="hs-identifier hs-var"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019594"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019594"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+-&gt; (tyname -&gt; m (Term tyname name uni fun ann))
+-&gt; m (Term tyname name uni fun ann)
+forall ren unique name (m :: * -&gt; *) c.
+(HasRenaming ren unique, HasUnique name unique, MonadQuote m,
+ MonadReader ren m) =&gt;
+name -&gt; (name -&gt; m c) -&gt; m c
+</span
+	><a href="PlutusCore.Rename.Monad.html#withFreshenedName"
+	><span class="hs-identifier hs-var"
+	  >withFreshenedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019592"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((tyname -&gt; m (Term tyname name uni fun ann))
+ -&gt; m (Term tyname name uni fun ann))
+-&gt; (tyname -&gt; m (Term tyname name uni fun ann))
+-&gt; m (Term tyname name uni fun ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682019595"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621682019595"
+	  ><span class="hs-identifier hs-var"
+	    >nameFr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; tyname
+-&gt; Kind ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; tyname
+-&gt; Kind ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyAbs"
+	><span class="hs-identifier hs-var"
+	  >TyAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019591"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621682019595"
+	><span class="hs-identifier hs-var"
+	  >nameFr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><a href="#local-6989586621682019593"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019594"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#IWrap"
+	><span class="hs-identifier hs-type"
+	  >IWrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019597"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019597"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019598"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019598"
+	  ><span class="hs-identifier hs-var"
+	    >pat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019599"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019599"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019600"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019600"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#IWrap"
+	><span class="hs-identifier hs-var"
+	  >IWrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019597"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann
+ -&gt; Type tyname uni ann
+ -&gt; Term tyname name uni fun ann
+ -&gt; Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Type tyname uni ann
+      -&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019598"
+	><span class="hs-identifier hs-var"
+	  >pat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Type tyname uni ann
+   -&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019599"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019600"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-type"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019602"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019602"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019603"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019603"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019604"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019604"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019602"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019603"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019604"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Unwrap"
+	><span class="hs-identifier hs-type"
+	  >Unwrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019606"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019606"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019607"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019607"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Unwrap"
+	><span class="hs-identifier hs-var"
+	  >Unwrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019606"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019607"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-type"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019609"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019609"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019610"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019610"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; Type tyname uni ann -&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; Type tyname uni ann -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Error"
+	><span class="hs-identifier hs-var"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019609"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann) -&gt; m (Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019610"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyInst"
+	><span class="hs-identifier hs-type"
+	  >TyInst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019612"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019612"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019613"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019613"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019614"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019614"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Term tyname name uni fun ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term tyname name uni fun ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#TyInst"
+	><span class="hs-identifier hs-var"
+	  >TyInst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019612"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Type tyname uni ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann -&gt; Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019613"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Type tyname uni ann -&gt; Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann) -&gt; m (Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019614"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019616"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019616"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019617"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621682019617"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; name -&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019616"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(name -&gt; Term tyname name uni fun ann)
+-&gt; m name -&gt; m (Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; m name
+forall ren unique name (m :: * -&gt; *).
+(HasRenaming ren unique, HasUnique name unique,
+ MonadReader ren m) =&gt;
+name -&gt; m name
+</span
+	><a href="PlutusCore.Rename.Monad.html#renameNameM"
+	><span class="hs-identifier hs-var"
+	  >renameNameM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621682019617"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-type"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019619"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019619"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019620"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019620"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019621"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621682019621"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019622"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Term tyname name uni fun ann]
+</span
+	  ><a href="#local-6989586621682019622"
+	  ><span class="hs-identifier hs-var"
+	    >es</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Word64
+-&gt; [Term tyname name uni fun ann]
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Word64
+-&gt; [Term tyname name uni fun ann]
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-var"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019619"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann
+ -&gt; Word64
+ -&gt; [Term tyname name uni fun ann]
+ -&gt; Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Word64
+      -&gt; [Term tyname name uni fun ann] -&gt; Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019620"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Word64
+   -&gt; [Term tyname name uni fun ann] -&gt; Term tyname name uni fun ann)
+-&gt; m Word64
+-&gt; m ([Term tyname name uni fun ann]
+      -&gt; Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; m Word64
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621682019621"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m ([Term tyname name uni fun ann] -&gt; Term tyname name uni fun ann)
+-&gt; m [Term tyname name uni fun ann]
+-&gt; m (Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann))
+-&gt; [Term tyname name uni fun ann]
+-&gt; m [Term tyname name uni fun ann]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term tyname name uni fun ann]
+</span
+	><a href="#local-6989586621682019622"
+	><span class="hs-identifier hs-var"
+	  >es</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019624"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019624"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019625"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621682019625"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019626"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019626"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019627"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Term tyname name uni fun ann]
+</span
+	  ><a href="#local-6989586621682019627"
+	  ><span class="hs-identifier hs-var"
+	    >cs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; [Term tyname name uni fun ann]
+-&gt; Term tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+-&gt; [Term tyname name uni fun ann]
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-var"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019624"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann
+ -&gt; Term tyname name uni fun ann
+ -&gt; [Term tyname name uni fun ann]
+ -&gt; Term tyname name uni fun ann)
+-&gt; m (Type tyname uni ann)
+-&gt; m (Term tyname name uni fun ann
+      -&gt; [Term tyname name uni fun ann] -&gt; Term tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m (Type tyname uni ann)
+forall ren tyname (uni :: * -&gt; *) ann (m :: * -&gt; *).
+(HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann),
+ MonadQuote m, MonadReader ren m) =&gt;
+Type tyname uni ann -&gt; m (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTypeM"
+	><span class="hs-identifier hs-var"
+	  >renameTypeM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621682019625"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Term tyname name uni fun ann
+   -&gt; [Term tyname name uni fun ann] -&gt; Term tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m ([Term tyname name uni fun ann]
+      -&gt; Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019626"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m ([Term tyname name uni fun ann] -&gt; Term tyname name uni fun ann)
+-&gt; m [Term tyname name uni fun ann]
+-&gt; m (Term tyname name uni fun ann)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann))
+-&gt; [Term tyname name uni fun ann]
+-&gt; m [Term tyname name uni fun ann]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term tyname name uni fun ann]
+</span
+	><a href="#local-6989586621682019627"
+	><span class="hs-identifier hs-var"
+	  >cs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019628"
+      ><span class="annot"
+	><span class="annottext"
+	  >con :: Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019628"
+	  ><span class="hs-identifier hs-var"
+	    >con</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019628"
+	><span class="hs-identifier hs-var"
+	  >con</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019630"
+      ><span class="annot"
+	><span class="annottext"
+	  >bi :: Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019630"
+	  ><span class="hs-identifier hs-var"
+	    >bi</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-type"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019630"
+	><span class="hs-identifier hs-var"
+	  >bi</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Rename a 'Program' in the 'RenameM' monad.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="local-6989586621682019256"
+      ><span id="local-6989586621682019257"
+	><span id="local-6989586621682019258"
+	  ><span id="local-6989586621682019259"
+	    ><span id="local-6989586621682019260"
+	      ><span id="local-6989586621682019262"
+		><span class="annot"
+		  ><a href="PlutusCore.Rename.Internal.html#renameProgramM"
+		    ><span class="hs-identifier hs-type"
+		      >renameProgramM</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-113"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#HasUniques"
+		    ><span class="hs-identifier hs-type"
+		      >HasUniques</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019256"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019257"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019258"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019259"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019260"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Quote.html#MonadQuote"
+		    ><span class="hs-identifier hs-type"
+		      >MonadQuote</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019262"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		    ><span class="hs-identifier hs-type"
+		      >MonadReader</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Rename.Monad.html#ScopedRenaming"
+		    ><span class="hs-identifier hs-type"
+		      >ScopedRenaming</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019262"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-114"
+		  ></span
+		  ><span
+		  >  </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019256"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019257"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019258"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019259"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019260"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019262"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Program"
+		    ><span class="hs-identifier hs-type"
+		      >Program</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019256"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019257"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019258"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019259"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621682019260"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="renameProgramM"
+      ><span class="annot"
+	><span class="annottext"
+	  >renameProgramM :: forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Program tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Program tyname name uni fun ann
+-&gt; m (Program tyname name uni fun ann)
+</span
+	  ><a href="PlutusCore.Rename.Internal.html#renameProgramM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >renameProgramM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019644"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621682019644"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019645"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621682019645"
+	  ><span class="hs-identifier hs-var"
+	    >ver</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682019646"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621682019646"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+-&gt; Version
+-&gt; Term tyname name uni fun ann
+-&gt; Program tyname name uni fun ann
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Version
+-&gt; Term tyname name uni fun ann
+-&gt; Program tyname name uni fun ann
+</span
+	><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621682019644"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621682019645"
+	><span class="hs-identifier hs-var"
+	  >ver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; Program tyname name uni fun ann)
+-&gt; m (Term tyname name uni fun ann)
+-&gt; m (Program tyname name uni fun ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(HasUniques (Term tyname name uni fun ann), MonadQuote m,
+ MonadReader ScopedRenaming m) =&gt;
+Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Rename.Internal.html#renameTermM"
+	><span class="hs-identifier hs-var"
+	  >renameTermM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621682019646"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

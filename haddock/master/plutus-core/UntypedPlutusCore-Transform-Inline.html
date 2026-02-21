@@ -1,0 +1,1651 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Transform.Inline</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Transform.Inline.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Transform.Inline</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Exported for testing</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >An inlining pass.</p
+	  ><p
+	  >This pass is essentially a copy of the PIR inliner, and should be KEPT IN SYNC
+with it. It's hard to do this with true abstraction, so we just have to keep
+two copies reasonably similar.</p
+	  ><p
+	  >However, there are some differences. In the interests of making it easier
+to keep things in sync, these are explicitly listed in
+Note [Differences from PIR inliner]. If you add another difference,
+please note it there! Obviously fewer differences is better.</p
+	  ><p
+	  >See Note [The problem of inlining destructors] for why this pass exists. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:inline"
+	      >inline</a
+	      > &#8759; &#8704; name uni fun m a. ExternalConstraints name uni fun m &#8658; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+	      >AstSize</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+	      >InlineHints</a
+	      > name a &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	      >SimplifierT</a
+	      > name uni fun a m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:InlineHints"
+	      >InlineHints</a
+	      > name a = <a href="#v:InlineHints"
+	      >InlineHints</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:shouldInline"
+		  >shouldInline</a
+		  > &#8759; a &#8594; name &#8594; <a href="PlutusCore-Annotation.html#t:Inline" title="PlutusCore.Annotation"
+		  >Inline</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:InlineM"
+	      >InlineM</a
+	      > name uni fun a = <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	      >ReaderT</a
+	      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:InlineInfo" title="UntypedPlutusCore.Transform.Inline"
+	      >InlineInfo</a
+	      > name fun a) (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+	      >StateT</a
+	      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+	      >S</a
+	      > name uni fun (<a href="UntypedPlutusCore-Transform-Inline.html#t:Ann" title="UntypedPlutusCore.Transform.Inline"
+	      >Ann</a
+	      > a)) <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:S"
+	      >S</a
+	      > name uni fun a = <a href="#v:S"
+	      >S</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_subst"
+		  >_subst</a
+		  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+		  >Subst</a
+		  > name uni fun a</li
+		><li
+		><a href="#v:_vars"
+		  >_vars</a
+		  > &#8759; <a href="PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+		  >UniqueMap</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  > (VarInfo name uni fun a)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Decoration"
+	      >Decoration</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:DDrop"
+		  >DDrop</a
+		  ></li
+		><li
+		>| <a href="#v:DExpand"
+		  >DExpand</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Ann"
+	      >Ann</a
+	      > a = ([<a href="UntypedPlutusCore-Transform-Inline.html#t:Decoration" title="UntypedPlutusCore.Transform.Inline"
+	      >Decoration</a
+	      >], a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:InlineInfo"
+	      >InlineInfo</a
+	      > name fun a = <a href="#v:InlineInfo"
+	      >InlineInfo</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_iiUsages"
+		  >_iiUsages</a
+		  > &#8759; <a href="UntypedPlutusCore-Analysis-Usages.html#t:Usages" title="UntypedPlutusCore.Analysis.Usages"
+		  >Usages</a
+		  ></li
+		><li
+		><a href="#v:_iiHints"
+		  >_iiHints</a
+		  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+		  >InlineHints</a
+		  > name a</li
+		><li
+		><a href="#v:_iiBuiltinSemanticsVariant"
+		  >_iiBuiltinSemanticsVariant</a
+		  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun</li
+		><li
+		><a href="#v:_iiInlineConstants"
+		  >_iiInlineConstants</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_iiInlineCallsiteGrowth"
+		  >_iiInlineCallsiteGrowth</a
+		  > &#8759; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+		  >AstSize</a
+		  ></li
+		><li
+		><a href="#v:_iiPreserveLogging"
+		  >_iiPreserveLogging</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Subst"
+	      >Subst</a
+	      > name uni fun a = <a href="#v:Subst"
+	      >Subst</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_termEnv"
+		  >_termEnv</a
+		  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+		  >TermEnv</a
+		  > name uni fun a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:TermEnv"
+	      >TermEnv</a
+	      > name uni fun a = <a href="#v:TermEnv"
+	      >TermEnv</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_unTermEnv"
+		  >_unTermEnv</a
+		  > &#8759; <a href="PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+		  >UniqueMap</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+		  >TermUnique</a
+		  > (InlineTerm name uni fun a)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:isFirstVarBeforeEffects"
+	      >isFirstVarBeforeEffects</a
+	      > &#8759; &#8704; name uni fun ann. InliningConstraints name uni fun &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; name &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isStrictIn"
+	      >isStrictIn</a
+	      > &#8759; &#8704; name uni fun a. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	      >Eq</a
+	      > name &#8658; name &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:effectSafe"
+	      >effectSafe</a
+	      > &#8759; &#8704; name uni fun a b. InliningConstraints name uni fun &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun a &#8594; name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineM" title="UntypedPlutusCore.Transform.Inline"
+	      >InlineM</a
+	      > name uni fun b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inline" class="def"
+	    >inline</a
+	    > <a href="src/UntypedPlutusCore.Transform.Inline.html#inline" class="link"
+	    >Source</a
+	    > <a href="#v:inline" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; name uni fun m a. ExternalConstraints name uni fun m</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+		  >AstSize</a
+		  ></td
+		><td class="doc"
+		><p
+		  >inline threshold</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >inline constants</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >preserve logging</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+		  >InlineHints</a
+		  > name a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+		  >SimplifierT</a
+		  > name uni fun a m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Inline simple bindings. Relies on global uniqueness, and preserves it.
+See Note [Inlining and global uniqueness] </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:InlineHints" class="def"
+	    >InlineHints</a
+	    > name a <a href="src/PlutusCore.Annotation.html#InlineHints" class="link"
+	    >Source</a
+	    > <a href="#t:InlineHints" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InlineHints" class="def"
+		  >InlineHints</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:shouldInline" class="def"
+			  >shouldInline</a
+			  > &#8759; a &#8594; name &#8594; <a href="PlutusCore-Annotation.html#t:Inline" title="PlutusCore.Annotation"
+			  >Inline</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:InlineHints"
+	    >Instances</h4
+	    ><details id="i:InlineHints" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlineHints:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+		      >InlineHints</a
+		      > name a)</span
+		    > <a href="src/PlutusCore.Annotation.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:InlineHints" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlineHints:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Annotation.html"
+			>PlutusCore.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+			  >InlineHints</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+			  >InlineHints</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+			  >InlineHints</a
+			  > name a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlineHints:Default:2"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		      >Default</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+		      >InlineHints</a
+		      > name a)</span
+		    > <a href="src/PlutusCore.Annotation.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:InlineHints" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlineHints:Default:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Annotation.html"
+			>PlutusCore.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:def"
+			  >def</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+			  >InlineHints</a
+			  > name a <a href="#v:def" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><a href="#g:1" id="g:1"
+	><h1
+	  >Exported for testing</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:InlineM" class="def"
+	    >InlineM</a
+	    > name uni fun a = <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	    >ReaderT</a
+	    > (<a href="UntypedPlutusCore-Transform-Inline.html#t:InlineInfo" title="UntypedPlutusCore.Transform.Inline"
+	    >InlineInfo</a
+	    > name fun a) (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+	    >StateT</a
+	    > (<a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+	    >S</a
+	    > name uni fun (<a href="UntypedPlutusCore-Transform-Inline.html#t:Ann" title="UntypedPlutusCore.Transform.Inline"
+	    >Ann</a
+	    > a)) <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    >) <a href="src/UntypedPlutusCore.Transform.Inline.html#InlineM" class="link"
+	    >Source</a
+	    > <a href="#t:InlineM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad the inliner runs in.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:S" class="def"
+	    >S</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Inline.html#S" class="link"
+	    >Source</a
+	    > <a href="#t:S" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >UPLC inliner state</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:S" class="def"
+		  >S</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_subst" class="def"
+			  >_subst</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_vars" class="def"
+			  >_vars</a
+			  > &#8759; <a href="PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+			  >UniqueMap</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+			  >TermUnique</a
+			  > (VarInfo name uni fun a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:S"
+	    >Instances</h4
+	    ><details id="i:S" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:S:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+		      >S</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-132" class="link"
+		    >Source</a
+		    > <a href="#t:S" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:S:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a] &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:S:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+		      >S</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-129" class="link"
+		    >Source</a
+		    > <a href="#t:S" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:S:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > (<a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a) &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:S" title="UntypedPlutusCore.Transform.Inline"
+			  >S</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Decoration" class="def"
+	    >Decoration</a
+	    > <a href="src/UntypedPlutusCore.Transform.Inline.html#Decoration" class="link"
+	    >Source</a
+	    > <a href="#t:Decoration" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An enclosing Drop or Expand layer</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:DDrop" class="def"
+		  >DDrop</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DExpand" class="def"
+		  >DExpand</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Ann" class="def"
+	    >Ann</a
+	    > a = ([<a href="UntypedPlutusCore-Transform-Inline.html#t:Decoration" title="UntypedPlutusCore.Transform.Inline"
+	    >Decoration</a
+	    >], a) <a href="src/UntypedPlutusCore.Transform.Inline.html#Ann" class="link"
+	    >Source</a
+	    > <a href="#t:Ann" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:InlineInfo" class="def"
+	    >InlineInfo</a
+	    > name fun a <a href="src/UntypedPlutusCore.Transform.Inline.html#InlineInfo" class="link"
+	    >Source</a
+	    > <a href="#t:InlineInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InlineInfo" class="def"
+		  >InlineInfo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_iiUsages" class="def"
+			  >_iiUsages</a
+			  > &#8759; <a href="UntypedPlutusCore-Analysis-Usages.html#t:Usages" title="UntypedPlutusCore.Analysis.Usages"
+			  >Usages</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiHints" class="def"
+			  >_iiHints</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineHints" title="UntypedPlutusCore.Transform.Inline"
+			  >InlineHints</a
+			  > name a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiBuiltinSemanticsVariant" class="def"
+			  >_iiBuiltinSemanticsVariant</a
+			  > &#8759; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiInlineConstants" class="def"
+			  >_iiInlineConstants</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiInlineCallsiteGrowth" class="def"
+			  >_iiInlineCallsiteGrowth</a
+			  > &#8759; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+			  >AstSize</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_iiPreserveLogging" class="def"
+			  >_iiPreserveLogging</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Subst" class="def"
+	    >Subst</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Inline.html#Subst" class="link"
+	    >Source</a
+	    > <a href="#t:Subst" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Wrapper of term substitution so that it's similar to the PIR inliner.
+See Note [Differences from PIR inliner] 1 </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Subst" class="def"
+		  >Subst</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_termEnv" class="def"
+			  >_termEnv</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Subst"
+	    >Instances</h4
+	    ><details id="i:Subst" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Subst:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+		      >Subst</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:Subst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Subst:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a] &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Subst:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+		      >Subst</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:Subst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Subst:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a) &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Subst:Generic:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+		      >Subst</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:Subst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Subst:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a) x &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			  >Subst</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Subst:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+		      >Subst</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:Subst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Subst:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+			>Subst</a
+			> name uni fun a) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;Subst&quot; &quot;UntypedPlutusCore.Transform.Inline&quot; &quot;plutus-core-1.58.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Subst&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_termEnv&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			>TermEnv</a
+			> name uni fun a))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:TermEnv" class="def"
+	    >TermEnv</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Inline.html#TermEnv" class="link"
+	    >Source</a
+	    > <a href="#t:TermEnv" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Term substitution, <code
+	      ><a href="UntypedPlutusCore-Transform-Inline.html#t:Subst" title="UntypedPlutusCore.Transform.Inline"
+		>Subst</a
+		></code
+	      > in the paper.
+A map of unprocessed variable and its substitution range. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TermEnv" class="def"
+		  >TermEnv</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_unTermEnv" class="def"
+			  >_unTermEnv</a
+			  > &#8759; <a href="PlutusCore-Name-UniqueMap.html#t:UniqueMap" title="PlutusCore.Name.UniqueMap"
+			  >UniqueMap</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+			  >TermUnique</a
+			  > (InlineTerm name uni fun a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TermEnv"
+	    >Instances</h4
+	    ><details id="i:TermEnv" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermEnv:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+		      >TermEnv</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:TermEnv" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermEnv:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a] &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TermEnv:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+		      >TermEnv</a
+		      > name uni fun a)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Inline.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:TermEnv" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TermEnv:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Inline.html"
+			>UntypedPlutusCore.Transform.Inline</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > (<a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a) &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:TermEnv" title="UntypedPlutusCore.Transform.Inline"
+			  >TermEnv</a
+			  > name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isFirstVarBeforeEffects" class="def"
+	    >isFirstVarBeforeEffects</a
+	    > &#8759; &#8704; name uni fun ann. InliningConstraints name uni fun &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; name &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Transform.Inline.html#isFirstVarBeforeEffects" class="link"
+	    >Source</a
+	    > <a href="#v:isFirstVarBeforeEffects" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isStrictIn" class="def"
+	    >isStrictIn</a
+	    > &#8759; &#8704; name uni fun a. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+	    >Eq</a
+	    > name &#8658; name &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Transform.Inline.html#isStrictIn" class="link"
+	    >Source</a
+	    > <a href="#v:isStrictIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if the given name is strict in the given term.
+  This means that at least one occurrence of the name is found outside of the following:
+  * <code
+	      >delay</code
+	      > term
+  * lambda body
+  * case branch </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:effectSafe" class="def"
+	    >effectSafe</a
+	    > <a href="src/UntypedPlutusCore.Transform.Inline.html#effectSafe" class="link"
+	    >Source</a
+	    > <a href="#v:effectSafe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; name uni fun a b. InliningConstraints name uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; name</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >is it pure? See Note [Inlining and purity]</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="UntypedPlutusCore-Transform-Inline.html#t:InlineM" title="UntypedPlutusCore.Transform.Inline"
+		  >InlineM</a
+		  > name uni fun b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

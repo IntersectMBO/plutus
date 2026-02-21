@@ -1,0 +1,1969 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Envelope</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelope"
+	><span class="hs-identifier"
+	  >compiledCodeEnvelope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelopeForVersion"
+	><span class="hs-identifier"
+	  >compiledCodeEnvelopeForVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Envelope.html#writeCodeEnvelope"
+	><span class="hs-identifier"
+	  >writeCodeEnvelope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Envelope.html#writeCodeEnvelopeForVersion"
+	><span class="hs-identifier"
+	  >writeCodeEnvelopeForVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-operator"
+	>(.=)</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Json</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-pretty-0.8.10/docs/src/Data.Aeson.Encode.Pretty.html"
+	><span class="hs-identifier"
+	  >Data.Aeson.Encode.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Json</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.ByteString.Base16</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Base16</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>LBS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Short.html"
+	><span class="hs-identifier"
+	  >Data.ByteString.Short</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Encoding.html"
+	><span class="hs-identifier"
+	  >Data.Text.Encoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Encoding.html#decodeUtf8"
+	><span class="hs-identifier"
+	  >decodeUtf8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common.SerialisedScript</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.SerialisedScript.html#serialiseCompiledCode"
+	><span class="hs-identifier"
+	  >serialiseCompiledCode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Common.Versions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	><span class="hs-identifier"
+	  >PlutusLedgerLanguage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Code</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	><span class="hs-identifier"
+	  >CompiledCode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Produce a JSON envelope containing 'CompiledCode' serialised with
+CBOR and encoded in Base 16 (aka. HEX), using PlutusV3 by default.
+
+&quot;Envelope&quot; is a JSON object with the following fields:
+@
+{
+  &quot;type&quot;: &quot;PlutusScriptV3&quot;,
+  &quot;description&quot;: &quot;A description of the code&quot;,
+  &quot;cborHex&quot;: &quot;...&quot;
+}
+@ -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="local-6989586621681203184"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelope"
+	  ><span class="hs-identifier hs-type"
+	    >compiledCodeEnvelope</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-34"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-35"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Description of the code</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-36"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681203184"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-37"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Compiled code to wrap in the envelope</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-38"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Json.Value</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ JSON envelope</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="compiledCodeEnvelope"
+      ><span class="annot"
+	><span class="annottext"
+	  >compiledCodeEnvelope :: forall a. Text -&gt; CompiledCode a -&gt; Value
+</span
+	  ><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelope"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compiledCodeEnvelope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; Value
+forall a. PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; Value
+</span
+	><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelopeForVersion"
+	><span class="hs-identifier hs-var"
+	  >compiledCodeEnvelopeForVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Produce a JSON envelope containing 'CompiledCode' serialised with
+CBOR and encoded in Base 16 (aka. HEX).
+
+&quot;Envelope&quot; is a JSON object with the following fields:
+@
+{
+  &quot;type&quot;: &quot;PlutusScriptV2&quot;,
+  &quot;description&quot;: &quot;A description of the code&quot;,
+  &quot;cborHex&quot;: &quot;...&quot;
+}
+@ -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="local-6989586621681203189"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelopeForVersion"
+	  ><span class="hs-identifier hs-type"
+	    >compiledCodeEnvelopeForVersion</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-54"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusLedgerLanguage</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-55"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Language of the compiled code, e.g. 'PlutusLedgerLanguage.PlutusV3'</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-56"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-57"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Description of the code</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-58"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681203189"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-59"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Compiled code to wrap in the envelope</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-60"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Json.Value</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ JSON envelope</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="compiledCodeEnvelopeForVersion"
+      ><span class="annot"
+	><span class="annottext"
+	  >compiledCodeEnvelopeForVersion :: forall a. PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; Value
+</span
+	  ><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelopeForVersion"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compiledCodeEnvelopeForVersion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681203237"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusLedgerLanguage
+</span
+	  ><a href="#local-6989586621681203237"
+	  ><span class="hs-identifier hs-var"
+	    >lang</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681203238"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681203238"
+	  ><span class="hs-identifier hs-var"
+	    >desc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681203239"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCode a
+</span
+	  ><a href="#local-6989586621681203239"
+	  ><span class="hs-identifier hs-var"
+	    >code</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Pair] -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Json.object</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;type&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Text -&gt; Pair
+forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
+forall e kv v. (KeyValue e kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span
+	><span class="hs-operator hs-var"
+	>.=</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681203241"
+	><span class="hs-identifier hs-var"
+	  >typ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;description&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Text -&gt; Pair
+forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
+forall e kv v. (KeyValue e kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span
+	><span class="hs-operator hs-var"
+	>.=</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681203238"
+	><span class="hs-identifier hs-var"
+	  >desc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;cborHex&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Text -&gt; Pair
+forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
+forall e kv v. (KeyValue e kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span
+	><span class="hs-operator hs-var"
+	>.=</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681203242"
+	><span class="hs-identifier hs-var"
+	  >hex</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681203241"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681203241"
+	  ><span class="hs-identifier hs-var"
+	    >typ</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="#local-6989586621681203237"
+	><span class="hs-identifier hs-var"
+	  >lang</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV1"
+	><span class="hs-identifier hs-var"
+	  >PlutusV1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;PlutusScriptV1&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >PlutusV2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;PlutusScriptV2&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;PlutusScriptV3&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681203242"
+      ><span class="annot"
+	><span class="annottext"
+	  >hex :: Text
+</span
+	  ><a href="#local-6989586621681203242"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >hex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Encoding.html#decodeUtf8"
+	><span class="hs-identifier hs-var"
+	  >decodeUtf8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+</span
+	><span class="hs-identifier hs-var"
+	>Base16.encode</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShortByteString -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Short.Internal.html#fromShort"
+	><span class="hs-identifier hs-var"
+	  >BS.fromShort</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a -&gt; ShortByteString
+forall a. CompiledCode a -&gt; ShortByteString
+</span
+	><a href="PlutusLedgerApi.Common.SerialisedScript.html#serialiseCompiledCode"
+	><span class="hs-identifier hs-var"
+	  >serialiseCompiledCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a
+</span
+	><a href="#local-6989586621681203239"
+	><span class="hs-identifier hs-var"
+	  >code</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Write a JSON envelope containing 'CompiledCode' serialised with
+CBOR and encoded in Base 16 (aka. HEX) to a file on disk, using PlutusV3 by default.
+
+&quot;Envelope&quot; is a JSON object with the following fields:
+@
+{
+  &quot;type&quot;: &quot;PlutusScriptV3&quot;,
+  &quot;description&quot;: &quot;A description of the code&quot;,
+  &quot;cborHex&quot;: &quot;...&quot;
+}
+@ -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="local-6989586621681203206"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Envelope.html#writeCodeEnvelope"
+	  ><span class="hs-identifier hs-type"
+	    >writeCodeEnvelope</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-90"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-91"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Description of the code</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-92"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681203206"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-93"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Compiled code to wrap in the envelope</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-94"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	  ><span class="hs-identifier hs-type"
+	    >FilePath</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-95"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ File path to write the envelope to</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-96"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	  ><span class="hs-identifier hs-type"
+	    >IO</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="writeCodeEnvelope"
+      ><span class="annot"
+	><span class="annottext"
+	  >writeCodeEnvelope :: forall a. Text -&gt; CompiledCode a -&gt; FilePath -&gt; IO ()
+</span
+	  ><a href="PlutusLedgerApi.Envelope.html#writeCodeEnvelope"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >writeCodeEnvelope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; FilePath -&gt; IO ()
+forall a.
+PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; FilePath -&gt; IO ()
+</span
+	><a href="PlutusLedgerApi.Envelope.html#writeCodeEnvelopeForVersion"
+	><span class="hs-identifier hs-var"
+	  >writeCodeEnvelopeForVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Write a JSON envelope containing 'CompiledCode' serialised with
+CBOR and encoded in Base 16 (aka. HEX) to a file on disk.
+
+&quot;Envelope&quot; is a JSON object with the following fields:
+@
+{
+  &quot;type&quot;: &quot;PlutusScriptV2&quot;,
+  &quot;description&quot;: &quot;A description of the code&quot;,
+  &quot;cborHex&quot;: &quot;...&quot;
+}
+@ -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span id="local-6989586621681203209"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Envelope.html#writeCodeEnvelopeForVersion"
+	  ><span class="hs-identifier hs-type"
+	    >writeCodeEnvelopeForVersion</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-112"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Common.Versions.html#PlutusLedgerLanguage"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusLedgerLanguage</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-113"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Language of the compiled code, e.g. 'PlutusLedgerLanguage.PlutusV3'</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-114"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-115"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Description of the code</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-116"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681203209"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-117"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ Compiled code to wrap in the envelope</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-118"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	  ><span class="hs-identifier hs-type"
+	    >FilePath</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-119"
+	></span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="hs-comment"
+	  >-- ^ File path to write the envelope to</span
+	  ></span
+	><span
+	>
+</span
+	><span id="line-120"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	  ><span class="hs-identifier hs-type"
+	    >IO</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span id="writeCodeEnvelopeForVersion"
+      ><span class="annot"
+	><span class="annottext"
+	  >writeCodeEnvelopeForVersion :: forall a.
+PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; FilePath -&gt; IO ()
+</span
+	  ><a href="PlutusLedgerApi.Envelope.html#writeCodeEnvelopeForVersion"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >writeCodeEnvelopeForVersion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681203251"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusLedgerLanguage
+</span
+	  ><a href="#local-6989586621681203251"
+	  ><span class="hs-identifier hs-var"
+	    >lang</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681203252"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681203252"
+	  ><span class="hs-identifier hs-var"
+	    >desc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681203253"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCode a
+</span
+	  ><a href="#local-6989586621681203253"
+	  ><span class="hs-identifier hs-var"
+	    >code</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681203254"
+      ><span class="annot"
+	><span class="annottext"
+	  >FilePath
+</span
+	  ><a href="#local-6989586621681203254"
+	  ><span class="hs-identifier hs-var"
+	    >path</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681203255"
+      ><span class="annot"
+	><span class="annottext"
+	  >envelope :: Value
+</span
+	  ><a href="#local-6989586621681203255"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >envelope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; Value
+forall a. PlutusLedgerLanguage -&gt; Text -&gt; CompiledCode a -&gt; Value
+</span
+	><a href="PlutusLedgerApi.Envelope.html#compiledCodeEnvelopeForVersion"
+	><span class="hs-identifier hs-var"
+	  >compiledCodeEnvelopeForVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusLedgerLanguage
+</span
+	><a href="#local-6989586621681203251"
+	><span class="hs-identifier hs-var"
+	  >lang</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681203252"
+	><span class="hs-identifier hs-var"
+	  >desc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a
+</span
+	><a href="#local-6989586621681203253"
+	><span class="hs-identifier hs-var"
+	  >code</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- aeson-pretty doesn't add a newline at the end, so we add it manually</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621681203262"
+      ><span class="annot"
+	><span class="annottext"
+	  >envelopePretty :: ByteString
+</span
+	  ><a href="#local-6989586621681203262"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >envelopePretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Config -&gt; Value -&gt; ByteString
+forall a. ToJSON a =&gt; Config -&gt; a -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/aeson-pretty-0.8.10/docs/src/Data.Aeson.Encode.Pretty.html#encodePretty%27"
+	><span class="hs-identifier hs-var"
+	  >Json.encodePretty'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Config
+</span
+	><a href="#local-6989586621681203264"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621681203255"
+	><span class="hs-identifier hs-var"
+	  >envelope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString -&gt; ByteString
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><span class="hs-string"
+	>&quot;\n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath -&gt; ByteString -&gt; IO ()
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Lazy.html#writeFile"
+	><span class="hs-identifier hs-var"
+	  >LBS.writeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="#local-6989586621681203254"
+	><span class="hs-identifier hs-var"
+	  >path</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621681203262"
+	><span class="hs-identifier hs-var"
+	  >envelopePretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681203264"
+      ><span class="annot"
+	><span class="annottext"
+	  >config :: Config
+</span
+	  ><a href="#local-6989586621681203264"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Config
+</span
+	><a href="https://hackage.haskell.org/package/aeson-pretty-0.8.10/docs/src/Data.Aeson.Encode.Pretty.html#defConfig"
+	><span class="hs-identifier hs-var"
+	  >Json.defConfig</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-pretty-0.8.10/docs/src/Data.Aeson.Encode.Pretty.html#confCompare"
+	><span class="hs-identifier hs-var"
+	  >Json.confCompare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-pretty-0.8.10/docs/src/Data.Aeson.Encode.Pretty.html#keyOrder"
+	><span class="hs-identifier hs-type"
+	  >Json.keyOrder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;type&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;description&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;cborHex&quot;</span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

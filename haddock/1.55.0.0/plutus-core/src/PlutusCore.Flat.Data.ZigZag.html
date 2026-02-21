@@ -1,0 +1,1840 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DefaultSignatures      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- |&lt;https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba ZigZag encoding&gt; of signed integrals.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Data.ZigZag</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.ZigZag.html#ZigZag"
+	><span class="hs-identifier"
+	  >ZigZag</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bits.html"
+	><span class="hs-identifier"
+	  >Data.Bits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#Bits"
+	><span class="hs-identifier"
+	  >Bits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftL"
+	><span class="hs-identifier"
+	  >shiftL</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftR"
+	><span class="hs-identifier"
+	  >shiftR</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#xor"
+	><span class="hs-identifier"
+	  >xor</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#.%26."
+	><span class="hs-operator"
+	  >(.&amp;.)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#FiniteBits"
+	><span class="hs-identifier"
+	  >FiniteBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#finiteBitSize"
+	><span class="hs-identifier"
+	  >finiteBitSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Int.html"
+	><span class="hs-identifier"
+	  >Data.Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int16"
+	><span class="hs-identifier"
+	  >Int16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int32"
+	><span class="hs-identifier"
+	  >Int32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int8"
+	><span class="hs-identifier"
+	  >Int8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word16"
+	><span class="hs-identifier"
+	  >Word16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	><span class="hs-identifier"
+	  >Word32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier"
+	  >Word64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	><span class="hs-identifier"
+	  >Word8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Numeric.Natural.html"
+	><span class="hs-identifier"
+	  >Numeric.Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier"
+	  >Natural</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-comment"
+      >-- $setup</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; :set -XNegativeLiterals -XScopedTypeVariables -XFlexibleContexts</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import Data.Word</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import Data.Int</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import Numeric.Natural</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import Test.QuickCheck.Arbitrary</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; instance Arbitrary Natural where arbitrary = arbitrarySizedNatural; shrink    = shrinkIntegral</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Convert between a signed integral and the corresponding ZigZag encoded unsigned integral (e.g. between Int8 and Word8 or Integral and Natural).
+
+Allow conversion only between compatible types, invalid conversions produce a type error:
+
+@
+zigZag (-1::Int64) :: Word32
+...
+... Couldn't match type ...
+...
+@
+&gt;&gt;&gt; zigZag (0::Int8)
+0
+
+&gt;&gt;&gt; zigZag (-1::Int16)
+1
+
+&gt;&gt;&gt; zigZag (1::Int32)
+2
+
+&gt;&gt;&gt; zigZag (-2::Int16)
+3
+
+&gt;&gt;&gt; zigZag (-50::Integer)
+99
+
+&gt;&gt;&gt; zigZag (50::Integer)
+100
+
+&gt;&gt;&gt; zigZag (64::Integer)
+128
+
+&gt;&gt;&gt; zigZag (-256::Integer)
+511
+
+&gt;&gt;&gt; zigZag (256::Integer)
+512
+
+&gt;&gt;&gt; map zigZag [-3..3::Integer]
+[5,3,1,0,2,4,6]
+
+&gt;&gt;&gt; map zagZig [0..6::Word8]
+[0,-1,1,-2,2,-3,3]
+
+prop&gt; \(f::Integer) -&gt; zagZig (zigZag f) == f
++++ OK, passed 100 tests.
+
+prop&gt; \(f::Natural) -&gt; zigZag (zagZig f) == f
++++ OK, passed 100 tests.
+
+prop&gt; \(f::Int8) -&gt; zagZig (zigZag f) == f
++++ OK, passed 100 tests.
+
+prop&gt; \(f::Word8) -&gt; zigZag (zagZig f) == f
++++ OK, passed 100 tests.
+
+prop&gt; \(s::Int8) -&gt; zigZag s == fromIntegral (zigZag (fromIntegral s :: Integer))
++++ OK, passed 100 tests.
+
+prop&gt; \(u::Word8) -&gt; zagZig u == fromIntegral (zagZig (fromIntegral u :: Natural))
++++ OK, passed 100 tests.
+
+prop&gt; \(f::Int64) -&gt; zagZig (zigZag f) == f
++++ OK, passed 100 tests.
+
+prop&gt; \(f::Word64) -&gt; zigZag (zagZig f) == f
++++ OK, passed 100 tests.
+
+prop&gt; \(s::Int64) -&gt; zigZag s == fromIntegral (zigZag (fromIntegral s :: Integer))
++++ OK, passed 100 tests.
+
+prop&gt; \(u::Word64) -&gt; zagZig u == fromIntegral (zagZig (fromIntegral u :: Natural))
++++ OK, passed 100 tests.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Integral"
+	><span class="hs-identifier hs-type"
+	  >Integral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Integral"
+	><span class="hs-identifier hs-type"
+	  >Integral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="ZigZag"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Data.ZigZag.html#ZigZag"
+	  ><span class="hs-identifier hs-var"
+	    >ZigZag</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679099936"
+      ><span class="annot"
+	><a href="#local-6989586621679099936"
+	  ><span class="hs-identifier hs-type"
+	    >signed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679099937"
+      ><span class="annot"
+	><a href="#local-6989586621679099937"
+	  ><span class="hs-identifier hs-type"
+	    >unsigned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span id="zigZag"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Data.ZigZag.html#zigZag"
+	  ><span class="hs-identifier hs-type"
+	    >zigZag</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >default</span
+      ><span
+      > </span
+      ><span id="zigZag"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Data.ZigZag.html#zigZag"
+	  ><span class="hs-identifier hs-type"
+	    >zigZag</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#FiniteBits"
+	><span class="hs-identifier hs-type"
+	  >FiniteBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679099961"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Data.ZigZag.html#zigZag"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >zigZag</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679099980"
+	><span class="annot"
+	  ><span class="annottext"
+	    >signed
+</span
+	    ><a href="#local-6989586621679099980"
+	    ><span class="hs-identifier hs-var"
+	      >s</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >signed -&gt; unsigned
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	  ><span class="hs-identifier hs-var"
+	    >fromIntegral</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-101"
+	></span
+	><span
+	>    </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="annottext"
+	  >signed
+</span
+	  ><a href="#local-6989586621679099980"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >signed -&gt; Int -&gt; signed
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftL"
+	  ><span class="hs-operator hs-var"
+	    >`shiftL`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><span class="hs-number"
+	  >1</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >signed -&gt; signed -&gt; signed
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#xor"
+	  ><span class="hs-operator hs-var"
+	    >`xor`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="annottext"
+	  >signed
+</span
+	  ><a href="#local-6989586621679099980"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >signed -&gt; Int -&gt; signed
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftR"
+	  ><span class="hs-operator hs-var"
+	    >`shiftR`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="annottext"
+	  >signed -&gt; Int
+forall b. FiniteBits b =&gt; b -&gt; Int
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#finiteBitSize"
+	  ><span class="hs-identifier hs-var"
+	    >finiteBitSize</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >signed
+</span
+	  ><a href="#local-6989586621679099980"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	  ><span class="hs-glyph hs-var"
+	    >-</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><span class="hs-number"
+	  >1</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.ZigZag.html#zigZag"
+	><span class="hs-pragma hs-type"
+	  >zigZag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span id="zagZig"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Data.ZigZag.html#zagZig"
+	  ><span class="hs-identifier hs-type"
+	    >zagZig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >default</span
+      ><span
+      > </span
+      ><span id="zagZig"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Data.ZigZag.html#zagZig"
+	  ><span class="hs-identifier hs-type"
+	    >zagZig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#Bits"
+	><span class="hs-identifier hs-type"
+	  >Bits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099937"
+	><span class="hs-identifier hs-type"
+	  >unsigned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679099936"
+	><span class="hs-identifier hs-type"
+	  >signed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679099982"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Data.ZigZag.html#zagZig"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >zagZig</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679099997"
+	><span class="annot"
+	  ><span class="annottext"
+	    >unsigned
+</span
+	    ><a href="#local-6989586621679099997"
+	    ><span class="hs-identifier hs-var"
+	      >u</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned -&gt; signed
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	  ><span class="hs-identifier hs-var"
+	    >fromIntegral</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned
+</span
+	  ><a href="#local-6989586621679099997"
+	  ><span class="hs-identifier hs-var"
+	    >u</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned -&gt; Int -&gt; unsigned
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftR"
+	  ><span class="hs-operator hs-var"
+	    >`shiftR`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><span class="hs-number"
+	  >1</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned -&gt; unsigned -&gt; unsigned
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#xor"
+	  ><span class="hs-operator hs-var"
+	    >`xor`</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned -&gt; unsigned
+forall a. Num a =&gt; a -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#negate"
+	  ><span class="hs-identifier hs-var"
+	    >negate</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned
+</span
+	  ><a href="#local-6989586621679099997"
+	  ><span class="hs-identifier hs-var"
+	    >u</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned -&gt; unsigned -&gt; unsigned
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#.%26."
+	  ><span class="hs-operator hs-var"
+	    >.&amp;.</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >unsigned
+</span
+	  ><span class="hs-number"
+	  >1</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- default zagZig :: (Bits signed) =&gt; unsigned -&gt; signed</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- zagZig u = let (s::signed) = fromIntegral u in ((s `shiftR` 1) `xor` (negate (s .&amp;. 1)))</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.ZigZag.html#zagZig"
+	><span class="hs-pragma hs-type"
+	  >zagZig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679100005"
+      ><span id="local-6989586621679100011"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ZigZag.html#ZigZag"
+	    ><span class="hs-identifier hs-type"
+	      >ZigZag</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int8"
+	    ><span class="hs-identifier hs-type"
+	      >Int8</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word8"
+	    ><span class="hs-identifier hs-type"
+	      >Word8</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679100023"
+      ><span id="local-6989586621679100029"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ZigZag.html#ZigZag"
+	    ><span class="hs-identifier hs-type"
+	      >ZigZag</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int16"
+	    ><span class="hs-identifier hs-type"
+	      >Int16</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word16"
+	    ><span class="hs-identifier hs-type"
+	      >Word16</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679100040"
+      ><span id="local-6989586621679100046"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ZigZag.html#ZigZag"
+	    ><span class="hs-identifier hs-type"
+	      >ZigZag</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int32"
+	    ><span class="hs-identifier hs-type"
+	      >Int32</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	    ><span class="hs-identifier hs-type"
+	      >Word32</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679100057"
+      ><span id="local-6989586621679100063"
+	><span class="annot"
+	  ><a href="PlutusCore.Flat.Data.ZigZag.html#ZigZag"
+	    ><span class="hs-identifier hs-type"
+	      >ZigZag</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	    ><span class="hs-identifier hs-type"
+	      >Int64</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	    ><span class="hs-identifier hs-type"
+	      >Word64</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Data.ZigZag.html#ZigZag"
+	><span class="hs-identifier hs-type"
+	  >ZigZag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679100091"
+      ><span class="annot"
+	><span class="annottext"
+	  >zigZag :: Integer -&gt; Natural
+</span
+	  ><a href="PlutusCore.Flat.Data.ZigZag.html#zigZag"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >zigZag</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679100092"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679100092"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679100092"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Natural
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Natural) -&gt; Integer -&gt; Natural
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679100092"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Int -&gt; Integer
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftL"
+	><span class="hs-operator hs-var"
+	  >`shiftL`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Natural
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Natural) -&gt; Integer -&gt; Natural
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#negate"
+	><span class="hs-identifier hs-var"
+	  >negate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679100092"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Int -&gt; Integer
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftL"
+	><span class="hs-operator hs-var"
+	  >`shiftL`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679100098"
+      ><span class="annot"
+	><span class="annottext"
+	  >zagZig :: Natural -&gt; Integer
+</span
+	  ><a href="PlutusCore.Flat.Data.ZigZag.html#zagZig"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >zagZig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679100099"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621679100099"
+	  ><span class="hs-identifier hs-var"
+	    >u</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679100102"
+      ><span class="annot"
+	><span class="annottext"
+	  >s :: Integer
+</span
+	  ><a href="#local-6989586621679100102"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; Integer
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621679100099"
+	><span class="hs-identifier hs-var"
+	  >u</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679100102"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Int -&gt; Integer
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#shiftR"
+	><span class="hs-operator hs-var"
+	  >`shiftR`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#xor"
+	><span class="hs-operator hs-var"
+	  >`xor`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#negate"
+	><span class="hs-identifier hs-var"
+	  >negate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679100102"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Bits.html#.%26."
+	><span class="hs-operator hs-var"
+	  >.&amp;.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

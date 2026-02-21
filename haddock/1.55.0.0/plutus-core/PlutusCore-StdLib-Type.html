@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.StdLib.Type</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.StdLib.Type.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.StdLib.Type</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >This module defines Haskell data types that simplify construction of PLC types and terms.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:RecursiveType"
+	      >RecursiveType</a
+	      > uni fun ann = <a href="#v:RecursiveType"
+	      >RecursiveType</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_recursiveType"
+		  >_recursiveType</a
+		  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ann</li
+		><li
+		><a href="#v:_recursiveWrap"
+		  >_recursiveWrap</a
+		  > &#8759; &#8704; term. <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun &#8658; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ann] &#8594; term ann &#8594; term ann</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:makeRecursiveType"
+	      >makeRecursiveType</a
+	      > &#8759; FromDataPieces uni ann (<a href="PlutusCore-StdLib-Type.html#t:RecursiveType" title="PlutusCore.StdLib.Type"
+	      >RecursiveType</a
+	      > uni fun ann)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:RecursiveType" class="def"
+	    >RecursiveType</a
+	    > uni fun ann <a href="src/PlutusCore.StdLib.Type.html#RecursiveType" class="link"
+	    >Source</a
+	    > <a href="#t:RecursiveType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A recursive type packaged along with a specified <code
+	      >Wrap</code
+	      > that allows to construct elements
+ of this type.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:RecursiveType" class="def"
+		  >RecursiveType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_recursiveType" class="def"
+			  >_recursiveType</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_recursiveWrap" class="def"
+			  >_recursiveWrap</a
+			  > &#8759; &#8704; term. <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+			  >TermLike</a
+			  > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun &#8658; [<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ann] &#8594; term ann &#8594; term ann</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeRecursiveType" class="def"
+	    >makeRecursiveType</a
+	    > &#8759; FromDataPieces uni ann (<a href="PlutusCore-StdLib-Type.html#t:RecursiveType" title="PlutusCore.StdLib.Type"
+	    >RecursiveType</a
+	    > uni fun ann) <a href="src/PlutusCore.StdLib.Type.html#makeRecursiveType" class="link"
+	    >Source</a
+	    > <a href="#v:makeRecursiveType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Construct a <code
+	      ><a href="PlutusCore-StdLib-Type.html#t:RecursiveType" title="PlutusCore.StdLib.Type"
+		>RecursiveType</a
+		></code
+	      > out of its name, variables bound in its pattern functor
+ and the body of the pattern functor. The 0- and 1-ary pattern functors are special-cased,
+ while in the general case the pattern functor and type arguments get encoded into a 1-ary
+ form first.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

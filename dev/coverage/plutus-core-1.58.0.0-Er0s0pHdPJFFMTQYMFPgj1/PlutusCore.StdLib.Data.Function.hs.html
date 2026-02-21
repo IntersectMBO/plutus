@@ -1,0 +1,454 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TupleSections #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>-- | Combinators.
+<span class="lineno">    6 </span>module PlutusCore.StdLib.Data.Function
+<span class="lineno">    7 </span>  ( const
+<span class="lineno">    8 </span>  , idFun
+<span class="lineno">    9 </span>  , applyFun
+<span class="lineno">   10 </span>  , selfData
+<span class="lineno">   11 </span>  , unroll
+<span class="lineno">   12 </span>  , fix
+<span class="lineno">   13 </span>  , fixAndType
+<span class="lineno">   14 </span>  , fixBy
+<span class="lineno">   15 </span>  , fixByAndType
+<span class="lineno">   16 </span>  , fixN
+<span class="lineno">   17 </span>  , fixNAndType
+<span class="lineno">   18 </span>  , FunctionDef (..)
+<span class="lineno">   19 </span>  , getMutualFixOf
+<span class="lineno">   20 </span>  , getSingleFixOf
+<span class="lineno">   21 </span>  ) where
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import PlutusPrelude
+<span class="lineno">   24 </span>import Prelude hiding (const)
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>import PlutusCore.Core
+<span class="lineno">   27 </span>import PlutusCore.MkPlc
+<span class="lineno">   28 </span>import PlutusCore.Name.Unique
+<span class="lineno">   29 </span>import PlutusCore.Quote
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>import PlutusCore.StdLib.Meta.Data.Tuple
+<span class="lineno">   32 </span>import PlutusCore.StdLib.Type
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>import Control.Lens.Indexed (ifor)
+<span class="lineno">   35 </span>import Control.Monad
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>{-| 'id' as a PLC term.
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>&gt; /\(A :: *) -&gt; \(x : A) -&gt; x -}
+<span class="lineno">   40 </span>idFun :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">idFun = runQuote $ do</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="istickedoff">$ var () x</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>{-| 'const' as a PLC term.
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>&gt; /\(A B :: *) -&gt; \(x : A) (y : B) -&gt; x -}
+<span class="lineno">   52 </span>const :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">const = runQuote $ do</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">y &lt;- freshName &quot;y&quot;</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type ())</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () b (Type ())</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () x (TyVar () a)</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () y (TyVar () b)</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">$ var () x</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>{-| '($)' as a PLC term.
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>&gt; /\(A B :: *) -&gt; \(f : A -&gt; B) (x : A) -&gt; f x -}
+<span class="lineno">   68 </span>applyFun :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">applyFun = runQuote $ do</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type ())</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () b (Type ())</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () f (TyFun () (TyVar () a) $ TyVar () b)</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () x (TyVar () a)</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">$ apply () (var () f) (var () x)</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>{- Note [Recursion combinators]
+<span class="lineno">   82 </span>We create singly recursive and mutually recursive functions using different combinators.
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>For singly recursive functions we use the Z combinator (a strict cousin of the Y combinator) that in
+<span class="lineno">   85 </span>UPLC looks like this:
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>    \f -&gt; (\s -&gt; s s) (\s -&gt; f (\x -&gt; s s x))
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>We have benchmarked its Haskell version at
+<span class="lineno">   90 </span>  https://github.com/IntersectMBO/plutus/tree/9538fc9829426b2ecb0628d352e2d7af96ec8204/doc/notes/fomega/z-combinator-benchmarks
+<span class="lineno">   91 </span>and observed that in Haskell there's no detectable difference in performance of functions defined
+<span class="lineno">   92 </span>using explicit recursion versus the Z combinator. However Haskell is a compiled language and Plutus
+<span class="lineno">   93 </span>is interpreted, so it's very likely that natively supporting recursion in Plutus instead of
+<span class="lineno">   94 </span>compiling recursive functions to combinators would significantly boost performance.
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>We've tried using
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>   \f -&gt; (\s -&gt; s s) (\s x -&gt; f (s s) x)
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>instead of
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>   \f -&gt; (\s -&gt; s s) (\s -&gt; f (\x -&gt; s s x))
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>and while it worked OK at the PLC level, it wasn't a suitable primitive for compilation of recursive
+<span class="lineno">  105 </span>functions, because it would add laziness in unexpected places, see
+<span class="lineno">  106 </span>  https://github.com/IntersectMBO/plutus/issues/5961
+<span class="lineno">  107 </span>so we had to change it.
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>We use
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>   \f -&gt; (\s -&gt; s s) (\s x -&gt; f (s s) x)
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>instead of the more standard
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>   \f -&gt; (\s x -&gt; f (s s) x) (\s x -&gt; f (s s) x)
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>because in practice @f@ gets inlined and we wouldn't be able to do so if it occurred twice in the
+<span class="lineno">  118 </span>term. Plus the former also allows us to save on the size of the term.
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>For mutually recursive functions we use the 'fixBy' combinator, which is, to the best of our
+<span class="lineno">  121 </span>knowledge, our own invention. It was first described at
+<span class="lineno">  122 </span>  https://github.com/IntersectMBO/plutus/blob/067e74f0606fddc5e183dd45209b461e293a6224/doc/notes/fomega/mutual-term-level-recursion/FixN.agda
+<span class="lineno">  123 </span>and fully specified in our &quot;Unraveling recursion: compiling an IR with recursion to System F&quot; paper.
+<span class="lineno">  124 </span>-}
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>{-| @Self@ as a PLC type.
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>&gt; fix \(self :: * -&gt; *) (a :: *) -&gt; self a -&gt; a -}
+<span class="lineno">  129 </span>selfData :: RecursiveType uni fun ()
+<span class="lineno">  130 </span><span class="decl"><span class="istickedoff">selfData = runQuote $ do</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="istickedoff">self &lt;- freshTyName &quot;self&quot;</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="istickedoff">makeRecursiveType () self [TyVarDecl <span class="nottickedoff">()</span> a $ Type ()]</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="istickedoff">. TyFun () (TyApp () (TyVar () self) (TyVar () a))</span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar () a</span></span>
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>{-| @unroll@ as a PLC term.
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>&gt; /\(a :: *) -&gt; \(s : self a) -&gt; unwrap s s -}
+<span class="lineno">  140 </span>unroll :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">  141 </span><span class="decl"><span class="istickedoff">unroll = runQuote $ do</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">let self = _recursiveType selfData</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="istickedoff">s &lt;- freshName &quot;s&quot;</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  146 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type ())</span>
+<span class="lineno">  147 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () s (TyApp () self $ TyVar () a)</span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="istickedoff">. apply () (unwrap () $ var () s)</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff">$ var () s</span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>{-| 'fix' as a PLC term.
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>&gt; /\(a b :: *) -&gt; \(f : (a -&gt; b) -&gt; a -&gt; b) -&gt;
+<span class="lineno">  154 </span>&gt;     unroll {a -&gt; b} (iwrap selfF (a -&gt; b) \(s : self (a -&gt; b)) -&gt;
+<span class="lineno">  155 </span>&gt;         f (\(x : a) -&gt; unroll {a -&gt; b} s x))
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details. -}
+<span class="lineno">  158 </span>fix :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">  159 </span><span class="decl"><span class="istickedoff">fix = fst fixAndType</span></span>
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>fixAndType :: TermLike term TyName Name uni fun =&gt; (term (), Type TyName uni ())
+<span class="lineno">  162 </span><span class="decl"><span class="istickedoff">fixAndType = runQuote $ do</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="istickedoff">let RecursiveType self wrapSelf = selfData</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  165 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">  166 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  167 </span><span class="spaces">  </span><span class="istickedoff">s &lt;- freshName &quot;s&quot;</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">let funAB = TyFun () (TyVar () a) $ TyVar () b</span>
+<span class="lineno">  170 </span><span class="spaces">      </span><span class="istickedoff">unrollFunAB = tyInst () unroll funAB</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="istickedoff">let selfFunAB = TyApp () self funAB</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">let fixTerm =</span>
+<span class="lineno">  173 </span><span class="spaces">        </span><span class="istickedoff">tyAbs () a (Type ())</span>
+<span class="lineno">  174 </span><span class="spaces">          </span><span class="istickedoff">. tyAbs () b (Type ())</span>
+<span class="lineno">  175 </span><span class="spaces">          </span><span class="istickedoff">. lamAbs () f (TyFun () funAB funAB)</span>
+<span class="lineno">  176 </span><span class="spaces">          </span><span class="istickedoff">. apply () unrollFunAB</span>
+<span class="lineno">  177 </span><span class="spaces">          </span><span class="istickedoff">. wrapSelf [funAB]</span>
+<span class="lineno">  178 </span><span class="spaces">          </span><span class="istickedoff">. lamAbs () s selfFunAB</span>
+<span class="lineno">  179 </span><span class="spaces">          </span><span class="istickedoff">. apply () (var () f)</span>
+<span class="lineno">  180 </span><span class="spaces">          </span><span class="istickedoff">. lamAbs () x (TyVar () a)</span>
+<span class="lineno">  181 </span><span class="spaces">          </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  182 </span><span class="spaces">            </span><span class="istickedoff">unrollFunAB</span>
+<span class="lineno">  183 </span><span class="spaces">            </span><span class="istickedoff">[ var () s</span>
+<span class="lineno">  184 </span><span class="spaces">            </span><span class="istickedoff">, var () x</span>
+<span class="lineno">  185 </span><span class="spaces">            </span><span class="istickedoff">]</span>
+<span class="lineno">  186 </span><span class="spaces">  </span><span class="istickedoff">let fixType =</span>
+<span class="lineno">  187 </span><span class="spaces">        </span><span class="istickedoff">TyForall <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  188 </span><span class="spaces">          </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> b (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  189 </span><span class="spaces">          </span><span class="istickedoff">$ TyFun <span class="nottickedoff">()</span> (TyFun <span class="nottickedoff">()</span> funAB funAB) funAB</span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="istickedoff">pure (fixTerm, fixType)</span></span>
+<span class="lineno">  191 </span>
+<span class="lineno">  192 </span>{-| A type that looks like a transformation.
+<span class="lineno">  193 </span>
+<span class="lineno">  194 </span>&gt; trans F G Q : F Q -&gt; G Q -}
+<span class="lineno">  195 </span>trans :: Type tyname uni () -&gt; Type tyname uni () -&gt; Type tyname uni () -&gt; Quote (Type tyname uni ())
+<span class="lineno">  196 </span><span class="decl"><span class="istickedoff">trans f g q = pure $ TyFun <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> f q) (TyApp <span class="nottickedoff">()</span> g q)</span></span>
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>{-| A type that looks like a natural transformation, sometimes written 'F ~&gt; G'.
+<span class="lineno">  199 </span>
+<span class="lineno">  200 </span>&gt; natTrans F G : forall Q :: * . F Q -&gt; G Q -}
+<span class="lineno">  201 </span>natTrans :: Type TyName uni () -&gt; Type TyName uni () -&gt; Quote (Type TyName uni ())
+<span class="lineno">  202 </span><span class="decl"><span class="istickedoff">natTrans f g = freshTyName &quot;Q&quot; &gt;&gt;= \q -&gt; TyForall <span class="nottickedoff">()</span> q (Type <span class="nottickedoff">()</span>) &lt;$&gt; trans f g (TyVar <span class="nottickedoff">()</span> q)</span></span>
+<span class="lineno">  203 </span>
+<span class="lineno">  204 </span>{-| A type that looks like a natural transformation to Id.
+<span class="lineno">  205 </span>
+<span class="lineno">  206 </span>&gt; natTransId F : forall Q :: * . F Q -&gt; Q -}
+<span class="lineno">  207 </span>natTransId :: Type TyName uni () -&gt; Quote (Type TyName uni ())
+<span class="lineno">  208 </span><span class="decl"><span class="istickedoff">natTransId f = do</span>
+<span class="lineno">  209 </span><span class="spaces">  </span><span class="istickedoff">q &lt;- freshTyName &quot;Q&quot;</span>
+<span class="lineno">  210 </span><span class="spaces">  </span><span class="istickedoff">pure $ TyForall <span class="nottickedoff">()</span> q (Type <span class="nottickedoff">()</span>) (TyFun <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> f (TyVar <span class="nottickedoff">()</span> q)) (TyVar <span class="nottickedoff">()</span> q))</span></span>
+<span class="lineno">  211 </span>
+<span class="lineno">  212 </span>{-| The 'fixBy' combinator.
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>&gt; fixBy :
+<span class="lineno">  215 </span>&gt;     forall (F :: * -&gt; *) .
+<span class="lineno">  216 </span>&gt;     ((F ~&gt; Id) -&gt; (F ~&gt; Id)) -&gt;
+<span class="lineno">  217 </span>&gt;     ((F ~&gt; F) -&gt; (F ~&gt; Id)) -}
+<span class="lineno">  218 </span>fixBy :: TermLike term TyName Name uni fun =&gt; term ()
+<span class="lineno">  219 </span><span class="decl"><span class="istickedoff">fixBy = fst fixByAndType</span></span>
+<span class="lineno">  220 </span>
+<span class="lineno">  221 </span>fixByAndType :: TermLike term TyName Name uni fun =&gt; (term (), Type TyName uni ())
+<span class="lineno">  222 </span><span class="decl"><span class="istickedoff">fixByAndType = runQuote $ do</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;F&quot;</span>
+<span class="lineno">  224 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  225 </span><span class="spaces">  </span><span class="istickedoff">-- by : (F ~&gt; Id) -&gt; (F ~&gt; Id)</span>
+<span class="lineno">  226 </span><span class="spaces">  </span><span class="istickedoff">by &lt;- freshName &quot;by&quot;</span>
+<span class="lineno">  227 </span><span class="spaces">  </span><span class="istickedoff">byTy &lt;- do</span>
+<span class="lineno">  228 </span><span class="spaces">    </span><span class="istickedoff">nt1 &lt;- natTransId (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  229 </span><span class="spaces">    </span><span class="istickedoff">nt2 &lt;- natTransId (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  230 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyFun <span class="nottickedoff">()</span> nt1 nt2</span>
+<span class="lineno">  231 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  232 </span><span class="spaces">  </span><span class="istickedoff">resTy &lt;- do</span>
+<span class="lineno">  233 </span><span class="spaces">    </span><span class="istickedoff">nt1 &lt;- natTrans (TyVar <span class="nottickedoff">()</span> f) (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  234 </span><span class="spaces">    </span><span class="istickedoff">nt2 &lt;- natTransId (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  235 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyFun <span class="nottickedoff">()</span> nt1 nt2</span>
+<span class="lineno">  236 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  237 </span><span class="spaces">  </span><span class="istickedoff">-- instantiatedFix = fix {F ~&gt; F} {F ~&gt; Id}</span>
+<span class="lineno">  238 </span><span class="spaces">  </span><span class="istickedoff">instantiatedFix &lt;- do</span>
+<span class="lineno">  239 </span><span class="spaces">    </span><span class="istickedoff">nt1 &lt;- natTrans (TyVar <span class="nottickedoff">()</span> f) (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  240 </span><span class="spaces">    </span><span class="istickedoff">nt2 &lt;- natTransId (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  241 </span><span class="spaces">    </span><span class="istickedoff">pure $ tyInst () (tyInst () fix nt1) nt2</span>
+<span class="lineno">  242 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  243 </span><span class="spaces">  </span><span class="istickedoff">-- rec : (F ~&gt; F) -&gt; (F ~&gt; Id)</span>
+<span class="lineno">  244 </span><span class="spaces">  </span><span class="istickedoff">recc &lt;- freshName &quot;rec&quot;</span>
+<span class="lineno">  245 </span><span class="spaces">  </span><span class="istickedoff">reccTy &lt;- do</span>
+<span class="lineno">  246 </span><span class="spaces">    </span><span class="istickedoff">nt &lt;- natTrans (TyVar <span class="nottickedoff">()</span> f) (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  247 </span><span class="spaces">    </span><span class="istickedoff">nt2 &lt;- natTransId (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  248 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyFun <span class="nottickedoff">()</span> nt nt2</span>
+<span class="lineno">  249 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  250 </span><span class="spaces">  </span><span class="istickedoff">-- h : F ~&gt; F</span>
+<span class="lineno">  251 </span><span class="spaces">  </span><span class="istickedoff">h &lt;- freshName &quot;h&quot;</span>
+<span class="lineno">  252 </span><span class="spaces">  </span><span class="istickedoff">hty &lt;- natTrans (TyVar <span class="nottickedoff">()</span> f) (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  253 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  254 </span><span class="spaces">  </span><span class="istickedoff">-- R :: *</span>
+<span class="lineno">  255 </span><span class="spaces">  </span><span class="istickedoff">-- fr : F R</span>
+<span class="lineno">  256 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;R&quot;</span>
+<span class="lineno">  257 </span><span class="spaces">  </span><span class="istickedoff">fr &lt;- freshName &quot;fr&quot;</span>
+<span class="lineno">  258 </span><span class="spaces">  </span><span class="istickedoff">let frTy = TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> f) (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">  259 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  260 </span><span class="spaces">  </span><span class="istickedoff">-- Q :: *</span>
+<span class="lineno">  261 </span><span class="spaces">  </span><span class="istickedoff">-- fq : F Q</span>
+<span class="lineno">  262 </span><span class="spaces">  </span><span class="istickedoff">q &lt;- freshTyName &quot;Q&quot;</span>
+<span class="lineno">  263 </span><span class="spaces">  </span><span class="istickedoff">fq &lt;- freshName &quot;fq&quot;</span>
+<span class="lineno">  264 </span><span class="spaces">  </span><span class="istickedoff">let fqTy = TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> f) (TyVar <span class="nottickedoff">()</span> q)</span>
+<span class="lineno">  265 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  266 </span><span class="spaces">  </span><span class="istickedoff">-- inner = (/\ (Q :: *) -&gt; \ q : F Q -&gt; rec h {Q} (h {Q} q))</span>
+<span class="lineno">  267 </span><span class="spaces">  </span><span class="istickedoff">let inner =</span>
+<span class="lineno">  268 </span><span class="spaces">        </span><span class="istickedoff">apply () (var () by) $</span>
+<span class="lineno">  269 </span><span class="spaces">          </span><span class="istickedoff">tyAbs () q (Type <span class="nottickedoff">()</span>) $</span>
+<span class="lineno">  270 </span><span class="spaces">            </span><span class="istickedoff">lamAbs () fq fqTy $</span>
+<span class="lineno">  271 </span><span class="spaces">              </span><span class="istickedoff">apply () (tyInst () (apply () (var () recc) (var () h)) (TyVar <span class="nottickedoff">()</span> q)) $</span>
+<span class="lineno">  272 </span><span class="spaces">                </span><span class="istickedoff">apply () (tyInst () (var () h) (TyVar <span class="nottickedoff">()</span> q)) (var () fq)</span>
+<span class="lineno">  273 </span><span class="spaces">  </span><span class="istickedoff">let fixByTerm =</span>
+<span class="lineno">  274 </span><span class="spaces">        </span><span class="istickedoff">tyAbs () f (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) (Type <span class="nottickedoff">()</span>)) $</span>
+<span class="lineno">  275 </span><span class="spaces">          </span><span class="istickedoff">lamAbs () by byTy $</span>
+<span class="lineno">  276 </span><span class="spaces">            </span><span class="istickedoff">apply () instantiatedFix $</span>
+<span class="lineno">  277 </span><span class="spaces">              </span><span class="istickedoff">lamAbs () recc reccTy $</span>
+<span class="lineno">  278 </span><span class="spaces">                </span><span class="istickedoff">lamAbs () h hty $</span>
+<span class="lineno">  279 </span><span class="spaces">                  </span><span class="istickedoff">tyAbs () r (Type <span class="nottickedoff">()</span>) $</span>
+<span class="lineno">  280 </span><span class="spaces">                    </span><span class="istickedoff">lamAbs () fr frTy $</span>
+<span class="lineno">  281 </span><span class="spaces">                      </span><span class="istickedoff">apply () (tyInst () inner (TyVar <span class="nottickedoff">()</span> r)) (var () fr)</span>
+<span class="lineno">  282 </span><span class="spaces">  </span><span class="istickedoff">let fixByType =</span>
+<span class="lineno">  283 </span><span class="spaces">        </span><span class="istickedoff">TyForall <span class="nottickedoff">()</span> f <span class="nottickedoff">(KindArrow () (Type ()) (Type ()))</span> $</span>
+<span class="lineno">  284 </span><span class="spaces">          </span><span class="istickedoff">TyFun <span class="nottickedoff">()</span> byTy resTy</span>
+<span class="lineno">  285 </span><span class="spaces">  </span><span class="istickedoff">pure (fixByTerm, fixByType)</span></span>
+<span class="lineno">  286 </span>
+<span class="lineno">  287 </span>{-| Make a @n@-ary fixpoint combinator.
+<span class="lineno">  288 </span>
+<span class="lineno">  289 </span>&gt; FixN n :
+<span class="lineno">  290 </span>&gt;     forall A1 B1 ... An Bn :: * .
+<span class="lineno">  291 </span>&gt;     (forall Q :: * .
+<span class="lineno">  292 </span>&gt;         ((A1 -&gt; B1) -&gt; ... -&gt; (An -&gt; Bn) -&gt; Q) -&gt;
+<span class="lineno">  293 </span>&gt;         (A1 -&gt; B1) -&gt;
+<span class="lineno">  294 </span>&gt;         ... -&gt;
+<span class="lineno">  295 </span>&gt;         (An -&gt; Bn) -&gt;
+<span class="lineno">  296 </span>&gt;         Q) -&gt;
+<span class="lineno">  297 </span>&gt;     (forall R :: * . ((A1 -&gt; B1) -&gt; ... (An -&gt; Bn) -&gt; R) -&gt; R) -}
+<span class="lineno">  298 </span>fixN :: TermLike term TyName Name uni fun =&gt; Integer -&gt; term () -&gt; term ()
+<span class="lineno">  299 </span><span class="decl"><span class="istickedoff">fixN n fixByTerm = fst (fixNAndType n fixByTerm)</span></span>
+<span class="lineno">  300 </span>
+<span class="lineno">  301 </span>fixNAndType :: TermLike term TyName Name uni fun =&gt; Integer -&gt; term () -&gt; (term (), Type TyName uni ())
+<span class="lineno">  302 </span><span class="decl"><span class="istickedoff">fixNAndType n fixByTerm = runQuote $ do</span>
+<span class="lineno">  303 </span><span class="spaces">  </span><span class="istickedoff">-- the list of pairs of A and B types</span>
+<span class="lineno">  304 </span><span class="spaces">  </span><span class="istickedoff">asbs &lt;- replicateM (fromIntegral n) $ do</span>
+<span class="lineno">  305 </span><span class="spaces">    </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  306 </span><span class="spaces">    </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">  307 </span><span class="spaces">    </span><span class="istickedoff">pure (a, b)</span>
+<span class="lineno">  308 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  309 </span><span class="spaces">  </span><span class="istickedoff">let abFuns = fmap (\(a, b) -&gt; TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a) (TyVar <span class="nottickedoff">()</span> b)) asbs</span>
+<span class="lineno">  310 </span><span class="spaces">  </span><span class="istickedoff">let abTyVars = concatMap (\(a, b) -&gt; [TyVarDecl <span class="nottickedoff">()</span> a <span class="nottickedoff">(Type ())</span>, TyVarDecl <span class="nottickedoff">()</span> b <span class="nottickedoff">(Type ())</span>]) asbs</span>
+<span class="lineno">  311 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  312 </span><span class="spaces">  </span><span class="istickedoff">-- funTysTo X = (A1 -&gt; B1) -&gt; ... -&gt; (An -&gt; Bn) -&gt; X</span>
+<span class="lineno">  313 </span><span class="spaces">  </span><span class="istickedoff">let funTysTo = mkIterTyFun <span class="nottickedoff">()</span> abFuns</span>
+<span class="lineno">  314 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  315 </span><span class="spaces">  </span><span class="istickedoff">-- the type of fixN, as in the header comment</span>
+<span class="lineno">  316 </span><span class="spaces">  </span><span class="istickedoff">fixNType &lt;- do</span>
+<span class="lineno">  317 </span><span class="spaces">    </span><span class="istickedoff">q &lt;- freshTyName <span class="nottickedoff">&quot;Q&quot;</span></span>
+<span class="lineno">  318 </span><span class="spaces">    </span><span class="istickedoff">let qvar = TyVar <span class="nottickedoff">()</span> q</span>
+<span class="lineno">  319 </span><span class="spaces">    </span><span class="istickedoff">let argTy = TyForall <span class="nottickedoff">()</span> q <span class="nottickedoff">(Type ())</span> (TyFun <span class="nottickedoff">()</span> (funTysTo qvar) (funTysTo qvar))</span>
+<span class="lineno">  320 </span><span class="spaces">    </span><span class="istickedoff">r &lt;- freshTyName <span class="nottickedoff">&quot;R&quot;</span></span>
+<span class="lineno">  321 </span><span class="spaces">    </span><span class="istickedoff">let rvar = TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  322 </span><span class="spaces">    </span><span class="istickedoff">let resTy = TyForall <span class="nottickedoff">()</span> r <span class="nottickedoff">(Type ())</span> (TyFun <span class="nottickedoff">()</span> (funTysTo rvar) rvar)</span>
+<span class="lineno">  323 </span><span class="spaces">    </span><span class="istickedoff">let fullTy = mkIterTyForall abTyVars $ TyFun <span class="nottickedoff">()</span> argTy resTy</span>
+<span class="lineno">  324 </span><span class="spaces">    </span><span class="istickedoff">pure fullTy</span>
+<span class="lineno">  325 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  326 </span><span class="spaces">  </span><span class="istickedoff">-- instantiatedFix = fixBy { \X :: * -&gt; (A1 -&gt; B1) -&gt; ... -&gt; (An -&gt; Bn) -&gt; X }</span>
+<span class="lineno">  327 </span><span class="spaces">  </span><span class="istickedoff">instantiatedFix &lt;- do</span>
+<span class="lineno">  328 </span><span class="spaces">    </span><span class="istickedoff">x &lt;- freshTyName &quot;X&quot;</span>
+<span class="lineno">  329 </span><span class="spaces">    </span><span class="istickedoff">pure $ tyInst () fixByTerm (TyLam <span class="nottickedoff">()</span> x (Type <span class="nottickedoff">()</span>) (funTysTo (TyVar <span class="nottickedoff">()</span> x)))</span>
+<span class="lineno">  330 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  331 </span><span class="spaces">  </span><span class="istickedoff">-- f : forall Q :: * . ((A1 -&gt; B1) -&gt; ... -&gt; (An -&gt; Bn) -&gt; Q) -&gt; (A1 -&gt; B1) -&gt; ... -&gt; (An -&gt; Bn) -&gt; Q)</span>
+<span class="lineno">  332 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  333 </span><span class="spaces">  </span><span class="istickedoff">fTy &lt;- do</span>
+<span class="lineno">  334 </span><span class="spaces">    </span><span class="istickedoff">q &lt;- freshTyName &quot;Q&quot;</span>
+<span class="lineno">  335 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyForall <span class="nottickedoff">()</span> q (Type <span class="nottickedoff">()</span>) $ TyFun <span class="nottickedoff">()</span> (funTysTo (TyVar <span class="nottickedoff">()</span> q)) (funTysTo (TyVar <span class="nottickedoff">()</span> q))</span>
+<span class="lineno">  336 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  337 </span><span class="spaces">  </span><span class="istickedoff">-- k : forall Q :: * . ((A1 -&gt; B1) -&gt; ... -&gt; (An -&gt; Bn) -&gt; Q) -&gt; Q)</span>
+<span class="lineno">  338 </span><span class="spaces">  </span><span class="istickedoff">k &lt;- freshName &quot;k&quot;</span>
+<span class="lineno">  339 </span><span class="spaces">  </span><span class="istickedoff">kTy &lt;- do</span>
+<span class="lineno">  340 </span><span class="spaces">    </span><span class="istickedoff">q &lt;- freshTyName &quot;Q&quot;</span>
+<span class="lineno">  341 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyForall <span class="nottickedoff">()</span> q (Type <span class="nottickedoff">()</span>) $ TyFun <span class="nottickedoff">()</span> (funTysTo (TyVar <span class="nottickedoff">()</span> q)) (TyVar <span class="nottickedoff">()</span> q)</span>
+<span class="lineno">  342 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  343 </span><span class="spaces">  </span><span class="istickedoff">s &lt;- freshTyName &quot;S&quot;</span>
+<span class="lineno">  344 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  345 </span><span class="spaces">  </span><span class="istickedoff">-- h : (A1 -&gt; B1) -&gt; ... -&gt; (An -&gt; Bn) -&gt; S</span>
+<span class="lineno">  346 </span><span class="spaces">  </span><span class="istickedoff">h &lt;- freshName &quot;h&quot;</span>
+<span class="lineno">  347 </span><span class="spaces">  </span><span class="istickedoff">let hTy = funTysTo (TyVar <span class="nottickedoff">()</span> s)</span>
+<span class="lineno">  348 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  349 </span><span class="spaces">  </span><span class="istickedoff">-- branch (ai, bi) i = \x : ai -&gt; k { bi } \(f1 : A1 -&gt; B1) ... (fn : An -&gt; Bn) . fi x</span>
+<span class="lineno">  350 </span><span class="spaces">  </span><span class="istickedoff">let branch (a, b) i = do</span>
+<span class="lineno">  351 </span><span class="spaces">        </span><span class="istickedoff">-- names and types for the f arguments</span>
+<span class="lineno">  352 </span><span class="spaces">        </span><span class="istickedoff">fs &lt;- ifor asbs $ \j (a', b') -&gt; do</span>
+<span class="lineno">  353 </span><span class="spaces">          </span><span class="istickedoff">f_j &lt;- freshName $ &quot;f_&quot; &lt;&gt; showText j</span>
+<span class="lineno">  354 </span><span class="spaces">          </span><span class="istickedoff">pure $ VarDecl () f_j (TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a') (TyVar <span class="nottickedoff">()</span> b'))</span>
+<span class="lineno">  355 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  356 </span><span class="spaces">        </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  357 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  358 </span><span class="spaces">        </span><span class="istickedoff">pure $</span>
+<span class="lineno">  359 </span><span class="spaces">          </span><span class="istickedoff">lamAbs () x (TyVar <span class="nottickedoff">()</span> a) $</span>
+<span class="lineno">  360 </span><span class="spaces">            </span><span class="istickedoff">apply () (tyInst () (var () k) (TyVar <span class="nottickedoff">()</span> b)) $</span>
+<span class="lineno">  361 </span><span class="spaces">              </span><span class="istickedoff">mkIterLamAbs fs $</span>
+<span class="lineno">  362 </span><span class="spaces">                </span><span class="istickedoff">-- this is an ugly but straightforward way of getting the right fi</span>
+<span class="lineno">  363 </span><span class="spaces">                </span><span class="istickedoff">apply () (mkVar (fs !! i)) (var () x)</span>
+<span class="lineno">  364 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  365 </span><span class="spaces">  </span><span class="istickedoff">-- a list of all the branches</span>
+<span class="lineno">  366 </span><span class="spaces">  </span><span class="istickedoff">branches &lt;- forM (zip asbs [0 ..]) $ uncurry branch</span>
+<span class="lineno">  367 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  368 </span><span class="spaces">  </span><span class="istickedoff">-- [A1, B1, ..., An, Bn]</span>
+<span class="lineno">  369 </span><span class="spaces">  </span><span class="istickedoff">let allAsBs = foldMap (\(a, b) -&gt; [a, b]) asbs</span>
+<span class="lineno">  370 </span><span class="spaces">  </span><span class="istickedoff">let fixNTerm =</span>
+<span class="lineno">  371 </span><span class="spaces">        </span><span class="istickedoff">-- abstract out all the As and Bs</span>
+<span class="lineno">  372 </span><span class="spaces">        </span><span class="istickedoff">mkIterTyAbs (fmap (\tn -&gt; TyVarDecl () tn (Type <span class="nottickedoff">()</span>)) allAsBs) $</span>
+<span class="lineno">  373 </span><span class="spaces">          </span><span class="istickedoff">lamAbs () f fTy $</span>
+<span class="lineno">  374 </span><span class="spaces">            </span><span class="istickedoff">mkIterAppNoAnn</span>
+<span class="lineno">  375 </span><span class="spaces">              </span><span class="istickedoff">instantiatedFix</span>
+<span class="lineno">  376 </span><span class="spaces">              </span><span class="istickedoff">[ lamAbs () k kTy $</span>
+<span class="lineno">  377 </span><span class="spaces">                  </span><span class="istickedoff">tyAbs () s (Type <span class="nottickedoff">()</span>) $</span>
+<span class="lineno">  378 </span><span class="spaces">                    </span><span class="istickedoff">lamAbs () h hTy $</span>
+<span class="lineno">  379 </span><span class="spaces">                      </span><span class="istickedoff">mkIterAppNoAnn (var () h) branches</span>
+<span class="lineno">  380 </span><span class="spaces">              </span><span class="istickedoff">, var () f</span>
+<span class="lineno">  381 </span><span class="spaces">              </span><span class="istickedoff">]</span>
+<span class="lineno">  382 </span><span class="spaces">  </span><span class="istickedoff">pure (fixNTerm, fixNType)</span></span>
+<span class="lineno">  383 </span>
+<span class="lineno">  384 </span>-- See Note [Recursion combinators].
+<span class="lineno">  385 </span>-- | Get the fixed-point of a single recursive function.
+<span class="lineno">  386 </span>getSingleFixOf
+<span class="lineno">  387 </span>  :: TermLike term TyName Name uni fun
+<span class="lineno">  388 </span>  =&gt; ann -&gt; term ann -&gt; FunctionDef term TyName Name uni fun ann -&gt; term ann
+<span class="lineno">  389 </span><span class="decl"><span class="istickedoff">getSingleFixOf ann fix1 fun@FunctionDef {_functionDefType = (FunctionType _ dom cod)} =</span>
+<span class="lineno">  390 </span><span class="spaces">  </span><span class="istickedoff">let instantiatedFix = mkIterInst fix1 [(<span class="nottickedoff">ann</span>, dom), (<span class="nottickedoff">ann</span>, cod)]</span>
+<span class="lineno">  391 </span><span class="spaces">      </span><span class="istickedoff">abstractedBody = mkIterLamAbs [functionDefVarDecl fun] $ _functionDefTerm fun</span>
+<span class="lineno">  392 </span><span class="spaces">   </span><span class="istickedoff">in apply <span class="nottickedoff">ann</span> instantiatedFix abstractedBody</span></span>
+<span class="lineno">  393 </span>
+<span class="lineno">  394 </span>-- See Note [Recursion combinators].
+<span class="lineno">  395 </span>{-| Get the fixed-point of a list of mutually recursive functions.
+<span class="lineno">  396 </span>
+<span class="lineno">  397 </span>&gt; MutualFixOf _ fixN [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
+<span class="lineno">  398 </span>&gt;                    , ...
+<span class="lineno">  399 </span>&gt;                    , FunctionDef _ fNn (FunctionType _ an bn) fn
+<span class="lineno">  400 </span>&gt;                    ] =
+<span class="lineno">  401 </span>&gt;     Tuple [(a1 -&gt; b1) ... (an -&gt; bn)] $
+<span class="lineno">  402 </span>&gt;         fixN {a1} {b1} ... {an} {bn}
+<span class="lineno">  403 </span>&gt;             /\(q :: *) -&gt; \(choose : (a1 -&gt; b1) -&gt; ... -&gt; (an -&gt; bn) -&gt; q) -&gt;
+<span class="lineno">  404 </span>&gt;                 \(fN1 : a1 -&gt; b1) ... (fNn : an -&gt; bn) -&gt; choose f1 ... fn -}
+<span class="lineno">  405 </span>getMutualFixOf
+<span class="lineno">  406 </span>  :: TermLike term TyName Name uni fun
+<span class="lineno">  407 </span>  =&gt; ann -&gt; term ann -&gt; [FunctionDef term TyName Name uni fun ann] -&gt; Quote (Tuple term uni ann)
+<span class="lineno">  408 </span><span class="decl"><span class="istickedoff">getMutualFixOf ann fixn funs = do</span>
+<span class="lineno">  409 </span><span class="spaces">  </span><span class="istickedoff">let funTys = map functionDefToType funs</span>
+<span class="lineno">  410 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  411 </span><span class="spaces">  </span><span class="istickedoff">q &lt;- liftQuote $ freshTyName &quot;Q&quot;</span>
+<span class="lineno">  412 </span><span class="spaces">  </span><span class="istickedoff">-- TODO: It was 'safeFreshName' previously. Should we perhaps have @freshName = safeFreshName@?</span>
+<span class="lineno">  413 </span><span class="spaces">  </span><span class="istickedoff">choose &lt;- freshName &quot;choose&quot;</span>
+<span class="lineno">  414 </span><span class="spaces">  </span><span class="istickedoff">let chooseTy = mkIterTyFun <span class="nottickedoff">ann</span> funTys (TyVar <span class="nottickedoff">ann</span> q)</span>
+<span class="lineno">  415 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  416 </span><span class="spaces">  </span><span class="istickedoff">-- \v1 ... vn -&gt; choose f1 ... fn</span>
+<span class="lineno">  417 </span><span class="spaces">  </span><span class="istickedoff">let rhss = map _functionDefTerm funs</span>
+<span class="lineno">  418 </span><span class="spaces">      </span><span class="istickedoff">chosen = mkIterApp (var ann choose) ((ann,) &lt;$&gt; rhss)</span>
+<span class="lineno">  419 </span><span class="spaces">      </span><span class="istickedoff">vsLam = mkIterLamAbs (map functionDefVarDecl funs) chosen</span>
+<span class="lineno">  420 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  421 </span><span class="spaces">  </span><span class="istickedoff">-- abstract out Q and choose</span>
+<span class="lineno">  422 </span><span class="spaces">  </span><span class="istickedoff">let cLam = tyAbs ann q (Type <span class="nottickedoff">ann</span>) $ lamAbs ann choose chooseTy vsLam</span>
+<span class="lineno">  423 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  424 </span><span class="spaces">  </span><span class="istickedoff">-- fixN {A1} {B1} ... {An} {Bn}</span>
+<span class="lineno">  425 </span><span class="spaces">  </span><span class="istickedoff">instantiatedFix &lt;- do</span>
+<span class="lineno">  426 </span><span class="spaces">    </span><span class="istickedoff">let domCods = foldMap (\(FunctionDef _ _ (FunctionType _ dom cod) _) -&gt; [dom, cod]) funs</span>
+<span class="lineno">  427 </span><span class="spaces">    </span><span class="istickedoff">pure $ mkIterInst fixn ((ann,) &lt;$&gt; domCods)</span>
+<span class="lineno">  428 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  429 </span><span class="spaces">  </span><span class="istickedoff">let term = apply ann instantiatedFix cLam</span>
+<span class="lineno">  430 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  431 </span><span class="spaces">  </span><span class="istickedoff">pure $ Tuple funTys term</span></span>
+
+</pre>
+</body>
+</html>

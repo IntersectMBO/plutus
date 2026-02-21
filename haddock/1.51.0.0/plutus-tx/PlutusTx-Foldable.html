@@ -1,0 +1,857 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Foldable</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Foldable.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Foldable</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Applicative actions</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Specialized folds</a
+	      ></li
+	    ><li
+	    ><a href="#g:3"
+	      >Other</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Foldable"
+	      >Foldable</a
+	      > t <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:foldr"
+		  >foldr</a
+		  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; t a &#8594; b</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:traverse_"
+	      >traverse_</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	      >Applicative</a
+	      > f) &#8658; (a &#8594; f b) &#8594; t a &#8594; f ()</li
+	    ><li class="src short"
+	    ><a href="#v:for_"
+	      >for_</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	      >Applicative</a
+	      > f) &#8658; t a &#8594; (a &#8594; f b) &#8594; f ()</li
+	    ><li class="src short"
+	    ><a href="#v:sequenceA_"
+	      >sequenceA_</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	      >Applicative</a
+	      > f) &#8658; t (f a) &#8594; f ()</li
+	    ><li class="src short"
+	    ><a href="#v:asum"
+	      >asum</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Alternative" title="Control.Applicative"
+	      >Alternative</a
+	      > f) &#8658; t (f a) &#8594; f a</li
+	    ><li class="src short"
+	    ><a href="#v:concat"
+	      >concat</a
+	      > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t &#8658; t [a] &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:concatMap"
+	      >concatMap</a
+	      > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t &#8658; (a &#8594; [b]) &#8594; t a &#8594; [b]</li
+	    ><li class="src short"
+	    ><a href="#v:foldMap"
+	      >foldMap</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	      >Monoid</a
+	      > m) &#8658; (a &#8594; m) &#8594; t a &#8594; m</li
+	    ><li class="src short"
+	    ><a href="#v:fold"
+	      >fold</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	      >Monoid</a
+	      > m) &#8658; t m &#8594; m</li
+	    ><li class="src short"
+	    ><a href="#v:foldl"
+	      >foldl</a
+	      > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t &#8658; (b &#8594; a &#8594; b) &#8594; b &#8594; t a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:toList"
+	      >toList</a
+	      > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t &#8658; t a &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:length"
+	      >length</a
+	      > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t &#8658; t a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sum"
+	      >sum</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+	      >AdditiveMonoid</a
+	      > a) &#8658; t a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:product"
+	      >product</a
+	      > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	      >Foldable</a
+	      > t, <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+	      >MultiplicativeMonoid</a
+	      > a) &#8658; t a &#8594; a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Foldable" class="def"
+	    >Foldable</a
+	    > t <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Foldable.html#Foldable" class="link"
+	    >Source</a
+	    > <a href="#t:Foldable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:Foldable" title="Data.Foldable"
+		>Foldable</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:foldr" class="def"
+	      >foldr</a
+	      > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; t a &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+	      >Source</a
+	      > <a href="#v:foldr" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Plutus Tx version of <code
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:foldr" title="Data.Foldable"
+		  >foldr</a
+		  ></code
+		>.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Foldable"
+	    >Instances</h4
+	    ><details id="i:Foldable" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Foldable:Foldable:1"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+		      >Identity</a
+		      ></span
+		    > <a href="src/PlutusTx.Foldable.html#line-72" class="link"
+		    >Source</a
+		    > <a href="#t:Foldable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Foldable:Foldable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Foldable.html"
+			>PlutusTx.Foldable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Foldable:Foldable:2"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      ></span
+		    > <a href="src/PlutusTx.Foldable.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:Foldable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Foldable:Foldable:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Foldable.html"
+			>PlutusTx.Foldable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > a &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Foldable:Foldable:3"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+		      >List</a
+		      ></span
+		    > <a href="src/PlutusTx.Foldable.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:Foldable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Foldable:Foldable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Foldable.html"
+			>PlutusTx.Foldable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; [a] &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Foldable:Foldable:4"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > c)</span
+		    > <a href="src/PlutusTx.Foldable.html#line-62" class="link"
+		    >Source</a
+		    > <a href="#t:Foldable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Foldable:Foldable:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Foldable.html"
+			>PlutusTx.Foldable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+			  >Either</a
+			  > c a &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Foldable:Foldable:5"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:Foldable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Foldable:Foldable:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k a &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Foldable:Foldable:6"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > (<a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/GHC-Tuple-Prim.html#t:-40--44--41-" title="GHC.Tuple.Prim"
+		      >(,)</a
+		      > c)</span
+		    > <a href="src/PlutusTx.Foldable.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:Foldable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Foldable:Foldable:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Foldable.html"
+			>PlutusTx.Foldable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; (c, a) &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Foldable:Foldable:7"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Const.html#t:Const" title="Data.Functor.Const"
+		      >Const</a
+		      > c &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusTx.Foldable.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:Foldable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Foldable:Foldable:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Foldable.html"
+			>PlutusTx.Foldable</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Const.html#t:Const" title="Data.Functor.Const"
+			  >Const</a
+			  > c a &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><a href="#g:1" id="g:1"
+	><h1
+	  >Applicative actions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:traverse_" class="def"
+	    >traverse_</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	    >Applicative</a
+	    > f) &#8658; (a &#8594; f b) &#8594; t a &#8594; f () <a href="src/PlutusTx.Foldable.html#traverse_" class="link"
+	    >Source</a
+	    > <a href="#v:traverse_" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:traverse_" title="Data.Foldable"
+		>traverse_</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:for_" class="def"
+	    >for_</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	    >Applicative</a
+	    > f) &#8658; t a &#8594; (a &#8594; f b) &#8594; f () <a href="src/PlutusTx.Foldable.html#for_" class="link"
+	    >Source</a
+	    > <a href="#v:for_" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:for_" title="Data.Foldable"
+		>for_</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sequenceA_" class="def"
+	    >sequenceA_</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+	    >Applicative</a
+	    > f) &#8658; t (f a) &#8594; f () <a href="src/PlutusTx.Foldable.html#sequenceA_" class="link"
+	    >Source</a
+	    > <a href="#v:sequenceA_" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:sequenceA_" title="Data.Foldable"
+		>sequenceA_</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asum" class="def"
+	    >asum</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Alternative" title="Control.Applicative"
+	    >Alternative</a
+	    > f) &#8658; t (f a) &#8594; f a <a href="src/PlutusTx.Foldable.html#asum" class="link"
+	    >Source</a
+	    > <a href="#v:asum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:asum" title="Data.Foldable"
+		>asum</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Specialized folds</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concat" class="def"
+	    >concat</a
+	    > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t &#8658; t [a] &#8594; [a] <a href="src/PlutusTx.Foldable.html#concat" class="link"
+	    >Source</a
+	    > <a href="#v:concat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:concat" title="Data.Foldable"
+		>concat</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concatMap" class="def"
+	    >concatMap</a
+	    > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t &#8658; (a &#8594; [b]) &#8594; t a &#8594; [b] <a href="src/PlutusTx.Foldable.html#concatMap" class="link"
+	    >Source</a
+	    > <a href="#v:concatMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:concatMap" title="Data.Foldable"
+		>concatMap</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><a href="#g:3" id="g:3"
+	><h1
+	  >Other</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldMap" class="def"
+	    >foldMap</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	    >Monoid</a
+	    > m) &#8658; (a &#8594; m) &#8594; t a &#8594; m <a href="src/PlutusTx.Foldable.html#foldMap" class="link"
+	    >Source</a
+	    > <a href="#v:foldMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:foldMap" title="Data.Foldable"
+		>foldMap</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fold" class="def"
+	    >fold</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	    >Monoid</a
+	    > m) &#8658; t m &#8594; m <a href="src/PlutusTx.Foldable.html#fold" class="link"
+	    >Source</a
+	    > <a href="#v:fold" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:fold" title="Data.Foldable"
+		>fold</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldl" class="def"
+	    >foldl</a
+	    > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t &#8658; (b &#8594; a &#8594; b) &#8594; b &#8594; t a &#8594; b <a href="src/PlutusTx.Foldable.html#foldl" class="link"
+	    >Source</a
+	    > <a href="#v:foldl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:foldl" title="Data.Foldable"
+		>foldl</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toList" class="def"
+	    >toList</a
+	    > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t &#8658; t a &#8594; [a] <a href="src/PlutusTx.Foldable.html#toList" class="link"
+	    >Source</a
+	    > <a href="#v:toList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:toList" title="Data.Foldable"
+		>toList</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:length" class="def"
+	    >length</a
+	    > &#8759; <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t &#8658; t a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Foldable.html#length" class="link"
+	    >Source</a
+	    > <a href="#v:length" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:length" title="Data.Foldable"
+		>length</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sum" class="def"
+	    >sum</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+	    >AdditiveMonoid</a
+	    > a) &#8658; t a &#8594; a <a href="src/PlutusTx.Foldable.html#sum" class="link"
+	    >Source</a
+	    > <a href="#v:sum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:sum" title="Data.Foldable"
+		>sum</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:product" class="def"
+	    >product</a
+	    > &#8759; (<a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+	    >Foldable</a
+	    > t, <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+	    >MultiplicativeMonoid</a
+	    > a) &#8658; t a &#8594; a <a href="src/PlutusTx.Foldable.html#product" class="link"
+	    >Source</a
+	    > <a href="#v:product" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Plutus Tx version of <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#v:product" title="Data.Foldable"
+		>product</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

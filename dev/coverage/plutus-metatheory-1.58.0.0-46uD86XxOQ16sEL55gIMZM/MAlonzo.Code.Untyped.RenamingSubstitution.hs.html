@@ -1,0 +1,538 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Untyped.RenamingSubstitution where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.Equality
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Agda.Builtin.List
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Data.Fin.Base
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Untyped
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- Untyped.RenamingSubstitution.Ren
+<span class="lineno">   26 </span>d_Ren_4 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">d_Ren_4 = erased</span></span>
+<span class="lineno">   28 </span>-- Untyped.RenamingSubstitution.lift
+<span class="lineno">   29 </span>d_lift_14 ::
+<span class="lineno">   30 </span>  Integer -&gt;
+<span class="lineno">   31 </span>  Integer -&gt;
+<span class="lineno">   32 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">   33 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">   34 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">   35 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">d_lift_14 ~v0 ~v1 v2 v3 = du_lift_14 v2 v3</span></span>
+<span class="lineno">   37 </span>du_lift_14 ::
+<span class="lineno">   38 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">   39 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">   40 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">   41 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">du_lift_14 v0 v1</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">= case coe v1 of</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Data.Fin.Base.C_zero_12</span>
+<span class="lineno">   45 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Data.Fin.Base.C_zero_12</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16 v3</span>
+<span class="lineno">   47 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Data.Fin.Base.C_suc_16 (coe v0 v3)</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">   49 </span>-- Untyped.RenamingSubstitution.renList
+<span class="lineno">   50 </span>d_renList_26 ::
+<span class="lineno">   51 </span>  Integer -&gt;
+<span class="lineno">   52 </span>  Integer -&gt;
+<span class="lineno">   53 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">   54 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">   55 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">   56 </span>  [MAlonzo.Code.Untyped.T__'8866'_14]
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">d_renList_26 v0 v1 v2 v3</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">= case coe v3 of</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="istickedoff">[] -&gt; coe v3</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="istickedoff">(:) v4 v5</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   62 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">   63 </span><span class="spaces">             </span><span class="istickedoff">(coe d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">   64 </span><span class="spaces">             </span><span class="istickedoff">(coe d_renList_26 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v5))</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">   66 </span>-- Untyped.RenamingSubstitution.ren
+<span class="lineno">   67 </span>d_ren_32 ::
+<span class="lineno">   68 </span>  Integer -&gt;
+<span class="lineno">   69 </span>  Integer -&gt;
+<span class="lineno">   70 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">   71 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">   72 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">   73 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">d_ren_32 v0 v1 v2 v3</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">= case coe v3 of</span>
+<span class="lineno">   76 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_'96'_18 v4</span>
+<span class="lineno">   77 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe MAlonzo.Code.Untyped.C_'96'_18 (coe v2 v4)</span>
+<span class="lineno">   78 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_ƛ_20 v4</span>
+<span class="lineno">   79 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   80 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">   81 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">   82 </span><span class="spaces">                </span><span class="istickedoff">d_ren_32 <span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v0))</span></span>
+<span class="lineno">   83 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v1))</span></span>
+<span class="lineno">   84 </span><span class="spaces">                </span><span class="istickedoff">(coe du_lift_14 (coe v2)) (coe v4))</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C__'183'__22 v4 v5</span>
+<span class="lineno">   86 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   87 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">   88 </span><span class="spaces">             </span><span class="istickedoff">(coe d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">   89 </span><span class="spaces">             </span><span class="istickedoff">(coe d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v5))</span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_force_24 v4</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   92 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_force_24</span>
+<span class="lineno">   93 </span><span class="spaces">             </span><span class="istickedoff">(coe d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> <span class="nottickedoff">(coe v2)</span> (coe v4))</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_delay_26 v4</span>
+<span class="lineno">   95 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">   96 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_delay_26</span>
+<span class="lineno">   97 </span><span class="spaces">             </span><span class="istickedoff">(coe d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> <span class="nottickedoff">(coe v2)</span> (coe v4))</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_con_28 v4 -&gt; coe v3</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_constr_34 v4 v5</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  101 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Untyped.C_constr_34 (coe v4)</span></span>
+<span class="lineno">  102 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe d_renList_26 (coe v0) (coe v1) (coe v2) (coe v5))</span></span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_case_40 v4 v5</span>
+<span class="lineno">  104 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  105 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_case_40</span>
+<span class="lineno">  106 </span><span class="spaces">             </span><span class="istickedoff">(coe d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">  107 </span><span class="spaces">             </span><span class="istickedoff">(coe d_renList_26 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v5))</span>
+<span class="lineno">  108 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_builtin_44 v4 -&gt; coe v3</span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_error_46 -&gt; coe v3</span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  111 </span>-- Untyped.RenamingSubstitution.weaken
+<span class="lineno">  112 </span>d_weaken_88 ::
+<span class="lineno">  113 </span>  Integer -&gt;
+<span class="lineno">  114 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  115 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  116 </span><span class="decl"><span class="istickedoff">d_weaken_88 v0 v1</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  118 </span><span class="spaces">      </span><span class="istickedoff">d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v0))</span></span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="istickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_suc_16) (coe v1)</span></span>
+<span class="lineno">  120 </span>-- Untyped.RenamingSubstitution.lift-cong
+<span class="lineno">  121 </span>d_lift'45'cong_104 ::
+<span class="lineno">  122 </span>  Integer -&gt;
+<span class="lineno">  123 </span>  Integer -&gt;
+<span class="lineno">  124 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  125 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  126 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  127 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  128 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  129 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  130 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  131 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">d_lift'45'cong_104 = erased</span></span>
+<span class="lineno">  133 </span>-- Untyped.RenamingSubstitution.renList-cong
+<span class="lineno">  134 </span>d_renList'45'cong_124 ::
+<span class="lineno">  135 </span>  Integer -&gt;
+<span class="lineno">  136 </span>  Integer -&gt;
+<span class="lineno">  137 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  138 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  139 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  140 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  141 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  142 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  143 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  144 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">d_renList'45'cong_124 = erased</span></span>
+<span class="lineno">  146 </span>-- Untyped.RenamingSubstitution.ren-cong
+<span class="lineno">  147 </span>d_ren'45'cong_138 ::
+<span class="lineno">  148 </span>  Integer -&gt;
+<span class="lineno">  149 </span>  Integer -&gt;
+<span class="lineno">  150 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  151 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  152 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  153 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  154 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  155 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  156 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  157 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">d_ren'45'cong_138 = erased</span></span>
+<span class="lineno">  159 </span>-- Untyped.RenamingSubstitution.lift-id
+<span class="lineno">  160 </span>d_lift'45'id_196 ::
+<span class="lineno">  161 </span>  Integer -&gt;
+<span class="lineno">  162 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  163 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff">d_lift'45'id_196 = erased</span></span>
+<span class="lineno">  165 </span>-- Untyped.RenamingSubstitution.lift-comp
+<span class="lineno">  166 </span>d_lift'45'comp_212 ::
+<span class="lineno">  167 </span>  Integer -&gt;
+<span class="lineno">  168 </span>  Integer -&gt;
+<span class="lineno">  169 </span>  Integer -&gt;
+<span class="lineno">  170 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  171 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  172 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  173 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  174 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  175 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">d_lift'45'comp_212 = erased</span></span>
+<span class="lineno">  177 </span>-- Untyped.RenamingSubstitution.renList-id
+<span class="lineno">  178 </span>d_renList'45'id_228 ::
+<span class="lineno">  179 </span>  Integer -&gt;
+<span class="lineno">  180 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  181 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  182 </span><span class="decl"><span class="nottickedoff">d_renList'45'id_228 = erased</span></span>
+<span class="lineno">  183 </span>-- Untyped.RenamingSubstitution.ren-id
+<span class="lineno">  184 </span>d_ren'45'id_234 ::
+<span class="lineno">  185 </span>  Integer -&gt;
+<span class="lineno">  186 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  187 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  188 </span><span class="decl"><span class="nottickedoff">d_ren'45'id_234 = erased</span></span>
+<span class="lineno">  189 </span>-- Untyped.RenamingSubstitution.renList-comp
+<span class="lineno">  190 </span>d_renList'45'comp_276 ::
+<span class="lineno">  191 </span>  Integer -&gt;
+<span class="lineno">  192 </span>  Integer -&gt;
+<span class="lineno">  193 </span>  Integer -&gt;
+<span class="lineno">  194 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  195 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  196 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  197 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  198 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  199 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  200 </span><span class="decl"><span class="nottickedoff">d_renList'45'comp_276 = erased</span></span>
+<span class="lineno">  201 </span>-- Untyped.RenamingSubstitution.ren-comp
+<span class="lineno">  202 </span>d_ren'45'comp_290 ::
+<span class="lineno">  203 </span>  Integer -&gt;
+<span class="lineno">  204 </span>  Integer -&gt;
+<span class="lineno">  205 </span>  Integer -&gt;
+<span class="lineno">  206 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  207 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  208 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  209 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  210 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  211 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  212 </span><span class="decl"><span class="nottickedoff">d_ren'45'comp_290 = erased</span></span>
+<span class="lineno">  213 </span>-- Untyped.RenamingSubstitution.Sub
+<span class="lineno">  214 </span>d_Sub_368 :: Integer -&gt; Integer -&gt; ()
+<span class="lineno">  215 </span><span class="decl"><span class="nottickedoff">d_Sub_368 = erased</span></span>
+<span class="lineno">  216 </span>-- Untyped.RenamingSubstitution.lifts
+<span class="lineno">  217 </span>d_lifts_378 ::
+<span class="lineno">  218 </span>  Integer -&gt;
+<span class="lineno">  219 </span>  Integer -&gt;
+<span class="lineno">  220 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  221 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  222 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  223 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  224 </span><span class="decl"><span class="nottickedoff">d_lifts_378 ~v0 v1 v2 v3 = du_lifts_378 v1 v2 v3</span></span>
+<span class="lineno">  225 </span>du_lifts_378 ::
+<span class="lineno">  226 </span>  Integer -&gt;
+<span class="lineno">  227 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  228 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  229 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  230 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  231 </span><span class="decl"><span class="istickedoff">du_lifts_378 v0 v1 v2</span>
+<span class="lineno">  232 </span><span class="spaces">  </span><span class="istickedoff">= case coe v2 of</span>
+<span class="lineno">  233 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Data.Fin.Base.C_zero_12</span>
+<span class="lineno">  234 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  235 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_'96'_18</span>
+<span class="lineno">  236 </span><span class="spaces">             </span><span class="istickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_zero_12)</span>
+<span class="lineno">  237 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16 v4</span>
+<span class="lineno">  238 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  239 </span><span class="spaces">             </span><span class="istickedoff">d_ren_32 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v0))</span></span>
+<span class="lineno">  240 </span><span class="spaces">             </span><span class="istickedoff">(coe MAlonzo.Code.Data.Fin.Base.C_suc_16) (coe v1 v4)</span>
+<span class="lineno">  241 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  242 </span>-- Untyped.RenamingSubstitution.subList
+<span class="lineno">  243 </span>d_subList_390 ::
+<span class="lineno">  244 </span>  Integer -&gt;
+<span class="lineno">  245 </span>  Integer -&gt;
+<span class="lineno">  246 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  247 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  248 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  249 </span>  [MAlonzo.Code.Untyped.T__'8866'_14]
+<span class="lineno">  250 </span><span class="decl"><span class="istickedoff">d_subList_390 v0 v1 v2 v3</span>
+<span class="lineno">  251 </span><span class="spaces">  </span><span class="istickedoff">= case coe v3 of</span>
+<span class="lineno">  252 </span><span class="spaces">      </span><span class="istickedoff">[] -&gt; coe v3</span>
+<span class="lineno">  253 </span><span class="spaces">      </span><span class="istickedoff">(:) v4 v5</span>
+<span class="lineno">  254 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  255 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22</span>
+<span class="lineno">  256 </span><span class="spaces">             </span><span class="istickedoff">(coe d_sub_396 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">  257 </span><span class="spaces">             </span><span class="istickedoff">(coe d_subList_390 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v5))</span>
+<span class="lineno">  258 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  259 </span>-- Untyped.RenamingSubstitution.sub
+<span class="lineno">  260 </span>d_sub_396 ::
+<span class="lineno">  261 </span>  Integer -&gt;
+<span class="lineno">  262 </span>  Integer -&gt;
+<span class="lineno">  263 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  264 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  265 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  266 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  267 </span><span class="decl"><span class="istickedoff">d_sub_396 v0 v1 v2 v3</span>
+<span class="lineno">  268 </span><span class="spaces">  </span><span class="istickedoff">= case coe v3 of</span>
+<span class="lineno">  269 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_'96'_18 v4 -&gt; coe v2 v4</span>
+<span class="lineno">  270 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_ƛ_20 v4</span>
+<span class="lineno">  271 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  272 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_ƛ_20</span>
+<span class="lineno">  273 </span><span class="spaces">             </span><span class="istickedoff">(coe</span>
+<span class="lineno">  274 </span><span class="spaces">                </span><span class="istickedoff">d_sub_396 <span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v0))</span></span>
+<span class="lineno">  275 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v1))</span></span>
+<span class="lineno">  276 </span><span class="spaces">                </span><span class="istickedoff">(coe du_lifts_378 <span class="nottickedoff">(coe v1)</span> (coe v2)) (coe v4))</span>
+<span class="lineno">  277 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C__'183'__22 v4 v5</span>
+<span class="lineno">  278 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  279 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C__'183'__22</span>
+<span class="lineno">  280 </span><span class="spaces">             </span><span class="istickedoff">(coe d_sub_396 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">  281 </span><span class="spaces">             </span><span class="istickedoff">(coe d_sub_396 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v5))</span>
+<span class="lineno">  282 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_force_24 v4</span>
+<span class="lineno">  283 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  284 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_force_24</span>
+<span class="lineno">  285 </span><span class="spaces">             </span><span class="istickedoff">(coe d_sub_396 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">  286 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_delay_26 v4</span>
+<span class="lineno">  287 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  288 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_delay_26</span>
+<span class="lineno">  289 </span><span class="spaces">             </span><span class="istickedoff">(coe d_sub_396 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">  290 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_con_28 v4 -&gt; coe v3</span>
+<span class="lineno">  291 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_constr_34 v4 v5</span>
+<span class="lineno">  292 </span><span class="spaces">        </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  293 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Untyped.C_constr_34 (coe v4)</span></span>
+<span class="lineno">  294 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(coe d_subList_390 (coe v0) (coe v1) (coe v2) (coe v5))</span></span>
+<span class="lineno">  295 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_case_40 v4 v5</span>
+<span class="lineno">  296 </span><span class="spaces">        </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  297 </span><span class="spaces">             </span><span class="istickedoff">MAlonzo.Code.Untyped.C_case_40</span>
+<span class="lineno">  298 </span><span class="spaces">             </span><span class="istickedoff">(coe d_sub_396 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v4))</span>
+<span class="lineno">  299 </span><span class="spaces">             </span><span class="istickedoff">(coe d_subList_390 <span class="nottickedoff">(coe v0)</span> <span class="nottickedoff">(coe v1)</span> (coe v2) (coe v5))</span>
+<span class="lineno">  300 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_builtin_44 v4 -&gt; coe v3</span>
+<span class="lineno">  301 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Untyped.C_error_46 -&gt; coe v3</span>
+<span class="lineno">  302 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  303 </span>-- Untyped.RenamingSubstitution.extend
+<span class="lineno">  304 </span>d_extend_454 ::
+<span class="lineno">  305 </span>  Integer -&gt;
+<span class="lineno">  306 </span>  Integer -&gt;
+<span class="lineno">  307 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  308 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  309 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  310 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  311 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  312 </span><span class="decl"><span class="nottickedoff">d_extend_454 ~v0 ~v1 v2 v3 v4 = du_extend_454 v2 v3 v4</span></span>
+<span class="lineno">  313 </span>du_extend_454 ::
+<span class="lineno">  314 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  315 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  316 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  317 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  318 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  319 </span><span class="decl"><span class="istickedoff">du_extend_454 v0 v1 v2</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="istickedoff">= case coe v2 of</span>
+<span class="lineno">  321 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Data.Fin.Base.C_zero_12 -&gt; coe v1</span>
+<span class="lineno">  322 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16 v4 -&gt; coe v0 v4</span>
+<span class="lineno">  323 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span></span>
+<span class="lineno">  324 </span>-- Untyped.RenamingSubstitution._↑ˢ
+<span class="lineno">  325 </span>d__'8593''738'_470 ::
+<span class="lineno">  326 </span>  Integer -&gt;
+<span class="lineno">  327 </span>  Integer -&gt;
+<span class="lineno">  328 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  329 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  330 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  331 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  332 </span><span class="decl"><span class="nottickedoff">d__'8593''738'_470 ~v0 v1 v2 v3 = du__'8593''738'_470 v1 v2 v3</span></span>
+<span class="lineno">  333 </span>du__'8593''738'_470 ::
+<span class="lineno">  334 </span>  Integer -&gt;
+<span class="lineno">  335 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  336 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  337 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  338 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  339 </span><span class="decl"><span class="istickedoff">du__'8593''738'_470 v0 v1 v2 = coe d_weaken_88 <span class="nottickedoff">(coe v0)</span> (coe v1 v2)</span></span>
+<span class="lineno">  340 </span>-- Untyped.RenamingSubstitution._[_]
+<span class="lineno">  341 </span>d__'91'_'93'_478 ::
+<span class="lineno">  342 </span>  Integer -&gt;
+<span class="lineno">  343 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  344 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  345 </span>  MAlonzo.Code.Untyped.T__'8866'_14
+<span class="lineno">  346 </span><span class="decl"><span class="istickedoff">d__'91'_'93'_478 v0 v1 v2</span>
+<span class="lineno">  347 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">  348 </span><span class="spaces">      </span><span class="istickedoff">d_sub_396 <span class="nottickedoff">(coe addInt (coe (1 :: Integer)) (coe v0))</span> <span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  349 </span><span class="spaces">      </span><span class="istickedoff">(coe du_extend_454 (coe MAlonzo.Code.Untyped.C_'96'_18) (coe v2))</span>
+<span class="lineno">  350 </span><span class="spaces">      </span><span class="istickedoff">(coe v1)</span></span>
+<span class="lineno">  351 </span>-- Untyped.RenamingSubstitution.lifts-cong
+<span class="lineno">  352 </span>d_lifts'45'cong_496 ::
+<span class="lineno">  353 </span>  Integer -&gt;
+<span class="lineno">  354 </span>  Integer -&gt;
+<span class="lineno">  355 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  356 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  357 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  358 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  359 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  360 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  361 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  362 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  363 </span><span class="decl"><span class="nottickedoff">d_lifts'45'cong_496 = erased</span></span>
+<span class="lineno">  364 </span>-- Untyped.RenamingSubstitution.subList-cong
+<span class="lineno">  365 </span>d_subList'45'cong_516 ::
+<span class="lineno">  366 </span>  Integer -&gt;
+<span class="lineno">  367 </span>  Integer -&gt;
+<span class="lineno">  368 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  369 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  370 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  371 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  372 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  373 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  374 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  375 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  376 </span><span class="decl"><span class="nottickedoff">d_subList'45'cong_516 = erased</span></span>
+<span class="lineno">  377 </span>-- Untyped.RenamingSubstitution.sub-cong
+<span class="lineno">  378 </span>d_sub'45'cong_530 ::
+<span class="lineno">  379 </span>  Integer -&gt;
+<span class="lineno">  380 </span>  Integer -&gt;
+<span class="lineno">  381 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  382 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  383 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  384 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  385 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  386 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  387 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  388 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  389 </span><span class="decl"><span class="nottickedoff">d_sub'45'cong_530 = erased</span></span>
+<span class="lineno">  390 </span>-- Untyped.RenamingSubstitution.lifts-id
+<span class="lineno">  391 </span>d_lifts'45'id_588 ::
+<span class="lineno">  392 </span>  Integer -&gt;
+<span class="lineno">  393 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  394 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  395 </span><span class="decl"><span class="nottickedoff">d_lifts'45'id_588 = erased</span></span>
+<span class="lineno">  396 </span>-- Untyped.RenamingSubstitution.subList-id
+<span class="lineno">  397 </span>d_subList'45'id_596 ::
+<span class="lineno">  398 </span>  Integer -&gt;
+<span class="lineno">  399 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  400 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  401 </span><span class="decl"><span class="nottickedoff">d_subList'45'id_596 = erased</span></span>
+<span class="lineno">  402 </span>-- Untyped.RenamingSubstitution.sub-id
+<span class="lineno">  403 </span>d_sub'45'id_602 ::
+<span class="lineno">  404 </span>  Integer -&gt;
+<span class="lineno">  405 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  406 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  407 </span><span class="decl"><span class="nottickedoff">d_sub'45'id_602 = erased</span></span>
+<span class="lineno">  408 </span>-- Untyped.RenamingSubstitution.lifts-lift
+<span class="lineno">  409 </span>d_lifts'45'lift_644 ::
+<span class="lineno">  410 </span>  Integer -&gt;
+<span class="lineno">  411 </span>  Integer -&gt;
+<span class="lineno">  412 </span>  Integer -&gt;
+<span class="lineno">  413 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  414 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  415 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  416 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  417 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  418 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  419 </span><span class="decl"><span class="nottickedoff">d_lifts'45'lift_644 = erased</span></span>
+<span class="lineno">  420 </span>-- Untyped.RenamingSubstitution.subList-ren
+<span class="lineno">  421 </span>d_subList'45'ren_668 ::
+<span class="lineno">  422 </span>  Integer -&gt;
+<span class="lineno">  423 </span>  Integer -&gt;
+<span class="lineno">  424 </span>  Integer -&gt;
+<span class="lineno">  425 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  426 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  427 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  428 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  429 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  430 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  431 </span><span class="decl"><span class="nottickedoff">d_subList'45'ren_668 = erased</span></span>
+<span class="lineno">  432 </span>-- Untyped.RenamingSubstitution.sub-ren
+<span class="lineno">  433 </span>d_sub'45'ren_682 ::
+<span class="lineno">  434 </span>  Integer -&gt;
+<span class="lineno">  435 </span>  Integer -&gt;
+<span class="lineno">  436 </span>  Integer -&gt;
+<span class="lineno">  437 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  438 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  439 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  440 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  441 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  442 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  443 </span><span class="decl"><span class="nottickedoff">d_sub'45'ren_682 = erased</span></span>
+<span class="lineno">  444 </span>-- Untyped.RenamingSubstitution.ren-lift-lifts
+<span class="lineno">  445 </span>d_ren'45'lift'45'lifts_772 ::
+<span class="lineno">  446 </span>  Integer -&gt;
+<span class="lineno">  447 </span>  Integer -&gt;
+<span class="lineno">  448 </span>  Integer -&gt;
+<span class="lineno">  449 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  450 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  451 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  452 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  453 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  454 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  455 </span><span class="decl"><span class="nottickedoff">d_ren'45'lift'45'lifts_772 = erased</span></span>
+<span class="lineno">  456 </span>-- Untyped.RenamingSubstitution.renList-sub
+<span class="lineno">  457 </span>d_renList'45'sub_796 ::
+<span class="lineno">  458 </span>  Integer -&gt;
+<span class="lineno">  459 </span>  Integer -&gt;
+<span class="lineno">  460 </span>  Integer -&gt;
+<span class="lineno">  461 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  462 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  463 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  464 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  465 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  466 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  467 </span><span class="decl"><span class="nottickedoff">d_renList'45'sub_796 = erased</span></span>
+<span class="lineno">  468 </span>-- Untyped.RenamingSubstitution.ren-sub
+<span class="lineno">  469 </span>d_ren'45'sub_810 ::
+<span class="lineno">  470 </span>  Integer -&gt;
+<span class="lineno">  471 </span>  Integer -&gt;
+<span class="lineno">  472 </span>  Integer -&gt;
+<span class="lineno">  473 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  474 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  475 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  476 </span>   MAlonzo.Code.Data.Fin.Base.T_Fin_10) -&gt;
+<span class="lineno">  477 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  478 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  479 </span><span class="decl"><span class="nottickedoff">d_ren'45'sub_810 = erased</span></span>
+<span class="lineno">  480 </span>-- Untyped.RenamingSubstitution.lifts-comp
+<span class="lineno">  481 </span>d_lifts'45'comp_900 ::
+<span class="lineno">  482 </span>  Integer -&gt;
+<span class="lineno">  483 </span>  Integer -&gt;
+<span class="lineno">  484 </span>  Integer -&gt;
+<span class="lineno">  485 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  486 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  487 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  488 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  489 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  490 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  491 </span><span class="decl"><span class="nottickedoff">d_lifts'45'comp_900 = erased</span></span>
+<span class="lineno">  492 </span>-- Untyped.RenamingSubstitution.subList-comp
+<span class="lineno">  493 </span>d_subList'45'comp_924 ::
+<span class="lineno">  494 </span>  Integer -&gt;
+<span class="lineno">  495 </span>  Integer -&gt;
+<span class="lineno">  496 </span>  Integer -&gt;
+<span class="lineno">  497 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  498 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  499 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  500 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  501 </span>  [MAlonzo.Code.Untyped.T__'8866'_14] -&gt;
+<span class="lineno">  502 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  503 </span><span class="decl"><span class="nottickedoff">d_subList'45'comp_924 = erased</span></span>
+<span class="lineno">  504 </span>-- Untyped.RenamingSubstitution.sub-comp
+<span class="lineno">  505 </span>d_sub'45'comp_938 ::
+<span class="lineno">  506 </span>  Integer -&gt;
+<span class="lineno">  507 </span>  Integer -&gt;
+<span class="lineno">  508 </span>  Integer -&gt;
+<span class="lineno">  509 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  510 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  511 </span>  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt;
+<span class="lineno">  512 </span>   MAlonzo.Code.Untyped.T__'8866'_14) -&gt;
+<span class="lineno">  513 </span>  MAlonzo.Code.Untyped.T__'8866'_14 -&gt;
+<span class="lineno">  514 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  515 </span><span class="decl"><span class="nottickedoff">d_sub'45'comp_938 = erased</span></span>
+
+</pre>
+</body>
+</html>

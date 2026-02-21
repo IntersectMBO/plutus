@@ -1,0 +1,2319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE InstanceSigs #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Wrapper type to decode a value to its flat serialisation.
+
+See &lt;../test/Big.hs&gt; for an example of use.
+
+See also 'Flat.Decoder.listTDecoder' and &quot;Flat.AsSize&quot; for other ways to handle large decoded values.
+
+In 0.5.X this type was called @Repr@.
+
+@since 0.6 -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.AsBin</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	><span class="hs-identifier"
+	  >AsBin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.AsBin.html#unbin"
+	><span class="hs-identifier"
+	  >unbin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>B</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Foreign.html"
+	><span class="hs-identifier"
+	  >Foreign</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#plusPtr"
+	><span class="hs-identifier"
+	  >plusPtr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Bits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#bits"
+	><span class="hs-identifier"
+	  >bits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#fromBools"
+	><span class="hs-identifier"
+	  >fromBools</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Bits.html#toBools"
+	><span class="hs-identifier"
+	  >toBools</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Prim.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder.Prim</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Prim.html#binOf"
+	><span class="hs-identifier"
+	  >binOf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Decoder.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier"
+	  >Get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier"
+	  >Get</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#runGet"
+	><span class="hs-identifier"
+	  >runGet</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier"
+	  >S</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier"
+	  >S</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#currPtr"
+	><span class="hs-identifier"
+	  >currPtr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#usedBits"
+	><span class="hs-identifier"
+	  >usedBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Run</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Run.html#unflatRawWithOffset"
+	><span class="hs-identifier"
+	  >unflatRawWithOffset</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html"
+	><span class="hs-identifier"
+	  >Text.PrettyPrint.HughesPJClass</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJ.html#Doc"
+	><span class="hs-identifier"
+	  >Doc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#pPrint"
+	><span class="hs-identifier"
+	  >pPrint</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#prettyShow"
+	><span class="hs-identifier"
+	  >prettyShow</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJ.html#text"
+	><span class="hs-identifier"
+	  >text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-$setup
+&gt;&gt;&gt; :set -XScopedTypeVariables
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Base
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Text
+&gt;&gt;&gt; import PlutusCore.Flat.Decoder.Types
+&gt;&gt;&gt; import PlutusCore.Flat.Types
+&gt;&gt;&gt; import PlutusCore.Flat.Run
+&gt;&gt;&gt; import Data.Word
+&gt;&gt;&gt; import qualified Data.Text as T
+&gt;&gt;&gt; import Text.PrettyPrint.HughesPJClass -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+
+When the flat serialisation of a value takes a lot less memory than the value itself, it can be convenient to keep the value in its encoded representation and decode it on demand.
+
+To do so, just decode a value `a` as a `AsBin a`.
+
+Examples:
+
+Encode a list of Ints and then decode it to a list of AsBin Int:
+
+&gt;&gt;&gt; unflat (flat [1::Int .. 3]) :: Decoded ([AsBin Int])
+Right [AsBin {repr = &quot;\129A&quot;, offsetBits = 1},AsBin {repr = &quot;A &quot;, offsetBits = 2},AsBin {repr = &quot; \193&quot;, offsetBits = 3}]
+
+To decode an `AsBin a` to an `a`, use `unbin`:
+
+&gt;&gt;&gt; unbin &lt;$&gt; (unflat (flat 'a') :: Decoded (AsBin Char))
+Right 'a'
+
+Keep the values of a list of Ints encoded and decode just one on demand:
+
+&gt;&gt;&gt; let Right l :: Decoded [AsBin Int] = unflat (flat [1..5]) in unbin (l  !! 2)
+3
+
+Show exactly how values are encoded:
+
+&gt;&gt;&gt; let Right t :: Decoded (AsBin Bool,AsBin Word8,AsBin Bool) = unflat (flat (False,3:: Word64,True)) in prettyShow t
+&quot;(0, _0000001 1, _1)&quot;
+
+Ten bits in total spread over two bytes:
+
+@
+0
+_0000001 1
+         _1
+=
+00000001 11
+@
+
+Tests:
+
+&gt;&gt;&gt; unflat (flat ()) :: Decoded (AsBin ())
+Right (AsBin {repr = &quot;&quot;, offsetBits = 0})
+
+&gt;&gt;&gt; unflat (flat (False,True)) :: Decoded (Bool,AsBin Bool)
+Right (False,AsBin {repr = &quot;A&quot;, offsetBits = 1})
+
+&gt;&gt;&gt; unflat (flat (False,False,255 :: Word8)) :: Decoded (Bool,Bool,AsBin Word8)
+Right (False,False,AsBin {repr = &quot;?\193&quot;, offsetBits = 2})
+
+&gt;&gt;&gt; let Right (b0,b1,rw,b3) :: Decoded (Bool,Bool,AsBin Word8,Bool) = unflat (flat (False,False,255 :: Word8,True)) in (b0,b1,unbin rw,b3)
+(False,False,255,True) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="AsBin"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	  ><span class="hs-identifier hs-var"
+	    >AsBin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107772"
+      ><span class="annot"
+	><a href="#local-6989586621679107772"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="AsBin"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	  ><span class="hs-identifier hs-var"
+	    >AsBin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="repr"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. AsBin a -&gt; ByteString
+</span
+	  ><a href="PlutusCore.Flat.AsBin.html#repr"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >repr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >B.ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Flat encoding of the value (encoding starts after offset bits in the first byte and ends in an unspecified position in the last byte)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="offsetBits"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. AsBin a -&gt; Int
+</span
+	  ><a href="PlutusCore.Flat.AsBin.html#offsetBits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >offsetBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ First byte offset: number of unused most significant bits in the first byte</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679107854"
+      ><span id="local-6989586621679107862"
+	><span id="local-6989586621679107866"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; AsBin a -&gt; ShowS
+[AsBin a] -&gt; ShowS
+AsBin a -&gt; String
+(Int -&gt; AsBin a -&gt; ShowS)
+-&gt; (AsBin a -&gt; String) -&gt; ([AsBin a] -&gt; ShowS) -&gt; Show (AsBin a)
+forall a. Int -&gt; AsBin a -&gt; ShowS
+forall a. [AsBin a] -&gt; ShowS
+forall a. AsBin a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Int -&gt; AsBin a -&gt; ShowS
+showsPrec :: Int -&gt; AsBin a -&gt; ShowS
+$cshow :: forall a. AsBin a -&gt; String
+show :: AsBin a -&gt; String
+$cshowList :: forall a. [AsBin a] -&gt; ShowS
+showList :: [AsBin a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107787"
+      ><span id="local-6989586621679107871"
+	><span id="local-6989586621679107876"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679107787"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	      ><span class="hs-identifier hs-type"
+		>AsBin</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679107787"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#pPrint"
+	><span class="hs-identifier hs-type"
+	  >pPrint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	><span class="hs-identifier hs-type"
+	  >AsBin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679107787"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJ.html#Doc"
+	><span class="hs-identifier hs-type"
+	  >Doc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679107883"
+      ><span class="annot"
+	><span class="annottext"
+	  >pPrint :: AsBin a -&gt; Doc
+</span
+	  ><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#pPrint"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pPrint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107884"
+      ><span class="annot"
+	><span class="annottext"
+	  >AsBin a
+</span
+	  ><a href="#local-6989586621679107884"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107885"
+      ><span class="annot"
+	><span class="annottext"
+	  >n :: a -&gt; [a]
+</span
+	  ><a href="#local-6989586621679107885"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; a -&gt; [a]
+forall a. Int -&gt; a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#replicate"
+	><span class="hs-identifier hs-var"
+	  >replicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a -&gt; Int
+forall a. AsBin a -&gt; Int
+</span
+	><a href="PlutusCore.Flat.AsBin.html#offsetBits"
+	><span class="hs-identifier hs-var"
+	  >offsetBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a
+</span
+	><a href="#local-6989586621679107884"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc
+</span
+	><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJ.html#text"
+	><span class="hs-identifier hs-var"
+	  >text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Doc) -&gt; String -&gt; Doc
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; String
+forall {a}. a -&gt; [a]
+</span
+	><a href="#local-6989586621679107885"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'_'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; ShowS
+forall a. Int -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#drop"
+	><span class="hs-identifier hs-var"
+	  >drop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a -&gt; Int
+forall a. AsBin a -&gt; Int
+</span
+	><a href="PlutusCore.Flat.AsBin.html#offsetBits"
+	><span class="hs-identifier hs-var"
+	  >offsetBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a
+</span
+	><a href="#local-6989586621679107884"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; (a -&gt; String) -&gt; a -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bits -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/pretty-1.1.3.6/docs/src/Text.PrettyPrint.HughesPJClass.html#prettyShow"
+	><span class="hs-identifier hs-var"
+	  >prettyShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bits -&gt; String) -&gt; (a -&gt; Bits) -&gt; a -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Bool] -&gt; Bits
+</span
+	><a href="PlutusCore.Flat.Bits.html#fromBools"
+	><span class="hs-identifier hs-var"
+	  >fromBools</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Bool] -&gt; Bits) -&gt; (a -&gt; [Bool]) -&gt; a -&gt; Bits
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; [Bool]
+forall {a}. a -&gt; [a]
+</span
+	><a href="#local-6989586621679107885"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Bool] -&gt; [Bool] -&gt; [Bool]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Bool] -&gt; [Bool]) -&gt; (a -&gt; [Bool]) -&gt; a -&gt; [Bool]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bits -&gt; [Bool]
+</span
+	><a href="PlutusCore.Flat.Bits.html#toBools"
+	><span class="hs-identifier hs-var"
+	  >toBools</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bits -&gt; [Bool]) -&gt; (a -&gt; Bits) -&gt; a -&gt; [Bool]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bits
+forall a. Flat a =&gt; a -&gt; Bits
+</span
+	><a href="PlutusCore.Flat.Bits.html#bits"
+	><span class="hs-identifier hs-var"
+	  >bits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; String) -&gt; a -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a -&gt; a
+forall a. Flat a =&gt; AsBin a -&gt; a
+</span
+	><a href="PlutusCore.Flat.AsBin.html#unbin"
+	><span class="hs-identifier hs-var"
+	  >unbin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a
+</span
+	><a href="#local-6989586621679107884"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Decode a value</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span id="local-6989586621679107801"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.AsBin.html#unbin"
+	  ><span class="hs-identifier hs-type"
+	    >unbin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107801"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	  ><span class="hs-identifier hs-type"
+	    >AsBin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107801"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107801"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="unbin"
+      ><span class="annot"
+	><span class="annottext"
+	  >unbin :: forall a. Flat a =&gt; AsBin a -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.AsBin.html#unbin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unbin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107897"
+      ><span class="annot"
+	><span class="annottext"
+	  >AsBin a
+</span
+	  ><a href="#local-6989586621679107897"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; ByteString -&gt; Int -&gt; Decoded a
+forall b a. AsByteString b =&gt; Get a -&gt; b -&gt; Int -&gt; Decoded a
+</span
+	><a href="PlutusCore.Flat.Run.html#unflatRawWithOffset"
+	><span class="hs-identifier hs-var"
+	  >unflatRawWithOffset</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+forall {a}. Flat a =&gt; Get a
+</span
+	><a href="#local-6989586621679107898"
+	><span class="hs-identifier hs-var"
+	  >dec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a -&gt; ByteString
+forall a. AsBin a -&gt; ByteString
+</span
+	><a href="PlutusCore.Flat.AsBin.html#repr"
+	><span class="hs-identifier hs-var"
+	  >repr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a
+</span
+	><a href="#local-6989586621679107897"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a -&gt; Int
+forall a. AsBin a -&gt; Int
+</span
+	><a href="PlutusCore.Flat.AsBin.html#offsetBits"
+	><span class="hs-identifier hs-var"
+	  >offsetBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsBin a
+</span
+	><a href="#local-6989586621679107897"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107899"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679107899"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107899"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107900"
+      ><span class="annot"
+	><span class="annottext"
+	  >DecodeException
+</span
+	  ><a href="#local-6989586621679107900"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; a
+forall a. HasCallStack =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DecodeException
+</span
+	><a href="#local-6989586621679107900"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- impossible, as it is a valid encoding</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679107898"
+      ><span class="annot"
+	><span class="annottext"
+	  >dec :: Get a
+</span
+	  ><a href="#local-6989586621679107898"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Ptr Word8 -&gt; S -&gt; IO (GetResult a)) -&gt; Get a
+forall a. (Ptr Word8 -&gt; S -&gt; IO (GetResult a)) -&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier hs-var"
+	  >Get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Ptr Word8 -&gt; S -&gt; IO (GetResult a)) -&gt; Get a)
+-&gt; (Ptr Word8 -&gt; S -&gt; IO (GetResult a)) -&gt; Get a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679107908"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ptr Word8
+</span
+	  ><a href="#local-6989586621679107908"
+	  ><span class="hs-identifier hs-var"
+	    >end</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107909"
+      ><span class="annot"
+	><span class="annottext"
+	  >S
+</span
+	  ><a href="#local-6989586621679107909"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier hs-type"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107910"
+      ><span class="annot"
+	><span class="annottext"
+	  >S
+</span
+	  ><a href="#local-6989586621679107910"
+	  ><span class="hs-identifier hs-var"
+	    >s'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679107911"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679107911"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult a)
+forall a. Get a -&gt; Ptr Word8 -&gt; S -&gt; IO (GetResult a)
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#runGet"
+	><span class="hs-identifier hs-var"
+	  >runGet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+forall {a}. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8
+</span
+	><a href="#local-6989586621679107908"
+	><span class="hs-identifier hs-var"
+	  >end</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679107909"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107917"
+      ><span class="annot"
+	><span class="annottext"
+	  >s'' :: S
+</span
+	  ><a href="#local-6989586621679107917"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >s''</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; Int -&gt; S
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#S"
+	><span class="hs-identifier hs-var"
+	  >S</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>S -&gt; Ptr Word8
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#currPtr"
+	><span class="hs-identifier hs-var"
+	  >currPtr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679107910"
+	><span class="hs-identifier hs-var"
+	  >s'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ptr Word8 -&gt; Int -&gt; Ptr Word8
+forall a b. Ptr a -&gt; Int -&gt; Ptr b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Ptr.html#plusPtr"
+	><span class="hs-operator hs-var"
+	  >`plusPtr`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#usedBits"
+	><span class="hs-identifier hs-var"
+	  >usedBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679107910"
+	><span class="hs-identifier hs-var"
+	  >s'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GetResult a -&gt; IO (GetResult a)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(GetResult a -&gt; IO (GetResult a))
+-&gt; GetResult a -&gt; IO (GetResult a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S -&gt; a -&gt; GetResult a
+forall a. S -&gt; a -&gt; GetResult a
+</span
+	><a href="PlutusCore.Flat.Decoder.Types.html#GetResult"
+	><span class="hs-identifier hs-var"
+	  >GetResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>S
+</span
+	><a href="#local-6989586621679107917"
+	><span class="hs-identifier hs-var"
+	  >s''</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679107911"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679107826"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107826"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	  ><span class="hs-identifier hs-type"
+	    >AsBin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679107826"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679107926"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: AsBin a -&gt; Int -&gt; Int
+</span
+	  ><a href="#local-6989586621679107926"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; AsBin a -&gt; Int -&gt; Int
+forall a. HasCallStack =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;unused&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679107930"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: AsBin a -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679107930"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; AsBin a -&gt; Encoding
+forall a. HasCallStack =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;unused&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-type"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier hs-type"
+	  >Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679107826"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier hs-type"
+	  >Get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	><span class="hs-identifier hs-type"
+	  >AsBin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679107826"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679107937"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Flat a =&gt; Get (AsBin a)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Int -&gt; AsBin a) -&gt; (ByteString, Int) -&gt; AsBin a
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#uncurry"
+	><span class="hs-identifier hs-var"
+	  >uncurry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Int -&gt; AsBin a
+forall a. ByteString -&gt; Int -&gt; AsBin a
+</span
+	><a href="PlutusCore.Flat.AsBin.html#AsBin"
+	><span class="hs-identifier hs-var"
+	  >AsBin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((ByteString, Int) -&gt; AsBin a)
+-&gt; Get (ByteString, Int) -&gt; Get (AsBin a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a -&gt; Get (ByteString, Int)
+forall a. Get a -&gt; Get (ByteString, Int)
+</span
+	><a href="PlutusCore.Flat.Decoder.Prim.html#binOf"
+	><span class="hs-identifier hs-var"
+	  >binOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get a
+forall {a}. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	><span class="hs-identifier hs-type"
+	  >Get</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679107826"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,1998 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NamedFieldPuns     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Test.Run.Code</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Eval</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Run.Code.html#evaluationResultMatchesHaskell"
+	><span class="hs-identifier"
+	  >evaluationResultMatchesHaskell</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Run.Code.html#assertEvaluatesSuccessfully"
+	><span class="hs-identifier"
+	  >assertEvaluatesSuccessfully</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Run.Code.html#assertEvaluatesWithError"
+	><span class="hs-identifier"
+	  >assertEvaluatesWithError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Run.Code.html#assertResult"
+	><span class="hs-identifier"
+	  >assertResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Test.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Test</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html#TestNested"
+	><span class="hs-identifier"
+	  >TestNested</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html#assertEqualPretty"
+	><span class="hs-identifier"
+	  >assertEqualPretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html#embed"
+	><span class="hs-identifier"
+	  >embed</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Code</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	><span class="hs-identifier"
+	  >CompiledCode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eval.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Eval</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Test.Util.Compiled</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#cekResultMatchesHaskellValue"
+	><span class="hs-identifier"
+	  >cekResultMatchesHaskellValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#compiledCodeToTerm"
+	><span class="hs-identifier"
+	  >compiledCodeToTerm</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestName"
+	><span class="hs-identifier"
+	  >TestName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.HUnit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#Assertion"
+	><span class="hs-identifier"
+	  >Assertion</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#assertFailure"
+	><span class="hs-identifier"
+	  >assertFailure</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier"
+	  >testCase</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Evaluate 'CompiledCode' and check that the result matches a given Haskell value
+   (perhaps obtained by running the Haskell code that the term was compiled
+   from).  We evaluate the lifted Haskell value as well, because lifting may
+   produce reducible terms. The function is polymorphic in the comparison
+   operator so that we can use it with both HUnit Assertions and QuickCheck
+   Properties.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621679225890"
+      ><span id="local-6989586621679225891"
+	><span id="local-6989586621679225894"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Test.Run.Code.html#evaluationResultMatchesHaskell"
+	      ><span class="hs-identifier hs-type"
+		>evaluationResultMatchesHaskell</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-36"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-tx/src/PlutusTx.Lift.Class.html#Lift"
+	      ><span class="hs-identifier hs-type"
+		>Tx.Lift</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225890"
+	      ><span class="hs-identifier hs-type"
+		>hask</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-37"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCode</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225891"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-38"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-keyword"
+	    >forall</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621679225893"
+	    ><span class="annot"
+	      ><a href="#local-6989586621679225893"
+		><span class="hs-identifier hs-type"
+		  >r</span
+		  ></a
+		></span
+	      ></span
+	    ><span class="hs-operator"
+	    >.</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	      ><span class="hs-identifier hs-type"
+		>Eq</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225893"
+	      ><span class="hs-identifier hs-type"
+		>r</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-type"
+		>Show</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225893"
+	      ><span class="hs-identifier hs-type"
+		>r</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225893"
+	      ><span class="hs-identifier hs-type"
+		>r</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225893"
+	      ><span class="hs-identifier hs-type"
+		>r</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225894"
+	      ><span class="hs-identifier hs-type"
+		>k</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-39"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225890"
+	      ><span class="hs-identifier hs-type"
+		>hask</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-40"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679225894"
+	      ><span class="hs-identifier hs-type"
+		>k</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="evaluationResultMatchesHaskell"
+      ><span class="annot"
+	><span class="annottext"
+	  >evaluationResultMatchesHaskell :: forall hask a k.
+Lift DefaultUni hask =&gt;
+CompiledCode a
+-&gt; (forall r. (Eq r, Show r) =&gt; r -&gt; r -&gt; k) -&gt; hask -&gt; k
+</span
+	  ><a href="PlutusTx.Test.Run.Code.html#evaluationResultMatchesHaskell"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evaluationResultMatchesHaskell</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226044"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCode a
+</span
+	  ><a href="#local-6989586621679226044"
+	  ><span class="hs-identifier hs-var"
+	    >actual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term -&gt; (forall r. (Eq r, Show r) =&gt; r -&gt; r -&gt; k) -&gt; hask -&gt; k
+forall hask k.
+Lift DefaultUni hask =&gt;
+Term -&gt; (forall r. (Eq r, Show r) =&gt; r -&gt; r -&gt; k) -&gt; hask -&gt; k
+</span
+	><a href="PlutusTx.Test.Util.Compiled.html#cekResultMatchesHaskellValue"
+	><span class="hs-identifier hs-var"
+	  >cekResultMatchesHaskellValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a -&gt; Term
+forall a. CompiledCodeIn DefaultUni DefaultFun a -&gt; Term
+</span
+	><a href="PlutusTx.Test.Util.Compiled.html#compiledCodeToTerm"
+	><span class="hs-identifier hs-var"
+	  >compiledCodeToTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a
+</span
+	><a href="#local-6989586621679226044"
+	><span class="hs-identifier hs-var"
+	  >actual</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621679225906"
+      ><span class="annot"
+	><a href="PlutusTx.Test.Run.Code.html#assertEvaluatesSuccessfully"
+	  ><span class="hs-identifier hs-type"
+	    >assertEvaluatesSuccessfully</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679225906"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#Assertion"
+	  ><span class="hs-identifier hs-type"
+	    >Assertion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="assertEvaluatesSuccessfully"
+      ><span class="annot"
+	><span class="annottext"
+	  >assertEvaluatesSuccessfully :: forall a. CompiledCode a -&gt; Assertion
+</span
+	  ><a href="PlutusTx.Test.Run.Code.html#assertEvaluatesSuccessfully"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >assertEvaluatesSuccessfully</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226163"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCode a
+</span
+	  ><a href="#local-6989586621679226163"
+	  ><span class="hs-identifier hs-var"
+	    >code</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a -&gt; EvalResult
+forall a. CompiledCode a -&gt; EvalResult
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eval.html#evaluateCompiledCode"
+	><span class="hs-identifier hs-var"
+	  >evaluateCompiledCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a
+</span
+	><a href="#local-6989586621679226163"
+	><span class="hs-identifier hs-var"
+	  >code</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eval.html#EvalResult"
+	><span class="hs-identifier hs-type"
+	  >EvalResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>evalResult :: EvalResult
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) Term
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eval.html#evalResult"
+	><span class="hs-identifier hs-var"
+	  >evalResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Assertion
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eval.html#EvalResult"
+	><span class="hs-identifier hs-type"
+	  >EvalResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>evalResult :: EvalResult
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) Term
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eval.html#evalResult"
+	><span class="hs-identifier hs-var"
+	  >evalResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226167"
+      ><span class="annot"
+	><span class="annottext"
+	  >CekEvaluationException NamedDeBruijn DefaultUni DefaultFun
+</span
+	  ><a href="#local-6989586621679226167"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679226168"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+evalResultTraces :: [Text]
+evalResultTraces :: EvalResult -&gt; [Text]
+</span
+	  ><a href="#local-6989586621679226168"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evalResultTraces</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Assertion
+forall a. HasCallStack =&gt; String -&gt; IO a
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#assertFailure"
+	><span class="hs-identifier hs-var"
+	  >assertFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Assertion) -&gt; String -&gt; Assertion
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Show.html#unpack"
+	><span class="hs-identifier hs-var"
+	  >Text.unpack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#unlines"
+	><span class="hs-identifier hs-var"
+	  >Text.unlines</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Evaluation failed with an error:&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; Text
+forall ann. Doc ann -&gt; Text
+forall str ann. Render str =&gt; Doc ann -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEvaluationException NamedDeBruijn DefaultUni DefaultFun
+-&gt; Doc Any
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyPlcClassicSimple"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcClassicSimple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEvaluationException NamedDeBruijn DefaultUni DefaultFun
+</span
+	><a href="#local-6989586621679226167"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Evaluation traces:&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#unlines"
+	><span class="hs-identifier hs-var"
+	  >Text.unlines</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621679226168"
+	><span class="hs-identifier hs-var"
+	  >evalResultTraces</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="local-6989586621679226174"
+      ><span class="annot"
+	><a href="PlutusTx.Test.Run.Code.html#assertEvaluatesWithError"
+	  ><span class="hs-identifier hs-type"
+	    >assertEvaluatesWithError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	  ><span class="hs-identifier hs-type"
+	    >CompiledCode</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679226174"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#Assertion"
+	  ><span class="hs-identifier hs-type"
+	    >Assertion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span id="assertEvaluatesWithError"
+      ><span class="annot"
+	><span class="annottext"
+	  >assertEvaluatesWithError :: forall a. CompiledCode a -&gt; Assertion
+</span
+	  ><a href="PlutusTx.Test.Run.Code.html#assertEvaluatesWithError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >assertEvaluatesWithError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226180"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCode a
+</span
+	  ><a href="#local-6989586621679226180"
+	  ><span class="hs-identifier hs-var"
+	    >code</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a -&gt; EvalResult
+forall a. CompiledCode a -&gt; EvalResult
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eval.html#evaluateCompiledCode"
+	><span class="hs-identifier hs-var"
+	  >evaluateCompiledCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode a
+</span
+	><a href="#local-6989586621679226180"
+	><span class="hs-identifier hs-var"
+	  >code</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eval.html#EvalResult"
+	><span class="hs-identifier hs-type"
+	  >EvalResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>evalResult :: EvalResult
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) Term
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eval.html#evalResult"
+	><span class="hs-identifier hs-var"
+	  >evalResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekEvaluationException NamedDeBruijn DefaultUni DefaultFun
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Assertion
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eval.html#EvalResult"
+	><span class="hs-identifier hs-type"
+	  >EvalResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>evalResult :: EvalResult
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) Term
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eval.html#evalResult"
+	><span class="hs-identifier hs-var"
+	  >evalResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679226181"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+evalResultTraces :: EvalResult -&gt; [Text]
+evalResultTraces :: [Text]
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eval.html#evalResultTraces"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evalResultTraces</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Assertion
+forall a. HasCallStack =&gt; String -&gt; IO a
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#assertFailure"
+	><span class="hs-identifier hs-var"
+	  >assertFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Assertion) -&gt; String -&gt; Assertion
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Show.html#unpack"
+	><span class="hs-identifier hs-var"
+	  >Text.unpack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#unlines"
+	><span class="hs-identifier hs-var"
+	  >Text.unlines</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Evaluation succeeded, but expected an error.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Evaluation traces:&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text] -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#unlines"
+	><span class="hs-identifier hs-var"
+	  >Text.unlines</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621679226181"
+	><span class="hs-identifier hs-var"
+	  >evalResultTraces</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Run.Code.html#assertResult"
+	><span class="hs-identifier hs-type"
+	  >assertResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestName"
+	><span class="hs-identifier hs-type"
+	  >TestName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCode"
+	><span class="hs-identifier hs-type"
+	  >CompiledCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html#TestNested"
+	><span class="hs-identifier hs-type"
+	  >TestNested</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="assertResult"
+      ><span class="annot"
+	><span class="annottext"
+	  >assertResult :: String -&gt; CompiledCode Bool -&gt; TestNested
+</span
+	  ><a href="PlutusTx.Test.Run.Code.html#assertResult"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >assertResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226182"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679226182"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226183"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCode Bool
+</span
+	  ><a href="#local-6989586621679226183"
+	  ><span class="hs-identifier hs-var"
+	    >code</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode Bool
+-&gt; (forall r. (Eq r, Show r) =&gt; r -&gt; r -&gt; TestNested)
+-&gt; Bool
+-&gt; TestNested
+forall hask a k.
+Lift DefaultUni hask =&gt;
+CompiledCode a
+-&gt; (forall r. (Eq r, Show r) =&gt; r -&gt; r -&gt; k) -&gt; hask -&gt; k
+</span
+	><a href="PlutusTx.Test.Run.Code.html#evaluationResultMatchesHaskell"
+	><span class="hs-identifier hs-var"
+	  >evaluationResultMatchesHaskell</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCode Bool
+</span
+	><a href="#local-6989586621679226183"
+	><span class="hs-identifier hs-var"
+	  >code</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679226192"
+      ><span class="annot"
+	><span class="annottext"
+	  >r
+</span
+	  ><a href="#local-6989586621679226192"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679226193"
+      ><span class="annot"
+	><span class="annottext"
+	  >r
+</span
+	  ><a href="#local-6989586621679226193"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestTree -&gt; TestNested
+forall a (m :: * -&gt; *). MonadFree ((,) a) m =&gt; a -&gt; m ()
+</span
+	><a href="../../plutus-core/src/Test.Tasty.Extras.html#embed"
+	><span class="hs-identifier hs-var"
+	  >embed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TestTree -&gt; TestNested) -&gt; TestTree -&gt; TestNested
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679226182"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Assertion -&gt; TestTree) -&gt; Assertion -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; r -&gt; r -&gt; Assertion
+forall a.
+(Eq a, Show a, HasCallStack) =&gt;
+String -&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="../../plutus-core/src/Test.Tasty.Extras.html#assertEqualPretty"
+	><span class="hs-identifier hs-var"
+	  >assertEqualPretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679226182"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+</span
+	><a href="#local-6989586621679226192"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+</span
+	><a href="#local-6989586621679226193"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

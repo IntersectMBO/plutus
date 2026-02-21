@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Certifier</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.53.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Certifier.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Certifier</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:runCertifier"
+	      >runCertifier</a
+	      > &#8759; Certifier a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="Certifier.html#t:CertifierError" title="Certifier"
+	      >CertifierError</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:mkCertifier"
+	      >mkCertifier</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+	      >SimplifierTrace</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a &#8594; CertName &#8594; Certifier CertifierSuccess</li
+	    ><li class="src short"
+	    ><a href="#v:prettyCertifierError"
+	      >prettyCertifierError</a
+	      > &#8759; <a href="Certifier.html#t:CertifierError" title="Certifier"
+	      >CertifierError</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:prettyCertifierSuccess"
+	      >prettyCertifierSuccess</a
+	      > &#8759; CertifierSuccess &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CertifierError"
+	      >CertifierError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:InvalidCertificate"
+		  >InvalidCertificate</a
+		  > CertDir</li
+		><li
+		>| <a href="#v:InvalidCompilerOutput"
+		  >InvalidCompilerOutput</a
+		  ></li
+		><li
+		>| <a href="#v:ValidationError"
+		  >ValidationError</a
+		  > CertName</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runCertifier" class="def"
+	    >runCertifier</a
+	    > &#8759; Certifier a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="Certifier.html#t:CertifierError" title="Certifier"
+	    >CertifierError</a
+	    > a) <a href="src/Certifier.html#runCertifier" class="link"
+	    >Source</a
+	    > <a href="#v:runCertifier" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkCertifier" class="def"
+	    >mkCertifier</a
+	    > <a href="src/Certifier.html#mkCertifier" class="link"
+	    >Source</a
+	    > <a href="#v:mkCertifier" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+		  >SimplifierTrace</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  > a</td
+		><td class="doc"
+		><p
+		  >The trace produced by the simplification process</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; CertName</td
+		><td class="doc"
+		><p
+		  >The name of the certificate to be produced</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; Certifier CertifierSuccess</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Run the Agda certifier on the simplification trace, if requested</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyCertifierError" class="def"
+	    >prettyCertifierError</a
+	    > &#8759; <a href="Certifier.html#t:CertifierError" title="Certifier"
+	    >CertifierError</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/Certifier.html#prettyCertifierError" class="link"
+	    >Source</a
+	    > <a href="#v:prettyCertifierError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyCertifierSuccess" class="def"
+	    >prettyCertifierSuccess</a
+	    > &#8759; CertifierSuccess &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/Certifier.html#prettyCertifierSuccess" class="link"
+	    >Source</a
+	    > <a href="#v:prettyCertifierSuccess" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CertifierError" class="def"
+	    >CertifierError</a
+	    > <a href="src/Certifier.html#CertifierError" class="link"
+	    >Source</a
+	    > <a href="#t:CertifierError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InvalidCertificate" class="def"
+		  >InvalidCertificate</a
+		  > CertDir</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:InvalidCompilerOutput" class="def"
+		  >InvalidCompilerOutput</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ValidationError" class="def"
+		  >ValidationError</a
+		  > CertName</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

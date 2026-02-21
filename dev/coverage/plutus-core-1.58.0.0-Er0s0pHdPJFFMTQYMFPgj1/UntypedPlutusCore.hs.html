@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module UntypedPlutusCore
+<span class="lineno">    2 </span>  ( module Export
+<span class="lineno">    3 </span>  , Term (..)
+<span class="lineno">    4 </span>  , Program (..)
+<span class="lineno">    5 </span>  , applyProgram
+<span class="lineno">    6 </span>  , parseScoped
+<span class="lineno">    7 </span>  , PLC.DefaultUni
+<span class="lineno">    8 </span>  , PLC.DefaultFun
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import UntypedPlutusCore.AstSize as Export
+<span class="lineno">   12 </span>import UntypedPlutusCore.Check.Scope as Export
+<span class="lineno">   13 </span>import UntypedPlutusCore.Core as Export
+<span class="lineno">   14 </span>import UntypedPlutusCore.DeBruijn as Export
+<span class="lineno">   15 </span>import UntypedPlutusCore.Parser as Parser (parseScoped)
+<span class="lineno">   16 </span>import UntypedPlutusCore.Simplify as Export
+<span class="lineno">   17 </span>import UntypedPlutusCore.Subst as Export
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusCore.Default qualified as PLC
+<span class="lineno">   20 </span>import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
+<span class="lineno">   21 </span>import PlutusCore.Name.Unique as Export
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import Control.Monad.Except
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>{-| Applies one program to another. Fails if the versions do not match
+<span class="lineno">   26 </span>and tries to merge annotations. -}
+<span class="lineno">   27 </span>applyProgram
+<span class="lineno">   28 </span>  :: (MonadError ApplyProgramError m, Semigroup a)
+<span class="lineno">   29 </span>  =&gt; Program name uni fun a
+<span class="lineno">   30 </span>  -&gt; Program name uni fun a
+<span class="lineno">   31 </span>  -&gt; m (Program name uni fun a)
+<span class="lineno">   32 </span><span class="decl"><span class="istickedoff">applyProgram (Program a1 v1 t1) (Program a2 v2 t2)</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">v1 == v2</span> =</span>
+<span class="lineno">   34 </span><span class="spaces">      </span><span class="istickedoff">pure $ Program <span class="nottickedoff">(a1 &lt;&gt; a2)</span> v1 (Apply (termAnn t1 &lt;&gt; termAnn t2) t1 t2)</span>
+<span class="lineno">   35 </span><span class="spaces"></span><span class="istickedoff">applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">throwError $ MkApplyProgramError v1 v2</span></span></span>
+
+</pre>
+</body>
+</html>

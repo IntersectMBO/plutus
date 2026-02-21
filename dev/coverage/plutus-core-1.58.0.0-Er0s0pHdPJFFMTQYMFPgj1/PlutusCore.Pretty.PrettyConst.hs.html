@@ -1,0 +1,218 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    9 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   10 </span>-- editorconfig-checker-disable-file
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module PlutusCore.Pretty.PrettyConst where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Data
+<span class="lineno">   16 </span>import PlutusCore.Pretty.Readable
+<span class="lineno">   17 </span>import PlutusCore.Value (Value)
+<span class="lineno">   18 </span>import PlutusCore.Value qualified as Value
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Control.Lens hiding (List)
+<span class="lineno">   21 </span>import Data.ByteString qualified as BS
+<span class="lineno">   22 </span>import Data.Char qualified as Char
+<span class="lineno">   23 </span>import Data.Coerce
+<span class="lineno">   24 </span>import Data.List.NonEmpty
+<span class="lineno">   25 </span>import Data.Proxy
+<span class="lineno">   26 </span>import Data.Text qualified as T
+<span class="lineno">   27 </span>import Data.Typeable
+<span class="lineno">   28 </span>import Data.Vector.Strict (Vector)
+<span class="lineno">   29 </span>import Data.Word (Word8)
+<span class="lineno">   30 </span>import Numeric (showHex)
+<span class="lineno">   31 </span>import Prettyprinter
+<span class="lineno">   32 </span>import Prettyprinter.Internal (Doc (Text))
+<span class="lineno">   33 </span>import Text.PrettyBy
+<span class="lineno">   34 </span>import Text.PrettyBy.Internal (DefaultPrettyBy (..))
+<span class="lineno">   35 </span>import Universe
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>{- Note [Prettyprinting built-in constants]
+<span class="lineno">   38 </span>When we're printing PLC code, the prettyprinter has to render built-in constants. Unfortunately the
+<span class="lineno">   39 </span>instance of &quot;Data.Text.Pretyprint.Doc.Pretty&quot; for 'Text' does the wrong thing if control characters
+<span class="lineno">   40 </span>are involved. For example, the 'Text' &quot;abc\nx\tyz&quot; renders as
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>abc
+<span class="lineno">   43 </span>x    yz
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>which the PLC parser can't deal with. However, 'show' renders the string as &quot;abc\nx\tyz&quot; (including
+<span class="lineno">   46 </span>the quotes).
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>This module provides a 'prettyConst' method which should be used whenever it's necessary to render a
+<span class="lineno">   49 </span>built-in constant: see for example &quot;PlutusCore.Core.Instance.Pretty.Classic&quot;. The constraint @uni
+<span class="lineno">   50 </span>`Everywhere` PrettyConst@ occurs in many places in the codebase to make sure that we know how to
+<span class="lineno">   51 </span>print a constant from any type appearing in a universe of built-in types.
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>Setting up our own machinery for overloading pretty-printing behavior would be laborious,
+<span class="lineno">   54 </span>but fortunately the @prettyprinter-configurable@ library already provides us with all the tools
+<span class="lineno">   55 </span>for doing that and so we define a dummy config for pretty-printing constants, implement a bunch of
+<span class="lineno">   56 </span>instances and derive pretty-printing behavior for non-polymorphic types (including how lists of
+<span class="lineno">   57 </span>such types are pretty-printed) via 'Show'. However always pretty-printing the spine of, say, a list
+<span class="lineno">   58 </span>via 'Show' while pretty-printing its contents via 'PrettyConst' is not something that can be easily
+<span class="lineno">   59 </span>done with the present-day @prettyprinter-configurable@, so we opt for pretty-printing the spine of
+<span class="lineno">   60 </span>a value of a compound type (list of lists, list of tuples, tuple of lists etc) via 'Pretty'.
+<span class="lineno">   61 </span>In practice this means that we have some additional spaces printed after punctuation symbols
+<span class="lineno">   62 </span>that 'show' alone would have omitted, for example:
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>&gt;&gt;&gt; let whateverList = (&quot;abc\nx\tyz∀&quot; :: Text, [((), False), ((), True)])
+<span class="lineno">   65 </span>&gt;&gt;&gt; print $ prettyConst botRenderContext whateverList
+<span class="lineno">   66 </span>(&quot;abc\nx\tyz\8704&quot;, [((), False), ((), True)])
+<span class="lineno">   67 </span>&gt;&gt;&gt; putStrLn $ show whateverList
+<span class="lineno">   68 </span>(&quot;abc\nx\tyz\8704&quot;,[((),False),((),True)])
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>Not a big deal, since our parser isn't whitespace-sensitive.
+<span class="lineno">   71 </span>-}
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>-- See Note [Prettyprinting built-in constants].
+<span class="lineno">   74 </span>{-| The type of configs used for pretty-printing constants. Has a 'RenderContext' inside, so that
+<span class="lineno">   75 </span>we don't add redundant parens to the output. -}
+<span class="lineno">   76 </span>newtype ConstConfig = ConstConfig
+<span class="lineno">   77 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unConstConfig</span></span></span> :: RenderContext
+<span class="lineno">   78 </span>  }
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>type instance HasPrettyDefaults ConstConfig = 'False
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>instance HasRenderContext ConstConfig where
+<span class="lineno">   83 </span>  <span class="decl"><span class="istickedoff">renderContext = coerced</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>type PrettyConst = PrettyBy ConstConfig
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>-- | The set of constraints we need to be able to print built-in types and their values.
+<span class="lineno">   88 </span>type PrettyUni uni = (PrettyParens (SomeTypeIn uni), Closed uni, uni `Everywhere` PrettyConst)
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>{-| The set of constraints we need to be able to throw exceptions with things with built-in types
+<span class="lineno">   91 </span>and functions in them. -}
+<span class="lineno">   92 </span>type ThrowableBuiltins uni fun = (PrettyUni uni, Pretty fun, Typeable uni, Typeable fun)
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>-- These two can be generalized to any @config@, but that breaks some use cases of 'PrettyAny'
+<span class="lineno">   95 </span>-- then. Perhaps we should split the functionality and have two separate @newtype@ wrappers
+<span class="lineno">   96 </span>-- in @prettyprinter-configurable@ instead of a single 'PrettyAny'.
+<span class="lineno">   97 </span>-- For that we'll also need to ensure that it's alright when @HasPrettyDefaults config ~ 'True@.
+<span class="lineno">   98 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">DefaultPrettyBy ConstConfig (PrettyAny a) =&gt; NonDefaultPrettyBy ConstConfig (PrettyAny a)</span></span></span></span>
+<span class="lineno">   99 </span>instance DefaultPrettyBy ConstConfig (PrettyAny a) =&gt; PrettyBy ConstConfig (PrettyAny a) where
+<span class="lineno">  100 </span>  <span class="decl"><span class="nottickedoff">prettyBy = defaultPrettyBy</span></span>
+<span class="lineno">  101 </span>  <span class="decl"><span class="nottickedoff">prettyListBy = defaultPrettyListBy</span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>instance Show a =&gt; DefaultPrettyBy ConstConfig (PrettyAny a) where
+<span class="lineno">  104 </span>  <span class="decl"><span class="istickedoff">defaultPrettyBy _ = pretty . show @a . coerce</span></span>
+<span class="lineno">  105 </span>  <span class="decl"><span class="istickedoff">defaultPrettyListBy _ = pretty . show @[a] . coerce</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>prettyConst :: PrettyConst a =&gt; RenderContext -&gt; a -&gt; Doc ann
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">prettyConst = prettyBy . ConstConfig</span></span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>-- This instance for Text quotes control characters (which is what we want)
+<span class="lineno">  111 </span>-- but doesn't escape Unicode characters (\8704 and so on).
+<span class="lineno">  112 </span>instance NonDefaultPrettyBy ConstConfig T.Text where
+<span class="lineno">  113 </span>  <span class="decl"><span class="nottickedoff">nonDefaultPrettyListBy conf = Prettyprinter.list . Prelude.map (nonDefaultPrettyBy conf)</span></span>
+<span class="lineno">  114 </span>  <span class="decl"><span class="istickedoff">nonDefaultPrettyBy = inContextM $ \t -&gt; pure $ pretty $ &quot;\&quot;&quot; &lt;&gt; escape t &lt;&gt; &quot;\&quot;&quot;</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="istickedoff">escape = T.foldr' prettyChar &quot;&quot;</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="istickedoff">prettyChar c acc</span>
+<span class="lineno">  118 </span><span class="spaces">        </span><span class="istickedoff">| c == '&quot;' = &quot;\\\&quot;&quot; &lt;&gt; acc -- Not handled by 'showLitChar'</span>
+<span class="lineno">  119 </span><span class="spaces">        </span><span class="istickedoff">| c == '\\' = &quot;\\\\&quot; &lt;&gt; acc -- Not handled by 'showLitChar'</span>
+<span class="lineno">  120 </span><span class="spaces">        </span><span class="istickedoff">| Char.isPrint c = [c] &lt;&gt; acc</span>
+<span class="lineno">  121 </span><span class="spaces">        </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Char.showLitChar c acc</span></span>
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">deriving via PrettyAny () instance NonDefaultPrettyBy ConstConfig ()</span></span></span></span>
+<span class="lineno">  124 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">deriving via PrettyAny Bool instance NonDefaultPrettyBy ConstConfig Bool</span></span></span></span>
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer</span></span></span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>-- | For rendering values without parens, i.e. in 'botRenderContext'.
+<span class="lineno">  128 </span>newtype NoParens a = NoParens
+<span class="lineno">  129 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unNoParens</span></span></span> :: a
+<span class="lineno">  130 </span>  }
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>instance PrettyConst a =&gt; PrettyBy ConstConfig (NoParens a) where
+<span class="lineno">  133 </span>  <span class="decl"><span class="istickedoff">prettyBy config = prettyBy @_ @a <span class="nottickedoff">(config &amp; renderContext .~ botRenderContext)</span> . coerce</span></span>
+<span class="lineno">  134 </span>  <span class="decl"><span class="istickedoff">prettyListBy config = prettyListBy @_ @a (<span class="nottickedoff">config</span> &amp; renderContext .~ botRenderContext) . coerce</span></span>
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>instance <span class="decl"><span class="istickedoff">PrettyConst a =&gt; NonDefaultPrettyBy ConstConfig [a]</span></span> where
+<span class="lineno">  137 </span>  <span class="decl"><span class="istickedoff">nonDefaultPrettyBy config = defaultPrettyBy @_ @[NoParens a] <span class="nottickedoff">config</span> . coerce</span></span>
+<span class="lineno">  138 </span>instance <span class="decl"><span class="istickedoff">PrettyConst a =&gt; NonDefaultPrettyBy ConstConfig (Vector a)</span></span> where
+<span class="lineno">  139 </span>  <span class="decl"><span class="istickedoff">nonDefaultPrettyBy config = defaultPrettyBy @_ @(Vector (NoParens a)) <span class="nottickedoff">config</span> . coerce</span></span>
+<span class="lineno">  140 </span>instance <span class="decl"><span class="istickedoff">(PrettyConst a, PrettyConst b) =&gt; NonDefaultPrettyBy ConstConfig (a, b)</span></span> where
+<span class="lineno">  141 </span>  <span class="decl"><span class="istickedoff">nonDefaultPrettyBy config = defaultPrettyBy @_ @(NoParens a, NoParens b) config . coerce</span></span>
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>-- Special instance for bytestrings
+<span class="lineno">  144 </span>asBytes :: Word8 -&gt; Doc ann
+<span class="lineno">  145 </span><span class="decl"><span class="istickedoff">asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  147 </span><span class="spaces">    </span><span class="istickedoff">addLeadingZero :: String -&gt; String</span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="istickedoff">addLeadingZero</span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="istickedoff">| x &lt; 16 = ('0' :)</span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = id</span></span>
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>toBytes :: BS.ByteString -&gt; Doc ann
+<span class="lineno">  153 </span><span class="decl"><span class="istickedoff">toBytes = foldMap asBytes . BS.unpack</span></span>
+<span class="lineno">  154 </span>
+<span class="lineno">  155 </span>instance <span class="decl"><span class="istickedoff">PrettyBy ConstConfig Data</span></span> where
+<span class="lineno">  156 </span>  <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \d0 -&gt; iterAppDocM $ \_ prettyArg -&gt; case d0 of</span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="istickedoff">Constr i ds -&gt; (&quot;Constr&quot; &lt;+&gt; prettyArg i) :| [prettyArg ds]</span>
+<span class="lineno">  158 </span><span class="spaces">    </span><span class="istickedoff">Map ps -&gt; &quot;Map&quot; :| [prettyArg ps]</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="istickedoff">List ds -&gt; &quot;List&quot; :| [prettyArg ds]</span>
+<span class="lineno">  160 </span><span class="spaces">    </span><span class="istickedoff">I i -&gt; (&quot;I&quot; &lt;+&gt; prettyArg i) :| []</span>
+<span class="lineno">  161 </span><span class="spaces">    </span><span class="istickedoff">B b -&gt; (&quot;B&quot; &lt;+&gt; prettyArg b) :| []</span></span>
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy ConstConfig Value.K</span></span> where
+<span class="lineno">  164 </span>  <span class="decl"><span class="istickedoff">prettyBy config = prettyBy <span class="nottickedoff">config</span> . Value.unK</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy ConstConfig Value.Quantity</span></span> where
+<span class="lineno">  167 </span>  <span class="decl"><span class="istickedoff">prettyBy config = prettyBy <span class="nottickedoff">config</span> . Value.unQuantity</span></span>
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>instance <span class="decl"><span class="istickedoff">PrettyBy ConstConfig Value</span></span> where
+<span class="lineno">  170 </span>  <span class="decl"><span class="istickedoff">prettyBy config = prettyBy <span class="nottickedoff">config</span> . Value.toList</span></span>
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>instance <span class="decl"><span class="istickedoff">PrettyBy ConstConfig BS.ByteString</span></span> where
+<span class="lineno">  173 </span>  <span class="decl"><span class="istickedoff">prettyBy _ b = &quot;#&quot; &lt;&gt; toBytes b</span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>instance <span class="decl"><span class="nottickedoff">Pretty (SomeTypeIn uni) =&gt; Pretty (SomeTypeIn (Kinded uni))</span></span> where
+<span class="lineno">  176 </span>  <span class="decl"><span class="istickedoff">pretty (SomeTypeIn (Kinded uni)) = pretty (SomeTypeIn uni)</span></span>
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>-- See Note [Prettyprinting built-in constants].
+<span class="lineno">  179 </span>instance <span class="decl"><span class="nottickedoff">(Closed uni, uni `Everywhere` PrettyConst) =&gt; PrettyBy ConstConfig (ValueOf uni a)</span></span> where
+<span class="lineno">  180 </span>  <span class="decl"><span class="istickedoff">prettyBy config (ValueOf uni x) = bring <span class="nottickedoff">(Proxy @PrettyConst)</span> uni $ prettyBy config x</span></span>
+<span class="lineno">  181 </span>
+<span class="lineno">  182 </span>-- See Note [Prettyprinting built-in constants].
+<span class="lineno">  183 </span>instance
+<span class="lineno">  184 </span>  <span class="decl"><span class="nottickedoff">(Closed uni, uni `Everywhere` PrettyConst)</span>
+<span class="lineno">  185 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy ConstConfig (Some (ValueOf uni))</span></span>
+<span class="lineno">  186 </span>  where
+<span class="lineno">  187 </span>  <span class="decl"><span class="istickedoff">prettyBy config (Some s) = prettyBy config s</span></span>
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>-- See Note [Prettyprinting built-in constants].
+<span class="lineno">  190 </span>instance <span class="decl"><span class="nottickedoff">(Closed uni, uni `Everywhere` PrettyConst) =&gt; Pretty (ValueOf uni a)</span></span> where
+<span class="lineno">  191 </span>  <span class="decl"><span class="nottickedoff">pretty = prettyConst juxtRenderContext</span></span>
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>-- See Note [Prettyprinting built-in constants].
+<span class="lineno">  194 </span>instance <span class="decl"><span class="nottickedoff">(Closed uni, uni `Everywhere` PrettyConst) =&gt; Pretty (Some (ValueOf uni))</span></span> where
+<span class="lineno">  195 </span>  <span class="decl"><span class="istickedoff">pretty = prettyConst juxtRenderContext</span></span>
+
+</pre>
+</body>
+</html>

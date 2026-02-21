@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module UntypedPlutusCore.Transform.Certify.Trace where
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>import UntypedPlutusCore.Core.Type (Term)
+<span class="lineno">    4 </span>import UntypedPlutusCore.Transform.Certify.Hints qualified as Certify
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>data SimplifierStage
+<span class="lineno">    7 </span>  = FloatDelay
+<span class="lineno">    8 </span>  | ForceDelay
+<span class="lineno">    9 </span>  | ForceCaseDelay
+<span class="lineno">   10 </span>  | CaseOfCase
+<span class="lineno">   11 </span>  | CaseReduce
+<span class="lineno">   12 </span>  | Inline
+<span class="lineno">   13 </span>  | CSE
+<span class="lineno">   14 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>data Simplification name uni fun a
+<span class="lineno">   17 </span>  = Simplification
+<span class="lineno">   18 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">beforeAST</span></span></span> :: Term name uni fun a
+<span class="lineno">   19 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">stage</span></span></span> :: SimplifierStage
+<span class="lineno">   20 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">hints</span></span></span> :: Certify.Hints
+<span class="lineno">   21 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">afterAST</span></span></span> :: Term name uni fun a
+<span class="lineno">   22 </span>  }
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- TODO2: we probably don't want this in memory so after MVP
+<span class="lineno">   25 </span>-- we should consider serializing this to disk
+<span class="lineno">   26 </span>newtype SimplifierTrace name uni fun a
+<span class="lineno">   27 </span>  = SimplifierTrace
+<span class="lineno">   28 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">simplifierTrace</span></span></span>
+<span class="lineno">   29 </span>      :: [Simplification name uni fun a]
+<span class="lineno">   30 </span>  }
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>initSimplifierTrace :: SimplifierTrace name uni fun a
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">initSimplifierTrace = SimplifierTrace []</span></span>
+
+</pre>
+</body>
+</html>

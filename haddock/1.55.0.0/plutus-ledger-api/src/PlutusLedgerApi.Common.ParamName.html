@@ -1,0 +1,3457 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Common.ParamName</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ParamName.html#IsParamName"
+	><span class="hs-identifier"
+	  >IsParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ParamName.html#GenericParamName"
+	><span class="hs-identifier"
+	  >GenericParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ParamName.html#toCostModelParams"
+	><span class="hs-identifier"
+	  >toCostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ParamName.html#tagWithParamNames"
+	><span class="hs-identifier"
+	  >tagWithParamNames</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	><span class="hs-identifier"
+	  >CostModelApplyError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyWarn"
+	><span class="hs-identifier"
+	  >CostModelApplyWarn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostModelInterface</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Strict.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Writer.Strict</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Char.html"
+	><span class="hs-identifier"
+	  >Data.Char</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#toLower"
+	><span class="hs-identifier"
+	  >toLower</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Int.html"
+	><span class="hs-identifier"
+	  >Data.Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.html"
+	><span class="hs-identifier"
+	  >Data.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>List</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#lookup"
+	><span class="hs-identifier"
+	  >lookup</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A parameter name for different plutus versions.
+
+Each Plutus version should expose such an enumeration as an ADT and create
+an instance of 'ParamName' out of it.
+
+A valid parameter name has to be enumeration, bounded, ordered, and
+prettyprintable to a \&quot;lower-Kebab\&quot; string.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+	><span class="hs-identifier hs-type"
+	  >Enum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184374"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	><span class="hs-identifier hs-type"
+	  >Bounded</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184374"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="IsParamName"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#IsParamName"
+	  ><span class="hs-identifier hs-var"
+	    >IsParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184374"
+      ><span class="annot"
+	><a href="#local-6989586621681184374"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-comment"
+      >-- | Produce the raw textual form for a given typed-by-plutus-version cost model parameter</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-comment"
+      >-- Any implementation *must be* an injective function.</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-comment"
+      >-- The 'GIsParamName' generic implementation guarantees injectivity.</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >   </span
+      ><span id="showParamName"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#showParamName"
+	  ><span class="hs-identifier hs-type"
+	    >showParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184374"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-comment"
+      >-- | default implementation that inverts the showParamName operation (not very efficient)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >   </span
+      ><span id="readParamName"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#readParamName"
+	  ><span class="hs-identifier hs-type"
+	    >readParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184374"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >   </span
+      ><span id="local-6989586621681184471"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#readParamName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >readParamName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621681184481"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Text
+</span
+	    ><a href="#local-6989586621681184481"
+	    ><span class="hs-identifier hs-var"
+	      >str</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Text -&gt; [(Text, a)] -&gt; Maybe a
+forall a b. Eq a =&gt; a -&gt; [(a, b)] -&gt; Maybe b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#lookup"
+	  ><span class="hs-identifier hs-var"
+	    >List.lookup</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681184481"
+	  ><span class="hs-identifier hs-var"
+	    >str</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >([(Text, a)] -&gt; Maybe a) -&gt; [(Text, a)] -&gt; Maybe a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	  ><span class="hs-operator hs-var"
+	    >$</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >(a -&gt; (Text, a)) -&gt; [a] -&gt; [(Text, a)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	  ><span class="hs-identifier hs-var"
+	    >fmap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-glyph"
+	>\</span
+	><span id="local-6989586621681184482"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621681184482"
+	    ><span class="hs-identifier hs-var"
+	      >p</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; Text
+forall a. IsParamName a =&gt; a -&gt; Text
+</span
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#showParamName"
+	  ><span class="hs-identifier hs-var"
+	    >showParamName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681184482"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681184482"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >([a] -&gt; [(Text, a)]) -&gt; [a] -&gt; [(Text, a)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	  ><span class="hs-operator hs-var"
+	    >$</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	  ><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	  ><span class="hs-identifier hs-var"
+	    >enumerate</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>@</span
+	><span class="annot"
+	><a href="#local-6989586621681184374"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A Generic wrapper for use with deriving via</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="GenericParamName"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#GenericParamName"
+	  ><span class="hs-identifier hs-var"
+	    >GenericParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184484"
+      ><span class="annot"
+	><a href="#local-6989586621681184484"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="GenericParamName"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#GenericParamName"
+	  ><span class="hs-identifier hs-var"
+	    >GenericParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184484"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681184488"
+      ><span id="local-6989586621681184492"
+	><span id="local-6989586621681184496"
+	  ><span id="local-6989586621681184500"
+	    ><span id="local-6989586621681184504"
+	      ><span id="local-6989586621681184508"
+		><span id="local-6989586621681184512"
+		  ><span id="local-6989586621681184516"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; GenericParamName a
+GenericParamName a -&gt; Int
+GenericParamName a -&gt; [GenericParamName a]
+GenericParamName a -&gt; GenericParamName a
+GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+GenericParamName a
+-&gt; GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+(GenericParamName a -&gt; GenericParamName a)
+-&gt; (GenericParamName a -&gt; GenericParamName a)
+-&gt; (Int -&gt; GenericParamName a)
+-&gt; (GenericParamName a -&gt; Int)
+-&gt; (GenericParamName a -&gt; [GenericParamName a])
+-&gt; (GenericParamName a
+    -&gt; GenericParamName a -&gt; [GenericParamName a])
+-&gt; (GenericParamName a
+    -&gt; GenericParamName a -&gt; [GenericParamName a])
+-&gt; (GenericParamName a
+    -&gt; GenericParamName a
+    -&gt; GenericParamName a
+    -&gt; [GenericParamName a])
+-&gt; Enum (GenericParamName a)
+forall a. Enum a =&gt; Int -&gt; GenericParamName a
+forall a. Enum a =&gt; GenericParamName a -&gt; Int
+forall a. Enum a =&gt; GenericParamName a -&gt; [GenericParamName a]
+forall a. Enum a =&gt; GenericParamName a -&gt; GenericParamName a
+forall a.
+Enum a =&gt;
+GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+forall a.
+Enum a =&gt;
+GenericParamName a
+-&gt; GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: forall a. Enum a =&gt; GenericParamName a -&gt; GenericParamName a
+succ :: GenericParamName a -&gt; GenericParamName a
+$cpred :: forall a. Enum a =&gt; GenericParamName a -&gt; GenericParamName a
+pred :: GenericParamName a -&gt; GenericParamName a
+$ctoEnum :: forall a. Enum a =&gt; Int -&gt; GenericParamName a
+toEnum :: Int -&gt; GenericParamName a
+$cfromEnum :: forall a. Enum a =&gt; GenericParamName a -&gt; Int
+fromEnum :: GenericParamName a -&gt; Int
+$cenumFrom :: forall a. Enum a =&gt; GenericParamName a -&gt; [GenericParamName a]
+enumFrom :: GenericParamName a -&gt; [GenericParamName a]
+$cenumFromThen :: forall a.
+Enum a =&gt;
+GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+enumFromThen :: GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+$cenumFromTo :: forall a.
+Enum a =&gt;
+GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+enumFromTo :: GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+$cenumFromThenTo :: forall a.
+Enum a =&gt;
+GenericParamName a
+-&gt; GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+enumFromThenTo :: GenericParamName a
+-&gt; GenericParamName a -&gt; GenericParamName a -&gt; [GenericParamName a]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184523"
+      ><span id="local-6989586621681184527"
+	><span class="annot"
+	  ><span class="annottext"
+	    >GenericParamName a
+GenericParamName a
+-&gt; GenericParamName a -&gt; Bounded (GenericParamName a)
+forall a. a -&gt; a -&gt; Bounded a
+forall a. Bounded a =&gt; GenericParamName a
+$cminBound :: forall a. Bounded a =&gt; GenericParamName a
+minBound :: GenericParamName a
+$cmaxBound :: forall a. Bounded a =&gt; GenericParamName a
+maxBound :: GenericParamName a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184398"
+      ><span id="local-6989586621681184542"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+	    ><span class="hs-identifier hs-type"
+	      >Enum</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GenericParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GenericParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184398"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-type"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GenericParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GenericParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184398"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-type"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184398"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GIsParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Rep"
+	    ><span class="hs-identifier hs-type"
+	      >Rep</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184398"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#IsParamName"
+	    ><span class="hs-identifier hs-type"
+	      >IsParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GenericParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GenericParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184398"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >   </span
+      ><span id="local-6989586621681184548"
+      ><span class="annot"
+	><span class="annottext"
+	  >showParamName :: GenericParamName a -&gt; Text
+</span
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#showParamName"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ParamName.html#GenericParamName"
+	><span class="hs-identifier hs-type"
+	  >GenericParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184549"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681184549"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rep a Any -&gt; Text
+forall p. Rep a p -&gt; Text
+forall (f :: * -&gt; *) p. GIsParamName f =&gt; f p -&gt; Text
+</span
+	><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	><span class="hs-identifier hs-var"
+	  >gshowParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Rep a Any -&gt; Text) -&gt; Rep a Any -&gt; Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Rep a Any
+forall x. a -&gt; Rep a x
+forall a x. Generic a =&gt; a -&gt; Rep a x
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#from"
+	><span class="hs-identifier hs-var"
+	  >from</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681184549"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A datatype-generic class to prettyprint 'sums of nullary constructors' in lower-kebab syntax.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="GIsParamName"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	  ><span class="hs-identifier hs-var"
+	    >GIsParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184400"
+      ><span class="annot"
+	><a href="#local-6989586621681184400"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span id="gshowParamName"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	  ><span class="hs-identifier hs-type"
+	    >gshowParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184399"
+      ><span class="annot"
+	><a href="#local-6989586621681184400"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681184399"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text.Text</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184406"
+      ><span id="local-6989586621681184407"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GIsParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184406"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GIsParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#M1"
+	    ><span class="hs-identifier hs-type"
+	      >M1</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#D"
+	    ><span class="hs-identifier hs-type"
+	      >D</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184407"
+	    ><span class="hs-identifier hs-type"
+	      >i</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184406"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681184557"
+      ><span class="annot"
+	><span class="annottext"
+	  >gshowParamName :: forall p. M1 D i a p -&gt; Text
+</span
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >gshowParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#M1"
+	><span class="hs-identifier hs-type"
+	  >M1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184559"
+      ><span class="annot"
+	><span class="annottext"
+	  >a p
+</span
+	  ><a href="#local-6989586621681184559"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a p -&gt; Text
+forall p. a p -&gt; Text
+forall (f :: * -&gt; *) p. GIsParamName f =&gt; f p -&gt; Text
+</span
+	><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	><span class="hs-identifier hs-var"
+	  >gshowParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a p
+</span
+	><a href="#local-6989586621681184559"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Quotation marks in cost model parameter constructors]
+We use the quotation mark &lt;'&gt; inside each nullary constructor of
+a cost parameter name as a delimiter of sections when lowerKebab-prettyprinting.
+The character &lt;_&gt; cannot be used as a delimiter because it may be part of the builtin's name (sha2_256,etc).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184410"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Constructor"
+	  ><span class="hs-identifier hs-type"
+	    >Constructor</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681184410"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	  ><span class="hs-identifier hs-type"
+	    >GIsParamName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#M1"
+	  ><span class="hs-identifier hs-type"
+	    >M1</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#C"
+	  ><span class="hs-identifier hs-type"
+	    >C</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681184410"
+	  ><span class="hs-identifier hs-type"
+	    >i</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#U1"
+	  ><span class="hs-identifier hs-type"
+	    >U1</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681184567"
+      ><span class="annot"
+	><span class="annottext"
+	  >gshowParamName :: forall p. M1 C i U1 p -&gt; Text
+</span
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >gshowParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#pack"
+	><span class="hs-identifier hs-var"
+	  >Text.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Text) -&gt; (M1 C i U1 p -&gt; String) -&gt; M1 C i U1 p -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String
+</span
+	><a href="#local-6989586621681184570"
+	><span class="hs-identifier hs-var"
+	  >lowerKebab</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; String)
+-&gt; (M1 C i U1 p -&gt; String) -&gt; M1 C i U1 p -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>M1 C i U1 p -&gt; String
+forall {k} (c :: k) k1 (t :: k -&gt; (k1 -&gt; *) -&gt; k1 -&gt; *)
+       (f :: k1 -&gt; *) (a :: k1).
+Constructor c =&gt;
+t c f a -&gt; String
+forall k1 (t :: Meta -&gt; (k1 -&gt; *) -&gt; k1 -&gt; *) (f :: k1 -&gt; *)
+       (a :: k1).
+t i f a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#conName"
+	><span class="hs-identifier hs-var"
+	  >conName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184570"
+	><span class="hs-identifier hs-type"
+	  >lowerKebab</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681184570"
+      ><span class="annot"
+	><span class="annottext"
+	  >lowerKebab :: String -&gt; String
+</span
+	  ><a href="#local-6989586621681184570"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lowerKebab</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681184572"
+      ><span class="annot"
+	><span class="annottext"
+	  >Char
+</span
+	  ><a href="#local-6989586621681184572"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621681184573"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681184573"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Char
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Unicode.html#toLower"
+	><span class="hs-identifier hs-var"
+	  >toLower</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681184572"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Char -&gt; Char) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; Char
+</span
+	><a href="#local-6989586621681184574"
+	><span class="hs-identifier hs-var"
+	  >maybeKebab</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681184573"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184570"
+	><span class="hs-identifier hs-var"
+	  >lowerKebab</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String
+forall a. HasCallStack =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;this should not happen because constructors cannot have empty names&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681184574"
+      ><span class="annot"
+	><span class="annottext"
+	  >maybeKebab :: Char -&gt; Char
+</span
+	  ><a href="#local-6989586621681184574"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maybeKebab</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'\''</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'-'</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184574"
+	><span class="hs-identifier hs-var"
+	  >maybeKebab</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184576"
+      ><span class="annot"
+	><span class="annottext"
+	  >Char
+</span
+	  ><a href="#local-6989586621681184576"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><a href="#local-6989586621681184576"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184426"
+      ><span id="local-6989586621681184427"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GIsParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184426"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GIsParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184427"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#GIsParamName"
+	    ><span class="hs-identifier hs-type"
+	      >GIsParamName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#%3A%2B%3A"
+	    ><span class="hs-operator hs-type"
+	      >(:+:)</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184426"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681184427"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681184583"
+      ><span class="annot"
+	><span class="annottext"
+	  >gshowParamName :: forall p. (:+:) a b p -&gt; Text
+</span
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >gshowParamName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#L1"
+	><span class="hs-identifier hs-type"
+	  >L1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184585"
+      ><span class="annot"
+	><span class="annottext"
+	  >a p
+</span
+	  ><a href="#local-6989586621681184585"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a p -&gt; Text
+forall p. a p -&gt; Text
+forall (f :: * -&gt; *) p. GIsParamName f =&gt; f p -&gt; Text
+</span
+	><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	><span class="hs-identifier hs-var"
+	  >gshowParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a p
+</span
+	><a href="#local-6989586621681184585"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	><span class="hs-identifier hs-var"
+	  >gshowParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#R1"
+	><span class="hs-identifier hs-type"
+	  >R1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184587"
+      ><span class="annot"
+	><span class="annottext"
+	  >b p
+</span
+	  ><a href="#local-6989586621681184587"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b p -&gt; Text
+forall p. b p -&gt; Text
+forall (f :: * -&gt; *) p. GIsParamName f =&gt; f p -&gt; Text
+</span
+	><a href="PlutusLedgerApi.Common.ParamName.html#gshowParamName"
+	><span class="hs-identifier hs-var"
+	  >gshowParamName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b p
+</span
+	><a href="#local-6989586621681184587"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-comment"
+      >-- | Given an ordered list of parameter values, tag them with their parameter</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-comment"
+      >-- names.  If the passed parameter values are more than expected: the function</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-comment"
+      >-- will ignore the extraneous values at the tail of the list, if the passed</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-comment"
+      >-- values are less than expected: the function will throw an error; for more</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="hs-comment"
+      >-- information, see Note [Cost model parameters from the ledger's point of view]</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Common.ParamName.html#tagWithParamNames"
+	><span class="hs-identifier hs-type"
+	  >tagWithParamNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184429"
+      ><span class="annot"
+	><a href="#local-6989586621681184429"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184431"
+      ><span class="annot"
+	><a href="#local-6989586621681184431"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+	><span class="hs-identifier hs-type"
+	  >Enum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184429"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	><span class="hs-identifier hs-type"
+	  >Bounded</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184429"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >                            </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	><span class="hs-identifier hs-type"
+	  >MonadError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	><span class="hs-identifier hs-type"
+	  >CostModelApplyError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184431"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >                            </span
+      ><span class="hs-comment"
+      >-- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl&gt;=2.3</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >                            </span
+      ><span class="hs-comment"
+      >-- OPTIMIZE: using List [] as the log datatype is worse than others (DList/Endo) but does not matter much here</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >                            </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+	><span class="hs-identifier hs-type"
+	  >MonadWriter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyWarn"
+	><span class="hs-identifier hs-type"
+	  >CostModelApplyWarn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184431"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier hs-type"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681184431"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681184429"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier hs-type"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="tagWithParamNames"
+      ><span class="annot"
+	><span class="annottext"
+	  >tagWithParamNames :: forall k (m :: * -&gt; *).
+(Enum k, Bounded k, MonadError CostModelApplyError m,
+ MonadWriter [CostModelApplyWarn] m) =&gt;
+[Int64] -&gt; m [(k, Int64)]
+</span
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#tagWithParamNames"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tagWithParamNames</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681184607"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Int64]
+</span
+	  ><a href="#local-6989586621681184607"
+	  ><span class="hs-identifier hs-var"
+	    >ledgerParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681184610"
+      ><span class="annot"
+	><span class="annottext"
+	  >paramNames :: [k]
+</span
+	  ><a href="#local-6989586621681184610"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >paramNames</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	><span class="hs-identifier hs-var"
+	  >enumerate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681184429"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681184613"
+      ><span class="annot"
+	><span class="annottext"
+	  >lenExpected :: Int
+</span
+	  ><a href="#local-6989586621681184613"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lenExpected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k]
+</span
+	><a href="#local-6989586621681184610"
+	><span class="hs-identifier hs-var"
+	  >paramNames</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681184616"
+      ><span class="annot"
+	><span class="annottext"
+	  >lenActual :: Int
+</span
+	  ><a href="#local-6989586621681184616"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lenActual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int64] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int64]
+</span
+	><a href="#local-6989586621681184607"
+	><span class="hs-identifier hs-var"
+	  >ledgerParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681184613"
+	><span class="hs-identifier hs-var"
+	  >lenExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#compare"
+	><span class="hs-operator hs-var"
+	  >`compare`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681184616"
+	><span class="hs-identifier hs-var"
+	  >lenActual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(k, Int64)] -&gt; m [(k, Int64)]
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(k, Int64)] -&gt; m [(k, Int64)]) -&gt; [(k, Int64)] -&gt; m [(k, Int64)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k] -&gt; [Int64] -&gt; [(k, Int64)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#zip"
+	><span class="hs-identifier hs-var"
+	  >zip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k]
+</span
+	><a href="#local-6989586621681184610"
+	><span class="hs-identifier hs-var"
+	  >paramNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int64]
+</span
+	><a href="#local-6989586621681184607"
+	><span class="hs-identifier hs-var"
+	  >ledgerParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- See Note [Cost model parameters from the ledger's point of view]</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostModelApplyWarn] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CMTooManyParamsWarn"
+	><span class="hs-identifier hs-type"
+	  >CMTooManyParamsWarn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>cmExpected :: Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#cmExpected"
+	><span class="hs-identifier hs-var"
+	  >cmExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681184613"
+	><span class="hs-identifier hs-var"
+	  >lenExpected</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cmActual :: Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#cmActual"
+	><span class="hs-identifier hs-var"
+	  >cmActual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681184616"
+	><span class="hs-identifier hs-var"
+	  >lenActual</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- zip will truncate/ignore any extraneous parameter values</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(k, Int64)] -&gt; m [(k, Int64)]
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(k, Int64)] -&gt; m [(k, Int64)]) -&gt; [(k, Int64)] -&gt; m [(k, Int64)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k] -&gt; [Int64] -&gt; [(k, Int64)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#zip"
+	><span class="hs-identifier hs-var"
+	  >zip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k]
+</span
+	><a href="#local-6989586621681184610"
+	><span class="hs-identifier hs-var"
+	  >paramNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int64]
+</span
+	><a href="#local-6989586621681184607"
+	><span class="hs-identifier hs-var"
+	  >ledgerParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- Too few parameters - substitute a large number for the missing parameters</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- See Note [Cost model parameters from the ledger's point of view]</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CostModelApplyWarn] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CMTooFewParamsWarn"
+	><span class="hs-identifier hs-type"
+	  >CMTooFewParamsWarn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>cmExpected :: Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#cmExpected"
+	><span class="hs-identifier hs-var"
+	  >cmExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681184613"
+	><span class="hs-identifier hs-var"
+	  >lenExpected</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cmActual :: Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#cmActual"
+	><span class="hs-identifier hs-var"
+	  >cmActual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681184616"
+	><span class="hs-identifier hs-var"
+	  >lenActual</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(k, Int64)] -&gt; m [(k, Int64)]
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(k, Int64)] -&gt; m [(k, Int64)]) -&gt; [(k, Int64)] -&gt; m [(k, Int64)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k] -&gt; [Int64] -&gt; [(k, Int64)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#zip"
+	><span class="hs-identifier hs-var"
+	  >zip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[k]
+</span
+	><a href="#local-6989586621681184610"
+	><span class="hs-identifier hs-var"
+	  >paramNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int64]
+</span
+	><a href="#local-6989586621681184607"
+	><span class="hs-identifier hs-var"
+	  >ledgerParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Int64] -&gt; [Int64] -&gt; [Int64]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int64 -&gt; [Int64]
+forall a. a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#repeat"
+	><span class="hs-identifier hs-var"
+	  >repeat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int64
+forall a. Bounded a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#maxBound"
+	><span class="hs-identifier hs-var"
+	  >maxBound</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="hs-comment"
+      >-- | Untags the plutus version from the typed cost model parameters and returns their raw textual form</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-comment"
+      >-- (internally used by CostModelInterface).</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span id="local-6989586621681184451"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#toCostModelParams"
+	  ><span class="hs-identifier hs-type"
+	    >toCostModelParams</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Common.ParamName.html#IsParamName"
+	  ><span class="hs-identifier hs-type"
+	    >IsParamName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681184451"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621681184451"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	  ><span class="hs-identifier hs-type"
+	    >Int64</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	  ><span class="hs-identifier hs-type"
+	    >CostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="toCostModelParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >toCostModelParams :: forall p. IsParamName p =&gt; [(p, Int64)] -&gt; CostModelParams
+</span
+	  ><a href="PlutusLedgerApi.Common.ParamName.html#toCostModelParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toCostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Text, Int64)] -&gt; CostModelParams
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(Text, Int64)] -&gt; CostModelParams)
+-&gt; ([(p, Int64)] -&gt; [(Text, Int64)])
+-&gt; [(p, Int64)]
+-&gt; CostModelParams
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((p, Int64) -&gt; (Text, Int64)) -&gt; [(p, Int64)] -&gt; [(Text, Int64)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p -&gt; Text) -&gt; (p, Int64) -&gt; (Text, Int64)
+forall a b c. (a -&gt; b) -&gt; (a, c) -&gt; (b, c)
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#first"
+	><span class="hs-identifier hs-var"
+	  >first</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p -&gt; Text
+forall a. IsParamName a =&gt; a -&gt; Text
+</span
+	><a href="PlutusLedgerApi.Common.ParamName.html#showParamName"
+	><span class="hs-identifier hs-var"
+	  >showParamName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

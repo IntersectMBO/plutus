@@ -1,0 +1,1484 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Transform.RewriteRules.Internal</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#defaultUniRewriteRules"
+	><span class="hs-identifier"
+	  >defaultUniRewriteRules</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier"
+	  >Name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html#MonadQuote"
+	><span class="hs-identifier"
+	  >MonadQuote</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.VarInfo.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.VarInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Analysis.VarInfo.html#VarsInfo"
+	><span class="hs-identifier"
+	  >VarsInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Core.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.CommuteFnWithConst.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.RewriteRules.CommuteFnWithConst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.CommuteFnWithConst.html#commuteFnWithConst"
+	><span class="hs-identifier"
+	  >commuteFnWithConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.UnConstrConstrData.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.RewriteRules.UnConstrConstrData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.UnConstrConstrData.html#unConstrConstrData"
+	><span class="hs-identifier"
+	  >unConstrConstrData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Default</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator"
+	  >(&gt;=&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A bundle of composed `RewriteRules`, to be passed at entrypoint of the compiler.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="RewriteRules"
+      ><span class="annot"
+	><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	  ><span class="hs-identifier hs-var"
+	    >RewriteRules</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679478731"
+      ><span class="annot"
+	><a href="#local-6989586621679478731"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679478732"
+      ><span class="annot"
+	><a href="#local-6989586621679478732"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679478657"
+      ><span id="local-6989586621679478658"
+	><span id="RewriteRules"
+	  ><span class="annot"
+	    ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	      ><span class="hs-identifier hs-var"
+		>RewriteRules</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-22"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >{</span
+	  ><span
+	  > </span
+	  ><span id="unRewriteRules"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >forall (uni :: * -&gt; *) fun.
+RewriteRules uni fun
+-&gt; forall tyname (m :: * -&gt; *) a.
+   (MonadQuote m, Monoid a) =&gt;
+   VarsInfo tyname Name uni a
+   -&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+</span
+	      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#unRewriteRules"
+	      ><span class="hs-identifier hs-var hs-var"
+		>unRewriteRules</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-23"
+	  ></span
+	  ><span
+	  >          </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >forall</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621679478663"
+	  ><span class="annot"
+	    ><a href="#local-6989586621679478663"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621679478660"
+	  ><span class="annot"
+	    ><a href="#local-6989586621679478660"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621679478662"
+	  ><span class="annot"
+	    ><a href="#local-6989586621679478662"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-24"
+	  ></span
+	  ><span
+	  >           </span
+	  ><span class="hs-operator"
+	  >.</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Quote.html#MonadQuote"
+	    ><span class="hs-identifier hs-type"
+	      >MonadQuote</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478660"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	    ><span class="hs-identifier hs-type"
+	      >Monoid</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478662"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-25"
+	  ></span
+	  ><span
+	  >          </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Analysis.VarInfo.html#VarsInfo"
+	    ><span class="hs-identifier hs-type"
+	      >VarsInfo</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478663"
+	    ><span class="hs-identifier hs-type"
+	      >tyname</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	    ><span class="hs-identifier hs-type"
+	      >Name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478657"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478662"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-26"
+	  ></span
+	  ><span
+	  >          </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Core.Type.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >PIR.Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478663"
+	    ><span class="hs-identifier hs-type"
+	      >tyname</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	    ><span class="hs-identifier hs-type"
+	      >Name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478657"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478658"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478662"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-27"
+	  ></span
+	  ><span
+	  >          </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478660"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Core.Type.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >PIR.Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478663"
+	    ><span class="hs-identifier hs-type"
+	      >tyname</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	    ><span class="hs-identifier hs-type"
+	      >Name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478657"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478658"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478662"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-28"
+	  ></span
+	  ><span
+	  >       </span
+	  ><span class="hs-special"
+	  >}</span
+	  ><span
+	  >
+</span
+	  ><span id="line-29"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	    ><span class="hs-identifier hs-type"
+	      >RewriteRules</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478657"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679478658"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The rules for the Default Universe/Builtin.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#defaultUniRewriteRules"
+	><span class="hs-identifier hs-type"
+	  >defaultUniRewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-type"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="defaultUniRewriteRules"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultUniRewriteRules :: RewriteRules DefaultUni DefaultFun
+</span
+	  ><a href="PlutusIR.Transform.RewriteRules.Internal.html#defaultUniRewriteRules"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultUniRewriteRules</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name DefaultUni a
+ -&gt; Term tyname Name DefaultUni DefaultFun a
+ -&gt; m (Term tyname Name DefaultUni DefaultFun a))
+-&gt; RewriteRules DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name uni a
+ -&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; RewriteRules uni fun
+</span
+	><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-var"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall tyname (m :: * -&gt; *) a.
+  (MonadQuote m, Monoid a) =&gt;
+  VarsInfo tyname Name DefaultUni a
+  -&gt; Term tyname Name DefaultUni DefaultFun a
+  -&gt; m (Term tyname Name DefaultUni DefaultFun a))
+ -&gt; RewriteRules DefaultUni DefaultFun)
+-&gt; (forall tyname (m :: * -&gt; *) a.
+    (MonadQuote m, Monoid a) =&gt;
+    VarsInfo tyname Name DefaultUni a
+    -&gt; Term tyname Name DefaultUni DefaultFun a
+    -&gt; m (Term tyname Name DefaultUni DefaultFun a))
+-&gt; RewriteRules DefaultUni DefaultFun
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679478752"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarsInfo tyname Name DefaultUni a
+</span
+	  ><a href="#local-6989586621679478752"
+	  ><span class="hs-identifier hs-var"
+	    >varsInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- The rules are composed from left to right.</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname Name DefaultUni DefaultFun a
+-&gt; m (Term tyname Name DefaultUni DefaultFun a)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname Name DefaultUni DefaultFun a
+ -&gt; m (Term tyname Name DefaultUni DefaultFun a))
+-&gt; (Term tyname Name DefaultUni DefaultFun a
+    -&gt; Term tyname Name DefaultUni DefaultFun a)
+-&gt; Term tyname Name DefaultUni DefaultFun a
+-&gt; m (Term tyname Name DefaultUni DefaultFun a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname Name DefaultUni DefaultFun a
+-&gt; Term tyname Name DefaultUni DefaultFun a
+forall t tyname name (uni :: * -&gt; *) a.
+(t ~ Term tyname name uni DefaultFun a) =&gt;
+t -&gt; t
+</span
+	><a href="PlutusIR.Transform.RewriteRules.CommuteFnWithConst.html#commuteFnWithConst"
+	><span class="hs-identifier hs-var"
+	  >commuteFnWithConst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname Name DefaultUni DefaultFun a
+ -&gt; m (Term tyname Name DefaultUni DefaultFun a))
+-&gt; (Term tyname Name DefaultUni DefaultFun a
+    -&gt; m (Term tyname Name DefaultUni DefaultFun a))
+-&gt; Term tyname Name DefaultUni DefaultFun a
+-&gt; m (Term tyname Name DefaultUni DefaultFun a)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo DefaultUni DefaultFun
+-&gt; VarsInfo tyname Name DefaultUni a
+-&gt; Term tyname Name DefaultUni DefaultFun a
+-&gt; m (Term tyname Name DefaultUni DefaultFun a)
+forall (m :: * -&gt; *) t tyname a.
+(MonadQuote m, t ~ Term tyname Name DefaultUni DefaultFun a,
+ Monoid a) =&gt;
+BuiltinsInfo DefaultUni DefaultFun
+-&gt; VarsInfo tyname Name DefaultUni a -&gt; t -&gt; m t
+</span
+	><a href="PlutusIR.Transform.RewriteRules.UnConstrConstrData.html#unConstrConstrData"
+	><span class="hs-identifier hs-var"
+	  >unConstrConstrData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsInfo DefaultUni DefaultFun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname Name DefaultUni a
+</span
+	><a href="#local-6989586621679478752"
+	><span class="hs-identifier hs-var"
+	  >varsInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Default</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-type"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679478758"
+      ><span class="annot"
+	><span class="annottext"
+	  >def :: RewriteRules DefaultUni DefaultFun
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >def</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RewriteRules DefaultUni DefaultFun
+</span
+	><a href="PlutusIR.Transform.RewriteRules.Internal.html#defaultUniRewriteRules"
+	><span class="hs-identifier hs-var"
+	  >defaultUniRewriteRules</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679478711"
+      ><span id="local-6989586621679478712"
+	><span id="local-6989586621679478761"
+	  ><span id="local-6989586621679478765"
+	    ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+		><span class="hs-identifier hs-type"
+		  >Semigroup</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+		><span class="hs-identifier hs-type"
+		  >RewriteRules</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679478711"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679478712"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-type"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679478770"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall tyname (m :: * -&gt; *) a.
+(MonadQuote m, Monoid a) =&gt;
+VarsInfo tyname Name uni a
+-&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+</span
+	  ><a href="#local-6989586621679478770"
+	  ><span class="hs-identifier hs-var"
+	    >r1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679478771"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: RewriteRules uni fun
+-&gt; RewriteRules uni fun -&gt; RewriteRules uni fun
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >&lt;&gt;</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-type"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679478772"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall tyname (m :: * -&gt; *) a.
+(MonadQuote m, Monoid a) =&gt;
+VarsInfo tyname Name uni a
+-&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+</span
+	  ><a href="#local-6989586621679478772"
+	  ><span class="hs-identifier hs-var"
+	    >r2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name uni a
+ -&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; RewriteRules uni fun
+forall (uni :: * -&gt; *) fun.
+(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name uni a
+ -&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; RewriteRules uni fun
+</span
+	><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-var"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679478781"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarsInfo tyname Name uni a
+</span
+	  ><a href="#local-6989586621679478781"
+	  ><span class="hs-identifier hs-var"
+	    >varsInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname Name uni a
+-&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+forall tyname (m :: * -&gt; *) a.
+(MonadQuote m, Monoid a) =&gt;
+VarsInfo tyname Name uni a
+-&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+</span
+	><a href="#local-6989586621679478770"
+	><span class="hs-identifier hs-var"
+	  >r1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname Name uni a
+</span
+	><a href="#local-6989586621679478781"
+	><span class="hs-identifier hs-var"
+	  >varsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; (Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; Term tyname Name uni fun a
+-&gt; m (Term tyname Name uni fun a)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html#%3E%3D%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;=&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname Name uni a
+-&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+forall tyname (m :: * -&gt; *) a.
+(MonadQuote m, Monoid a) =&gt;
+VarsInfo tyname Name uni a
+-&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+</span
+	><a href="#local-6989586621679478772"
+	><span class="hs-identifier hs-var"
+	  >r2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarsInfo tyname Name uni a
+</span
+	><a href="#local-6989586621679478781"
+	><span class="hs-identifier hs-var"
+	  >varsInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679478719"
+      ><span id="local-6989586621679478720"
+	><span id="local-6989586621679478786"
+	  ><span id="local-6989586621679478790"
+	    ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+		><span class="hs-identifier hs-type"
+		  >Monoid</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+		><span class="hs-identifier hs-type"
+		  >RewriteRules</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679478719"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679478720"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679478793"
+      ><span class="annot"
+	><span class="annottext"
+	  >mempty :: RewriteRules uni fun
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >mempty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name uni a
+ -&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; RewriteRules uni fun
+forall (uni :: * -&gt; *) fun.
+(forall tyname (m :: * -&gt; *) a.
+ (MonadQuote m, Monoid a) =&gt;
+ VarsInfo tyname Name uni a
+ -&gt; Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; RewriteRules uni fun
+</span
+	><a href="PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-var"
+	  >RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a))
+-&gt; VarsInfo tyname Name uni a
+-&gt; Term tyname Name uni fun a
+-&gt; m (Term tyname Name uni fun a)
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname Name uni fun a -&gt; m (Term tyname Name uni fun a)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

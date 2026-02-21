@@ -1,0 +1,549 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    3 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    7 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>-- TODO: add @NoFieldSelectors@ once we are past antiquity, so that 'ScopeError' doesn't generate
+<span class="lineno">   10 </span>-- partial field selectors.
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>module PlutusCore.Check.Scoping where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import PlutusCore.Name.Unique
+<span class="lineno">   15 </span>import PlutusCore.Quote
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.Monad (join, unless)
+<span class="lineno">   18 </span>import Data.Bifunctor
+<span class="lineno">   19 </span>import Data.Coerce
+<span class="lineno">   20 </span>import Data.List.NonEmpty (NonEmpty)
+<span class="lineno">   21 </span>import Data.List.NonEmpty qualified as NonEmpty
+<span class="lineno">   22 </span>import Data.Map.Strict (Map)
+<span class="lineno">   23 </span>import Data.Map.Strict qualified as Map
+<span class="lineno">   24 </span>import Data.Maybe
+<span class="lineno">   25 </span>import Data.Proxy
+<span class="lineno">   26 </span>import Data.Set (Set)
+<span class="lineno">   27 </span>import Data.Set qualified as Set
+<span class="lineno">   28 </span>import Text.Pretty
+<span class="lineno">   29 </span>import Text.PrettyBy
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>{- Note [Example of a scoping check]
+<span class="lineno">   32 </span>Consider the following type:
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>    \(x_42 :: *) -&gt; x_42
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>This Note describes how we can use this type to check that a renamer handles scoping correctly.
+<span class="lineno">   37 </span>Any other type could be used as well (and in property tests we generate random ones), but the type
+<span class="lineno">   38 </span>above is the simplest example, so we're going to use it.
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>First, we traverse the type and freshen every single name in it, which gives us
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>    \(x_0 :: *) -&gt; x_1
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>After this procedure all names in the new type are distinct, not just globally unique -- completely
+<span class="lineno">   45 </span>distinct: all variables are free variables with different uniques and all bindings are distinct and
+<span class="lineno">   46 </span>never referenced.
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>Now for each binder we insert one in-scope variable and one out-of-scope one by referencing them
+<span class="lineno">   49 </span>in an added constructor (we could use 'TyFun', but we use 'TyApp', 'cause it has an analogue at the
+<span class="lineno">   50 </span>term level -- 'Apply' and we can also reference a type variable in a 'Term' via a similar
+<span class="lineno">   51 </span>constructor -- 'TyInst'). That gives us
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>    (\(x_0 :: *) -&gt; x_1 x_0) x_0
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>(currently we just decorate the binder with those constructors. In future we could employ a fancier
+<span class="lineno">   56 </span>strategy and go under to the leaves of the term being processed etc).
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>The next step is to annotate each name with what is supposed to happen to it once the renaming is
+<span class="lineno">   59 </span>performed.
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>1. the @x_0@ binding is supposed to be renamed and hence will disappear
+<span class="lineno">   62 </span>2. the @x_1@ variable is free, so it's supposed to stay free
+<span class="lineno">   63 </span>3. the inner @x_0@ variable is in scope and so is supposed to be renamed
+<span class="lineno">   64 </span>4. the outer @x_0@ is out of scope and so is free and is supposed to stay
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>In the actual implementation everything that we did above happens in a single definition.
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>After this initial scoping setup is performed, we run the provided renamer (which is not supposed
+<span class="lineno">   69 </span>to touch any annotations) and collect all the available information: which names disappeared,
+<span class="lineno">   70 </span>which didn't, which appeared etc, simultaneously checking that the names that were supposed to
+<span class="lineno">   71 </span>disappear indeed disappeared and the names that were supposed to stay indeed stayed.
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>Note that to tell that e.g. a binding disappeared it's crucial that the AST node with the appopriate
+<span class="lineno">   74 </span>annotation is itself preserved, only the name changed. If some pass removes the AST node of a
+<span class="lineno">   75 </span>binding that is supposed to be disappear, it won't be accounted for. Which is precisely what we need
+<span class="lineno">   76 </span>for passes like inlining.
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>Once all this scoping information is collected, we run 'checkScopeInfo' to check that the
+<span class="lineno">   79 </span>information is coherent. See its docs for the details on what exactly the checked invariants are.
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>The advantage of this approach is that we can pinpoint exactly where what is visible and, just
+<span class="lineno">   82 </span>as importantly, what is not.
+<span class="lineno">   83 </span>-}
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>data ScopedName
+<span class="lineno">   86 </span>  = TypeName TyName
+<span class="lineno">   87 </span>  | TermName Name
+<span class="lineno">   88 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>isSameScope :: ScopedName -&gt; ScopedName -&gt; Bool
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">isSameScope TypeName {} TypeName {} = True</span>
+<span class="lineno">   92 </span><span class="spaces"></span><span class="istickedoff">isSameScope TermName {} TermName {} = True</span>
+<span class="lineno">   93 </span><span class="spaces"></span><span class="istickedoff">isSameScope TypeName {} TermName {} = <span class="nottickedoff">False</span></span>
+<span class="lineno">   94 </span><span class="spaces"></span><span class="istickedoff">isSameScope TermName {} TypeName {} = False</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>-- | Staying names.
+<span class="lineno">   97 </span>data Stays
+<span class="lineno">   98 </span>  = -- | An out-of-scope variable does not get renamed and hence stays.
+<span class="lineno">   99 </span>    StaysOutOfScopeVariable
+<span class="lineno">  100 </span>  | -- | A free variable does not get renamed and hence stays.
+<span class="lineno">  101 </span>    StaysFreeVariable
+<span class="lineno">  102 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>-- | Changing names.
+<span class="lineno">  105 </span>data Disappears
+<span class="lineno">  106 </span>  = -- | A binding gets renamed and hence the name that it binds disappears.
+<span class="lineno">  107 </span>    DisappearsBinding
+<span class="lineno">  108 </span>  | -- | A bound variable gets renamed and hence its name disappears.
+<span class="lineno">  109 </span>    DisappearsVariable
+<span class="lineno">  110 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>-- | A name either stays or disappears.
+<span class="lineno">  113 </span>data NameAction
+<span class="lineno">  114 </span>  = Stays Stays
+<span class="lineno">  115 </span>  | Disappears Disappears
+<span class="lineno">  116 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>data NameAnn
+<span class="lineno">  119 </span>  = NameAction NameAction ScopedName
+<span class="lineno">  120 </span>  | NotAName
+<span class="lineno">  121 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>instance <span class="decl"><span class="nottickedoff">Pretty NameAnn</span></span> where
+<span class="lineno">  124 </span>  <span class="decl"><span class="nottickedoff">pretty = viaShow</span></span>
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>class ToScopedName name where
+<span class="lineno">  127 </span>  toScopedName :: name -&gt; ScopedName
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>instance ToScopedName TyName where
+<span class="lineno">  130 </span>  <span class="decl"><span class="istickedoff">toScopedName = TypeName</span></span>
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>instance ToScopedName Name where
+<span class="lineno">  133 </span>  <span class="decl"><span class="istickedoff">toScopedName = TermName</span></span>
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>-- Naming: @introduce*@ for bindings and @register*@ for variables.
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>-- | Annotation for a binding saying \&quot;supposed to disappear\&quot;.
+<span class="lineno">  138 </span>introduceBound :: ToScopedName name =&gt; name -&gt; NameAnn
+<span class="lineno">  139 </span><span class="decl"><span class="istickedoff">introduceBound = NameAction (Disappears DisappearsBinding) . toScopedName</span></span>
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>-- | Annotation for a bound variable saying \&quot;supposed to disappear\&quot;.
+<span class="lineno">  142 </span>registerBound :: ToScopedName name =&gt; name -&gt; NameAnn
+<span class="lineno">  143 </span><span class="decl"><span class="istickedoff">registerBound = NameAction (Disappears DisappearsVariable) . toScopedName</span></span>
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>-- | Annotation for an out-of-scope variable saying \&quot;supposed to stay out of scope\&quot;.
+<span class="lineno">  146 </span>registerOutOfScope :: ToScopedName name =&gt; name -&gt; NameAnn
+<span class="lineno">  147 </span><span class="decl"><span class="istickedoff">registerOutOfScope = NameAction (Stays StaysOutOfScopeVariable) . toScopedName</span></span>
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span>-- | Annotation for a free variable saying \&quot;supposed to stay free\&quot;.
+<span class="lineno">  150 </span>registerFree :: ToScopedName name =&gt; name -&gt; NameAnn
+<span class="lineno">  151 </span><span class="decl"><span class="istickedoff">registerFree = NameAction (Stays StaysFreeVariable) . toScopedName</span></span>
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>class Reference n t where
+<span class="lineno">  154 </span>  {-| Take a registering function, apply it to the provided name, create a type\/term variable
+<span class="lineno">  155 </span>  out of the resulting annotation and the original name and reference that variable in the
+<span class="lineno">  156 </span>  provided type\/term by prepending a constructor to it mentioning the variable. -}
+<span class="lineno">  157 </span>  referenceVia
+<span class="lineno">  158 </span>    :: (forall name. ToScopedName name =&gt; name -&gt; NameAnn)
+<span class="lineno">  159 </span>    -&gt; n
+<span class="lineno">  160 </span>    -&gt; t NameAnn
+<span class="lineno">  161 </span>    -&gt; t NameAnn
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>-- | Reference the provided variable in the provided type\/term as an in-scope one.
+<span class="lineno">  164 </span>referenceBound :: Reference n t =&gt; n -&gt; t NameAnn -&gt; t NameAnn
+<span class="lineno">  165 </span><span class="decl"><span class="istickedoff">referenceBound = referenceVia registerBound</span></span>
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>-- | Reference the provided variable in the provided type\/term as an out-of-scope one.
+<span class="lineno">  168 </span>referenceOutOfScope :: Reference n t =&gt; n -&gt; t NameAnn -&gt; t NameAnn
+<span class="lineno">  169 </span><span class="decl"><span class="istickedoff">referenceOutOfScope = referenceVia registerOutOfScope</span></span>
+<span class="lineno">  170 </span>
+<span class="lineno">  171 </span>-- #####################################################
+<span class="lineno">  172 </span>-- ## Information about scopes and relevant functions ##
+<span class="lineno">  173 </span>-- #####################################################
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>-- | Each kind of old and new names.
+<span class="lineno">  176 </span>data ScopeEntry
+<span class="lineno">  177 </span>  = DisappearedBindings
+<span class="lineno">  178 </span>  | DisappearedVariables
+<span class="lineno">  179 </span>  | AppearedBindings
+<span class="lineno">  180 </span>  | AppearedVariables
+<span class="lineno">  181 </span>  | StayedOutOfScopeVariables
+<span class="lineno">  182 </span>  | StayedFreeVariables
+<span class="lineno">  183 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">  184 </span>
+<span class="lineno">  185 </span>{-| A 'ScopeInfo' is a set of 'ScopedName's for each of the 'ScopeEntry'.
+<span class="lineno">  186 </span>If a 'ScopeEntry' is not present in the map, the corresponding set of 'ScopeName's is considered
+<span class="lineno">  187 </span>to be empty. -}
+<span class="lineno">  188 </span>newtype ScopeInfo = ScopeInfo (Map ScopeEntry (Set ScopedName))
+<span class="lineno">  189 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  190 </span>
+<span class="lineno">  191 </span>-- Defining manually because of plan to move to @NoFieldSelectors@.
+<span class="lineno">  192 </span>unScopeInfo :: ScopeInfo -&gt; Map ScopeEntry (Set ScopedName)
+<span class="lineno">  193 </span><span class="decl"><span class="istickedoff">unScopeInfo = coerce</span></span>
+<span class="lineno">  194 </span>
+<span class="lineno">  195 </span>-- | Extract the set stored in the provided 'ScopeInfo' at the provided 'ScopeEntry'.
+<span class="lineno">  196 </span>to :: ScopeEntry -&gt; ScopeInfo -&gt; Set ScopedName
+<span class="lineno">  197 </span><span class="decl"><span class="istickedoff">to entry = fromMaybe Set.empty . Map.lookup entry . unScopeInfo</span></span>
+<span class="lineno">  198 </span>
+<span class="lineno">  199 </span>emptyScopeInfo :: ScopeInfo
+<span class="lineno">  200 </span><span class="decl"><span class="istickedoff">emptyScopeInfo = ScopeInfo Map.empty</span></span>
+<span class="lineno">  201 </span>
+<span class="lineno">  202 </span>-- | Check if a set is empty and report an error with the set embedded in it otherwise.
+<span class="lineno">  203 </span>checkEmptyOn
+<span class="lineno">  204 </span>  :: (Set ScopedName -&gt; Set ScopedName -&gt; Set ScopedName)
+<span class="lineno">  205 </span>  -&gt; (Set ScopedName -&gt; Set ScopedName -&gt; ScopeError)
+<span class="lineno">  206 </span>  -&gt; Set ScopedName
+<span class="lineno">  207 </span>  -&gt; Set ScopedName
+<span class="lineno">  208 </span>  -&gt; Either ScopeError ()
+<span class="lineno">  209 </span><span class="decl"><span class="istickedoff">checkEmptyOn f err s1 s2 = unless (Set.null $ f s1 s2) . Left $ err s1 s2</span></span>
+<span class="lineno">  210 </span>
+<span class="lineno">  211 </span>-- | Merge two 'ScopeInfo's checking that binders in them do not intersect along the way.
+<span class="lineno">  212 </span>mergeScopeInfo :: ScopeInfo -&gt; ScopeInfo -&gt; Either ScopeError ScopeInfo
+<span class="lineno">  213 </span><span class="decl"><span class="istickedoff">mergeScopeInfo si1 si2 = do</span>
+<span class="lineno">  214 </span><span class="spaces">  </span><span class="istickedoff">let disappearedBindings1 = to DisappearedBindings si1</span>
+<span class="lineno">  215 </span><span class="spaces">      </span><span class="istickedoff">disappearedBindings2 = to DisappearedBindings si2</span>
+<span class="lineno">  216 </span><span class="spaces">      </span><span class="istickedoff">appearedBindings1 = to AppearedBindings si1</span>
+<span class="lineno">  217 </span><span class="spaces">      </span><span class="istickedoff">appearedBindings2 = to AppearedBindings si2</span>
+<span class="lineno">  218 </span><span class="spaces">  </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  219 </span><span class="spaces">    </span><span class="istickedoff">Set.intersection</span>
+<span class="lineno">  220 </span><span class="spaces">    </span><span class="istickedoff">DuplicateBindersInTheInput</span>
+<span class="lineno">  221 </span><span class="spaces">    </span><span class="istickedoff">disappearedBindings1</span>
+<span class="lineno">  222 </span><span class="spaces">    </span><span class="istickedoff">disappearedBindings2</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  224 </span><span class="spaces">    </span><span class="istickedoff">Set.intersection</span>
+<span class="lineno">  225 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">DuplicateBindersInTheOutput</span></span>
+<span class="lineno">  226 </span><span class="spaces">    </span><span class="istickedoff">appearedBindings1</span>
+<span class="lineno">  227 </span><span class="spaces">    </span><span class="istickedoff">appearedBindings2</span>
+<span class="lineno">  228 </span><span class="spaces">  </span><span class="istickedoff">Right $ coerce (Map.unionWith Set.union) si1 si2</span></span>
+<span class="lineno">  229 </span>
+<span class="lineno">  230 </span>-- We might want to use @Validation@ or something instead of 'Either'.
+<span class="lineno">  231 </span>-- @newtype@-ing it for the sake of providing very convenient 'Semigroup' and 'Monoid' instances.
+<span class="lineno">  232 </span>newtype ScopeErrorOrInfo = ScopeErrorOrInfo (Either ScopeError ScopeInfo)
+<span class="lineno">  233 </span>
+<span class="lineno">  234 </span>-- Defining manually because of plan to move to @NoFieldSelectors@.
+<span class="lineno">  235 </span>unScopeErrorOrInfo :: ScopeErrorOrInfo -&gt; Either ScopeError ScopeInfo
+<span class="lineno">  236 </span><span class="decl"><span class="istickedoff">unScopeErrorOrInfo = coerce</span></span>
+<span class="lineno">  237 </span>
+<span class="lineno">  238 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup ScopeErrorOrInfo</span></span></span></span> where
+<span class="lineno">  239 </span>  <span class="decl"><span class="istickedoff">ScopeErrorOrInfo errOrInfo1 &lt;&gt; ScopeErrorOrInfo errOrInfo2 =</span>
+<span class="lineno">  240 </span><span class="spaces">    </span><span class="istickedoff">ScopeErrorOrInfo . join $ mergeScopeInfo &lt;$&gt; errOrInfo1 &lt;*&gt; errOrInfo2</span></span>
+<span class="lineno">  241 </span>
+<span class="lineno">  242 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Monoid ScopeErrorOrInfo</span></span></span></span> where
+<span class="lineno">  243 </span>  <span class="decl"><span class="istickedoff">mempty = ScopeErrorOrInfo $ Right emptyScopeInfo</span></span>
+<span class="lineno">  244 </span>
+<span class="lineno">  245 </span>{-| Whether it's OK if the pass removes bindings. A renamer isn't supposed to do that, but for
+<span class="lineno">  246 </span>example an inliner may do it, since it's basically the entire point of an inliner. -}
+<span class="lineno">  247 </span>data BindingRemoval
+<span class="lineno">  248 </span>  = BindingRemovalOk
+<span class="lineno">  249 </span>  | BindingRemovalNotOk
+<span class="lineno">  250 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  251 </span>
+<span class="lineno">  252 </span>-- ########################################################################
+<span class="lineno">  253 </span>-- ## Main class for collecting scope information and relevant functions ##
+<span class="lineno">  254 </span>-- ########################################################################
+<span class="lineno">  255 </span>
+<span class="lineno">  256 </span>class EstablishScoping t where
+<span class="lineno">  257 </span>  {-| Traverse a 't' freshening every name (both at the binding and the use sites)
+<span class="lineno">  258 </span>    and annotating the freshened names with either 'DisappearsBinding' or 'StaysFreeVariable'
+<span class="lineno">  259 </span>    depending on whether the name occurs at the binding or the use site.
+<span class="lineno">  260 </span>
+<span class="lineno">  261 </span>    In addition to that every binder should be decorated with one out-of-scope variable (annotated
+<span class="lineno">  262 </span>    with 'StaysOutOfScopeVariable') and one in-scope one (annotated with 'DisappearsVariable').
+<span class="lineno">  263 </span>
+<span class="lineno">  264 </span>    Note that no original name occurring in 't' should survive this procedure (and hence we don't
+<span class="lineno">  265 </span>    care if any of the freshened names clashes with an original one as all original ones are
+<span class="lineno">  266 </span>    supposed to be gone).
+<span class="lineno">  267 </span>
+<span class="lineno">  268 </span>    How to provide an implementation:
+<span class="lineno">  269 </span>
+<span class="lineno">  270 </span>    1. handle bindings with 'freshen*Name' + 'establishScopingBinder' (or similar)
+<span class="lineno">  271 </span>    2. handle variables with 'freshen*Name' + 'registerFree'
+<span class="lineno">  272 </span>    3. everything else is direct recursion + 'Applicative' stuff -}
+<span class="lineno">  273 </span>  establishScoping :: t ann -&gt; Quote (t NameAnn)
+<span class="lineno">  274 </span>
+<span class="lineno">  275 </span>-- That will retraverse the same type multiple times. Should we have @referenceListVia@ as a
+<span class="lineno">  276 </span>-- primitive instead and derive 'referenceVia' in terms of it for better performance?
+<span class="lineno">  277 </span>-- Should we only pick an arbitrary sublist of the provided list instead of using the whole list
+<span class="lineno">  278 </span>-- for better performance? That requires enhancing 'Reference' with @Hedgehog.Gen@ or something.
+<span class="lineno">  279 </span>instance Reference n t =&gt; Reference [n] t where
+<span class="lineno">  280 </span>  <span class="decl"><span class="istickedoff">referenceVia reg = flip . Prelude.foldr $ referenceVia reg</span></span>
+<span class="lineno">  281 </span>
+<span class="lineno">  282 </span>instance Reference n t =&gt; Reference (NonEmpty n) t where
+<span class="lineno">  283 </span>  <span class="decl"><span class="istickedoff">referenceVia reg = referenceVia reg . NonEmpty.toList</span></span>
+<span class="lineno">  284 </span>
+<span class="lineno">  285 </span>-- Given that it's straightforward to provide an implementation for the method,
+<span class="lineno">  286 </span>-- it would be nice to somehow do that generically by default.
+<span class="lineno">  287 </span>class CollectScopeInfo t where
+<span class="lineno">  288 </span>  {-| Collect scoping information after scoping was established and renaming was performed.
+<span class="lineno">  289 </span>
+<span class="lineno">  290 </span>    How to provide an implementation:
+<span class="lineno">  291 </span>
+<span class="lineno">  292 </span>    1. handle names (both bindings and variables) with 'handleSname'
+<span class="lineno">  293 </span>    2. everything else is direct recursion + 'Monoid' stuff -}
+<span class="lineno">  294 </span>  collectScopeInfo :: t NameAnn -&gt; ScopeErrorOrInfo
+<span class="lineno">  295 </span>
+<span class="lineno">  296 </span>instance EstablishScoping Proxy where
+<span class="lineno">  297 </span>  <span class="decl"><span class="istickedoff">establishScoping _ = pure <span class="nottickedoff">Proxy</span></span></span>
+<span class="lineno">  298 </span>
+<span class="lineno">  299 </span>instance CollectScopeInfo Proxy where
+<span class="lineno">  300 </span>  <span class="decl"><span class="nottickedoff">collectScopeInfo _ = mempty</span></span>
+<span class="lineno">  301 </span>
+<span class="lineno">  302 </span>-- See Note [Example of a scoping check].
+<span class="lineno">  303 </span>type Scoping t = (EstablishScoping t, CollectScopeInfo t)
+<span class="lineno">  304 </span>
+<span class="lineno">  305 </span>{-| Take a constructor for a binder, a name bound by it, a sort (kind\/type), a value of that sort
+<span class="lineno">  306 </span>(type\/term) and call 'establishScoping' on both the sort and its value and reassemble the
+<span class="lineno">  307 </span>original binder with the annotated sort and its value, but also decorate the reassembled binder
+<span class="lineno">  308 </span>with one out-of-scope variable and one in-scope one. -}
+<span class="lineno">  309 </span>establishScopingBinder
+<span class="lineno">  310 </span>  :: (Reference name value, ToScopedName name, EstablishScoping sort, EstablishScoping value)
+<span class="lineno">  311 </span>  =&gt; (NameAnn -&gt; name -&gt; sort NameAnn -&gt; value NameAnn -&gt; value NameAnn)
+<span class="lineno">  312 </span>  -&gt; name
+<span class="lineno">  313 </span>  -&gt; sort ann
+<span class="lineno">  314 </span>  -&gt; value ann
+<span class="lineno">  315 </span>  -&gt; Quote (value NameAnn)
+<span class="lineno">  316 </span><span class="decl"><span class="istickedoff">establishScopingBinder binder name sort value = do</span>
+<span class="lineno">  317 </span><span class="spaces">  </span><span class="istickedoff">sortS &lt;- establishScoping sort</span>
+<span class="lineno">  318 </span><span class="spaces">  </span><span class="istickedoff">referenceOutOfScope name</span>
+<span class="lineno">  319 </span><span class="spaces">    </span><span class="istickedoff">. binder (introduceBound name) name sortS</span>
+<span class="lineno">  320 </span><span class="spaces">    </span><span class="istickedoff">. referenceBound name</span>
+<span class="lineno">  321 </span><span class="spaces">    </span><span class="istickedoff">&lt;$&gt; establishScoping value</span></span>
+<span class="lineno">  322 </span>
+<span class="lineno">  323 </span>-- #############################################
+<span class="lineno">  324 </span>-- ## Checking coherence of scope information ##
+<span class="lineno">  325 </span>-- #############################################
+<span class="lineno">  326 </span>
+<span class="lineno">  327 </span>-- | Every kind of error thrown by the scope checking machinery at different stages.
+<span class="lineno">  328 </span>data ScopeError
+<span class="lineno">  329 </span>  = UnannotatedName !ScopedName
+<span class="lineno">  330 </span>  | NameChangedItsScope
+<span class="lineno">  331 </span>      { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_oldName</span></span></span> :: !ScopedName
+<span class="lineno">  332 </span>      , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_newName</span></span></span> :: !ScopedName
+<span class="lineno">  333 </span>      }
+<span class="lineno">  334 </span>  | NameUnexpectedlyDisappeared
+<span class="lineno">  335 </span>      { _oldName :: !ScopedName
+<span class="lineno">  336 </span>      , _newName :: !ScopedName
+<span class="lineno">  337 </span>      }
+<span class="lineno">  338 </span>  | NameUnexpectedlyStayed !ScopedName
+<span class="lineno">  339 </span>  | DuplicateBindersInTheInput
+<span class="lineno">  340 </span>      { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_duplicateBindersLeft</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  341 </span>      , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_duplicateBindersRight</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  342 </span>      }
+<span class="lineno">  343 </span>  | DuplicateBindersInTheOutput !(Set ScopedName) !(Set ScopedName)
+<span class="lineno">  344 </span>  | DisappearedBindingsDiscordWithBoundVariables
+<span class="lineno">  345 </span>      { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_disappearedBindings</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  346 </span>      , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_boundVariables</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  347 </span>      }
+<span class="lineno">  348 </span>  | DisappearedBindingsDiscordWithOutOfScopeVariables
+<span class="lineno">  349 </span>      { _disappearedBindings :: !(Set ScopedName)
+<span class="lineno">  350 </span>      , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_outOfScopeVariables</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  351 </span>      }
+<span class="lineno">  352 </span>  | AppearedBindingsDiscordWithBoundVariables
+<span class="lineno">  353 </span>      { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_appearedBindings</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  354 </span>      , _boundVariables :: !(Set ScopedName)
+<span class="lineno">  355 </span>      }
+<span class="lineno">  356 </span>  | DisappearedBindingsClashWithFreeVariables
+<span class="lineno">  357 </span>      { _disappearedBindings :: !(Set ScopedName)
+<span class="lineno">  358 </span>      , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_freeVariables</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  359 </span>      }
+<span class="lineno">  360 </span>  | DisappearedBindingsClashWithAppearedBindings
+<span class="lineno">  361 </span>      { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_disppearedBindings</span></span></span> :: !(Set ScopedName)
+<span class="lineno">  362 </span>      , _appearedBindings :: !(Set ScopedName)
+<span class="lineno">  363 </span>      }
+<span class="lineno">  364 </span>  | AppearedBindingsClashWithFreeVariabes
+<span class="lineno">  365 </span>      { _appearedBindings :: !(Set ScopedName)
+<span class="lineno">  366 </span>      , _freeVariables :: !(Set ScopedName)
+<span class="lineno">  367 </span>      }
+<span class="lineno">  368 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  369 </span>
+<span class="lineno">  370 </span>instance <span class="decl"><span class="nottickedoff">Pretty ScopeError</span></span> where
+<span class="lineno">  371 </span>  <span class="decl"><span class="istickedoff">pretty = viaShow</span></span>
+<span class="lineno">  372 </span>
+<span class="lineno">  373 </span>-- | Override the set at the provided 'ScopeEntry' to contain only the provided 'ScopedName'.
+<span class="lineno">  374 </span>overrideSname :: ScopeEntry -&gt; ScopedName -&gt; ScopeInfo -&gt; ScopeInfo
+<span class="lineno">  375 </span><span class="decl"><span class="istickedoff">overrideSname key = coerce . Map.insert key . Set.singleton</span></span>
+<span class="lineno">  376 </span>
+<span class="lineno">  377 </span>-- | Use a 'Stays' to handle an unchanged old name.
+<span class="lineno">  378 </span>applyStays :: Stays -&gt; ScopedName -&gt; ScopeInfo
+<span class="lineno">  379 </span><span class="decl"><span class="istickedoff">applyStays stays sname = overrideSname key sname emptyScopeInfo</span>
+<span class="lineno">  380 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  381 </span><span class="spaces">    </span><span class="istickedoff">key = case stays of</span>
+<span class="lineno">  382 </span><span class="spaces">      </span><span class="istickedoff">StaysOutOfScopeVariable -&gt; StayedOutOfScopeVariables</span>
+<span class="lineno">  383 </span><span class="spaces">      </span><span class="istickedoff">StaysFreeVariable -&gt; StayedFreeVariables</span></span>
+<span class="lineno">  384 </span>
+<span class="lineno">  385 </span>-- | Use a 'Disappears' to handle differing old and new names.
+<span class="lineno">  386 </span>applyDisappears :: Disappears -&gt; ScopedName -&gt; ScopedName -&gt; ScopeInfo
+<span class="lineno">  387 </span><span class="decl"><span class="istickedoff">applyDisappears disappears snameOld snameNew =</span>
+<span class="lineno">  388 </span><span class="spaces">  </span><span class="istickedoff">overrideSname keyNew snameNew $ overrideSname keyOld snameOld emptyScopeInfo</span>
+<span class="lineno">  389 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  390 </span><span class="spaces">    </span><span class="istickedoff">(keyOld, keyNew) = case disappears of</span>
+<span class="lineno">  391 </span><span class="spaces">      </span><span class="istickedoff">DisappearsBinding -&gt; (DisappearedBindings, AppearedBindings)</span>
+<span class="lineno">  392 </span><span class="spaces">      </span><span class="istickedoff">DisappearsVariable -&gt; (DisappearedVariables, AppearedVariables)</span></span>
+<span class="lineno">  393 </span>
+<span class="lineno">  394 </span>-- | Use a 'NameAction' to handle an old and a new name.
+<span class="lineno">  395 </span>applyNameAction
+<span class="lineno">  396 </span>  :: NameAction -&gt; ScopedName -&gt; ScopedName -&gt; Either ScopeError ScopeInfo
+<span class="lineno">  397 </span><span class="decl"><span class="istickedoff">applyNameAction (Stays stays) snameOld snameNew</span>
+<span class="lineno">  398 </span><span class="spaces">  </span><span class="istickedoff">| snameOld == snameNew = Right $ applyStays stays snameOld</span>
+<span class="lineno">  399 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Left $ NameUnexpectedlyDisappeared snameOld snameNew</span>
+<span class="lineno">  400 </span><span class="spaces"></span><span class="istickedoff">applyNameAction (Disappears disappears) snameOld snameNew</span>
+<span class="lineno">  401 </span><span class="spaces">  </span><span class="istickedoff">| snameOld == snameNew = Left $ NameUnexpectedlyStayed snameOld</span>
+<span class="lineno">  402 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Right $ applyDisappears disappears snameOld snameNew</span></span>
+<span class="lineno">  403 </span>
+<span class="lineno">  404 </span>-- | Use a 'NameAnn' to handle a new name.
+<span class="lineno">  405 </span>handleSname :: ToScopedName name =&gt; NameAnn -&gt; name -&gt; ScopeErrorOrInfo
+<span class="lineno">  406 </span><span class="decl"><span class="istickedoff">handleSname ann nameNew = ScopeErrorOrInfo $ do</span>
+<span class="lineno">  407 </span><span class="spaces">  </span><span class="istickedoff">let snameNew = toScopedName nameNew</span>
+<span class="lineno">  408 </span><span class="spaces">  </span><span class="istickedoff">case ann of</span>
+<span class="lineno">  409 </span><span class="spaces">    </span><span class="istickedoff">NotAName -&gt; Left $ UnannotatedName snameNew</span>
+<span class="lineno">  410 </span><span class="spaces">    </span><span class="istickedoff">NameAction action snameOld -&gt;</span>
+<span class="lineno">  411 </span><span class="spaces">      </span><span class="istickedoff">if snameOld `isSameScope` snameNew</span>
+<span class="lineno">  412 </span><span class="spaces">        </span><span class="istickedoff">then applyNameAction action snameOld snameNew</span>
+<span class="lineno">  413 </span><span class="spaces">        </span><span class="istickedoff">else Left $ NameChangedItsScope snameOld snameNew</span></span>
+<span class="lineno">  414 </span>
+<span class="lineno">  415 </span>symmetricDifference :: Ord a =&gt; Set a -&gt; Set a -&gt; Set a
+<span class="lineno">  416 </span><span class="decl"><span class="istickedoff">symmetricDifference s t = (s `Set.union` t) `Set.difference` (s `Set.intersection` t)</span></span>
+<span class="lineno">  417 </span>
+<span class="lineno">  418 </span>{-| Check that each kind of 'Set' from 'ScopeInfo' relates to all other ones in a certain way.
+<span class="lineno">  419 </span>We start with these three relations that are based on the assumption that for each binder we add
+<span class="lineno">  420 </span>at least one out-of-scope variable and at least one in-scope one:
+<span class="lineno">  421 </span>
+<span class="lineno">  422 </span>1. disappeared bindings should be the same as stayed out of scope variables
+<span class="lineno">  423 </span>     (ensures that old bindings disappear via renaming and not via removal)
+<span class="lineno">  424 </span>2. disappeared bindings should be the same as disappeared variables
+<span class="lineno">  425 </span>     (ensures that old names consistently disappear at the binding and use sites)
+<span class="lineno">  426 </span>3. appeared bindings should be the same as appeared variables
+<span class="lineno">  427 </span>     (ensures that new names consistently appear at the binding and use sites)
+<span class="lineno">  428 </span>
+<span class="lineno">  429 </span>Once we've ensured all of that, we're left with only three sets and 3C2 equals 3,
+<span class="lineno">  430 </span>so we only need to consider three more relations:
+<span class="lineno">  431 </span>
+<span class="lineno">  432 </span>1. disappeared bindings should not intersect with free variables
+<span class="lineno">  433 </span>     (an internal sanity check)
+<span class="lineno">  434 </span>2. appeared bindings should not intersect with disappeared bindings
+<span class="lineno">  435 </span>3. appeared bindings should not intersect with free variables
+<span class="lineno">  436 </span>
+<span class="lineno">  437 </span>The last two ensure that no new name has an old name's unique. -}
+<span class="lineno">  438 </span>checkScopeInfo :: BindingRemoval -&gt; ScopeInfo -&gt; Either ScopeError ()
+<span class="lineno">  439 </span><span class="decl"><span class="istickedoff">checkScopeInfo bindRem scopeInfo = do</span>
+<span class="lineno">  440 </span><span class="spaces">  </span><span class="istickedoff">let disappearedBindings = to DisappearedBindings scopeInfo</span>
+<span class="lineno">  441 </span><span class="spaces">      </span><span class="istickedoff">disappearedVariables = to DisappearedVariables scopeInfo</span>
+<span class="lineno">  442 </span><span class="spaces">      </span><span class="istickedoff">appearedBindings = to AppearedBindings scopeInfo</span>
+<span class="lineno">  443 </span><span class="spaces">      </span><span class="istickedoff">appearedVariables = to AppearedVariables scopeInfo</span>
+<span class="lineno">  444 </span><span class="spaces">      </span><span class="istickedoff">stayedOutOfScopeVariables = to StayedOutOfScopeVariables scopeInfo</span>
+<span class="lineno">  445 </span><span class="spaces">      </span><span class="istickedoff">stayedFreeVariables = to StayedFreeVariables scopeInfo</span>
+<span class="lineno">  446 </span><span class="spaces">  </span><span class="istickedoff">unless (bindRem == BindingRemovalOk) $ do</span>
+<span class="lineno">  447 </span><span class="spaces">    </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  448 </span><span class="spaces">      </span><span class="istickedoff">symmetricDifference</span>
+<span class="lineno">  449 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">DisappearedBindingsDiscordWithOutOfScopeVariables</span></span>
+<span class="lineno">  450 </span><span class="spaces">      </span><span class="istickedoff">disappearedBindings</span>
+<span class="lineno">  451 </span><span class="spaces">      </span><span class="istickedoff">stayedOutOfScopeVariables</span>
+<span class="lineno">  452 </span><span class="spaces">  </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  453 </span><span class="spaces">    </span><span class="istickedoff">symmetricDifference</span>
+<span class="lineno">  454 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">DisappearedBindingsDiscordWithBoundVariables</span></span>
+<span class="lineno">  455 </span><span class="spaces">    </span><span class="istickedoff">disappearedBindings</span>
+<span class="lineno">  456 </span><span class="spaces">    </span><span class="istickedoff">disappearedVariables</span>
+<span class="lineno">  457 </span><span class="spaces">  </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  458 </span><span class="spaces">    </span><span class="istickedoff">symmetricDifference</span>
+<span class="lineno">  459 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">AppearedBindingsDiscordWithBoundVariables</span></span>
+<span class="lineno">  460 </span><span class="spaces">    </span><span class="istickedoff">appearedBindings</span>
+<span class="lineno">  461 </span><span class="spaces">    </span><span class="istickedoff">appearedVariables</span>
+<span class="lineno">  462 </span><span class="spaces">  </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  463 </span><span class="spaces">    </span><span class="istickedoff">Set.intersection</span>
+<span class="lineno">  464 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">DisappearedBindingsClashWithFreeVariables</span></span>
+<span class="lineno">  465 </span><span class="spaces">    </span><span class="istickedoff">disappearedBindings</span>
+<span class="lineno">  466 </span><span class="spaces">    </span><span class="istickedoff">stayedFreeVariables</span>
+<span class="lineno">  467 </span><span class="spaces">  </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  468 </span><span class="spaces">    </span><span class="istickedoff">Set.intersection</span>
+<span class="lineno">  469 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">DisappearedBindingsClashWithAppearedBindings</span></span>
+<span class="lineno">  470 </span><span class="spaces">    </span><span class="istickedoff">appearedBindings</span>
+<span class="lineno">  471 </span><span class="spaces">    </span><span class="istickedoff">disappearedBindings</span>
+<span class="lineno">  472 </span><span class="spaces">  </span><span class="istickedoff">checkEmptyOn</span>
+<span class="lineno">  473 </span><span class="spaces">    </span><span class="istickedoff">Set.intersection</span>
+<span class="lineno">  474 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">AppearedBindingsClashWithFreeVariabes</span></span>
+<span class="lineno">  475 </span><span class="spaces">    </span><span class="istickedoff">appearedBindings</span>
+<span class="lineno">  476 </span><span class="spaces">    </span><span class="istickedoff">stayedFreeVariables</span></span>
+<span class="lineno">  477 </span>
+<span class="lineno">  478 </span>-- | The type of errors that the scope checking machinery returns.
+<span class="lineno">  479 </span>data ScopeCheckError t = ScopeCheckError
+<span class="lineno">  480 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_input</span></span></span> :: !(t NameAnn)
+<span class="lineno">  481 </span>  -- ^ What got fed to the scoping check pass before preparation.
+<span class="lineno">  482 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_prepared</span></span></span> :: !(t NameAnn)
+<span class="lineno">  483 </span>  -- ^ What got fed to the scoping check pass after preparation.
+<span class="lineno">  484 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_output</span></span></span> :: !(t NameAnn)
+<span class="lineno">  485 </span>  -- ^ What got out of it.
+<span class="lineno">  486 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_error</span></span></span> :: !ScopeError
+<span class="lineno">  487 </span>  -- ^ The error returned by the scoping check pass.
+<span class="lineno">  488 </span>  }
+<span class="lineno">  489 </span>
+<span class="lineno">  490 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance Show (t NameAnn) =&gt; Show (ScopeCheckError t)</span></span></span></span></span></span>
+<span class="lineno">  491 </span>
+<span class="lineno">  492 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy config (t NameAnn) =&gt; PrettyBy config (ScopeCheckError t)</span></span> where
+<span class="lineno">  493 </span>  <span class="decl"><span class="istickedoff">prettyBy config (ScopeCheckError input prepared output err) =</span>
+<span class="lineno">  494 </span><span class="spaces">    </span><span class="istickedoff">vsep</span>
+<span class="lineno">  495 </span><span class="spaces">      </span><span class="istickedoff">[ pretty err</span>
+<span class="lineno">  496 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">&quot;when checking that transformation of&quot; &lt;&gt; hardline</span></span>
+<span class="lineno">  497 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">indent 2 $ prettyBy config input &lt;&gt; hardline</span></span>
+<span class="lineno">  498 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">&quot;to&quot; &lt;&gt; hardline</span></span>
+<span class="lineno">  499 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">indent 2 $ prettyBy config prepared &lt;&gt; hardline</span></span>
+<span class="lineno">  500 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">&quot;to&quot; &lt;&gt; hardline</span></span>
+<span class="lineno">  501 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">indent 2 $ prettyBy config output &lt;&gt; hardline</span></span>
+<span class="lineno">  502 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">&quot;is correct&quot;</span></span>
+<span class="lineno">  503 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  504 </span>
+<span class="lineno">  505 </span>-- See Note [Example of a scoping check].
+<span class="lineno">  506 </span>{-| Check if a pass respects scoping.
+<span class="lineno">  507 </span>
+<span class="lineno">  508 </span>Returns the thing that the scoping tests run on, the result of the pass and the scope checking
+<span class="lineno">  509 </span>outcome, respectively. -}
+<span class="lineno">  510 </span>checkRespectsScoping
+<span class="lineno">  511 </span>  :: Scoping t
+<span class="lineno">  512 </span>  =&gt; BindingRemoval
+<span class="lineno">  513 </span>  -&gt; (t NameAnn -&gt; t NameAnn)
+<span class="lineno">  514 </span>  {-^ For preparation before running the scoping tests.
+<span class="lineno">  515 </span>  Commonly, either @runQuote . rename@ or @id@. -}
+<span class="lineno">  516 </span>  -&gt; (t NameAnn -&gt; t NameAnn)
+<span class="lineno">  517 </span>  -- ^ The runner of the pass.
+<span class="lineno">  518 </span>  -&gt; t ann
+<span class="lineno">  519 </span>  -&gt; Either (ScopeCheckError t) ()
+<span class="lineno">  520 </span><span class="decl"><span class="istickedoff">checkRespectsScoping bindRem prep run thing =</span>
+<span class="lineno">  521 </span><span class="spaces">  </span><span class="istickedoff">first (ScopeCheckError input prepared output) $</span>
+<span class="lineno">  522 </span><span class="spaces">    </span><span class="istickedoff">unScopeErrorOrInfo (collectScopeInfo output) &gt;&gt;= checkScopeInfo bindRem</span>
+<span class="lineno">  523 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  524 </span><span class="spaces">    </span><span class="istickedoff">input = runQuote $ establishScoping thing</span>
+<span class="lineno">  525 </span><span class="spaces">    </span><span class="istickedoff">prepared = prep input</span>
+<span class="lineno">  526 </span><span class="spaces">    </span><span class="istickedoff">output = run prepared</span></span>
+
+</pre>
+</body>
+</html>

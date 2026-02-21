@@ -1,0 +1,3248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedLists #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.FreeVars</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.FreeVars.html#test_freevars"
+	><span class="hs-identifier"
+	  >test_freevars</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Unit.html"
+	><span class="hs-identifier"
+	  >PlutusCore.StdLib.Data.Unit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Test.DeBruijn.Bad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Good.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Test.DeBruijn.Good</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.HUnit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Test the behaviour of Cek evaluator module *directly*
+by using the Internal module, thus bypassing any prior term conformance checks, e.g.
+that the term is closed (no free variables). -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.FreeVars.html#testCekInternalFree"
+	><span class="hs-identifier hs-type"
+	  >testCekInternalFree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="testCekInternalFree"
+      ><span class="annot"
+	><span class="annottext"
+	  >testCekInternalFree :: TestTree
+</span
+	  ><a href="Evaluation.FreeVars.html#testCekInternalFree"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >testCekInternalFree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;cekInternal&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([TestTree] -&gt; TestTree) -&gt; [TestTree] -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TestName, Assertion) -&gt; TestTree)
+-&gt; [(TestName, Assertion)] -&gt; [TestTree]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TestName -&gt; Assertion -&gt; TestTree)
+-&gt; (TestName, Assertion) -&gt; TestTree
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#uncurry"
+	><span class="hs-identifier hs-var"
+	  >uncurry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;delay0&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-var"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun. Term DeBruijn uni fun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#var0"
+	><span class="hs-identifier hs-var"
+	  >var0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;fun0var0&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun0var0"
+	><span class="hs-identifier hs-var"
+	  >fun0var0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- Interesting example because it is a `const x y` where x is a value and y is out-of-scope.</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- The evaluation result (success or failure) depends on how the machine</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- ignores  the irrelevant to the computation) part of the environment.</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;const0var0&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun. Term DeBruijn uni fun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Good.html#const0"
+	><span class="hs-identifier hs-var"
+	  >const0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; [Term DeBruijn DefaultUni DefaultFun ()]
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#%40%40"
+	><span class="hs-operator hs-var"
+	  >@@</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [Term DeBruijn DefaultUni DefaultFun ()]
+Term DeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+(TermLike term tyname name uni fun, HasTermLevel uni ()) =&gt;
+term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Unit.html#unitval"
+	><span class="hs-identifier hs-var"
+	  >unitval</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [Term DeBruijn DefaultUni DefaultFun ()]
+Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun0var0"
+	><span class="hs-identifier hs-var"
+	  >fun0var0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- same as above, plus match on discharged value to show that freevar is completely ignored</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;const0var0Discharge&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	><a href="#local-6989586621679275952"
+	><span class="hs-identifier hs-var"
+	  >evalV</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun. Term DeBruijn uni fun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Good.html#const0"
+	><span class="hs-identifier hs-var"
+	  >const0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; [Term DeBruijn DefaultUni DefaultFun ()]
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#%40%40"
+	><span class="hs-operator hs-var"
+	  >@@</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [Term DeBruijn DefaultUni DefaultFun ()]
+Term DeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+(TermLike term tyname name uni fun, HasTermLevel uni ()) =&gt;
+term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Unit.html#unitval"
+	><span class="hs-identifier hs-var"
+	  >unitval</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [Term DeBruijn DefaultUni DefaultFun ()]
+Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun0var0"
+	><span class="hs-identifier hs-var"
+	  >fun0var0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+  (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+(TermLike term tyname name uni fun, HasTermLevel uni ()) =&gt;
+term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Unit.html#unitval"
+	><span class="hs-identifier hs-var"
+	  >unitval</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;iteLazy0&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#iteLazy0"
+	><span class="hs-identifier hs-var"
+	  >iteLazy0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;iteStrict0&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#iteStrict0"
+	><span class="hs-identifier hs-var"
+	  >iteStrict0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;illITELazy&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illITELazy"
+	><span class="hs-identifier hs-var"
+	  >illITELazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;illITEStrict&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illITEStrict"
+	><span class="hs-identifier hs-var"
+	  >illITEStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;illAdd&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illAdd"
+	><span class="hs-identifier hs-var"
+	  >illAdd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;illOverAppBuiltin&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illOverAppBuiltin"
+	><span class="hs-identifier hs-var"
+	  >illOverAppBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;illOverAppFun&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	><a href="#local-6989586621679275944"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#illOverAppFun"
+	><span class="hs-identifier hs-var"
+	  >illOverAppFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679275952"
+      ><span class="annot"
+	><span class="annottext"
+	  >evalV :: Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	  ><a href="#local-6989586621679275952"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >evalV</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+Term DeBruijn uni fun ann -&gt; Term NamedDeBruijn uni fun ann
+</span
+	><a href="Evaluation.FreeVars.html#toFakeTerm"
+	><span class="hs-identifier hs-var"
+	  >toFakeTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; (Term NamedDeBruijn DefaultUni DefaultFun ()
+    -&gt; Either
+         (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall {k} (cat :: k -&gt; k -&gt; *) (a :: k) (b :: k) (c :: k).
+Category cat =&gt;
+cat a b -&gt; cat b c -&gt; cat a c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Category.html#%3E%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+-&gt; ExBudgetMode CountingSt DefaultUni DefaultFun
+-&gt; EmitterMode DefaultUni DefaultFun
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; CekReport CountingSt NamedDeBruijn DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun ann cost.
+ThrowableBuiltins uni fun =&gt;
+MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+-&gt; ExBudgetMode cost uni fun
+-&gt; EmitterMode uni fun
+-&gt; NTerm uni fun ann
+-&gt; CekReport cost NamedDeBruijn uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#runCekDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >runCekDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+forall ann.
+Typeable ann =&gt;
+MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekParametersForTesting"
+	><span class="hs-identifier hs-var"
+	  >PLC.defaultCekParametersForTesting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetMode CountingSt DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun. ExBudgetMode CountingSt uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode.html#counting"
+	><span class="hs-identifier hs-var"
+	  >counting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmitterMode DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#noEmitter"
+	><span class="hs-identifier hs-var"
+	  >noEmitter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term NamedDeBruijn DefaultUni DefaultFun ()
+ -&gt; CekReport CountingSt NamedDeBruijn DefaultUni DefaultFun)
+-&gt; (CekReport CountingSt NamedDeBruijn DefaultUni DefaultFun
+    -&gt; Either
+         (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall {k} (cat :: k -&gt; k -&gt; *) (a :: k) (b :: k) (c :: k).
+Category cat =&gt;
+cat a b -&gt; cat b c -&gt; cat a c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Category.html#%3E%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekReport CountingSt NamedDeBruijn DefaultUni DefaultFun
+-&gt; CekResult NamedDeBruijn DefaultUni DefaultFun
+forall cost name (uni :: * -&gt; *) fun.
+CekReport cost name uni fun -&gt; CekResult name uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#_cekReportResult"
+	><span class="hs-identifier hs-var"
+	  >_cekReportResult</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CekReport CountingSt NamedDeBruijn DefaultUni DefaultFun
+ -&gt; CekResult NamedDeBruijn DefaultUni DefaultFun)
+-&gt; (CekResult NamedDeBruijn DefaultUni DefaultFun
+    -&gt; Either
+         (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; CekReport CountingSt NamedDeBruijn DefaultUni DefaultFun
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall {k} (cat :: k -&gt; k -&gt; *) (a :: k) (b :: k) (c :: k).
+Category cat =&gt;
+cat a b -&gt; cat b c -&gt; cat a c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Category.html#%3E%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekResult NamedDeBruijn DefaultUni DefaultFun
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall name (uni :: * -&gt; *) fun.
+CekResult name uni fun
+-&gt; Either
+     (CekEvaluationException name uni fun) (Term name uni fun ())
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#cekResultToEither"
+	><span class="hs-identifier hs-var"
+	  >cekResultToEither</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679275944"
+      ><span class="annot"
+	><span class="annottext"
+	  >eval :: Term DeBruijn DefaultUni DefaultFun () -&gt; Bool
+</span
+	  ><a href="#local-6989586621679275944"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >eval</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Either
+     (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	><a href="#local-6989586621679275952"
+	><span class="hs-identifier hs-var"
+	  >evalV</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Either
+      (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+      (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; (Either
+      (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+      (Term NamedDeBruijn DefaultUni DefaultFun ())
+    -&gt; Bool)
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Bool
+forall {k} (cat :: k -&gt; k -&gt; *) (a :: k) (b :: k) (c :: k).
+Category cat =&gt;
+cat a b -&gt; cat b c -&gt; cat a c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Category.html#%3E%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+  (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; Bool
+forall a b. Either a b -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#isRight"
+	><span class="hs-identifier hs-var"
+	  >isRight</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Test the behaviour of discharge function against open terms (containing free variables)
+by manually constructing CekValue's and Cek Environment's. The free variables should
+be left untouched. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.FreeVars.html#testDischargeFree"
+	><span class="hs-identifier hs-type"
+	  >testDischargeFree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="testDischargeFree"
+      ><span class="annot"
+	><span class="annottext"
+	  >testDischargeFree :: TestTree
+</span
+	  ><a href="Evaluation.FreeVars.html#testDischargeFree"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >testDischargeFree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;discharge&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([TestTree] -&gt; TestTree) -&gt; [TestTree] -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TestName, Assertion) -&gt; TestTree)
+-&gt; [(TestName, Assertion)] -&gt; [TestTree]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TestName -&gt; Assertion -&gt; TestTree)
+-&gt; (TestName, Assertion) -&gt; TestTree
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#uncurry"
+	><span class="hs-identifier hs-var"
+	  >uncurry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Assertion -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.html#testCase"
+	><span class="hs-identifier hs-var"
+	  >testCase</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;freeRemains1&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Assertion
+</span
+	><a href="#local-6989586621679276029"
+	><span class="hs-identifier hs-var"
+	  >freeRemains1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;freeRemains2&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Assertion
+</span
+	><a href="#local-6989586621679276030"
+	><span class="hs-identifier hs-var"
+	  >freeRemains2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679276029"
+      ><span class="annot"
+	><span class="annottext"
+	  >freeRemains1 :: Assertion
+</span
+	  ><a href="#local-6989586621679276029"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >freeRemains1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- dis( empty |- (delay (\x -&gt;var0)) ) === (delay (\x -&gt; var0))</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekValue DefaultUni DefaultFun ()
+-&gt; DischargeResult DefaultUni DefaultFun
+forall {ann}.
+CekValue DefaultUni DefaultFun ann
+-&gt; DischargeResult DefaultUni DefaultFun
+</span
+	><a href="#local-6989586621679276100"
+	><span class="hs-identifier hs-var"
+	  >dis</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; CekValEnv DefaultUni DefaultFun ()
+-&gt; CekValue DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+NTerm uni fun ann -&gt; CekValEnv uni fun ann -&gt; CekValue uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#VDelay"
+	><span class="hs-identifier hs-var"
+	  >VDelay</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+Term DeBruijn uni fun ann -&gt; Term NamedDeBruijn uni fun ann
+</span
+	><a href="Evaluation.FreeVars.html#toFakeTerm"
+	><span class="hs-identifier hs-var"
+	  >toFakeTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun0var0"
+	><span class="hs-identifier hs-var"
+	  >fun0var0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- empty env</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DischargeResult DefaultUni DefaultFun
+-&gt; DischargeResult DefaultUni DefaultFun -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; DischargeResult DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+NTerm uni fun () -&gt; DischargeResult uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#DischargeNonConstant"
+	><span class="hs-identifier hs-var"
+	  >DischargeNonConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+Term DeBruijn uni fun ann -&gt; Term NamedDeBruijn uni fun ann
+</span
+	><a href="Evaluation.FreeVars.html#toFakeTerm"
+	><span class="hs-identifier hs-var"
+	  >toFakeTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Term name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Delay"
+	><span class="hs-identifier hs-var"
+	  >Delay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#fun0var0"
+	><span class="hs-identifier hs-var"
+	  >fun0var0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679276030"
+      ><span class="annot"
+	><span class="annottext"
+	  >freeRemains2 :: Assertion
+</span
+	  ><a href="#local-6989586621679276030"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >freeRemains2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- dis( y:unit |- \x-&gt; x y var0) ) === (\x -&gt; x unit var0)</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- x is bound so it is left alone</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- y is discharged from the env</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- var0 is free so it is left alone</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekValue DefaultUni DefaultFun ()
+-&gt; DischargeResult DefaultUni DefaultFun
+forall {ann}.
+CekValue DefaultUni DefaultFun ann
+-&gt; DischargeResult DefaultUni DefaultFun
+</span
+	><a href="#local-6989586621679276100"
+	><span class="hs-identifier hs-var"
+	  >dis</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NamedDeBruijn
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; CekValEnv DefaultUni DefaultFun ()
+-&gt; CekValue DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+NamedDeBruijn
+-&gt; NTerm uni fun ann
+-&gt; CekValEnv uni fun ann
+-&gt; CekValue uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#VLamAbs"
+	><span class="hs-identifier hs-var"
+	  >VLamAbs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; NamedDeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#fakeNameDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >fakeNameDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeBruijn -&gt; NamedDeBruijn) -&gt; DeBruijn -&gt; NamedDeBruijn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#deBruijnInitIndex"
+	><span class="hs-identifier hs-var"
+	  >deBruijnInitIndex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+Term DeBruijn uni fun ann -&gt; Term NamedDeBruijn uni fun ann
+</span
+	><a href="Evaluation.FreeVars.html#toFakeTerm"
+	><span class="hs-identifier hs-var"
+	  >toFakeTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall {uni :: * -&gt; *} {fun}. Index -&gt; Term DeBruijn uni fun ()
+</span
+	><a href="#local-6989586621679276184"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; [Term DeBruijn DefaultUni DefaultFun ()]
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#%40%40"
+	><span class="hs-operator hs-var"
+	  >@@</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall {uni :: * -&gt; *} {fun}. Index -&gt; Term DeBruijn uni fun ()
+</span
+	><a href="#local-6989586621679276184"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- x</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-comment"
+      >-- y</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >                     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [Term DeBruijn DefaultUni DefaultFun ()]
+Term DeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun. Term DeBruijn uni fun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#var0"
+	><span class="hs-identifier hs-var"
+	  >var0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- free</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >                     </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf DefaultUni) -&gt; CekValue DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+Some (ValueOf uni) -&gt; CekValue uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#VCon"
+	><span class="hs-identifier hs-var"
+	  >VCon</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Some (ValueOf DefaultUni) -&gt; CekValue DefaultUni DefaultFun ())
+-&gt; Some (ValueOf DefaultUni) -&gt; CekValue DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Some (ValueOf DefaultUni)
+forall a (uni :: * -&gt; *). Contains uni a =&gt; a -&gt; Some (ValueOf uni)
+</span
+	><a href="../../plutus-core/src/Universe.Core.html#someValue"
+	><span class="hs-identifier hs-var"
+	  >someValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- env has y</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DischargeResult DefaultUni DefaultFun
+-&gt; DischargeResult DefaultUni DefaultFun -&gt; Assertion
+forall a. (Eq a, Show a, HasCallStack) =&gt; a -&gt; a -&gt; Assertion
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hunit-0.10.2/docs/src/Test.Tasty.HUnit.Orig.html#%40%3F%3D"
+	><span class="hs-operator hs-var"
+	  >@?=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; DischargeResult DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+NTerm uni fun () -&gt; DischargeResult uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#DischargeNonConstant"
+	><span class="hs-identifier hs-var"
+	  >DischargeNonConstant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun ann.
+Term DeBruijn uni fun ann -&gt; Term NamedDeBruijn uni fun ann
+</span
+	><a href="Evaluation.FreeVars.html#toFakeTerm"
+	><span class="hs-identifier hs-var"
+	  >toFakeTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; (Term DeBruijn DefaultUni DefaultFun ()
+    -&gt; Term DeBruijn DefaultUni DefaultFun ())
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall t (uni :: * -&gt; *) fun.
+(t ~ Term DeBruijn uni fun ()) =&gt;
+t -&gt; t
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Good.html#lamAbs0"
+	><span class="hs-identifier hs-var"
+	  >lamAbs0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall {uni :: * -&gt; *} {fun}. Index -&gt; Term DeBruijn uni fun ()
+</span
+	><a href="#local-6989586621679276184"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term DeBruijn DefaultUni DefaultFun ()
+-&gt; [Term DeBruijn DefaultUni DefaultFun ()]
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#%40%40"
+	><span class="hs-operator hs-var"
+	  >@@</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Some (ValueOf DefaultUni)
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Some (ValueOf uni) -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-var"
+	  >Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Some (ValueOf DefaultUni)
+forall a (uni :: * -&gt; *). Contains uni a =&gt; a -&gt; Some (ValueOf uni)
+</span
+	><a href="../../plutus-core/src/Universe.Core.html#someValue"
+	><span class="hs-identifier hs-var"
+	  >someValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- x</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-comment"
+      >-- substituted y</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >                   </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [Term DeBruijn DefaultUni DefaultFun ()]
+Term DeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun. Term DeBruijn uni fun ()
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Test.DeBruijn.Bad.html#var0"
+	><span class="hs-identifier hs-var"
+	  >var0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- free</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >                   </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679276100"
+      ><span class="annot"
+	><span class="annottext"
+	  >dis :: CekValue DefaultUni DefaultFun ann
+-&gt; DischargeResult DefaultUni DefaultFun
+</span
+	  ><a href="#local-6989586621679276100"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dis</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (uni :: * -&gt; *) fun ann.
+CekValue uni fun ann -&gt; DischargeResult uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#dischargeCekValue"
+	><span class="hs-identifier hs-var"
+	  >dischargeCekValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679276184"
+      ><span class="annot"
+	><span class="annottext"
+	  >v :: Index -&gt; Term DeBruijn uni fun ()
+</span
+	  ><a href="#local-6989586621679276184"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DeBruijn -&gt; Term DeBruijn uni fun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeBruijn -&gt; Term DeBruijn uni fun ())
+-&gt; (Index -&gt; DeBruijn) -&gt; Index -&gt; Term DeBruijn uni fun ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Index -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-var"
+	  >DeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.FreeVars.html#test_freevars"
+	><span class="hs-identifier hs-type"
+	  >test_freevars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span id="test_freevars"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_freevars :: TestTree
+</span
+	  ><a href="Evaluation.FreeVars.html#test_freevars"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_freevars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;FreeVars&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [TestTree]
+TestTree
+</span
+	><a href="Evaluation.FreeVars.html#testCekInternalFree"
+	><span class="hs-identifier hs-var"
+	  >testCekInternalFree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Item [TestTree]
+TestTree
+</span
+	><a href="Evaluation.FreeVars.html#testDischargeFree"
+	><span class="hs-identifier hs-var"
+	  >testDischargeFree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-comment"
+      >-- shortcuts</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="local-6989586621679275592"
+      ><span id="local-6989586621679275593"
+	><span id="local-6989586621679275594"
+	  ><span class="annot"
+	    ><a href="Evaluation.FreeVars.html#toFakeTerm"
+	      ><span class="hs-identifier hs-type"
+		>toFakeTerm</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	      ><span class="hs-identifier hs-type"
+		>DeBruijn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679275592"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679275593"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679275594"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	      ><span class="hs-identifier hs-type"
+		>NamedDeBruijn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679275592"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679275593"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679275594"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="toFakeTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >toFakeTerm :: forall (uni :: * -&gt; *) fun ann.
+Term DeBruijn uni fun ann -&gt; Term NamedDeBruijn uni fun ann
+</span
+	  ><a href="Evaluation.FreeVars.html#toFakeTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toFakeTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeBruijn -&gt; NamedDeBruijn)
+-&gt; Term DeBruijn uni fun ann -&gt; Term NamedDeBruijn uni fun ann
+forall name name' (uni :: * -&gt; *) fun ann.
+(name -&gt; name') -&gt; Term name uni fun ann -&gt; Term name' uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Subst.html#termMapNames"
+	><span class="hs-identifier hs-var"
+	  >termMapNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; NamedDeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#fakeNameDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >fakeNameDeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

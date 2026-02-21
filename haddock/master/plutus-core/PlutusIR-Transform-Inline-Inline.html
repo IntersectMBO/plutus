@@ -1,0 +1,625 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.Inline.Inline</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.Inline.Inline.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.Inline.Inline</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >An inlining pass of *non-recursive* bindings. It includes
+(1) unconditional inlining: similar to <code
+	    >PreInlineUnconditionally</code
+	    > and <code
+	    >PostInlineUnconditionally</code
+	    >
+in the paper 'Secrets of the GHC Inliner'.
+(2) call site inlining of fully applied functions. See <code
+	    ><a href="Inline-CallSiteInline.html#v:hs" title="Inline.CallSiteInline"
+	      >hs</a
+	      ></code
+	    > </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:inline"
+	      >inline</a
+	      > &#8759; &#8704; tyname name uni fun ann m. <a href="PlutusIR-Transform-Inline-Utils.html#t:ExternalConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >ExternalConstraints</a
+	      > tyname name uni fun m &#8658; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+	      >AstSize</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	      >InlineHints</a
+	      > name ann &#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:inlinePass"
+	      >inlinePass</a
+	      > &#8759; &#8704; uni fun ann m. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > ann, <a href="PlutusIR-Transform-Inline-Utils.html#t:ExternalConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >ExternalConstraints</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun m) &#8658; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+	      >AstSize</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	      >InlineHints</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > ann &#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann</li
+	    ><li class="src short"
+	    ><a href="#v:inlinePassSC"
+	      >inlinePassSC</a
+	      > &#8759; &#8704; uni fun ann m. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > ann, <a href="PlutusIR-Transform-Inline-Utils.html#t:ExternalConstraints" title="PlutusIR.Transform.Inline.Utils"
+	      >ExternalConstraints</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun m) &#8658; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+	      >AstSize</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+	      >InlineHints</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > ann &#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+	      >Pass</a
+	      > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:InlineHints"
+	      >InlineHints</a
+	      > name a = <a href="#v:InlineHints"
+	      >InlineHints</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:shouldInline"
+		  >shouldInline</a
+		  > &#8759; a &#8594; name &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:Inline" title="PlutusCore.Annotation"
+		  >Inline</a
+		  ></li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inline" class="def"
+	    >inline</a
+	    > <a href="src/PlutusIR.Transform.Inline.Inline.html#inline" class="link"
+	    >Source</a
+	    > <a href="#v:inline" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; tyname name uni fun ann m. <a href="PlutusIR-Transform-Inline-Utils.html#t:ExternalConstraints" title="PlutusIR.Transform.Inline.Utils"
+		  >ExternalConstraints</a
+		  > tyname name uni fun m</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+		  >AstSize</a
+		  ></td
+		><td class="doc"
+		><p
+		  >inline threshold</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >should we inline constants?</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+		  >InlineHints</a
+		  > name ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
+See Note [Inlining and global uniqueness] </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inlinePass" class="def"
+	    >inlinePass</a
+	    > <a href="src/PlutusIR.Transform.Inline.Inline.html#inlinePass" class="link"
+	    >Source</a
+	    > <a href="#v:inlinePass" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; uni fun ann m. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		  >Typecheckable</a
+		  > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		  >GEq</a
+		  > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		  >Ord</a
+		  > ann, <a href="PlutusIR-Transform-Inline-Utils.html#t:ExternalConstraints" title="PlutusIR.Transform.Inline.Utils"
+		  >ExternalConstraints</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > uni fun m)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+		  >AstSize</a
+		  ></td
+		><td class="doc"
+		><p
+		  >inline threshold</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >should we inline constants?</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+		  >PirTCConfig</a
+		  > uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+		  >InlineHints</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+		  >Pass</a
+		  > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inlinePassSC" class="def"
+	    >inlinePassSC</a
+	    > <a href="src/PlutusIR.Transform.Inline.Inline.html#inlinePassSC" class="link"
+	    >Source</a
+	    > <a href="#v:inlinePassSC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; uni fun ann m. (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		  >Typecheckable</a
+		  > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		  >GEq</a
+		  > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		  >Ord</a
+		  > ann, <a href="PlutusIR-Transform-Inline-Utils.html#t:ExternalConstraints" title="PlutusIR.Transform.Inline.Utils"
+		  >ExternalConstraints</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > uni fun m)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusIR-AstSize.html#t:AstSize" title="PlutusIR.AstSize"
+		  >AstSize</a
+		  ></td
+		><td class="doc"
+		><p
+		  >inline threshold</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >should we inline constants?</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Compiler-Types.html#t:PirTCConfig" title="PlutusIR.Compiler.Types"
+		  >PirTCConfig</a
+		  > uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+		  >InlineHints</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinsInfo</a
+		  > uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusIR-Pass.html#t:Pass" title="PlutusIR.Pass"
+		  >Pass</a
+		  > m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > uni fun ann</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:InlineHints" class="def"
+	    >InlineHints</a
+	    > name a <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:InlineHints" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InlineHints" class="def"
+		  >InlineHints</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:shouldInline" class="def"
+			  >shouldInline</a
+			  > &#8759; a &#8594; name &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:Inline" title="PlutusCore.Annotation"
+			  >Inline</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:InlineHints"
+	    >Instances</h4
+	    ><details id="i:InlineHints" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlineHints:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+		      >InlineHints</a
+		      > name a)</span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlineHints:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Annotation.html"
+			>PlutusCore.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+			  >InlineHints</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+			  >InlineHints</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+			  >InlineHints</a
+			  > name a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlineHints:Default:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+		      >InlineHints</a
+		      > name a)</span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlineHints:Default:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Annotation.html"
+			>PlutusCore.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:def"
+			  >def</a
+			  > &#8759; <a href="PlutusIR-Transform-Inline-Inline.html#t:InlineHints" title="PlutusIR.Transform.Inline.Inline"
+			  >InlineHints</a
+			  > name a <a href="#v:def" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,2702 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Data.List</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.56.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Data.List.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Data.List</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:caseList"
+	      >caseList</a
+	      > &#8759; &#8704; a r. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (() &#8594; r) &#8594; (a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; r) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; r</li
+	    ><li class="src short"
+	    ><a href="#v:caseList-39-"
+	      >caseList'</a
+	      > &#8759; &#8704; a r. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; r &#8594; (a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; r) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; r</li
+	    ><li class="src short"
+	    ><a href="#v:null"
+	      >null</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:append"
+	      >append</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:find"
+	      >find</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:findIndices"
+	      >findIndices</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:filter"
+	      >filter</a
+	      > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a) &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:mapMaybe"
+	      >mapMaybe</a
+	      > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b) &#8658; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > b) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:any"
+	      >any</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:all"
+	      >all</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:foldMap"
+	      >foldMap</a
+	      > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	      >Monoid</a
+	      > m) &#8658; (a &#8594; m) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; m</li
+	    ><li class="src short"
+	    ><a href="#v:map"
+	      >map</a
+	      > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > b) &#8658; (a &#8594; b) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:length"
+	      >length</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mconcat"
+	      >mconcat</a
+	      > &#8759; (<a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	      >Monoid</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a) &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:-60--124-"
+	      >(&lt;|)</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:cons"
+	      >cons</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:nil"
+	      >nil</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:singleton"
+	      >singleton</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:uncons"
+	      >uncons</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > (a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:and"
+	      >and</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:or"
+	      >or</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:elem"
+	      >elem</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:notElem"
+	      >notElem</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:foldr"
+	      >foldr</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:foldl"
+	      >foldl</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:concat"
+	      >concat</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:concatMap"
+	      >concatMap</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > b) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > b</li
+	    ><li class="src short"
+	    ><a href="#v:listToMaybe"
+	      >listToMaybe</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:uniqueElement"
+	      >uniqueElement</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:-33--33-"
+	      >(!!)</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:revAppend"
+	      >revAppend</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:reverse"
+	      >reverse</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:replicate"
+	      >replicate</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:findIndex"
+	      >findIndex</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unzip"
+	      >unzip</a
+	      > &#8759; &#8704; a b. <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > (a, b) &#8594; (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > b)</li
+	    ><li class="src short"
+	    ><a href="#v:zipWith"
+	      >zipWith</a
+	      > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > b, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > c) &#8658; (a &#8594; b &#8594; c) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > b &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > c</li
+	    ><li class="src short"
+	    ><a href="#v:head"
+	      >head</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:last"
+	      >last</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:tail"
+	      >tail</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:take"
+	      >take</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:drop"
+	      >drop</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:dropWhile"
+	      >dropWhile</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:splitAt"
+	      >splitAt</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:elemBy"
+	      >elemBy</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:nubBy"
+	      >nubBy</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:nub"
+	      >nub</a
+	      > &#8759; (<a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a) &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:partition"
+	      >partition</a
+	      > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:toBuiltinList"
+	      >toBuiltinList</a
+	      > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	      >BuiltinList</a
+	      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromBuiltinList"
+	      >fromBuiltinList</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	      >BuiltinList</a
+	      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:toSOP"
+	      >toSOP</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	      >UnsafeFromData</a
+	      > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a &#8594; [a]</li
+	    ><li class="src short"
+	    ><a href="#v:fromSOP"
+	      >fromSOP</a
+	      > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	      >ToData</a
+	      > a &#8658; [a] &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	      >List</a
+	      > a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:List" class="def"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#List" class="link"
+	    >Source</a
+	    > <a href="#t:List" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A list type backed directly by <code
+	      >Data</code
+	      >. It is meant to be used whenever fast
+encoding<em
+	      >decoding to</em
+	      >from <code
+	      >Data</code
+	      > is needed. </p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:List"
+	    >Instances</h4
+	    ><details id="i:List" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Lift:1"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-740" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Lift:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Monoid:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-131" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Monoid:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a] &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Semigroup:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-127" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Semigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Show:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Eq:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Eq:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Eq:6"
+		      ></span
+		      > <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Eq.html#%3D%3D" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:FromData:7"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:FromData:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:ToData:8"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:ToData:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:UnsafeFromData:9"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:UnsafeFromData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Monoid:10"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-123" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Monoid:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="src/PlutusTx.Monoid.html#mempty" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Semigroup:11"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-119" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Semigroup:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Pretty:12"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > a, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > a) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Data.List.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Pretty:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:List:Typeable:13"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		      >List</a
+		      ></span
+		    > <a href="src/PlutusTx.Data.List.html#line-740" class="link"
+		    >Source</a
+		    > <a href="#t:List" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:List:Typeable:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Data-List.html"
+			>PlutusTx.Data.List</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+			  >List</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseList" class="def"
+	    >caseList</a
+	    > <a href="src/PlutusTx.Data.List.html#caseList" class="link"
+	    >Source</a
+	    > <a href="#v:caseList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; a r. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		  >UnsafeFromData</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; (() &#8594; r)</td
+		><td class="doc"
+		><p
+		  >Nil case</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		  >List</a
+		  > a &#8594; r)</td
+		><td class="doc"
+		><p
+		  >Cons case</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		  >List</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; r</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Matching on the given <code
+	      ><a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		>List</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseList-39-" class="def"
+	    >caseList'</a
+	    > <a href="src/PlutusTx.Data.List.html#caseList%27" class="link"
+	    >Source</a
+	    > <a href="#v:caseList-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; a r. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		  >UnsafeFromData</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; r</td
+		><td class="doc"
+		><p
+		  >Nil case</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		  >List</a
+		  > a &#8594; r)</td
+		><td class="doc"
+		><p
+		  >Cons case</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+		  >List</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; r</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Like <code
+	      ><a href="PlutusTx-Data-List.html#v:caseList" title="PlutusTx.Data.List"
+		>caseList</a
+		></code
+	      >, except the nil case takes an <code
+	      >r</code
+	      > directly, which is evaluated strictly.
+If <code
+	      >r</code
+	      > is an error or expensive computation, consider using <code
+	      ><a href="PlutusTx-Data-List.html#v:caseList" title="PlutusTx.Data.List"
+		>caseList</a
+		></code
+	      > instead. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:null" class="def"
+	    >null</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#null" class="link"
+	    >Source</a
+	    > <a href="#v:null" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:append" class="def"
+	    >append</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#append" class="link"
+	    >Source</a
+	    > <a href="#v:append" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:find" class="def"
+	    >find</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.Data.List.html#find" class="link"
+	    >Source</a
+	    > <a href="#v:find" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Find the first element that satisfies a predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:findIndices" class="def"
+	    >findIndices</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Data.List.html#findIndices" class="link"
+	    >Source</a
+	    > <a href="#v:findIndices" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Find the indices of all elements that satisfy a predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:filter" class="def"
+	    >filter</a
+	    > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a) &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#filter" class="link"
+	    >Source</a
+	    > <a href="#v:filter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Filter a list using a predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapMaybe" class="def"
+	    >mapMaybe</a
+	    > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b) &#8658; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > b) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > b <a href="src/PlutusTx.Data.List.html#mapMaybe" class="link"
+	    >Source</a
+	    > <a href="#v:mapMaybe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map a function over a list and discard the results that are <code
+	      ><a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+		>Nothing</a
+		></code
+	      >.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >, or if the result of applying
+<code
+	      >f</code
+	      > is expensive to encode to <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:any" class="def"
+	    >any</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#any" class="link"
+	    >Source</a
+	    > <a href="#v:any" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if any element in the list satisfies a predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:all" class="def"
+	    >all</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#all" class="link"
+	    >Source</a
+	    > <a href="#v:all" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if all elements in the list satisfy a predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldMap" class="def"
+	    >foldMap</a
+	    > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	    >Monoid</a
+	    > m) &#8658; (a &#8594; m) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; m <a href="src/PlutusTx.Data.List.html#foldMap" class="link"
+	    >Source</a
+	    > <a href="#v:foldMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Fold a list using a monoid.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:map" class="def"
+	    >map</a
+	    > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > b) &#8658; (a &#8594; b) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > b <a href="src/PlutusTx.Data.List.html#map" class="link"
+	    >Source</a
+	    > <a href="#v:map" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map a function over a list.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >, or if the result of applying
+<code
+	      >f</code
+	      > is expensive to encode to <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:length" class="def"
+	    >length</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Data.List.html#length" class="link"
+	    >Source</a
+	    > <a href="#v:length" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the length of a list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mconcat" class="def"
+	    >mconcat</a
+	    > &#8759; (<a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+	    >Monoid</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a) &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; a <a href="src/PlutusTx.Data.List.html#mconcat" class="link"
+	    >Source</a
+	    > <a href="#v:mconcat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Concatenate a list of monoids.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-60--124-" class="def"
+	    >(&lt;|)</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <span class="fixity"
+	    >infixr 5</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.Data.List.html#%3C%7C" class="link"
+	    >Source</a
+	    > <a href="#v:-60--124-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Prepend an element to the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cons" class="def"
+	    >cons</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#cons" class="link"
+	    >Source</a
+	    > <a href="#v:cons" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Synonym for <code
+	      ><a href="PlutusTx-Data-List.html#v:-60--124-" title="PlutusTx.Data.List"
+		>&lt;|</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nil" class="def"
+	    >nil</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#nil" class="link"
+	    >Source</a
+	    > <a href="#v:nil" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Construct an empty list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:singleton" class="def"
+	    >singleton</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#singleton" class="link"
+	    >Source</a
+	    > <a href="#v:singleton" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create a list from a single element.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uncons" class="def"
+	    >uncons</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > (a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a) <a href="src/PlutusTx.Data.List.html#uncons" class="link"
+	    >Source</a
+	    > <a href="#v:uncons" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the first element of a list and the rest of the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:and" class="def"
+	    >and</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#and" class="link"
+	    >Source</a
+	    > <a href="#v:and" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if all elements in the list are <code
+	      ><a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+		>True</a
+		></code
+	      >.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:or" class="def"
+	    >or</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#or" class="link"
+	    >Source</a
+	    > <a href="#v:or" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if any element in the list is <code
+	      ><a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+		>True</a
+		></code
+	      >.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elem" class="def"
+	    >elem</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#elem" class="link"
+	    >Source</a
+	    > <a href="#v:elem" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if an element is in the list.
+Note: this function can leverage the better performance of equality checks
+for <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:notElem" class="def"
+	    >notElem</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#notElem" class="link"
+	    >Source</a
+	    > <a href="#v:notElem" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if an element is not in the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldr" class="def"
+	    >foldr</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; b <a href="src/PlutusTx.Data.List.html#foldr" class="link"
+	    >Source</a
+	    > <a href="#v:foldr" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Fold a list from the right.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldl" class="def"
+	    >foldl</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; b <a href="src/PlutusTx.Data.List.html#foldl" class="link"
+	    >Source</a
+	    > <a href="#v:foldl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Fold a list from the left.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concat" class="def"
+	    >concat</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#concat" class="link"
+	    >Source</a
+	    > <a href="#v:concat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Flatten a list of lists into a single list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:concatMap" class="def"
+	    >concatMap</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > b) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > b <a href="src/PlutusTx.Data.List.html#concatMap" class="link"
+	    >Source</a
+	    > <a href="#v:concatMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map a function over a list and concatenate the results.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:listToMaybe" class="def"
+	    >listToMaybe</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.Data.List.html#listToMaybe" class="link"
+	    >Source</a
+	    > <a href="#v:listToMaybe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the first element of a list if it is not empty.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uniqueElement" class="def"
+	    >uniqueElement</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > a <a href="src/PlutusTx.Data.List.html#uniqueElement" class="link"
+	    >Source</a
+	    > <a href="#v:uniqueElement" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the element of a list if it has exactly one element.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-33--33-" class="def"
+	    >(!!)</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; a <span class="fixity"
+	    >infixl 9</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.Data.List.html#%21%21" class="link"
+	    >Source</a
+	    > <a href="#v:-33--33-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the element at a given index.
+Warning: this is a partial function and will fail if the index is negative or
+greater than the length of the list.
+Note: this function has the same precedence as (!!) from <code
+	      ><a href="PlutusTx.html#v:List" title="PlutusTx"
+		>List</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:revAppend" class="def"
+	    >revAppend</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#revAppend" class="link"
+	    >Source</a
+	    > <a href="#v:revAppend" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Append two lists in reverse order.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reverse" class="def"
+	    >reverse</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#reverse" class="link"
+	    >Source</a
+	    > <a href="#v:reverse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reverse a list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:replicate" class="def"
+	    >replicate</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#replicate" class="link"
+	    >Source</a
+	    > <a href="#v:replicate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Replicate a value n times.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:findIndex" class="def"
+	    >findIndex</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Data.List.html#findIndex" class="link"
+	    >Source</a
+	    > <a href="#v:findIndex" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Find the index of the first element that satisfies a predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unzip" class="def"
+	    >unzip</a
+	    > &#8759; &#8704; a b. <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > (a, b) &#8594; (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > b) <a href="src/PlutusTx.Data.List.html#unzip" class="link"
+	    >Source</a
+	    > <a href="#v:unzip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a list of pairs into a pair of lists.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zipWith" class="def"
+	    >zipWith</a
+	    > &#8759; (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > b, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > c) &#8658; (a &#8594; b &#8594; c) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > b &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > c <a href="src/PlutusTx.Data.List.html#zipWith" class="link"
+	    >Source</a
+	    > <a href="#v:zipWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Zip two lists together using a function.
+Warning: this function can be very inefficient if the lists contain elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >, or if the result of applying
+<code
+	      >f</code
+	      > is expensive to encode to <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:head" class="def"
+	    >head</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; a <a href="src/PlutusTx.Data.List.html#head" class="link"
+	    >Source</a
+	    > <a href="#v:head" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the head of a list.
+Warning: this is a partial function and will fail if the list is empty. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:last" class="def"
+	    >last</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; a <a href="src/PlutusTx.Data.List.html#last" class="link"
+	    >Source</a
+	    > <a href="#v:last" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the last element of a list.
+Warning: this is a partial function and will fail if the list is empty. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tail" class="def"
+	    >tail</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#tail" class="link"
+	    >Source</a
+	    > <a href="#v:tail" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the tail of a list.
+Warning: this is a partial function and will fail if the list is empty. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:take" class="def"
+	    >take</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#take" class="link"
+	    >Source</a
+	    > <a href="#v:take" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Take the first n elements from the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:drop" class="def"
+	    >drop</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#drop" class="link"
+	    >Source</a
+	    > <a href="#v:drop" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Drop the first n elements from the list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dropWhile" class="def"
+	    >dropWhile</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#dropWhile" class="link"
+	    >Source</a
+	    > <a href="#v:dropWhile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Drop elements from the list while the predicate holds.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:splitAt" class="def"
+	    >splitAt</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a) <a href="src/PlutusTx.Data.List.html#splitAt" class="link"
+	    >Source</a
+	    > <a href="#v:splitAt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a list at a given index.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elemBy" class="def"
+	    >elemBy</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Data.List.html#elemBy" class="link"
+	    >Source</a
+	    > <a href="#v:elemBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if an element satisfying a binary predicate is in the list.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nubBy" class="def"
+	    >nubBy</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#nubBy" class="link"
+	    >Source</a
+	    > <a href="#v:nubBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Removes elements from the list that satisfy a binary predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nub" class="def"
+	    >nub</a
+	    > &#8759; (<a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > a, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a) &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#nub" class="link"
+	    >Source</a
+	    > <a href="#v:nub" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Removes duplicate elements from the list.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:partition" class="def"
+	    >partition</a
+	    > &#8759; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; (<a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a, <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a) <a href="src/PlutusTx.Data.List.html#partition" class="link"
+	    >Source</a
+	    > <a href="#v:partition" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Partition a list into two lists based on a predicate.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toBuiltinList" class="def"
+	    >toBuiltinList</a
+	    > &#8759; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	    >BuiltinList</a
+	    > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	    >BuiltinData</a
+	    > <a href="src/PlutusTx.Data.List.html#toBuiltinList" class="link"
+	    >Source</a
+	    > <a href="#v:toBuiltinList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromBuiltinList" class="def"
+	    >fromBuiltinList</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	    >BuiltinList</a
+	    > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#fromBuiltinList" class="link"
+	    >Source</a
+	    > <a href="#v:fromBuiltinList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toSOP" class="def"
+	    >toSOP</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+	    >UnsafeFromData</a
+	    > a &#8658; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a &#8594; [a] <a href="src/PlutusTx.Data.List.html#toSOP" class="link"
+	    >Source</a
+	    > <a href="#v:toSOP" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a data-backed list to a sums of products list.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to decode from <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromSOP" class="def"
+	    >fromSOP</a
+	    > &#8759; &#8704; a. <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+	    >ToData</a
+	    > a &#8658; [a] &#8594; <a href="PlutusTx-Data-List.html#t:List" title="PlutusTx.Data.List"
+	    >List</a
+	    > a <a href="src/PlutusTx.Data.List.html#fromSOP" class="link"
+	    >Source</a
+	    > <a href="#v:fromSOP" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a sums of products list to a data-backed list.
+Warning: this function can be very inefficient if the list contains elements
+that are expensive to encode to <code
+	      ><a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		>BuiltinData</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

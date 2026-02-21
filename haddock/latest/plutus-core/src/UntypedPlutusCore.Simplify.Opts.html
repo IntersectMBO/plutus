@@ -1,0 +1,1054 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Simplify.Opts</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#SimplifyOpts"
+	><span class="hs-identifier"
+	  >SimplifyOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#soMaxSimplifierIterations"
+	><span class="hs-identifier"
+	  >soMaxSimplifierIterations</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#soMaxCseIterations"
+	><span class="hs-identifier"
+	  >soMaxCseIterations</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#soInlineHints"
+	><span class="hs-identifier"
+	  >soInlineHints</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#soConservativeOpts"
+	><span class="hs-identifier"
+	  >soConservativeOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#soInlineConstants"
+	><span class="hs-identifier"
+	  >soInlineConstants</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#soInlineCallsiteGrowth"
+	><span class="hs-identifier"
+	  >soInlineCallsiteGrowth</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#soPreserveLogging"
+	><span class="hs-identifier"
+	  >soPreserveLogging</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#defaultSimplifyOpts"
+	><span class="hs-identifier"
+	  >defaultSimplifyOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens.TH</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>makeLenses</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/src/Data.Default.Class.html"
+	><span class="hs-identifier"
+	  >Data.Default.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Annotation.html#InlineHints"
+	><span class="hs-identifier"
+	  >InlineHints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html"
+	><span class="hs-identifier"
+	  >PlutusCore.AstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="SimplifyOpts"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Simplify.Opts.html#SimplifyOpts"
+	  ><span class="hs-identifier hs-var"
+	    >SimplifyOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682087657"
+      ><span class="annot"
+	><a href="#local-6989586621682087657"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682087658"
+      ><span class="annot"
+	><a href="#local-6989586621682087658"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="SimplifyOpts"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Simplify.Opts.html#SimplifyOpts"
+	  ><span class="hs-identifier hs-var"
+	    >SimplifyOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_soMaxSimplifierIterations"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name a. SimplifyOpts name a -&gt; Int
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#_soMaxSimplifierIterations"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_soMaxSimplifierIterations</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_soMaxCseIterations"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name a. SimplifyOpts name a -&gt; Int
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#_soMaxCseIterations"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_soMaxCseIterations</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_soConservativeOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name a. SimplifyOpts name a -&gt; Bool
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#_soConservativeOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_soConservativeOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_soInlineHints"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name a. SimplifyOpts name a -&gt; InlineHints name a
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#_soInlineHints"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_soInlineHints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Annotation.html#InlineHints"
+	><span class="hs-identifier hs-type"
+	  >InlineHints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682087657"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621682087658"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_soInlineConstants"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name a. SimplifyOpts name a -&gt; Bool
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#_soInlineConstants"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_soInlineConstants</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_soInlineCallsiteGrowth"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name a. SimplifyOpts name a -&gt; AstSize
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#_soInlineCallsiteGrowth"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_soInlineCallsiteGrowth</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier hs-type"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_soPreserveLogging"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall name a. SimplifyOpts name a -&gt; Bool
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#_soPreserveLogging"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_soPreserveLogging</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682087739"
+      ><span id="local-6989586621682087754"
+	><span id="local-6989586621682087758"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; SimplifyOpts name a -&gt; ShowS
+[SimplifyOpts name a] -&gt; ShowS
+SimplifyOpts name a -&gt; String
+(Int -&gt; SimplifyOpts name a -&gt; ShowS)
+-&gt; (SimplifyOpts name a -&gt; String)
+-&gt; ([SimplifyOpts name a] -&gt; ShowS)
+-&gt; Show (SimplifyOpts name a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall name a. Int -&gt; SimplifyOpts name a -&gt; ShowS
+forall name a. [SimplifyOpts name a] -&gt; ShowS
+forall name a. SimplifyOpts name a -&gt; String
+$cshowsPrec :: forall name a. Int -&gt; SimplifyOpts name a -&gt; ShowS
+showsPrec :: Int -&gt; SimplifyOpts name a -&gt; ShowS
+$cshow :: forall name a. SimplifyOpts name a -&gt; String
+show :: SimplifyOpts name a -&gt; String
+$cshowList :: forall name a. [SimplifyOpts name a] -&gt; ShowS
+showList :: [SimplifyOpts name a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621682087657"
+      ><span id="local-6989586621682087658"
+	><span id="local-6989586621682087685"
+	  ><span id="local-6989586621682087686"
+	    ><span id="soMaxSimplifierIterations"
+	      ><span id="soMaxCseIterations"
+		><span id="soInlineHints"
+		  ><span id="soConservativeOpts"
+		    ><span id="soInlineConstants"
+		      ><span id="soInlineCallsiteGrowth"
+			><span id="soPreserveLogging"
+			  ><span class="hs-special"
+			    >(</span
+			    ><span class="hs-identifier"
+			    >makeLenses</span
+			    ><span
+			    > </span
+			    ><span class="hs-special"
+			    >''</span
+			    ><span class="hs-identifier"
+			    >SimplifyOpts</span
+			    ><span class="hs-special"
+			    >)</span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="local-6989586621682087713"
+      ><span id="local-6989586621682087714"
+	><span class="annot"
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#defaultSimplifyOpts"
+	    ><span class="hs-identifier hs-type"
+	      >defaultSimplifyOpts</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#SimplifyOpts"
+	    ><span class="hs-identifier hs-type"
+	      >SimplifyOpts</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682087713"
+	    ><span class="hs-identifier hs-type"
+	      >name</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682087714"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="defaultSimplifyOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultSimplifyOpts :: forall name a. SimplifyOpts name a
+</span
+	  ><a href="UntypedPlutusCore.Simplify.Opts.html#defaultSimplifyOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultSimplifyOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Simplify.Opts.html#SimplifyOpts"
+	><span class="hs-identifier hs-type"
+	  >SimplifyOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_soMaxSimplifierIterations :: Int
+</span
+	><a href="UntypedPlutusCore.Simplify.Opts.html#_soMaxSimplifierIterations"
+	><span class="hs-identifier hs-var"
+	  >_soMaxSimplifierIterations</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>12</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_soMaxCseIterations :: Int
+</span
+	><a href="UntypedPlutusCore.Simplify.Opts.html#_soMaxCseIterations"
+	><span class="hs-identifier hs-var"
+	  >_soMaxCseIterations</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>4</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_soConservativeOpts :: Bool
+</span
+	><a href="UntypedPlutusCore.Simplify.Opts.html#_soConservativeOpts"
+	><span class="hs-identifier hs-var"
+	  >_soConservativeOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_soInlineHints :: InlineHints name a
+</span
+	><a href="UntypedPlutusCore.Simplify.Opts.html#_soInlineHints"
+	><span class="hs-identifier hs-var"
+	  >_soInlineHints</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>InlineHints name a
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_soInlineConstants :: Bool
+</span
+	><a href="UntypedPlutusCore.Simplify.Opts.html#_soInlineConstants"
+	><span class="hs-identifier hs-var"
+	  >_soInlineConstants</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_soInlineCallsiteGrowth :: AstSize
+</span
+	><a href="UntypedPlutusCore.Simplify.Opts.html#_soInlineCallsiteGrowth"
+	><span class="hs-identifier hs-var"
+	  >_soInlineCallsiteGrowth</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AstSize
+</span
+	><span class="hs-number"
+	>5</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>_soPreserveLogging :: Bool
+</span
+	><a href="UntypedPlutusCore.Simplify.Opts.html#_soPreserveLogging"
+	><span class="hs-identifier hs-var"
+	  >_soPreserveLogging</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

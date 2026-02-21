@@ -1,0 +1,376 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Tutorial</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.58.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Tutorial.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Tutorial</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="doc"
+	><p
+	  >To (de)serialise a data type, make it an instance of the <code
+	    ><a href="Flat-Class.html#v:Flat" title="Flat.Class"
+	      >Flat</a
+	      ></code
+	    > class.</p
+	  ><p
+	  >There is <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/docs/GHC-Generics.html"
+	    >Generics</a
+	    > based support to automatically derive a correct instance.</p
+	  ><p
+	  >Let&#8217;s see some code.</p
+	  ><p
+	  >We need a couple of extensions:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >:set -XDeriveGeneric -XDeriveAnyClass
+</code
+	      ></strong
+	    ></pre
+	  ><p
+	  >The <code
+	    >Flat</code
+	    > top module:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >import PlutusCore.Flat
+</code
+	      ></strong
+	    ></pre
+	  ><p
+	  >And, just for fun, a couple of functions to display an encoded value as a sequence of bits:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >import PlutusCore.Flat.Instances.Test (flatBits,allBits)
+</code
+	      ></strong
+	    ></pre
+	  ><p
+	  >Define a few custom data types, deriving <code
+	    >Generic</code
+	    > and <code
+	    >Flat</code
+	    >:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >data Result = Bad | Good deriving (Show,Generic,Flat)
+</code
+	      ></strong
+	    ></pre
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >data Direction = North | South | Center | East | West deriving (Show,Generic,Flat)
+</code
+	      ></strong
+	    ></pre
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >data List a = Nil | Cons a (List a) deriving (Show,Generic,Flat)
+</code
+	      ></strong
+	    ></pre
+	  ></div
+	><div class="doc"
+	><p
+	  >Now we can encode a List of Directions using <code
+	    ><a href="Flat-Run.html#v:flat" title="Flat.Run"
+	      >flat</a
+	      ></code
+	    >:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >flat $ Cons North (Cons South Nil)
+</code
+	      ></strong
+	    >&quot;\149&quot;
+</pre
+	  ><p
+	  >The result is a strict <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/docs/Data-ByteString.html"
+	    >ByteString</a
+	    >.</p
+	  ><p
+	  >And decode it back using <code
+	    ><a href="Flat-Run.html#v:unflat" title="Flat.Run"
+	      >unflat</a
+	      ></code
+	    >:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >unflat . flat $ Cons North (Cons South Nil) :: Decoded (List Direction)
+</code
+	      ></strong
+	    >Right (Cons North (Cons South Nil))
+</pre
+	  ><p
+	  >The result is a <code
+	    ><a href="Flat.html#v:Decoded" title="Flat"
+	      >Decoded</a
+	      ></code
+	    > value: <code
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      ></code
+	    > a <code
+	    ><a href="Flat.html#v:DecodeException" title="Flat"
+	      >DecodeException</a
+	      ></code
+	    > or the actual value.</p
+	  ><h3
+	  >Optimal Bit-Encoding</h3
+	  ><p
+	  ><a id="optimal-bit-encoding"
+	    ></a
+	    ></p
+	  ><p
+	  >A pecularity of Flat is that it uses an optimal bit-encoding rather than
+the usual byte-oriented one.</p
+	  ><p
+	  >One bit is sufficient to encode a <code
+	    >Result</code
+	    > or an empty <code
+	    >List</code
+	    >:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >flatBits Good
+</code
+	      ></strong
+	    >&quot;1&quot;
+</pre
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >flatBits (Nil::List Direction)
+</code
+	      ></strong
+	    >&quot;0&quot;
+</pre
+	  ><p
+	  >Two or three bits suffice for a <code
+	    >Direction</code
+	    >:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >flatBits South
+</code
+	      ></strong
+	    >&quot;01&quot;
+</pre
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >flatBits West
+</code
+	      ></strong
+	    >&quot;111&quot;
+</pre
+	  ><p
+	  >For the serialisation to work with byte-oriented devices or storage, we need to add some padding.</p
+	  ><p
+	  >To do so, rather than encoding a plain value, <code
+	    ><a href="Flat-Run.html#v:flat" title="Flat.Run"
+	      >flat</a
+	      ></code
+	    > encodes a <code
+	    ><a href="Flat-Filler.html#v:PostAligned" title="Flat.Filler"
+	      >PostAligned</a
+	      ></code
+	    > value, that's to say a value followed by a <code
+	    ><a href="Flat-Filler.html#v:Filler" title="Flat.Filler"
+	      >Filler</a
+	      ></code
+	    > that stretches till the next byte boundary.</p
+	  ><p
+	  >In practice, the padding is a, possibly empty, sequence of 0s followed by a 1.</p
+	  ><p
+	  >For example, this list encodes as 7 bits:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >flatBits $ Cons North (Cons South Nil)
+</code
+	      ></strong
+	    >&quot;1001010&quot;
+</pre
+	  ><p
+	  >And, with the added padding of a final &quot;1&quot;, will snugly fit in a single byte:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >allBits $ Cons North (Cons South Nil)
+</code
+	      ></strong
+	    >&quot;10010101&quot;
+</pre
+	  ><p
+	  >But .. you don't need to worry about these details as byte-padding is automatically added by the function <code
+	    ><a href="Flat-Run.html#v:flat" title="Flat.Run"
+	      >flat</a
+	      ></code
+	    > and removed by <code
+	    ><a href="Flat-Run.html#v:unflat" title="Flat.Run"
+	      >unflat</a
+	      ></code
+	    >.</p
+	  ><h3
+	  >Pre-defined Instances</h3
+	  ><p
+	  >Flat instances are already defined for relevant types of some common packages: array, base, bytestring, containers, dlist, mono-traversable, text, unordered-containers, vector.</p
+	  ><p
+	  >They are automatically imported by the <a href="Flat.html"
+	    >Flat</a
+	    > module.</p
+	  ><p
+	  >For example:</p
+	  ><pre class="screen"
+	  ><code class="prompt"
+	    >&gt;&gt;&gt; </code
+	    ><strong class="userinput"
+	    ><code
+	      >flatBits $ Just True
+</code
+	      ></strong
+	    >&quot;11&quot;
+</pre
+	  ><h3
+	  >Wrapper Types</h3
+	  ><p
+	  >There are a few wrapper types that modify the way encoding and/or decoding occur.</p
+	  ><ul
+	  ><li
+	    ><a href="Flat-AsBin.html"
+	      >Flat.AsBin</a
+	      > and <a href="Flat-AsSize.html"
+	      >Flat.AsSize</a
+	      > decode to a value's flat binary representation or size in bits respectively.</li
+	    ><li
+	    ><code
+	      ><a href="Flat-Instances-Mono.html#v:AsArray" title="Flat.Instances.Mono"
+		>AsArray</a
+		></code
+	      > and <code
+	      ><a href="Flat-Instances-Mono.html#v:AsList" title="Flat.Instances.Mono"
+		>AsList</a
+		></code
+	      > encode/decode a sequence as a List or Array respectively, see <a href="Flat-Instances-Mono.html"
+	      >Flat.Instances.Mono</a
+	      > for details.</li
+	    ><li
+	    ><code
+	      ><a href="Flat-Instances-Text.html#v:UTF8Text" title="Flat.Instances.Text"
+		>UTF8Text</a
+		></code
+	      > and <code
+	      ><a href="Flat-Instances-Text.html#v:UTF16Text" title="Flat.Instances.Text"
+		>UTF16Text</a
+		></code
+	      > encode/decode a Text as UTF8 or UTF16 respectively. </li
+	    ></ul
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

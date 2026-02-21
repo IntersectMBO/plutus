@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.RewriteRules.Common</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.RewriteRules.Common.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.RewriteRules.Common</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:seqA"
+	      >seqA</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni a &#8594; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a, <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:seqP"
+	      >seqP</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni a &#8594; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a, <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:mkFreshTermLet"
+	      >mkFreshTermLet</a
+	      > &#8759; &#8704; m t tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) fun a. (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="../plutus-core/PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > t tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > a) &#8658; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a &#8594; t a &#8594; m (t a, t a &#8594; t a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:A"
+	      >A</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:B"
+	      >B</a
+	      > &#8759; fun &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:I"
+	      >I</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:seqA" class="def"
+	    >seqA</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni a &#8594; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a, <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a) <a href="src/PlutusIR.Transform.RewriteRules.Common.html#seqA" class="link"
+	    >Source</a
+	    > <a href="#v:seqA" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A wrapper that can be more easily turned into an infix operator.</p
+	    ><p
+	    >e.g. `infixr 5 (***) = seqA binfo vInfo`</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:seqP" class="def"
+	    >seqP</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > a, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni a &#8594; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a, <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun a) <a href="src/PlutusIR.Transform.RewriteRules.Common.html#seqP" class="link"
+	    >Source</a
+	    > <a href="#v:seqP" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Another &quot;infix&quot; wrapper where second operand is a Haskell pure value.</p
+	    ><p
+	    >e.g. `infixr 5 (***) = seqP binfo vInfo`</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkFreshTermLet" class="def"
+	    >mkFreshTermLet</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:mkFreshTermLet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; m t tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		  >Type</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		  >Type</a
+		  >) fun a. (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		  >MonadQuote</a
+		  > m, <a href="../plutus-core/PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+		  >TermLike</a
+		  > t tyname <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > uni fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		  >Monoid</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni a</td
+		><td class="doc"
+		><p
+		  >the type of binding</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; t a</td
+		><td class="doc"
+		><p
+		  >the term bound to the fresh variable</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; m (t a, t a &#8594; t a)</td
+		><td class="doc"
+		><p
+		  >the fresh Var and a function that takes an &quot;in&quot; term to construct the Let</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >A helper to create a single, fresh strict binding; It returns the fresh bound <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Var" title="PlutusCore.Core.Type"
+		>Var</a
+		></code
+	      >iable and
+a function `Term -&gt; Term`, expecting an &quot;in-Term&quot; to form a let-expression.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:A" class="def"
+	    >A</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Transform.RewriteRules.Common.html#A" class="link"
+	    >Source</a
+	    > <a href="#v:A" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:B" class="def"
+	    >B</a
+	    > &#8759; fun &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Transform.RewriteRules.Common.html#B" class="link"
+	    >Source</a
+	    > <a href="#v:B" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:I" class="def"
+	    >I</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Transform.RewriteRules.Common.html#I" class="link"
+	    >Source</a
+	    > <a href="#v:I" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

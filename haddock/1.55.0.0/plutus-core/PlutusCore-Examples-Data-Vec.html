@@ -1,0 +1,627 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Examples.Data.Vec</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Examples.Data.Vec.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Examples.Data.Vec</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >In this module we define Church-encoded type-level natural numbers,
+ Church-encoded vectors and Scott-encoded vectors.</p
+	  ><p
+	  >See <code
+	    ><em
+	      >docs</em
+	      >fomega<em
+	      >gadts</em
+	      >ScottVec.agda</code
+	    > for how Scott-encoded vectors work.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:natK"
+	      >natK</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:getEta"
+	      >getEta</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni () &#8594; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ())</li
+	    ><li class="src short"
+	    ><a href="#v:zeroT"
+	      >zeroT</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:succT"
+	      >succT</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:plusT"
+	      >plusT</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:getStepFun"
+	      >getStepFun</a
+	      > &#8759; <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni () &#8594; <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ())</li
+	    ><li class="src short"
+	    ><a href="#v:churchVec"
+	      >churchVec</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:churchNil"
+	      >churchNil</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:churchCons"
+	      >churchCons</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:churchConcat"
+	      >churchConcat</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:scottVecF"
+	      >scottVecF</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:scottVec"
+	      >scottVec</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:scottNil"
+	      >scottNil</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:scottCons"
+	      >scottCons</a
+	      > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:scottHead"
+	      >scottHead</a
+	      > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeAndTermLevel`</a
+	      > () &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:scottSumHeadsOr0"
+	      >scottSumHeadsOr0</a
+	      > &#8759; (uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeAndTermLevel`</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >, uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeAndTermLevel`</a
+	      > ()) &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:natK" class="def"
+	    >natK</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () <a href="src/PlutusCore.Examples.Data.Vec.html#natK" class="link"
+	    >Source</a
+	    > <a href="#v:natK" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >natK = (* -&gt; *) -&gt; * -&gt; *</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getEta" class="def"
+	    >getEta</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () &#8594; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ()) <a href="src/PlutusCore.Examples.Data.Vec.html#getEta" class="link"
+	    >Source</a
+	    > <a href="#v:getEta" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >getEta n = \(f :: * -&gt; *) (z :: *) -&gt; n f z</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zeroT" class="def"
+	    >zeroT</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Vec.html#zeroT" class="link"
+	    >Source</a
+	    > <a href="#v:zeroT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >zeroT = \(f :: * -&gt; *) (z :: *) -&gt; z</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:succT" class="def"
+	    >succT</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Vec.html#succT" class="link"
+	    >Source</a
+	    > <a href="#v:succT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >succT = \(n : natK) (f :: * -&gt; *) (z :: *) -&gt; f (n f z)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plusT" class="def"
+	    >plusT</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Vec.html#plusT" class="link"
+	    >Source</a
+	    > <a href="#v:plusT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >plusT = \(n : natK) (m : natK) (f :: * -&gt; *) (z :: *) -&gt; n f (m f z)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getStepFun" class="def"
+	    >getStepFun</a
+	    > &#8759; <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () &#8594; <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ()) <a href="src/PlutusCore.Examples.Data.Vec.html#getStepFun" class="link"
+	    >Source</a
+	    > <a href="#v:getStepFun" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >stepFun a r1 r2 = all (p :: natK). a -&gt; r1 p -&gt; r2 (succT p)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:churchVec" class="def"
+	    >churchVec</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Vec.html#churchVec" class="link"
+	    >Source</a
+	    > <a href="#v:churchVec" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >churchVec =
+    \(a :: *) (n :: natK) -&gt;
+        all (r :: natK -&gt; *). (all (p :: natK). a -&gt; r p -&gt; r (succT p)) -&gt; r zeroT -&gt; r n</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:churchNil" class="def"
+	    >churchNil</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Vec.html#churchNil" class="link"
+	    >Source</a
+	    > <a href="#v:churchNil" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >churchNil =
+    /\(a :: *) -&gt;
+        /\(r :: natK -&gt; *) -&gt; \(f : all (p :: natK). a -&gt; r p -&gt; r (succT p)) (z : r zeroT) -&gt;
+            z</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:churchCons" class="def"
+	    >churchCons</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Vec.html#churchCons" class="link"
+	    >Source</a
+	    > <a href="#v:churchCons" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >churchCons =
+    /\(a :: *) (n :: natK) -&gt; \(x : a) (xs : churchVec a n) -&gt;
+        /\(r :: natK -&gt; *) -&gt; \(f : all (p :: natK). a -&gt; r p -&gt; r (succT p)) (z : r zeroT) -&gt;
+            f {n} x (xs {r} f z)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:churchConcat" class="def"
+	    >churchConcat</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Vec.html#churchConcat" class="link"
+	    >Source</a
+	    > <a href="#v:churchConcat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >churchConcat =
+    /\(a :: *) (n :: natK) (m :: natK) -&gt; \(xs : churchVec a n) (ys : churchVec a m) -&gt;
+        /\(r :: natK -&gt; *) -&gt; \(f : all (p :: natK). a -&gt; r p -&gt; r (succT p)) (z : r zeroT) -&gt;
+            xs
+                {\(p :: natK) -&gt; r (plusT p m)}
+                (/\(p :: natK) -&gt; f {plusT p m})
+                (ys {r} f z)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scottVecF" class="def"
+	    >scottVecF</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Vec.html#scottVecF" class="link"
+	    >Source</a
+	    > <a href="#v:scottVecF" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >scottVecF =
+    \(a :: *) (rec :: natK -&gt; *) (n :: natK) -&gt;
+        all (r :: natK -&gt; *). (all (p :: natK). a -&gt; rec p -&gt; r (succT p)) -&gt; r zeroT -&gt; r n</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scottVec" class="def"
+	    >scottVec</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Vec.html#scottVec" class="link"
+	    >Source</a
+	    > <a href="#v:scottVec" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >scottVec = \(a :: *) (n :: natK) -&gt; ifix (scottVecF a) n</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scottNil" class="def"
+	    >scottNil</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Vec.html#scottNil" class="link"
+	    >Source</a
+	    > <a href="#v:scottNil" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >scottNil =
+    /\(a :: *) -&gt;
+        iwrap (scottVecF a) zeroT
+            (/\(r :: natK -&gt; *) -&gt;
+                \(f : all (p :: natK). a -&gt; scottVec a p -&gt; r (succT p)) (z : r zeroT) -&gt;
+                    z)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scottCons" class="def"
+	    >scottCons</a
+	    > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Vec.html#scottCons" class="link"
+	    >Source</a
+	    > <a href="#v:scottCons" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >scottCons =
+    /\(a :: *) (n :: natK) -&gt; \(x : a) (xs : scottVec a n) -&gt;
+        iwrap (scottVecF a) (succT n)
+            (/\(r :: natK -&gt; *) -&gt;
+                \(f : all (p :: natK). a -&gt; scottVec a p -&gt; r (succT p)) (z : r zeroT) -&gt;
+                    f {n} x xs)</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scottHead" class="def"
+	    >scottHead</a
+	    > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeAndTermLevel`</a
+	    > () &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Vec.html#scottHead" class="link"
+	    >Source</a
+	    > <a href="#v:scottHead" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >scottHead =
+    /\(a :: *) (n :: natK) -&gt; (xs : scottVec a (suc n)) -&gt;
+        unwrap
+            xs
+            {\(p :: natK) -&gt; p (\(z :: *) -&gt; a) unit}
+            (/\(p :: natK) (x : a) (xs' : scottVec a p) -&gt; x)
+            unitval</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scottSumHeadsOr0" class="def"
+	    >scottSumHeadsOr0</a
+	    > &#8759; (uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeAndTermLevel`</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >, uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeAndTermLevel`</a
+	    > ()) &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/PlutusCore.Examples.Data.Vec.html#scottSumHeadsOr0" class="link"
+	    >Source</a
+	    > <a href="#v:scottSumHeadsOr0" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >scottSumHeadsOr0 =
+    /\(n :: natK) -&gt; (xs ys : scottVec integer n) -&gt;
+        unwrap
+            xs
+            {\(p :: natK) -&gt; (scottVec Integer n -&gt; scottVec integer p) -&gt; integer}
+            (/\(p :: natK) (x : integer) (xs' : scottVec integer p)
+                \(coe : scottVec Integer n -&gt; scottVec integer (suc p)) -&gt;
+                    x + scottHead {integer} {p} (coe ys))
+            (\(coe : scottVec Integer n -&gt; scottVec integer zero) -&gt; 0)
+            (/\(xs' :: scottVec Integer n) -&gt; xs')</pre
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

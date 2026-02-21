@@ -1,0 +1,828 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Subst</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Subst.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Subst</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:substVarA"
+	      >substVarA</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; (name &#8594; f (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:substTyVarA"
+	      >substTyVarA</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; (tyname &#8594; f (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:typeSubstTyNames"
+	      >typeSubstTyNames</a
+	      > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann. (tyname &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann</li
+	    ><li class="src short"
+	    ><a href="#v:termSubstNames"
+	      >termSubstNames</a
+	      > &#8759; (name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:termSubstNamesM"
+	      >termSubstNamesM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; (name &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termSubstTyNames"
+	      >termSubstTyNames</a
+	      > &#8759; (tyname &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:termSubstTyNamesM"
+	      >termSubstTyNamesM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; (tyname &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:bindingSubstNames"
+	      >bindingSubstNames</a
+	      > &#8759; (name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:bindingSubstTyNames"
+	      >bindingSubstTyNames</a
+	      > &#8759; (tyname &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:fvTerm"
+	      >fvTerm</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) name</li
+	    ><li class="src short"
+	    ><a href="#v:ftvTerm"
+	      >ftvTerm</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) tyname</li
+	    ><li class="src short"
+	    ><a href="#v:fvBinding"
+	      >fvBinding</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      > &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun ann) name</li
+	    ><li class="src short"
+	    ><a href="#v:ftvBinding"
+	      >ftvBinding</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > &#8658; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	      >Recursivity</a
+	      > &#8594; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > tyname name uni fun ann) tyname</li
+	    ><li class="src short"
+	    ><a href="#v:ftvTy"
+	      >ftvTy</a
+	      > &#8759; &#8704; tyname unique (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann. <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname unique &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann) tyname</li
+	    ><li class="src short"
+	    ><a href="#v:vTerm"
+	      >vTerm</a
+	      > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) name</li
+	    ><li class="src short"
+	    ><a href="#v:tvTerm"
+	      >tvTerm</a
+	      > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann) tyname</li
+	    ><li class="src short"
+	    ><a href="#v:tvTy"
+	      >tvTy</a
+	      > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) ann f. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Contravariant.html#t:Contravariant" title="Data.Functor.Contravariant"
+	      >Contravariant</a
+	      > f, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f) &#8658; (tyname &#8594; f tyname) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:substConstantA"
+	      >substConstantA</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f &#8658; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; f (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:substConstant"
+	      >substConstant</a
+	      > &#8759; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann</li
+	    ><li class="src short"
+	    ><a href="#v:termSubstConstantsM"
+	      >termSubstConstantsM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m &#8658; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:termSubstConstants"
+	      >termSubstConstants</a
+	      > &#8759; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substVarA" class="def"
+	    >substVarA</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; (name &#8594; f (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Subst.html#substVarA" class="link"
+	    >Source</a
+	    > <a href="#v:substVarA" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Applicatively replace a variable using the given function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substTyVarA" class="def"
+	    >substTyVarA</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; (tyname &#8594; f (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="src/PlutusIR.Subst.html#substTyVarA" class="link"
+	    >Source</a
+	    > <a href="#v:substTyVarA" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Applicatively replace a type variable using the given function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeSubstTyNames" class="def"
+	    >typeSubstTyNames</a
+	    > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann. (tyname &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:typeSubstTyNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Naively substitute type names (i.e. do not substitute binders).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubstNames" class="def"
+	    >termSubstNames</a
+	    > &#8759; (name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Subst.html#termSubstNames" class="link"
+	    >Source</a
+	    > <a href="#v:termSubstNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Naively substitute names using the given functions (i.e. do not substitute binders).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubstNamesM" class="def"
+	    >termSubstNamesM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; (name &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Subst.html#termSubstNamesM" class="link"
+	    >Source</a
+	    > <a href="#v:termSubstNamesM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Naively monadically substitute names using the given function (i.e. do not substitute binders).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubstTyNames" class="def"
+	    >termSubstTyNames</a
+	    > &#8759; (tyname &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Subst.html#termSubstTyNames" class="link"
+	    >Source</a
+	    > <a href="#v:termSubstTyNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Naively substitute type names using the given functions (i.e. do not substitute binders).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubstTyNamesM" class="def"
+	    >termSubstTyNamesM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; (tyname &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Subst.html#termSubstTyNamesM" class="link"
+	    >Source</a
+	    > <a href="#v:termSubstTyNamesM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Naively monadically substitute type names using the given function
+(i.e. do not substitute binders).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingSubstNames" class="def"
+	    >bindingSubstNames</a
+	    > &#8759; (name &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Subst.html#bindingSubstNames" class="link"
+	    >Source</a
+	    > <a href="#v:bindingSubstNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Naively substitute names using the given functions (i.e. do not substitute binders).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bindingSubstTyNames" class="def"
+	    >bindingSubstTyNames</a
+	    > &#8759; (tyname &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a)) &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Subst.html#bindingSubstTyNames" class="link"
+	    >Source</a
+	    > <a href="#v:bindingSubstTyNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Naively substitute type names using the given functions (i.e. do not substitute binders).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fvTerm" class="def"
+	    >fvTerm</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    > &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) name <a href="src/PlutusIR.Subst.html#fvTerm" class="link"
+	    >Source</a
+	    > <a href="#v:fvTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the free term variables in a PIR term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ftvTerm" class="def"
+	    >ftvTerm</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) tyname <a href="src/PlutusIR.Subst.html#ftvTerm" class="link"
+	    >Source</a
+	    > <a href="#v:ftvTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the free type variables in a PIR term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fvBinding" class="def"
+	    >fvBinding</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    > &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun ann) name <a href="src/PlutusIR.Subst.html#fvBinding" class="link"
+	    >Source</a
+	    > <a href="#v:fvBinding" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the free variables in a PIR single let-binding.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ftvBinding" class="def"
+	    >ftvBinding</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > &#8658; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	    >Recursivity</a
+	    > &#8594; Traversal' (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > tyname name uni fun ann) tyname <a href="src/PlutusIR.Subst.html#ftvBinding" class="link"
+	    >Source</a
+	    > <a href="#v:ftvBinding" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the free type variables in a PIR single let-binding.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ftvTy" class="def"
+	    >ftvTy</a
+	    > &#8759; &#8704; tyname unique (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann. <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname unique &#8658; Traversal' (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) tyname <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:ftvTy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the free type variables in a type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:vTerm" class="def"
+	    >vTerm</a
+	    > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) name <a href="src/PlutusIR.Subst.html#vTerm" class="link"
+	    >Source</a
+	    > <a href="#v:vTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the term variables in a term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tvTerm" class="def"
+	    >tvTerm</a
+	    > &#8759; Fold (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) tyname <a href="src/PlutusIR.Subst.html#tvTerm" class="link"
+	    >Source</a
+	    > <a href="#v:tvTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the type variables in a term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tvTy" class="def"
+	    >tvTy</a
+	    > &#8759; &#8704; tyname (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) ann f. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Contravariant.html#t:Contravariant" title="Data.Functor.Contravariant"
+	    >Contravariant</a
+	    > f, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f) &#8658; (tyname &#8594; f tyname) &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni ann) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:tvTy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get all the type variables in a type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substConstantA" class="def"
+	    >substConstantA</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f &#8658; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) &#8594; f (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; f (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Subst.html#substConstantA" class="link"
+	    >Source</a
+	    > <a href="#v:substConstantA" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Applicatively replace a constant using the given function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substConstant" class="def"
+	    >substConstant</a
+	    > &#8759; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Subst.html#substConstant" class="link"
+	    >Source</a
+	    > <a href="#v:substConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Replace a constant using the given function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubstConstantsM" class="def"
+	    >termSubstConstantsM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann))) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Subst.html#termSubstConstantsM" class="link"
+	    >Source</a
+	    > <a href="#v:termSubstConstantsM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Monadically substitute constants using the given function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSubstConstants" class="def"
+	    >termSubstConstants</a
+	    > &#8759; (ann &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann)) &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Subst.html#termSubstConstants" class="link"
+	    >Source</a
+	    > <a href="#v:termSubstConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Substitute constants using the given function.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

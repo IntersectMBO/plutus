@@ -1,0 +1,3628 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.ExMemoryUsage</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.ExMemoryUsage</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CostRose"
+	      >CostRose</a
+	      > = <a href="#v:CostRose"
+	      >CostRose</a
+	      > !<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      > ![<a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:singletonRose"
+	      >singletonRose</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:ExMemoryUsage"
+	      >ExMemoryUsage</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:memoryUsage"
+		  >memoryUsage</a
+		  > &#8759; a &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		  >CostRose</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:flattenCostRose"
+	      >flattenCostRose</a
+	      > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:NumBytesCostedAsNumWords"
+	      >NumBytesCostedAsNumWords</a
+	      > = <a href="#v:NumBytesCostedAsNumWords"
+	      >NumBytesCostedAsNumWords</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unNumBytesCostedAsNumWords"
+		  >unNumBytesCostedAsNumWords</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:IntegerCostedLiterally"
+	      >IntegerCostedLiterally</a
+	      > = <a href="#v:IntegerCostedLiterally"
+	      >IntegerCostedLiterally</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unIntegerCostedLiterally"
+		  >unIntegerCostedLiterally</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ValueTotalSize"
+	      >ValueTotalSize</a
+	      > = <a href="#v:ValueTotalSize"
+	      >ValueTotalSize</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unValueTotalSize"
+		  >unValueTotalSize</a
+		  > &#8759; <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		  >Value</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ValueLogOuterSizeAddLogMaxInnerSize"
+	      >ValueLogOuterSizeAddLogMaxInnerSize</a
+	      > = <a href="#v:ValueLogOuterSizeAddLogMaxInnerSize"
+	      >ValueLogOuterSizeAddLogMaxInnerSize</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unValueLogOuterSizeAddLogMaxInnerSize"
+		  >unValueLogOuterSizeAddLogMaxInnerSize</a
+		  > &#8759; <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		  >Value</a
+		  ></li
+		></ul
+	      >}</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CostRose" class="def"
+	    >CostRose</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#CostRose" class="link"
+	    >Source</a
+	    > <a href="#t:CostRose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A lazy tree of costs. Convenient for calculating the costs of values of built-in types, because
+they may have arbitrary branching (in particular a <code
+	      ><a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		>Data</a
+		></code
+	      > object can contain a list of <code
+	      ><a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		>Data</a
+		></code
+	      >
+objects inside of it).</p
+	    ><p
+	    ><code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      > gets collapsed to a lazy linear structure down the pipeline, so that we can
+stream the costs to the outside where, say, the CEK machine picks them up one by one and handles
+somehow (in particular, subtracts from the remaining budget). </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CostRose" class="def"
+		  >CostRose</a
+		  > !<a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+		  >CostingInteger</a
+		  > ![<a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		  >CostRose</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CostRose"
+	    >Instances</h4
+	    ><details id="i:CostRose" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostRose:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >CostRose</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-112" class="link"
+		    >Source</a
+		    > <a href="#t:CostRose" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostRose:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:singletonRose" class="def"
+	    >singletonRose</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >CostRose</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#singletonRose" class="link"
+	    >Source</a
+	    > <a href="#v:singletonRose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create a <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      > containing a single cost.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:ExMemoryUsage" class="def"
+	    >ExMemoryUsage</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage" class="link"
+	    >Source</a
+	    > <a href="#t:ExMemoryUsage" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:memoryUsage" class="def"
+	      >memoryUsage</a
+	      > &#8759; a &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+	      >Source</a
+	      > <a href="#v:memoryUsage" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ExMemoryUsage"
+	    >Instances</h4
+	    ><details id="i:ExMemoryUsage" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:1"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+		      >Word8</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-264" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Word8" title="PlutusPrelude"
+			  >Word8</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:2"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-312" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+			  >ByteString</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:3"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+		      >Element</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-439" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+			  >Element</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:4"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+		      >Element</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-448" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+			  >Element</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:5"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+		      >MlResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-457" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+			  >MlResult</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:6"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		      >Data</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-373" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:7"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Builtins.html#line-218" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Builtins.html"
+			>PlutusCore.Default.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:8"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-299" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >IntegerCostedLiterally</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:9"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-282" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >NumBytesCostedAsNumWords</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:10"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-418" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueLogOuterSizeAddLogMaxInnerSize</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:11"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-393" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueTotalSize</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:12"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		      >Value</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-387" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			  >Value</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:13"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		      >Text</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-319" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+			  >Text</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:14"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-255" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:15"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusPrelude.html#t:Natural" title="PlutusPrelude"
+		      >Natural</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-259" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Natural" title="PlutusPrelude"
+			  >Natural</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:16"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > ()</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-238" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; () &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:17"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-343" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:18"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+		      >Char</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-339" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Char.html#t:Char" title="Data.Char"
+			  >Char</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:19"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-334" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:20"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (<a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+		      >Vector</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-230" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+			  >Vector</a
+			  > a &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:21"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > [a]</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-218" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; [a] &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:22"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > val &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (<a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+		      >Opaque</a
+		      > val rep)</span
+		    > <a href="src/PlutusCore.Builtin.Polymorphism.html#line-149" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Polymorphism.html"
+			>PlutusCore.Builtin.Polymorphism</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+			  >Opaque</a
+			  > val rep &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:23"
+		      ></span
+		      > (<a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      >, <a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni) &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (<a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+		      >SomeConstant</a
+		      > uni rep)</span
+		    > <a href="src/PlutusCore.Builtin.Polymorphism.html#line-165" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Polymorphism.html"
+			>PlutusCore.Builtin.Polymorphism</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+			  >SomeConstant</a
+			  > uni rep &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:24"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+		      >CkValue</a
+		      > uni fun)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.Ck.html#line-164" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:24"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-Ck.html"
+			>PlutusCore.Evaluation.Machine.Ck</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:25"
+		      ></span
+		      > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      >) &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+		      >Some</a
+		      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		      >ValueOf</a
+		      > uni))</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-234" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:25"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni) &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:26"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (a, b)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-200" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:26"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; (a, b) &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:27"
+		      ></span
+		      > (<a href="Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni, <a href="Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      >) &#8658; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekValue</a
+		      > uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-747" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:27"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ExMemoryUsage:ExMemoryUsage:28"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusCore.Core.Type.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:ExMemoryUsage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ExMemoryUsage:ExMemoryUsage:28"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Core-Type.html"
+			>PlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:flattenCostRose" class="def"
+	    >flattenCostRose</a
+	    > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >CostRose</a
+	    > &#8594; <a href="PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#flattenCostRose" class="link"
+	    >Source</a
+	    > <a href="#v:flattenCostRose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Collapse a <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      > to a lazy linear stream of costs. Retrieving the next element takes O(1)
+time in the worst case regardless of the recursion pattern of the given <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:NumBytesCostedAsNumWords" class="def"
+	    >NumBytesCostedAsNumWords</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#NumBytesCostedAsNumWords" class="link"
+	    >Source</a
+	    > <a href="#t:NumBytesCostedAsNumWords" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >When invoking a built-in function, a value of type <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>NumBytesCostedAsNumWords</a
+		></code
+	      >
+   can be used transparently as a built-in Integer but with a different size
+   measure: see Note [Integral types as Integer].  This is required by the
+   <code
+	      >integerToByteString</code
+	      > builtin, which takes an argument <code
+	      >w</code
+	      > specifying the
+   width (in bytes) of the output bytestring (zero-padded to the desired size).
+   The memory consumed by the function is given by <code
+	      >w</code
+	      >, *not* the size of <code
+	      >w</code
+	      >.
+   The <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>NumBytesCostedAsNumWords</a
+		></code
+	      > type wraps an Int <code
+	      >w</code
+	      > in a newtype whose
+   <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>ExMemoryUsage</a
+		></code
+	      > is equal to the number of eight-byte words required to
+   contain <code
+	      >w</code
+	      > bytes, allowing its costing function to work properly.  We also
+   use this for <code
+	      >replicateByte</code
+	      >.  If this is used to wrap an argument in the
+   denotation of a builtin then it *MUST* also be used to wrap the same argument
+   in the relevant budgeting benchmark. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NumBytesCostedAsNumWords" class="def"
+		  >NumBytesCostedAsNumWords</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unNumBytesCostedAsNumWords" class="def"
+			  >unNumBytesCostedAsNumWords</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:NumBytesCostedAsNumWords"
+	    >Instances</h4
+	    ><details id="i:NumBytesCostedAsNumWords" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NumBytesCostedAsNumWords:ExMemoryUsage:1"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-282" class="link"
+		    >Source</a
+		    > <a href="#t:NumBytesCostedAsNumWords" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NumBytesCostedAsNumWords:ExMemoryUsage:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >NumBytesCostedAsNumWords</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NumBytesCostedAsNumWords:MakeKnownIn:2"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-669" class="link"
+		    >Source</a
+		    > <a href="#t:MakeKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NumBytesCostedAsNumWords:MakeKnownIn:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >NumBytesCostedAsNumWords</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > term <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NumBytesCostedAsNumWords:ReadKnownIn:3"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-676" class="link"
+		    >Source</a
+		    > <a href="#t:ReadKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NumBytesCostedAsNumWords:ReadKnownIn:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readKnown"
+			  >readKnown</a
+			  > &#8759; term &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >NumBytesCostedAsNumWords</a
+			  > <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+			  >Source</a
+			  > <a href="#v:readKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NumBytesCostedAsNumWords:KnownTypeAst:4"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-666" class="link"
+		    >Source</a
+		    > <a href="#t:KnownTypeAst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NumBytesCostedAsNumWords:KnownTypeAst:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >NumBytesCostedAsNumWords</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >NumBytesCostedAsNumWords</a
+			  > &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >NumBytesCostedAsNumWords</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NumBytesCostedAsNumWords:IsBuiltin:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-666" class="link"
+		    >Source</a
+		    > <a href="#t:IsBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NumBytesCostedAsNumWords:IsBuiltin:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>NumBytesCostedAsNumWords</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NumBytesCostedAsNumWords:ToBinds:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-666" class="link"
+		    >Source</a
+		    > <a href="#t:ToBinds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NumBytesCostedAsNumWords:ToBinds:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>NumBytesCostedAsNumWords</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NumBytesCostedAsNumWords:ToHoles:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >NumBytesCostedAsNumWords</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-666" class="link"
+		    >Source</a
+		    > <a href="#t:ToHoles" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NumBytesCostedAsNumWords:ToHoles:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:NumBytesCostedAsNumWords" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>NumBytesCostedAsNumWords</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:IntegerCostedLiterally" class="def"
+	    >IntegerCostedLiterally</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#IntegerCostedLiterally" class="link"
+	    >Source</a
+	    > <a href="#t:IntegerCostedLiterally" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A wrapper for <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      >s whose &quot;memory usage&quot; for costing purposes is the
+   absolute value of the <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      >.  This is used for costing built-in functions
+   such as <code
+	      >shiftByteString</code
+	      > and <code
+	      >rotateByteString</code
+	      >, where the cost may depend
+   on the actual value of the shift argument, not its size.  If this is used to
+   wrap an argument in the denotation of a builtin then it *MUST* also be used
+   to wrap the same argument in the relevant budgeting benchmark. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:IntegerCostedLiterally" class="def"
+		  >IntegerCostedLiterally</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unIntegerCostedLiterally" class="def"
+			  >unIntegerCostedLiterally</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:IntegerCostedLiterally"
+	    >Instances</h4
+	    ><details id="i:IntegerCostedLiterally" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IntegerCostedLiterally:ExMemoryUsage:1"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-299" class="link"
+		    >Source</a
+		    > <a href="#t:IntegerCostedLiterally" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IntegerCostedLiterally:ExMemoryUsage:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >IntegerCostedLiterally</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IntegerCostedLiterally:MakeKnownIn:2"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-685" class="link"
+		    >Source</a
+		    > <a href="#t:MakeKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IntegerCostedLiterally:MakeKnownIn:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >IntegerCostedLiterally</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > term <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IntegerCostedLiterally:ReadKnownIn:3"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		      >Integer</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-691" class="link"
+		    >Source</a
+		    > <a href="#t:ReadKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IntegerCostedLiterally:ReadKnownIn:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readKnown"
+			  >readKnown</a
+			  > &#8759; term &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >IntegerCostedLiterally</a
+			  > <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+			  >Source</a
+			  > <a href="#v:readKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IntegerCostedLiterally:KnownTypeAst:4"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-682" class="link"
+		    >Source</a
+		    > <a href="#t:KnownTypeAst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IntegerCostedLiterally:KnownTypeAst:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >IntegerCostedLiterally</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >IntegerCostedLiterally</a
+			  > &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >IntegerCostedLiterally</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IntegerCostedLiterally:IsBuiltin:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-682" class="link"
+		    >Source</a
+		    > <a href="#t:IsBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IntegerCostedLiterally:IsBuiltin:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>IntegerCostedLiterally</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IntegerCostedLiterally:ToBinds:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-682" class="link"
+		    >Source</a
+		    > <a href="#t:ToBinds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IntegerCostedLiterally:ToBinds:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>IntegerCostedLiterally</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:IntegerCostedLiterally:ToHoles:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >IntegerCostedLiterally</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-682" class="link"
+		    >Source</a
+		    > <a href="#t:ToHoles" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:IntegerCostedLiterally:ToHoles:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:IntegerCostedLiterally" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>IntegerCostedLiterally</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			>Integer</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ValueTotalSize" class="def"
+	    >ValueTotalSize</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ValueTotalSize" class="link"
+	    >Source</a
+	    > <a href="#t:ValueTotalSize" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Measure the size of a <code
+	      ><a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		>Value</a
+		></code
+	      > by its <code
+	      ><a href="PlutusCore-Value.html#v:totalSize" title="PlutusCore.Value"
+		>totalSize</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ValueTotalSize" class="def"
+		  >ValueTotalSize</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unValueTotalSize" class="def"
+			  >unValueTotalSize</a
+			  > &#8759; <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			  >Value</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ValueTotalSize"
+	    >Instances</h4
+	    ><details id="i:ValueTotalSize" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueTotalSize:ExMemoryUsage:1"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-393" class="link"
+		    >Source</a
+		    > <a href="#t:ValueTotalSize" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueTotalSize:ExMemoryUsage:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueTotalSize</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueTotalSize:MakeKnownIn:2"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		      >Value</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-700" class="link"
+		    >Source</a
+		    > <a href="#t:MakeKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueTotalSize:MakeKnownIn:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueTotalSize</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > term <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueTotalSize:ReadKnownIn:3"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		      >Value</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-706" class="link"
+		    >Source</a
+		    > <a href="#t:ReadKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueTotalSize:ReadKnownIn:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readKnown"
+			  >readKnown</a
+			  > &#8759; term &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueTotalSize</a
+			  > <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+			  >Source</a
+			  > <a href="#v:readKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueTotalSize:KnownTypeAst:4"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-697" class="link"
+		    >Source</a
+		    > <a href="#t:KnownTypeAst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueTotalSize:KnownTypeAst:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueTotalSize</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueTotalSize</a
+			  > &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueTotalSize</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueTotalSize:IsBuiltin:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-697" class="link"
+		    >Source</a
+		    > <a href="#t:IsBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueTotalSize:IsBuiltin:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>ValueTotalSize</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			>Value</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueTotalSize:ToBinds:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-697" class="link"
+		    >Source</a
+		    > <a href="#t:ToBinds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueTotalSize:ToBinds:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>ValueTotalSize</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			>Value</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueTotalSize:ToHoles:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueTotalSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-697" class="link"
+		    >Source</a
+		    > <a href="#t:ToHoles" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueTotalSize:ToHoles:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueTotalSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>ValueTotalSize</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			>Value</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ValueLogOuterSizeAddLogMaxInnerSize" class="def"
+	    >ValueLogOuterSizeAddLogMaxInnerSize</a
+	    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ValueLogOuterSizeAddLogMaxInnerSize" class="link"
+	    >Source</a
+	    > <a href="#t:ValueLogOuterSizeAddLogMaxInnerSize" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ValueLogOuterSizeAddLogMaxInnerSize" class="def"
+		  >ValueLogOuterSizeAddLogMaxInnerSize</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unValueLogOuterSizeAddLogMaxInnerSize" class="def"
+			  >unValueLogOuterSizeAddLogMaxInnerSize</a
+			  > &#8759; <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			  >Value</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ValueLogOuterSizeAddLogMaxInnerSize"
+	    >Instances</h4
+	    ><details id="i:ValueLogOuterSizeAddLogMaxInnerSize" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ExMemoryUsage:1"
+		      ></span
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ExMemoryUsage</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#line-418" class="link"
+		    >Source</a
+		    > <a href="#t:ValueLogOuterSizeAddLogMaxInnerSize" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ExMemoryUsage:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html"
+			>PlutusCore.Evaluation.Machine.ExMemoryUsage</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:memoryUsage"
+			  >memoryUsage</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueLogOuterSizeAddLogMaxInnerSize</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >CostRose</a
+			  > <a href="src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#memoryUsage" class="link"
+			  >Source</a
+			  > <a href="#v:memoryUsage" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:MakeKnownIn:2"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		      >Value</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-715" class="link"
+		    >Source</a
+		    > <a href="#t:MakeKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:MakeKnownIn:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueLogOuterSizeAddLogMaxInnerSize</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > term <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ReadKnownIn:3"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:KnownBuiltinTypeIn" title="PlutusCore.Builtin.KnownType"
+		      >KnownBuiltinTypeIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+		      >Value</a
+		      > &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownIn</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > term <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-721" class="link"
+		    >Source</a
+		    > <a href="#t:ReadKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ReadKnownIn:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readKnown"
+			  >readKnown</a
+			  > &#8759; term &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueLogOuterSizeAddLogMaxInnerSize</a
+			  > <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+			  >Source</a
+			  > <a href="#v:readKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:KnownTypeAst:4"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-712" class="link"
+		    >Source</a
+		    > <a href="#t:KnownTypeAst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:KnownTypeAst:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueLogOuterSizeAddLogMaxInnerSize</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueLogOuterSizeAddLogMaxInnerSize</a
+			  > &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			  >ValueLogOuterSizeAddLogMaxInnerSize</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/some-1.0.6/docs/Data-Some-GADT.html#t:Some" title="Data.Some.GADT"
+			  >Some</a
+			  > <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:IsBuiltin:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-712" class="link"
+		    >Source</a
+		    > <a href="#t:IsBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:IsBuiltin:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>ValueLogOuterSizeAddLogMaxInnerSize</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			>Value</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ToBinds:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-712" class="link"
+		    >Source</a
+		    > <a href="#t:ToBinds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ToBinds:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>ValueLogOuterSizeAddLogMaxInnerSize</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> acc <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			>Value</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ToHoles:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >ValueLogOuterSizeAddLogMaxInnerSize</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-712" class="link"
+		    >Source</a
+		    > <a href="#t:ToHoles" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ValueLogOuterSizeAddLogMaxInnerSize:ToHoles:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ValueLogOuterSizeAddLogMaxInnerSize" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+			>ValueLogOuterSizeAddLogMaxInnerSize</a
+			> = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> hole <a href="PlutusCore-Value.html#t:Value" title="PlutusCore.Value"
+			>Value</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,2667 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.AstSize</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#kindAstSize"
+	><span class="hs-identifier"
+	  >kindAstSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#typeAstSize"
+	><span class="hs-identifier"
+	  >typeAstSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#tyVarDeclAstSize"
+	><span class="hs-identifier"
+	  >tyVarDeclAstSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#termAstSize"
+	><span class="hs-identifier"
+	  >termAstSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#varDeclAstSize"
+	><span class="hs-identifier"
+	  >varDeclAstSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#programAstSize"
+	><span class="hs-identifier"
+	  >programAstSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#serialisedAstSize"
+	><span class="hs-identifier"
+	  >serialisedAstSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Monoid.html"
+	><span class="hs-identifier"
+	  >Data.Monoid</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Flat.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#to"
+	><span class="hs-identifier"
+	  >to</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="AstSize"
+      ><span class="annot"
+	><a href="PlutusCore.AstSize.html#AstSize"
+	  ><span class="hs-identifier hs-var"
+	    >AstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="AstSize"
+      ><span class="annot"
+	><a href="PlutusCore.AstSize.html#AstSize"
+	  ><span class="hs-identifier hs-var"
+	    >AstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >AstSize -&gt; Integer
+</span
+	  ><a href="PlutusCore.AstSize.html#unAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681983312"
+      ><span id="local-6989586621681983318"
+	><span id="local-6989586621681983322"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; AstSize -&gt; ShowS
+[AstSize] -&gt; ShowS
+AstSize -&gt; String
+(Int -&gt; AstSize -&gt; ShowS)
+-&gt; (AstSize -&gt; String) -&gt; ([AstSize] -&gt; ShowS) -&gt; Show AstSize
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; AstSize -&gt; ShowS
+showsPrec :: Int -&gt; AstSize -&gt; ShowS
+$cshow :: AstSize -&gt; String
+show :: AstSize -&gt; String
+$cshowList :: [AstSize] -&gt; ShowS
+showList :: [AstSize] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681983326"
+      ><span id="local-6989586621681983331"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. AstSize -&gt; Doc ann)
+-&gt; (forall ann. [AstSize] -&gt; Doc ann) -&gt; Pretty AstSize
+forall ann. [AstSize] -&gt; Doc ann
+forall ann. AstSize -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. AstSize -&gt; Doc ann
+pretty :: forall ann. AstSize -&gt; Doc ann
+$cprettyList :: forall ann. [AstSize] -&gt; Doc ann
+prettyList :: forall ann. [AstSize] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983337"
+      ><span id="local-6989586621681983342"
+	><span class="annot"
+	  ><span class="annottext"
+	    >AstSize -&gt; AstSize -&gt; Bool
+(AstSize -&gt; AstSize -&gt; Bool)
+-&gt; (AstSize -&gt; AstSize -&gt; Bool) -&gt; Eq AstSize
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: AstSize -&gt; AstSize -&gt; Bool
+== :: AstSize -&gt; AstSize -&gt; Bool
+$c/= :: AstSize -&gt; AstSize -&gt; Bool
+/= :: AstSize -&gt; AstSize -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983350"
+      ><span id="local-6989586621681983355"
+	><span id="local-6989586621681983359"
+	  ><span id="local-6989586621681983363"
+	    ><span id="local-6989586621681983367"
+	      ><span id="local-6989586621681983371"
+		><span id="local-6989586621681983375"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq AstSize
+Eq AstSize =&gt;
+(AstSize -&gt; AstSize -&gt; Ordering)
+-&gt; (AstSize -&gt; AstSize -&gt; Bool)
+-&gt; (AstSize -&gt; AstSize -&gt; Bool)
+-&gt; (AstSize -&gt; AstSize -&gt; Bool)
+-&gt; (AstSize -&gt; AstSize -&gt; Bool)
+-&gt; (AstSize -&gt; AstSize -&gt; AstSize)
+-&gt; (AstSize -&gt; AstSize -&gt; AstSize)
+-&gt; Ord AstSize
+AstSize -&gt; AstSize -&gt; Bool
+AstSize -&gt; AstSize -&gt; Ordering
+AstSize -&gt; AstSize -&gt; AstSize
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: AstSize -&gt; AstSize -&gt; Ordering
+compare :: AstSize -&gt; AstSize -&gt; Ordering
+$c&lt; :: AstSize -&gt; AstSize -&gt; Bool
+&lt; :: AstSize -&gt; AstSize -&gt; Bool
+$c&lt;= :: AstSize -&gt; AstSize -&gt; Bool
+&lt;= :: AstSize -&gt; AstSize -&gt; Bool
+$c&gt; :: AstSize -&gt; AstSize -&gt; Bool
+&gt; :: AstSize -&gt; AstSize -&gt; Bool
+$c&gt;= :: AstSize -&gt; AstSize -&gt; Bool
+&gt;= :: AstSize -&gt; AstSize -&gt; Bool
+$cmax :: AstSize -&gt; AstSize -&gt; AstSize
+max :: AstSize -&gt; AstSize -&gt; AstSize
+$cmin :: AstSize -&gt; AstSize -&gt; AstSize
+min :: AstSize -&gt; AstSize -&gt; AstSize
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983381"
+      ><span id="local-6989586621681983386"
+	><span id="local-6989586621681983390"
+	  ><span id="local-6989586621681983394"
+	    ><span id="local-6989586621681983398"
+	      ><span id="local-6989586621681983402"
+		><span id="local-6989586621681983406"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Integer -&gt; AstSize
+AstSize -&gt; AstSize
+AstSize -&gt; AstSize -&gt; AstSize
+(AstSize -&gt; AstSize -&gt; AstSize)
+-&gt; (AstSize -&gt; AstSize -&gt; AstSize)
+-&gt; (AstSize -&gt; AstSize -&gt; AstSize)
+-&gt; (AstSize -&gt; AstSize)
+-&gt; (AstSize -&gt; AstSize)
+-&gt; (AstSize -&gt; AstSize)
+-&gt; (Integer -&gt; AstSize)
+-&gt; Num AstSize
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; Num a
+$c+ :: AstSize -&gt; AstSize -&gt; AstSize
++ :: AstSize -&gt; AstSize -&gt; AstSize
+$c- :: AstSize -&gt; AstSize -&gt; AstSize
+- :: AstSize -&gt; AstSize -&gt; AstSize
+$c* :: AstSize -&gt; AstSize -&gt; AstSize
+* :: AstSize -&gt; AstSize -&gt; AstSize
+$cnegate :: AstSize -&gt; AstSize
+negate :: AstSize -&gt; AstSize
+$cabs :: AstSize -&gt; AstSize
+abs :: AstSize -&gt; AstSize
+$csignum :: AstSize -&gt; AstSize
+signum :: AstSize -&gt; AstSize
+$cfromInteger :: Integer -&gt; AstSize
+fromInteger :: Integer -&gt; AstSize
+</span
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Num</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681983411"
+      ><span id="local-6989586621681983413"
+	><span id="local-6989586621681983420"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+	      ><span class="hs-identifier hs-type"
+		>PrettyBy</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681983411"
+	      ><span class="hs-identifier hs-type"
+		>config</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681983429"
+      ><span id="local-6989586621681983435"
+	><span id="local-6989586621681983442"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty AstSize -&gt; AstSize
+AstSize -&gt; AstSize -&gt; AstSize
+(AstSize -&gt; AstSize -&gt; AstSize)
+-&gt; (NonEmpty AstSize -&gt; AstSize)
+-&gt; (forall b. Integral b =&gt; b -&gt; AstSize -&gt; AstSize)
+-&gt; Semigroup AstSize
+forall b. Integral b =&gt; b -&gt; AstSize -&gt; AstSize
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+$c&lt;&gt; :: AstSize -&gt; AstSize -&gt; AstSize
+&lt;&gt; :: AstSize -&gt; AstSize -&gt; AstSize
+$csconcat :: NonEmpty AstSize -&gt; AstSize
+sconcat :: NonEmpty AstSize -&gt; AstSize
+$cstimes :: forall b. Integral b =&gt; b -&gt; AstSize -&gt; AstSize
+stimes :: forall b. Integral b =&gt; b -&gt; AstSize -&gt; AstSize
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681983453"
+      ><span id="local-6989586621681983459"
+	><span id="local-6989586621681983464"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup AstSize
+AstSize
+Semigroup AstSize =&gt;
+AstSize
+-&gt; (AstSize -&gt; AstSize -&gt; AstSize)
+-&gt; ([AstSize] -&gt; AstSize)
+-&gt; Monoid AstSize
+[AstSize] -&gt; AstSize
+AstSize -&gt; AstSize -&gt; AstSize
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+$cmempty :: AstSize
+mempty :: AstSize
+$cmappend :: AstSize -&gt; AstSize -&gt; AstSize
+mappend :: AstSize -&gt; AstSize -&gt; AstSize
+$cmconcat :: [AstSize] -&gt; AstSize
+mconcat :: [AstSize] -&gt; AstSize
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Semigroup.Internal.html#Sum"
+	><span class="hs-identifier hs-type"
+	  >Sum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Count the number of AST nodes in a kind.
+
+&gt;&gt;&gt; kindAstSize $ Type ()
+AstSize {unAstSize = 1}
+&gt;&gt;&gt; kindAstSize $ KindArrow () (KindArrow () (Type ()) (Type ())) (Type ())
+AstSize {unAstSize = 5}
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="local-6989586621681983193"
+      ><span class="annot"
+	><a href="PlutusCore.AstSize.html#kindAstSize"
+	  ><span class="hs-identifier hs-type"
+	    >kindAstSize</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Core.Type.html#Kind"
+	  ><span class="hs-identifier hs-type"
+	    >Kind</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681983193"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.AstSize.html#AstSize"
+	  ><span class="hs-identifier hs-type"
+	    >AstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="kindAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >kindAstSize :: forall a. Kind a -&gt; AstSize
+</span
+	  ><a href="PlutusCore.AstSize.html#kindAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >kindAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983479"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind a
+</span
+	  ><a href="#local-6989586621681983479"
+	  ><span class="hs-identifier hs-var"
+	    >kind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AstSize] -&gt; AstSize
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier hs-var"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind a
+</span
+	><a href="#local-6989586621681983479"
+	><span class="hs-identifier hs-var"
+	  >kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind a -&gt; Getting AstSize (Kind a) AstSize -&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind a -&gt; Const AstSize (Kind a))
+-&gt; Kind a -&gt; Const AstSize (Kind a)
+forall ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Kind ann -&gt; f (Kind ann)) -&gt; Kind ann -&gt; f (Kind ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#kindSubkinds"
+	><span class="hs-identifier hs-var"
+	  >kindSubkinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Kind a -&gt; Const AstSize (Kind a))
+ -&gt; Kind a -&gt; Const AstSize (Kind a))
+-&gt; Getting AstSize (Kind a) AstSize
+-&gt; Getting AstSize (Kind a) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind a -&gt; AstSize) -&gt; Getting AstSize (Kind a) AstSize
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind a -&gt; AstSize
+forall a. Kind a -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#kindAstSize"
+	><span class="hs-identifier hs-var"
+	  >kindAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Count the number of AST nodes in a type.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="local-6989586621681983216"
+      ><span id="local-6989586621681983217"
+	><span id="local-6989586621681983218"
+	  ><span class="annot"
+	    ><a href="PlutusCore.AstSize.html#typeAstSize"
+	      ><span class="hs-identifier hs-type"
+		>typeAstSize</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Core.Type.html#Type"
+	      ><span class="hs-identifier hs-type"
+		>Type</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681983216"
+	      ><span class="hs-identifier hs-type"
+		>tyname</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681983217"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681983218"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.AstSize.html#AstSize"
+	      ><span class="hs-identifier hs-type"
+		>AstSize</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="typeAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeAstSize :: forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; AstSize
+</span
+	  ><a href="PlutusCore.AstSize.html#typeAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983493"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type tyname uni ann
+</span
+	  ><a href="#local-6989586621681983493"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AstSize] -&gt; AstSize
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier hs-var"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681983493"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Getting AstSize (Type tyname uni ann) AstSize -&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; Const AstSize (Kind ann))
+-&gt; Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann)
+forall tyname (uni :: * -&gt; *) ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Kind ann -&gt; f (Kind ann))
+-&gt; Type tyname uni ann -&gt; f (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#typeSubkinds"
+	><span class="hs-identifier hs-var"
+	  >typeSubkinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Kind ann -&gt; Const AstSize (Kind ann))
+ -&gt; Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+-&gt; ((AstSize -&gt; Const AstSize AstSize)
+    -&gt; Kind ann -&gt; Const AstSize (Kind ann))
+-&gt; Getting AstSize (Type tyname uni ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; AstSize)
+-&gt; (AstSize -&gt; Const AstSize AstSize)
+-&gt; Kind ann
+-&gt; Const AstSize (Kind ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann -&gt; AstSize
+forall a. Kind a -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#kindAstSize"
+	><span class="hs-identifier hs-var"
+	  >kindAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><a href="#local-6989586621681983493"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+-&gt; Getting AstSize (Type tyname uni ann) AstSize -&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+-&gt; Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann)
+forall tyname (uni :: * -&gt; *) ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Type tyname uni ann -&gt; f (Type tyname uni ann))
+-&gt; Type tyname uni ann -&gt; f (Type tyname uni ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#typeSubtypes"
+	><span class="hs-identifier hs-var"
+	  >typeSubtypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+ -&gt; Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+-&gt; Getting AstSize (Type tyname uni ann) AstSize
+-&gt; Getting AstSize (Type tyname uni ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; AstSize)
+-&gt; Getting AstSize (Type tyname uni ann) AstSize
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; AstSize
+forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#typeAstSize"
+	><span class="hs-identifier hs-var"
+	  >typeAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span id="local-6989586621681983231"
+      ><span id="local-6989586621681983232"
+	><span class="annot"
+	  ><a href="PlutusCore.AstSize.html#tyVarDeclAstSize"
+	    ><span class="hs-identifier hs-type"
+	      >tyVarDeclAstSize</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#TyVarDecl"
+	    ><span class="hs-identifier hs-type"
+	      >TyVarDecl</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983231"
+	    ><span class="hs-identifier hs-type"
+	      >tyname</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681983232"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.AstSize.html#AstSize"
+	    ><span class="hs-identifier hs-type"
+	      >AstSize</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="tyVarDeclAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyVarDeclAstSize :: forall tyname ann. TyVarDecl tyname ann -&gt; AstSize
+</span
+	  ><a href="PlutusCore.AstSize.html#tyVarDeclAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tyVarDeclAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983501"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl tyname ann
+</span
+	  ><a href="#local-6989586621681983501"
+	  ><span class="hs-identifier hs-var"
+	    >tyVarDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AstSize] -&gt; AstSize
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier hs-var"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+</span
+	><a href="#local-6989586621681983501"
+	><span class="hs-identifier hs-var"
+	  >tyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl tyname ann
+-&gt; Getting AstSize (TyVarDecl tyname ann) AstSize -&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; Const AstSize (Kind ann))
+-&gt; TyVarDecl tyname ann -&gt; Const AstSize (TyVarDecl tyname ann)
+forall tyname a (f :: * -&gt; *).
+Applicative f =&gt;
+(Kind a -&gt; f (Kind a))
+-&gt; TyVarDecl tyname a -&gt; f (TyVarDecl tyname a)
+</span
+	><a href="PlutusCore.Core.Plated.html#tyVarDeclSubkinds"
+	><span class="hs-identifier hs-var"
+	  >tyVarDeclSubkinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Kind ann -&gt; Const AstSize (Kind ann))
+ -&gt; TyVarDecl tyname ann -&gt; Const AstSize (TyVarDecl tyname ann))
+-&gt; ((AstSize -&gt; Const AstSize AstSize)
+    -&gt; Kind ann -&gt; Const AstSize (Kind ann))
+-&gt; Getting AstSize (TyVarDecl tyname ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; AstSize)
+-&gt; (AstSize -&gt; Const AstSize AstSize)
+-&gt; Kind ann
+-&gt; Const AstSize (Kind ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann -&gt; AstSize
+forall a. Kind a -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#kindAstSize"
+	><span class="hs-identifier hs-var"
+	  >kindAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Count the number of AST nodes in a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="local-6989586621681983239"
+      ><span id="local-6989586621681983240"
+	><span id="local-6989586621681983241"
+	  ><span id="local-6989586621681983242"
+	    ><span id="local-6989586621681983243"
+	      ><span class="annot"
+		><a href="PlutusCore.AstSize.html#termAstSize"
+		  ><span class="hs-identifier hs-type"
+		    >termAstSize</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983239"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983240"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983241"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983242"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983243"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.AstSize.html#AstSize"
+		  ><span class="hs-identifier hs-type"
+		    >AstSize</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="termAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >termAstSize :: forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann -&gt; AstSize
+</span
+	  ><a href="PlutusCore.AstSize.html#termAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983514"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681983514"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AstSize] -&gt; AstSize
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier hs-var"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681983514"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+-&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; Const AstSize (Kind ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Const AstSize (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Kind ann -&gt; f (Kind ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#termSubkinds"
+	><span class="hs-identifier hs-var"
+	  >termSubkinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Kind ann -&gt; Const AstSize (Kind ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Const AstSize (Term tyname name uni fun ann))
+-&gt; ((AstSize -&gt; Const AstSize AstSize)
+    -&gt; Kind ann -&gt; Const AstSize (Kind ann))
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind ann -&gt; AstSize)
+-&gt; (AstSize -&gt; Const AstSize AstSize)
+-&gt; Kind ann
+-&gt; Const AstSize (Kind ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann -&gt; AstSize
+forall a. Kind a -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#kindAstSize"
+	><span class="hs-identifier hs-var"
+	  >kindAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681983514"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+-&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Const AstSize (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Type tyname uni ann -&gt; f (Type tyname uni ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#termSubtypes"
+	><span class="hs-identifier hs-var"
+	  >termSubtypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Const AstSize (Term tyname name uni fun ann))
+-&gt; ((AstSize -&gt; Const AstSize AstSize)
+    -&gt; Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; AstSize)
+-&gt; (AstSize -&gt; Const AstSize AstSize)
+-&gt; Type tyname uni ann
+-&gt; Const AstSize (Type tyname uni ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; AstSize
+forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#typeAstSize"
+	><span class="hs-identifier hs-var"
+	  >typeAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681983514"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+-&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann
+ -&gt; Const AstSize (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann
+-&gt; Const AstSize (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term tyname name uni fun ann
+  -&gt; Const AstSize (Term tyname name uni fun ann))
+ -&gt; Term tyname name uni fun ann
+ -&gt; Const AstSize (Term tyname name uni fun ann))
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term tyname name uni fun ann -&gt; AstSize)
+-&gt; Getting AstSize (Term tyname name uni fun ann) AstSize
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; AstSize
+forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#termAstSize"
+	><span class="hs-identifier hs-var"
+	  >termAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="local-6989586621681983268"
+      ><span id="local-6989586621681983269"
+	><span id="local-6989586621681983270"
+	  ><span id="local-6989586621681983271"
+	    ><span class="annot"
+	      ><a href="PlutusCore.AstSize.html#varDeclAstSize"
+		><span class="hs-identifier hs-type"
+		  >varDeclAstSize</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#VarDecl"
+		><span class="hs-identifier hs-type"
+		  >VarDecl</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681983268"
+		><span class="hs-identifier hs-type"
+		  >tyname</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681983269"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681983270"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681983271"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.AstSize.html#AstSize"
+		><span class="hs-identifier hs-type"
+		  >AstSize</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="varDeclAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >varDeclAstSize :: forall tyname name (uni :: * -&gt; *) ann.
+VarDecl tyname name uni ann -&gt; AstSize
+</span
+	  ><a href="PlutusCore.AstSize.html#varDeclAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >varDeclAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983523"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl tyname name uni ann
+</span
+	  ><a href="#local-6989586621681983523"
+	  ><span class="hs-identifier hs-var"
+	    >varDecl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AstSize] -&gt; AstSize
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier hs-var"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+</span
+	><a href="#local-6989586621681983523"
+	><span class="hs-identifier hs-var"
+	  >varDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl tyname name uni ann
+-&gt; Getting AstSize (VarDecl tyname name uni ann) AstSize -&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+-&gt; VarDecl tyname name uni ann
+-&gt; Const AstSize (VarDecl tyname name uni ann)
+forall tyname name (uni :: * -&gt; *) a (f :: * -&gt; *).
+Applicative f =&gt;
+(Type tyname uni a -&gt; f (Type tyname uni a))
+-&gt; VarDecl tyname name uni a -&gt; f (VarDecl tyname name uni a)
+</span
+	><a href="PlutusCore.Core.Plated.html#varDeclSubtypes"
+	><span class="hs-identifier hs-var"
+	  >varDeclSubtypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+ -&gt; VarDecl tyname name uni ann
+ -&gt; Const AstSize (VarDecl tyname name uni ann))
+-&gt; ((AstSize -&gt; Const AstSize AstSize)
+    -&gt; Type tyname uni ann -&gt; Const AstSize (Type tyname uni ann))
+-&gt; Getting AstSize (VarDecl tyname name uni ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type tyname uni ann -&gt; AstSize)
+-&gt; (AstSize -&gt; Const AstSize AstSize)
+-&gt; Type tyname uni ann
+-&gt; Const AstSize (Type tyname uni ann)
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; AstSize
+forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#typeAstSize"
+	><span class="hs-identifier hs-var"
+	  >typeAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Count the number of AST nodes in a program.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span id="local-6989586621681983282"
+      ><span id="local-6989586621681983283"
+	><span id="local-6989586621681983284"
+	  ><span id="local-6989586621681983285"
+	    ><span id="local-6989586621681983286"
+	      ><span class="annot"
+		><a href="PlutusCore.AstSize.html#programAstSize"
+		  ><span class="hs-identifier hs-type"
+		    >programAstSize</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Core.Type.html#Program"
+		  ><span class="hs-identifier hs-type"
+		    >Program</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983282"
+		  ><span class="hs-identifier hs-type"
+		    >tyname</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983283"
+		  ><span class="hs-identifier hs-type"
+		    >name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983284"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983285"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681983286"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.AstSize.html#AstSize"
+		  ><span class="hs-identifier hs-type"
+		    >AstSize</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span id="programAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >programAstSize :: forall tyname name (uni :: * -&gt; *) fun ann.
+Program tyname name uni fun ann -&gt; AstSize
+</span
+	  ><a href="PlutusCore.AstSize.html#programAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >programAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681983526"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681983526"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; AstSize
+forall tyname name (uni :: * -&gt; *) fun ann.
+Term tyname name uni fun ann -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#termAstSize"
+	><span class="hs-identifier hs-var"
+	  >termAstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681983526"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compute the size of the serializabled form of a value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="local-6989586621681983294"
+      ><span class="annot"
+	><a href="PlutusCore.AstSize.html#serialisedAstSize"
+	  ><span class="hs-identifier hs-type"
+	    >serialisedAstSize</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681983294"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681983294"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Integer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="serialisedAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >serialisedAstSize :: forall a. Flat a =&gt; a -&gt; Integer
+</span
+	  ><a href="PlutusCore.AstSize.html#serialisedAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >serialisedAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Integer
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Integer) -&gt; (a -&gt; Int) -&gt; a -&gt; Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#length"
+	><span class="hs-identifier hs-var"
+	  >BS.length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Int) -&gt; (a -&gt; ByteString) -&gt; a -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; ByteString
+forall a. Flat a =&gt; a -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Flat.Run.html#flat"
+	><span class="hs-identifier hs-var"
+	  >flat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
